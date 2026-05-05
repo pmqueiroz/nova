@@ -1,8 +1,10 @@
 use crate::sys::pty::PtyBridge;
 use async_channel::Sender;
-use iced::stream;
-use iced::widget::{column, container, scrollable, text, text_input};
+use iced::keyboard::Key;
+use iced::keyboard::key::Named;
+use iced::widget::{column, container, scrollable, text};
 use iced::{Element, Length, Subscription, Theme};
+use iced::{Event, event, keyboard, stream};
 
 pub struct Nova {
   pty_tx: Option<Sender<String>>,
@@ -12,7 +14,8 @@ pub struct Nova {
 
 #[derive(Debug, Clone)]
 pub enum Message {
-  InputChanged(String),
+  Type(String),
+  Backspace,
   CommandSubmitted,
   PtyReady(Sender<String>),
   PtyOutputReceived(Vec<u8>),
@@ -34,8 +37,13 @@ impl Nova {
       Message::PtyReady(tx) => {
         self.pty_tx = Some(tx);
       }
-      Message::InputChanged(new_input) => {
-        self.input = new_input;
+      Message::Type(c) => {
+        if !c.chars().any(|ch| ch.is_control()) {
+          self.input.push_str(&c);
+        }
+      }
+      Message::Backspace => {
+        self.input.pop();
       }
       Message::CommandSubmitted => {
         if !self.input.trim().is_empty() {
@@ -55,28 +63,23 @@ impl Nova {
   }
 
   pub fn view(&self) -> Element<'_, Message> {
-    let history = self
-      .history
-      .iter()
-      .fold(column![].spacing(5), |col, entry| {
-        col.push(text(entry).size(16))
-      });
+    let mut col = column![].spacing(4);
+    for line in &self.history {
+      col = col.push(text(line).size(16).font(iced::Font::MONOSPACE));
+    }
 
-    let output_area = scrollable(history).height(Length::Fill);
+    let prompt = format!("$ {}{}", self.input, "|");
 
-    let input = text_input("$ ", &self.input)
-      .on_input(Message::InputChanged)
-      .on_submit(Message::CommandSubmitted)
-      .padding(10)
-      .size(16);
+    col = col.push(
+      text(prompt)
+        .size(16)
+        .font(iced::Font::MONOSPACE)
+        .color(iced::Color::from_rgb(0.2, 0.8, 0.2)),
+    );
 
-    let layout = column![output_area, input]
-      .spacing(10)
-      .padding(20)
-      .width(Length::Fill)
-      .height(Length::Fill);
+    let output_area = scrollable(col).height(Length::Fill).width(Length::Fill);
 
-    container(layout)
+    container(output_area)
       .width(Length::Fill)
       .height(Length::Fill)
       .center_x(Length::Fill)
@@ -89,7 +92,28 @@ impl Nova {
   }
 
   pub fn subscription(&self) -> Subscription<Message> {
-    Subscription::run(pty_worker)
+    let pty_sub = Subscription::run(pty_worker);
+
+    let keyboard_sub = event::listen_with(|event, _s, _w| {
+      if let Event::Keyboard(keyboard::Event::KeyPressed { key, text, .. }) = event {
+        match key {
+          Key::Named(Named::Enter) => Some(Message::CommandSubmitted),
+          Key::Named(Named::Backspace) => Some(Message::Backspace),
+          Key::Named(Named::Space) => Some(Message::Type(" ".to_string())),
+          _ => {
+            if let Some(t) = text {
+              Some(Message::Type(t.to_string()))
+            } else {
+              None
+            }
+          }
+        }
+      } else {
+        None
+      }
+    });
+
+    Subscription::batch([pty_sub, keyboard_sub])
   }
 }
 

@@ -1,14 +1,19 @@
-use crate::sys::pty::PtyBridge;
 use async_channel::Sender;
 use iced::keyboard::Key;
 use iced::keyboard::key::Named;
-use iced::widget::{column, container, scrollable, text};
+use iced::widget::{column, container, row, scrollable, text};
 use iced::{Element, Length, Subscription, Theme};
 use iced::{Event, event, keyboard, stream};
+use vte::Parser;
+
+use crate::core::grid::Grid;
+use crate::sys::parser::AnsiExecutor;
+use crate::sys::pty::PtyBridge;
 
 pub struct Nova {
   pty_tx: Option<Sender<String>>,
-  history: Vec<String>,
+  grid: Grid,
+  ansi_parser: Parser,
   input: String,
 }
 
@@ -24,9 +29,10 @@ pub enum Message {
 impl Default for Nova {
   fn default() -> Self {
     Self {
-      history: Vec::new(),
-      input: String::new(),
       pty_tx: None,
+      grid: Grid::new(80, 24),
+      ansi_parser: Parser::new(),
+      input: String::new(),
     }
   }
 }
@@ -56,28 +62,44 @@ impl Nova {
         }
       }
       Message::PtyOutputReceived(output) => {
-        let text = String::from_utf8_lossy(&output).to_string();
-        self.history.push(text);
+        let mut executor = AnsiExecutor {
+          grid: &mut self.grid,
+        };
+        for byte in output {
+          self.ansi_parser.advance(&mut executor, &[byte]);
+        }
       }
     }
   }
 
   pub fn view(&self) -> Element<'_, Message> {
-    let mut col = column![].spacing(4);
-    for line in &self.history {
-      col = col.push(text(line).size(16).font(iced::Font::MONOSPACE));
+    let mut ui_column = column![].spacing(2);
+    for row_cells in &self.grid.cells {
+      let mut ui_row = row![].spacing(0);
+
+      for cell in row_cells {
+        ui_row = ui_row.push(
+          text(cell.c.to_string())
+            .font(iced::Font::MONOSPACE)
+            .color(cell.fg)
+            .size(16),
+        );
+      }
+      ui_column = ui_column.push(ui_row);
     }
 
     let prompt = format!("$ {}{}", self.input, "|");
 
-    col = col.push(
+    ui_column = ui_column.push(
       text(prompt)
         .size(16)
         .font(iced::Font::MONOSPACE)
         .color(iced::Color::from_rgb(0.2, 0.8, 0.2)),
     );
 
-    let output_area = scrollable(col).height(Length::Fill).width(Length::Fill);
+    let output_area = scrollable(ui_column)
+      .height(Length::Fill)
+      .width(Length::Fill);
 
     container(output_area)
       .width(Length::Fill)

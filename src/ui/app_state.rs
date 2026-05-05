@@ -185,29 +185,45 @@ impl Nova {
     let mut subs = Vec::new();
 
     let keyboard_sub = event::listen_with(|event, _s, _w| {
-      if let Event::Keyboard(keyboard::Event::KeyPressed { key, text, .. }) = event {
+      if let Event::Keyboard(keyboard::Event::KeyPressed {
+        key,
+        modifiers,
+        modified_key,
+        ..
+      }) = event
+      {
         match key {
-          Key::Named(Named::Enter) => Some(Message::Type(b"\r".to_vec())),
+          Key::Named(Named::Enter) => return Some(Message::Type(b"\r".to_vec())),
           Key::Named(Named::Backspace) => {
             #[cfg(target_os = "windows")]
             {
-              Some(Message::Type(b"\x08".to_vec()))
+              return Some(Message::Type(b"\x08".to_vec()));
             }
 
             #[cfg(not(target_os = "windows"))]
             {
-              Some(Message::Type(b"\x7F".to_vec()))
+              return Some(Message::Type(b"\x7F".to_vec()));
             }
           }
-          Key::Named(Named::Space) => Some(Message::Type(b" ".to_vec())),
-          _ => {
-            if let Some(t) = text {
-              Some(Message::Type(t.as_bytes().to_vec()))
-            } else {
-              None
-            }
-          }
+          Key::Named(Named::Space) => return Some(Message::Type(b" ".to_vec())),
+          _ => {}
         }
+
+        if let Key::Character(c) = modified_key {
+          return Some(Message::Type(c.as_str().as_bytes().to_vec()));
+        }
+
+        if let Key::Character(c) = key {
+          let mut char_str = c.as_str().to_string();
+
+          if char_str == "'" && modifiers.shift() {
+            char_str = "\"".to_string();
+          }
+
+          return Some(Message::Type(char_str.as_bytes().to_vec()));
+        }
+
+        None
       } else {
         None
       }

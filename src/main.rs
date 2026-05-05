@@ -1,7 +1,6 @@
+mod sys;
 mod ui;
 
-use ui::{Result, start};
-
-pub fn main() -> Result {
-  start()
+pub fn main() -> ui::Result {
+  ui::start()
 }

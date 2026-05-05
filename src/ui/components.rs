@@ -1,7 +1,7 @@
 use chrono::Local;
 use iced::{
   Element, Length, Padding, alignment, color,
-  widget::{column, container, row, space::horizontal},
+  widget::{column, container, row, scrollable, space::horizontal},
 };
 
 use crate::ui::{
@@ -33,7 +33,7 @@ pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
   for (y, row_cells) in active_tab.grid.cells.iter().enumerate() {
     let mut ui_row = row![].spacing(0);
     let mut current_text = String::new();
-    let mut current_color = iced::Color::WHITE;
+    let mut current_color = color!(0xE5E5E5);
 
     for (x, cell) in row_cells.iter().enumerate() {
       let is_cursor = x == active_tab.grid.cursor_x && y == active_tab.grid.cursor_y;
@@ -66,7 +66,7 @@ pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
     grid_ui = grid_ui.push(ui_row);
   }
 
-  container(grid_ui)
+  container(scrollable(grid_ui).height(Length::Fill).width(Length::Fill))
     .style(move |_| container::Style {
       background: Some(color!(0x0D0D0D).into()),
       ..container::Style::default()

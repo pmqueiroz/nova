@@ -26,6 +26,7 @@ impl PtyBridge {
       CommandBuilder::new(std::env::var("SHELL").unwrap_or_else(|_| "bash".to_string()));
 
     cmd.env("TERM", "xterm-256color");
+    cmd.env("PS1", r"\w λ ");
 
     let _child = pair.slave.spawn_command(cmd)?;
 

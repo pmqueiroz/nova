@@ -1,8 +1,8 @@
 use async_channel::Sender;
 use iced::keyboard::Key;
 use iced::keyboard::key::Named;
-use iced::widget::{button, column, container, row, scrollable, text};
-use iced::{Element, Length, Subscription, Theme};
+use iced::widget::{button, column, row, text};
+use iced::{Element, Subscription, Theme};
 use iced::{Event, event, keyboard, stream};
 use vte::Parser;
 
@@ -10,7 +10,6 @@ use crate::core::grid::Grid;
 use crate::sys::parser::AnsiExecutor;
 use crate::sys::pty::PtyBridge;
 use crate::ui::components;
-use crate::ui::typography::Typography;
 
 pub struct Tab {
   pub id: usize,
@@ -122,57 +121,12 @@ impl Nova {
     tab_bar = tab_bar.push(button(text("+")).on_press(Message::NewTab).padding(8));
 
     let active_tab = &self.tabs[self.active_index];
-    let mut grid_ui = column![].spacing(0);
 
-    for (y, row_cells) in active_tab.grid.cells.iter().enumerate() {
-      let mut ui_row = row![].spacing(0);
-      let mut current_text = String::new();
-      let mut current_color = iced::Color::WHITE;
-
-      for (x, cell) in row_cells.iter().enumerate() {
-        let is_cursor = x == active_tab.grid.cursor_x && y == active_tab.grid.cursor_y;
-
-        if is_cursor || cell.fg != current_color {
-          if !current_text.is_empty() {
-            ui_row = ui_row.push(
-              text(current_text.clone())
-                .font(iced::Font::MONOSPACE)
-                .color(current_color)
-                .size(16),
-            );
-            current_text.clear();
-          }
-          current_color = cell.fg;
-        }
-
-        if is_cursor {
-          ui_row = ui_row.push(components::cursor());
-        } else {
-          current_text.push(cell.c);
-        }
-      }
-
-      if !current_text.is_empty() {
-        ui_row = ui_row.push(
-          Typography {
-            color: current_color,
-            ..Default::default()
-          }
-          .as_text(&current_text),
-        );
-      }
-
-      grid_ui = grid_ui.push(ui_row);
-    }
-
-    let output_area = scrollable(grid_ui).height(Length::Fill).width(Length::Fill);
-
-    container(column![tab_bar, output_area, components::status_bar()])
-      .width(Length::Fill)
-      .height(Length::Fill)
-      .center_x(Length::Fill)
-      .center_y(Length::Fill)
-      .into()
+    components::app(column![
+      tab_bar,
+      components::term(active_tab),
+      components::status_bar()
+    ])
   }
 
   pub fn theme(&self) -> Theme {

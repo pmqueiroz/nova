@@ -51,11 +51,51 @@ impl<'a> Perform for AnsiExecutor<'a> {
           }
         }
       }
+      'K' => {
+        let mode = params.iter().next().map_or(0, |p| p[0]);
+        let x = self.grid.cursor_x;
+        let y = self.grid.cursor_y;
+
+        if y < self.grid.rows {
+          match mode {
+            0 => {
+              for col in x..self.grid.cols {
+                self.grid.cells[y][col] = crate::core::grid::Cell::default();
+              }
+            }
+            1 => {
+              for col in 0..=x {
+                self.grid.cells[y][col] = crate::core::grid::Cell::default();
+              }
+            }
+            2 => {
+              for col in 0..self.grid.cols {
+                self.grid.cells[y][col] = crate::core::grid::Cell::default();
+              }
+            }
+            _ => {}
+          }
+        }
+      }
       'A' => { /*cursor up*/ }
       'B' => { /*cursor down*/ }
       'C' => { /*cursor forward*/ }
       'D' => { /*cursor backward*/ }
-      'J' => { /*erase in display*/ }
+      'J' => {
+        let mode = params.iter().next().map_or(0, |p| p[0]);
+        match mode {
+          2 => {
+            for row in 0..self.grid.rows {
+              for col in 0..self.grid.cols {
+                self.grid.cells[row][col] = crate::core::grid::Cell::default();
+              }
+            }
+            self.grid.cursor_x = 0;
+            self.grid.cursor_y = 0;
+          }
+          _ => {}
+        }
+      }
       _ => {}
     }
   }

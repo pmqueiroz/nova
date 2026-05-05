@@ -19,10 +19,13 @@ impl PtyBridge {
     })?;
 
     #[cfg(target_os = "windows")]
-    let cmd = CommandBuilder::new("powershell.exe");
+    let mut cmd = CommandBuilder::new("powershell.exe");
 
     #[cfg(not(target_os = "windows"))]
-    let cmd = CommandBuilder::new(std::env::var("SHELL").unwrap_or_else(|_| "bash".to_string()));
+    let mut cmd =
+      CommandBuilder::new(std::env::var("SHELL").unwrap_or_else(|_| "bash".to_string()));
+
+    cmd.env("TERM", "xterm-256color");
 
     let _child = pair.slave.spawn_command(cmd)?;
 

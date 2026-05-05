@@ -188,7 +188,17 @@ impl Nova {
       if let Event::Keyboard(keyboard::Event::KeyPressed { key, text, .. }) = event {
         match key {
           Key::Named(Named::Enter) => Some(Message::Type(b"\r".to_vec())),
-          Key::Named(Named::Backspace) => Some(Message::Type(b"\x7F".to_vec())),
+          Key::Named(Named::Backspace) => {
+            #[cfg(target_os = "windows")]
+            {
+              Some(Message::Type(b"\x08".to_vec()))
+            }
+
+            #[cfg(not(target_os = "windows"))]
+            {
+              Some(Message::Type(b"\x7F".to_vec()))
+            }
+          }
           Key::Named(Named::Space) => Some(Message::Type(b" ".to_vec())),
           _ => {
             if let Some(t) = text {

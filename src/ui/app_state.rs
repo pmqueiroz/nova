@@ -9,6 +9,8 @@ use vte::Parser;
 use crate::core::grid::Grid;
 use crate::sys::parser::AnsiExecutor;
 use crate::sys::pty::PtyBridge;
+use crate::ui::components;
+use crate::ui::typography::Typography;
 
 pub struct Tab {
   pub id: usize,
@@ -144,12 +146,7 @@ impl Nova {
         }
 
         if is_cursor {
-          ui_row = ui_row.push(
-            text("_")
-              .font(iced::Font::MONOSPACE)
-              .color(iced::Color::from_rgb(0.2, 0.8, 0.2))
-              .size(16),
-          );
+          ui_row = ui_row.push(components::cursor());
         } else {
           current_text.push(cell.c);
         }
@@ -157,10 +154,11 @@ impl Nova {
 
       if !current_text.is_empty() {
         ui_row = ui_row.push(
-          text(current_text.clone())
-            .font(iced::Font::MONOSPACE)
-            .color(current_color)
-            .size(16),
+          Typography {
+            color: current_color,
+            ..Default::default()
+          }
+          .as_text(&current_text),
         );
       }
 
@@ -169,7 +167,7 @@ impl Nova {
 
     let output_area = scrollable(grid_ui).height(Length::Fill).width(Length::Fill);
 
-    container(column![tab_bar, output_area])
+    container(column![tab_bar, output_area, components::status_bar()])
       .width(Length::Fill)
       .height(Length::Fill)
       .center_x(Length::Fill)

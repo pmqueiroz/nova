@@ -1,4 +1,6 @@
 pub mod app_state;
+pub mod components;
+pub mod typography;
 
 pub type Result = iced::Result;
 

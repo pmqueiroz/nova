@@ -48,8 +48,7 @@ impl PtyBridge {
     Ok(Self { master: writer })
   }
 
-  pub fn write_to_pty(&mut self, input: &str) {
-    let command = format!("{}\n", input);
-    let _ = self.master.write_all(command.as_bytes());
+  pub fn write_to_pty(&mut self, input: &[u8]) {
+    let _ = self.master.write_all(input);
   }
 }

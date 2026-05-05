@@ -11,18 +11,15 @@ use crate::sys::parser::AnsiExecutor;
 use crate::sys::pty::PtyBridge;
 
 pub struct Nova {
-  pty_tx: Option<Sender<String>>,
+  pty_tx: Option<Sender<Vec<u8>>>,
   grid: Grid,
   ansi_parser: Parser,
-  input: String,
 }
 
 #[derive(Debug, Clone)]
 pub enum Message {
-  Type(String),
-  Backspace,
-  CommandSubmitted,
-  PtyReady(Sender<String>),
+  Type(Vec<u8>),
+  PtyReady(Sender<Vec<u8>>),
   PtyOutputReceived(Vec<u8>),
 }
 
@@ -32,7 +29,6 @@ impl Default for Nova {
       pty_tx: None,
       grid: Grid::new(80, 24),
       ansi_parser: Parser::new(),
-      input: String::new(),
     }
   }
 }
@@ -43,22 +39,9 @@ impl Nova {
       Message::PtyReady(tx) => {
         self.pty_tx = Some(tx);
       }
-      Message::Type(c) => {
-        if !c.chars().any(|ch| ch.is_control()) {
-          self.input.push_str(&c);
-        }
-      }
-      Message::Backspace => {
-        self.input.pop();
-      }
-      Message::CommandSubmitted => {
-        if !self.input.trim().is_empty() {
-          let cmd = self.input.clone();
-          if let Some(tx) = &self.pty_tx {
-            let _ = tx.send_blocking(cmd);
-          }
-
-          self.input.clear();
+      Message::Type(bytes) => {
+        if let Some(tx) = &self.pty_tx {
+          let _ = tx.send_blocking(bytes);
         }
       }
       Message::PtyOutputReceived(output) => {
@@ -74,28 +57,27 @@ impl Nova {
 
   pub fn view(&self) -> Element<'_, Message> {
     let mut ui_column = column![].spacing(2);
-    for row_cells in &self.grid.cells {
+    for (y, row_cells) in self.grid.cells.iter().enumerate() {
       let mut ui_row = row![].spacing(0);
 
-      for cell in row_cells {
+      for (x, cell) in row_cells.iter().enumerate() {
+        let mut text_char = cell.c.to_string();
+        let mut color = cell.fg;
+
+        if x == self.grid.cursor_x && y == self.grid.cursor_y {
+          text_char = "_".to_string();
+          color = iced::Color::from_rgb(0.2, 0.8, 0.2);
+        }
+
         ui_row = ui_row.push(
-          text(cell.c.to_string())
+          text(text_char)
             .font(iced::Font::MONOSPACE)
-            .color(cell.fg)
+            .color(color)
             .size(16),
         );
       }
       ui_column = ui_column.push(ui_row);
     }
-
-    let prompt = format!("$ {}{}", self.input, "|");
-
-    ui_column = ui_column.push(
-      text(prompt)
-        .size(16)
-        .font(iced::Font::MONOSPACE)
-        .color(iced::Color::from_rgb(0.2, 0.8, 0.2)),
-    );
 
     let output_area = scrollable(ui_column)
       .height(Length::Fill)
@@ -119,12 +101,12 @@ impl Nova {
     let keyboard_sub = event::listen_with(|event, _s, _w| {
       if let Event::Keyboard(keyboard::Event::KeyPressed { key, text, .. }) = event {
         match key {
-          Key::Named(Named::Enter) => Some(Message::CommandSubmitted),
-          Key::Named(Named::Backspace) => Some(Message::Backspace),
-          Key::Named(Named::Space) => Some(Message::Type(" ".to_string())),
+          Key::Named(Named::Enter) => Some(Message::Type(b"\r".to_vec())),
+          Key::Named(Named::Backspace) => Some(Message::Type(b"\x08".to_vec())),
+          Key::Named(Named::Space) => Some(Message::Type(b" ".to_vec())),
           _ => {
             if let Some(t) = text {
-              Some(Message::Type(t.to_string()))
+              Some(Message::Type(t.as_bytes().to_vec()))
             } else {
               None
             }
@@ -146,13 +128,13 @@ fn pty_worker() -> impl iced::futures::Stream<Item = Message> {
       use iced::futures::SinkExt;
 
       let (tx_out, rx_out) = async_channel::unbounded::<Vec<u8>>();
-      let (tx_in, rx_in) = async_channel::unbounded::<String>();
+      let (tx_in, rx_in) = async_channel::unbounded::<Vec<u8>>();
 
       std::thread::spawn(move || {
         let mut pty = PtyBridge::new(tx_out).expect("Failed to create PTY bridge");
 
-        while let Ok(input) = rx_in.recv_blocking() {
-          pty.write_to_pty(&input);
+        while let Ok(bytes) = rx_in.recv_blocking() {
+          pty.write_to_pty(&bytes);
         }
       });
 

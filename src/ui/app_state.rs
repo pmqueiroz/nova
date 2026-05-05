@@ -120,27 +120,50 @@ impl Nova {
     tab_bar = tab_bar.push(button(text("+")).on_press(Message::NewTab).padding(8));
 
     let active_tab = &self.tabs[self.active_index];
-    let mut grid_ui = column![].spacing(2);
+    let mut grid_ui = column![].spacing(0);
 
     for (y, row_cells) in active_tab.grid.cells.iter().enumerate() {
       let mut ui_row = row![].spacing(0);
+      let mut current_text = String::new();
+      let mut current_color = iced::Color::WHITE;
 
       for (x, cell) in row_cells.iter().enumerate() {
-        let mut text_char = cell.c.to_string();
-        let mut color = cell.fg;
+        let is_cursor = x == active_tab.grid.cursor_x && y == active_tab.grid.cursor_y;
 
-        if x == active_tab.grid.cursor_x && y == active_tab.grid.cursor_y {
-          text_char = "_".to_string();
-          color = iced::Color::from_rgb(0.2, 0.8, 0.2);
+        if is_cursor || cell.fg != current_color {
+          if !current_text.is_empty() {
+            ui_row = ui_row.push(
+              text(current_text.clone())
+                .font(iced::Font::MONOSPACE)
+                .color(current_color)
+                .size(16),
+            );
+            current_text.clear();
+          }
+          current_color = cell.fg;
         }
 
+        if is_cursor {
+          ui_row = ui_row.push(
+            text("_")
+              .font(iced::Font::MONOSPACE)
+              .color(iced::Color::from_rgb(0.2, 0.8, 0.2))
+              .size(16),
+          );
+        } else {
+          current_text.push(cell.c);
+        }
+      }
+
+      if !current_text.is_empty() {
         ui_row = ui_row.push(
-          text(text_char)
+          text(current_text.clone())
             .font(iced::Font::MONOSPACE)
-            .color(color)
+            .color(current_color)
             .size(16),
         );
       }
+
       grid_ui = grid_ui.push(ui_row);
     }
 
@@ -165,7 +188,7 @@ impl Nova {
       if let Event::Keyboard(keyboard::Event::KeyPressed { key, text, .. }) = event {
         match key {
           Key::Named(Named::Enter) => Some(Message::Type(b"\r".to_vec())),
-          Key::Named(Named::Backspace) => Some(Message::Type(b"\x08".to_vec())),
+          Key::Named(Named::Backspace) => Some(Message::Type(b"\x7F".to_vec())),
           Key::Named(Named::Space) => Some(Message::Type(b" ".to_vec())),
           _ => {
             if let Some(t) = text {

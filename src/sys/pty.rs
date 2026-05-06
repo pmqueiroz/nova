@@ -26,8 +26,23 @@ impl PtyBridge {
       if let Ok(profile) = std::env::var("USERPROFILE") {
         c.cwd(profile);
       }
-      c.args(["-NoProfile", "-NoLogo"]);
       c.env("TERM", "xterm-256color");
+      let ps_prompt_script = r#"
+          Set-Item function:prompt {
+              $p = $PWD.ProviderPath;
+              $h = [regex]::Escape($env:USERPROFILE);
+              $d = $p -replace ('^' + $h), '~';
+              Write-Host -NoNewline ('{0}]7;file://localhost{1}{0}{2}' -f [char]27, $p, [char]92);
+              return $d + ' λ '
+          }
+      "#;
+      c.args([
+        "-NoProfile",
+        "-NoLogo",
+        "-NoExit",
+        "-Command",
+        ps_prompt_script,
+      ]);
       c
     };
 

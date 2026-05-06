@@ -22,9 +22,12 @@ impl<'a> Perform for AnsiExecutor<'a> {
 
   fn execute(&mut self, byte: u8) {
     match byte {
+      // line feed
       0x0A | 0x0B | 0x0C => self.grid.newline(),
+      // carriage return
       0x0D => self.grid.cursor_x = 0,
-      0x08 => {
+      // backspace
+      0x08 | 0x7F => {
         if self.grid.cursor_x > 0 {
           self.grid.cursor_x -= 1;
         }

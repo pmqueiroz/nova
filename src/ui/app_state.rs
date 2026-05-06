@@ -172,18 +172,13 @@ impl Nova {
       }) => {
         match key {
           Key::Named(Named::Enter) => return Some(Message::Type(b"\r".to_vec())),
-          Key::Named(Named::Backspace) => {
-            #[cfg(target_os = "windows")]
-            {
-              return Some(Message::Type(b"\x08".to_vec()));
-            }
-
-            #[cfg(not(target_os = "windows"))]
-            {
-              return Some(Message::Type(b"\x7F".to_vec()));
-            }
-          }
+          Key::Named(Named::Backspace) => return Some(Message::Type(b"\x7F".to_vec())),
           Key::Named(Named::Space) => return Some(Message::Type(b" ".to_vec())),
+          Key::Named(Named::ArrowUp) => return Some(Message::Type(b"\x1b[A".to_vec())),
+          Key::Named(Named::ArrowDown) => return Some(Message::Type(b"\x1b[B".to_vec())),
+          Key::Named(Named::ArrowRight) => return Some(Message::Type(b"\x1b[C".to_vec())),
+          Key::Named(Named::ArrowLeft) => return Some(Message::Type(b"\x1b[D".to_vec())),
+          Key::Named(Named::Delete) => return Some(Message::Type(b"\x1b[3~".to_vec())),
           _ => {}
         }
 

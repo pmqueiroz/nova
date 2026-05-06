@@ -22,8 +22,8 @@ impl<'a> Perform for AnsiExecutor<'a> {
 
   fn execute(&mut self, byte: u8) {
     match byte {
-      b'\n' => self.grid.newline(),
-      b'\r' => self.grid.cursor_x = 0,
+      0x0A | 0x0B | 0x0C => self.grid.newline(),
+      0x0D => self.grid.cursor_x = 0,
       0x08 => {
         if self.grid.cursor_x > 0 {
           self.grid.cursor_x -= 1;
@@ -34,6 +34,9 @@ impl<'a> Perform for AnsiExecutor<'a> {
   }
 
   fn csi_dispatch(&mut self, params: &Params, _intermediates: &[u8], _ignore: bool, command: char) {
+    let param_value = params.iter().next().map(|p| p[0] as usize).unwrap_or(0);
+    let n = if param_value == 0 { 1 } else { param_value };
+
     match command {
       'm' => {
         for param in params.iter() {
@@ -77,10 +80,40 @@ impl<'a> Perform for AnsiExecutor<'a> {
           }
         }
       }
-      'A' => { /*cursor up*/ }
-      'B' => { /*cursor down*/ }
-      'C' => { /*cursor forward*/ }
-      'D' => { /*cursor backward*/ }
+      'A' => {
+        let param_value = params.iter().next().map_or(1, |p| p[0] as usize);
+        let n = if param_value == 0 { 1 } else { param_value };
+
+        self.grid.cursor_y = self.grid.cursor_y.saturating_sub(n);
+      }
+      'B' => {
+        let param_value = params.iter().next().map_or(1, |p| p[0] as usize);
+        let n = if param_value == 0 { 1 } else { param_value };
+
+        self.grid.cursor_y = (self.grid.cursor_y + n).min(self.grid.rows.saturating_sub(1));
+      }
+      'C' => {
+        self.grid.cursor_x = (self.grid.cursor_x + n).min(self.grid.cols.saturating_sub(1));
+      }
+      'D' => {
+        self.grid.cursor_x = self.grid.cursor_x.saturating_sub(n);
+      }
+      'G' => {
+        let col = if param_value == 0 { 0 } else { param_value - 1 };
+        self.grid.cursor_x = col.min(self.grid.cols.saturating_sub(1));
+      }
+      'H' | 'f' => {
+        let mut iter = params.iter();
+
+        let row_param = iter.next().map_or(1, |p| p[0] as usize);
+        let row = if row_param == 0 { 1 } else { row_param };
+
+        let col_param = iter.next().map_or(1, |p| p[0] as usize);
+        let col = if col_param == 0 { 1 } else { col_param };
+
+        self.grid.cursor_y = (row - 1).min(self.grid.rows.saturating_sub(1));
+        self.grid.cursor_x = (col - 1).min(self.grid.cols.saturating_sub(1));
+      }
       'J' => {
         let mode = params.iter().next().map_or(0, |p| p[0]);
         match mode {

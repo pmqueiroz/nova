@@ -1,8 +1,8 @@
 use chrono::Local;
 use iced::{
-  Border, Element, Length, Padding, alignment,
-  border::Radius,
-  widget::{button, column, container, row, scrollable, space::horizontal},
+  Border, Color, Element, Length, Padding, alignment,
+  border::{Radius, radius},
+  widget::{Space, button, column, container, mouse_area, row, scrollable, space::horizontal},
 };
 
 use crate::ui::{
@@ -27,6 +27,127 @@ pub fn app<'a>(content: impl Into<Element<'a, Message>>) -> Element<'a, Message>
     .center_x(Length::Fill)
     .center_y(Length::Fill)
     .into()
+}
+
+pub fn title_bar(window_focused: bool) -> Element<'static, Message> {
+  #[cfg(target_os = "windows")]
+  let controls = windows_controls(window_focused);
+  #[cfg(not(target_os = "windows"))]
+  let controls = traffic_lights(window_focused);
+
+  mouse_area(
+    container(
+      row![
+        controls,
+        horizontal(),
+        Typography {
+          color: theme::FG_MUTED.as_color(),
+          size: 12.into(),
+        }
+        .as_text("nova"),
+        horizontal(),
+      ]
+      .spacing(8),
+    )
+    .style(move |_| container::Style {
+      background: Some(theme::BG_DEEP.as_color().into()),
+      border: Border {
+        color: theme::BORDER.as_color(),
+        radius: Radius {
+          top_left: 12.0,
+          top_right: 12.0,
+          ..Default::default()
+        },
+        width: 0.5,
+      },
+      ..container::Style::default()
+    })
+    .padding(Padding::from([0, 16]))
+    .width(Length::Fill)
+    .center_y(40),
+  )
+  .on_press(Message::DragWindow)
+  .into()
+}
+
+// TODO: windows icons
+#[cfg(target_os = "windows")]
+pub fn windows_controls(window_focused: bool) -> Element<'static, Message> {
+  let circle_btn = |color: Color, msg: Message| {
+    button(
+      Space::new()
+        .width(Length::Fixed(12.0))
+        .height(Length::Fixed(12.0)),
+    )
+    .padding(0)
+    .on_press(msg)
+    .style(move |_t, _s| button::Style {
+      background: Some(
+        if window_focused {
+          color
+        } else {
+          theme::TRAFFIC_LIGHT_INACTIVE.as_color()
+        }
+        .into(),
+      ),
+      border: iced::Border {
+        radius: radius(120.0),
+        ..Default::default()
+      },
+      ..Default::default()
+    })
+  };
+
+  let red_light = circle_btn(theme::TRAFFIC_LIGHT_RED.as_color(), Message::CloseWindow);
+  let yellow_light = circle_btn(
+    theme::TRAFFIC_LIGHT_YELLOW.as_color(),
+    Message::MinimizeWindow,
+  );
+  let green_light = circle_btn(
+    theme::TRAFFIC_LIGHT_GREEN.as_color(),
+    Message::MaximizeWindow,
+  );
+
+  row![red_light, yellow_light, green_light].spacing(8).into()
+}
+
+pub fn traffic_lights(window_focused: bool) -> Element<'static, Message> {
+  let circle_btn = |color: Color, msg: Message| {
+    button(
+      Space::new()
+        .width(Length::Fixed(12.0))
+        .height(Length::Fixed(12.0)),
+    )
+    .padding(0)
+    .on_press(msg)
+    .style(move |_t, _s| button::Style {
+      background: Some(
+        if window_focused {
+          color
+        } else {
+          theme::TRAFFIC_LIGHT_INACTIVE.as_color()
+        }
+        .into(),
+      ),
+      border: iced::Border {
+        radius: radius(120.0),
+        ..Default::default()
+      },
+      ..Default::default()
+    })
+  };
+
+  let red_light = circle_btn(theme::TRAFFIC_LIGHT_RED.as_color(), Message::CloseWindow);
+  let yellow_light = circle_btn(
+    theme::TRAFFIC_LIGHT_YELLOW.as_color(),
+    Message::MinimizeWindow,
+  );
+  let green_light = circle_btn(
+    theme::TRAFFIC_LIGHT_GREEN.as_color(),
+    Message::MaximizeWindow,
+  );
+
+  row![red_light, yellow_light, green_light].spacing(8).into()
 }
 
 pub fn tab_bar(tabs: &Vec<Tab>, active_index: usize) -> Element<'static, Message> {

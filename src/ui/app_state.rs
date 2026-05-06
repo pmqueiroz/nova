@@ -2,7 +2,7 @@ use async_channel::Sender;
 use iced::keyboard::Key;
 use iced::keyboard::key::Named;
 use iced::widget::column;
-use iced::{Element, Subscription, Theme};
+use iced::{Element, Subscription, Theme, window};
 use iced::{Event, event, keyboard, stream};
 use vte::Parser;
 
@@ -33,6 +33,8 @@ pub struct Nova {
   tabs: Vec<Tab>,
   active_index: usize,
   next_tab_id: usize,
+  window_id: Option<window::Id>,
+  window_focused: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -43,6 +45,13 @@ pub enum Message {
   CloseTab(usize),
   PtyReady(usize, Sender<Vec<u8>>),
   PtyOutputReceived(usize, Vec<u8>),
+  CloseWindow,
+  MinimizeWindow,
+  MaximizeWindow,
+  DragWindow,
+  WindowOpened(window::Id),
+  WindowFocused,
+  WindowUnfocused,
 }
 
 impl Default for Nova {
@@ -51,12 +60,14 @@ impl Default for Nova {
       tabs: vec![Tab::new(0)],
       active_index: 0,
       next_tab_id: 1,
+      window_id: None,
+      window_focused: false,
     }
   }
 }
 
 impl Nova {
-  pub fn update(&mut self, message: Message) {
+  pub fn update(&mut self, message: Message) -> iced::Task<Message> {
     match message {
       Message::Type(bytes) => {
         if let Some(active_tab) = self.tabs.get(self.active_index) {
@@ -101,13 +112,43 @@ impl Nova {
           }
         }
       }
+      Message::WindowOpened(id) => {
+        self.window_id = Some(id);
+      }
+      Message::MinimizeWindow => {
+        if let Some(window_id) = self.window_id {
+          return window::minimize(window_id, true);
+        }
+      }
+      Message::MaximizeWindow => {
+        if let Some(window_id) = self.window_id {
+          return window::toggle_maximize(window_id);
+        }
+      }
+      Message::CloseWindow => {
+        std::process::exit(0);
+      }
+      Message::DragWindow => {
+        if let Some(window_id) = self.window_id {
+          return window::drag(window_id);
+        }
+      }
+      Message::WindowFocused => {
+        self.window_focused = true;
+      }
+      Message::WindowUnfocused => {
+        self.window_focused = false;
+      }
     }
+
+    iced::Task::none()
   }
 
   pub fn view(&self) -> Element<'_, Message> {
     let active_tab = &self.tabs[self.active_index];
 
     components::app(column![
+      components::title_bar(self.window_focused),
       components::tab_bar(&self.tabs, self.active_index),
       components::term(active_tab),
       components::status_bar()
@@ -121,14 +162,13 @@ impl Nova {
   pub fn subscription(&self) -> Subscription<Message> {
     let mut subs = Vec::new();
 
-    let keyboard_sub = event::listen_with(|event, _s, _w| {
-      if let Event::Keyboard(keyboard::Event::KeyPressed {
+    let global_sub = event::listen_with(|event, _s, window_id| match event {
+      Event::Keyboard(keyboard::Event::KeyPressed {
         key,
         modifiers,
         modified_key,
         ..
-      }) = event
-      {
+      }) => {
         match key {
           Key::Named(Named::Enter) => return Some(Message::Type(b"\r".to_vec())),
           Key::Named(Named::Backspace) => {
@@ -161,12 +201,20 @@ impl Nova {
         }
 
         None
-      } else {
-        None
       }
+      Event::Window(window::Event::Opened { .. }) => {
+        return Some(Message::WindowOpened(window_id));
+      }
+      Event::Window(window::Event::Focused) => {
+        return Some(Message::WindowFocused);
+      }
+      Event::Window(window::Event::Unfocused) => {
+        return Some(Message::WindowUnfocused);
+      }
+      _ => None,
     });
 
-    subs.push(keyboard_sub);
+    subs.push(global_sub);
 
     for tab in &self.tabs {
       let tab_id = tab.id;

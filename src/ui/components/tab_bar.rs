@@ -88,7 +88,7 @@ fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Messa
         .padding(Padding::from([4, 0]))
         .on_press(Message::SwitchTab(index)),
         horizontal(),
-        button("✕")
+        button("󰅖")
           .style(move |_t, status| button::Style {
             text_color: if status == button::Status::Hovered {
               theme::color::RED.as_color()

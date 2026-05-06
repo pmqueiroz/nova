@@ -84,25 +84,28 @@ pub const TRANSPARENT: Hue = Hue {
   b: 0.0,
   a: 0.0,
 };
-// macos traffic light colors
+#[cfg(not(target_os = "windows"))]
 pub const TRAFFIC_LIGHT_RED: Hue = Hue {
   r: 1.0,     // 0xFF
   g: 0.37647, // 0x60
   b: 0.36078, // 0x5C
   a: 1.0,
 };
+#[cfg(not(target_os = "windows"))]
 pub const TRAFFIC_LIGHT_YELLOW: Hue = Hue {
   r: 1.0,     // 0xFF
   g: 0.74118, // 0xBD
   b: 0.26667, // 0x44
   a: 1.0,
 };
+#[cfg(not(target_os = "windows"))]
 pub const TRAFFIC_LIGHT_GREEN: Hue = Hue {
   r: 0.0,     // 0x00
   g: 0.79216, // 0xCA
   b: 0.30588, // 0x4E
   a: 1.0,
 };
+#[cfg(not(target_os = "windows"))]
 pub const TRAFFIC_LIGHT_INACTIVE: Hue = Hue {
   r: 0.29804, // 0x4C
   g: 0.29804,

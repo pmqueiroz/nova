@@ -37,7 +37,13 @@ pub fn title_bar(window_focused: bool, pwd: &String) -> Element<'static, Message
         },
         ..container::Style::default()
       })
-      .padding(Padding::from([0, 16]))
+      .padding(Padding {
+        #[cfg(target_os = "windows")]
+        left: 46.0 * 3.0,
+        #[cfg(not(target_os = "windows"))]
+        left: 16.0,
+        ..Default::default()
+      })
       .width(Length::Fill)
       .center_y(40),
   )

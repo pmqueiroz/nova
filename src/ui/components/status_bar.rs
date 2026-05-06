@@ -15,15 +15,26 @@ use crate::ui::{
 pub fn status_bar<'a>(active_tab: &Tab) -> Element<'a, Message> {
   let local_now = Local::now();
 
+  let resolved_branch = if let Some(b) = &active_tab.git_branch {
+    b.clone()
+  } else {
+    "".to_string()
+  };
+
+  let branch_text = if resolved_branch.is_empty() {
+    resolved_branch
+  } else {
+    format!(" {}", resolved_branch)
+  };
+
   container(
     row![
-      agent_status(),
-      status_bar_text(&active_tab.shell),
-      status_bar_text("utf-8"),
-      status_bar_text(active_tab.git_branch.as_ref().unwrap_or(&"".to_string())),
+      status_bar_text(&branch_text, true),
+      status_bar_text(format!(" {}", &active_tab.shell), false),
+      status_bar_text("utf-8", false),
       horizontal(),
-      status_bar_text(&local_now.format("%b %d").to_string()),
-      status_bar_text(&local_now.format("%H:%M:%S").to_string()),
+      status_bar_text(&local_now.format("%b %d").to_string(), false),
+      status_bar_text(&local_now.format("%H:%M:%S").to_string(), false),
     ]
     .spacing(16),
   )
@@ -40,54 +51,33 @@ pub fn status_bar<'a>(active_tab: &Tab) -> Element<'a, Message> {
     },
     ..container::Style::default()
   })
-  .center_y(22)
-  .padding(Padding::from([0, 16]))
+  .center_y(26)
+  .padding(Padding{
+    top: 4.0,
+    left: 16.0,
+    right: 16.0,
+    ..Default::default()
+  })
   .width(Length::Fill)
   .into()
 }
 
-pub fn status_bar_text(content: impl Into<String>) -> iced::widget::Text<'static> {
+pub fn status_bar_text(content: impl Into<String>, accent: bool) -> iced::widget::Text<'static> {
   Typography {
-    color: theme::color::FG_MUTED.as_color(),
+    weight: if accent {
+      typography::Weight::Bold
+    } else {
+      typography::Weight::Normal
+    },
+    color: if accent {
+      theme::color::ACCENT.as_color()
+    } else {
+      theme::color::FG_MUTED.as_color()
+    },
+    
     size: 14.into(),
     ..Default::default()
   }
   .as_text(content)
-  .into()
-}
-
-pub fn agent_status() -> Element<'static, Message> {
-  container(
-    row![
-      button(
-        Space::new()
-          .width(Length::Fixed(8.0))
-          .height(Length::Fixed(8.0)),
-      )
-      .padding(0)
-      .style(move |_t, _s| button::Style {
-        background: Some(theme::color::ACCENT.as_color().into(),),
-        border: iced::Border {
-          radius: radius(120.0),
-          ..Default::default()
-        },
-        shadow: Shadow {
-          color: theme::color::ACCENT.with_alpha(0.8).as_color(),
-          offset: iced::Vector::new(0.0, 0.0),
-          blur_radius: 8.0,
-        },
-        ..Default::default()
-      }),
-      Typography {
-        color: theme::color::ACCENT.as_color(),
-        size: 14.into(),
-        weight: typography::Weight::Bold,
-      }
-      .as_text("connected")
-    ]
-    .padding(0)
-    .spacing(4),
-  )
-  .center_y(12)
   .into()
 }

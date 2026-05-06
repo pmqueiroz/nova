@@ -9,8 +9,8 @@ pub mod typography;
 
 pub type Result = iced::Result;
 
-const FIRA_CODE_BYTES: &[u8] = include_bytes!("../../fonts/FiraCode-Regular.ttf");
-const FIRA_CODE_BOLD_BYTES: &[u8] = include_bytes!("../../fonts/FiraCode-Bold.ttf");
+const FIRA_CODE_BYTES: &[u8] = include_bytes!("../../fonts/FiraCodeNerdFont-Regular.ttf");
+const FIRA_CODE_BOLD_BYTES: &[u8] = include_bytes!("../../fonts/FiraCodeNerdFont-Bold.ttf");
 
 pub fn start() -> Result {
   iced::application(

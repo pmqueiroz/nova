@@ -50,4 +50,23 @@ impl Grid {
       self.cells.push(vec![Cell::default(); self.cols]);
     }
   }
+
+  pub fn resize(&mut self, new_cols: usize, new_rows: usize) {
+    let new_cols = new_cols.max(1);
+    let new_rows = new_rows.max(1);
+
+    self
+      .cells
+      .resize(new_rows, vec![Cell::default(); self.cols]);
+
+    for row in self.cells.iter_mut() {
+      row.resize(new_cols, Cell::default());
+    }
+
+    self.cols = new_cols;
+    self.rows = new_rows;
+
+    self.cursor_x = self.cursor_x.min(self.cols.saturating_sub(1));
+    self.cursor_y = self.cursor_y.min(self.rows.saturating_sub(1));
+  }
 }

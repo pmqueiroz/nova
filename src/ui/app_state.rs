@@ -6,7 +6,7 @@ use iced::{Element, Subscription, Theme, time, window};
 use iced::{Event, event, keyboard, stream};
 
 use crate::sys::parser::AnsiExecutor;
-use crate::sys::pty::PtyBridge;
+use crate::sys::pty::{PtyBridge, PtyCommand};
 use crate::ui::components;
 use crate::ui::tab::Tab;
 
@@ -24,7 +24,7 @@ pub enum Message {
   NewTab,
   SwitchTab(usize),
   CloseTab(usize),
-  PtyReady(usize, Sender<Vec<u8>>),
+  PtyReady(usize, Sender<PtyCommand>),
   PtyOutputReceived(usize, Vec<u8>),
   CloseWindow,
   MinimizeWindow,
@@ -33,6 +33,9 @@ pub enum Message {
   WindowOpened(window::Id),
   WindowFocused,
   WindowUnfocused,
+  WindowResized(f32, f32),
+  PasteRequested,
+  ClipboardReceived(Option<String>),
   Tick,
 }
 
@@ -54,7 +57,7 @@ impl Nova {
       Message::Type(bytes) => {
         if let Some(active_tab) = self.tabs.get(self.active_index) {
           if let Some(tx) = &active_tab.pty_tx {
-            let _ = tx.send_blocking(bytes);
+            let _ = tx.send_blocking(PtyCommand::Input(bytes));
           }
         }
       }
@@ -97,7 +100,7 @@ impl Nova {
             let response = tab.grid.output_queue.remove(0);
 
             if let Some(tx) = &tab.pty_tx {
-              let _ = tx.send_blocking(response);
+              let _ = tx.send_blocking(PtyCommand::Input(response));
             }
           }
 
@@ -134,6 +137,42 @@ impl Nova {
       }
       Message::WindowUnfocused => {
         self.window_focused = false;
+      }
+      Message::WindowResized(width, height) => {
+        let font_size = 16.0_f32;
+        let char_width = font_size * 0.62;  // slight safety margin over 0.6
+        let char_height = font_size * 1.35; // iced line height is larger than 1.2x font size
+
+        let padding_x = 40.0; // term.rs: left(20) + right(20)
+        let padding_y = 118.0; // title(40) + tab(36) + status(22) + term vertical pad(20)
+
+        let new_cols = ((width - padding_x) / char_width).floor() as usize;
+        let new_rows = ((height - padding_y) / char_height).floor() as usize;
+
+        let cols = new_cols.max(10);
+        let rows = new_rows.max(5);
+
+        for tab in self.tabs.iter_mut() {
+          tab.grid.resize(cols, rows);
+          if let Some(tx) = &tab.pty_tx {
+            let _ = tx.send_blocking(PtyCommand::Resize {
+              cols: cols as u16,
+              rows: rows as u16,
+            });
+          }
+        }
+      }
+      Message::PasteRequested => {
+        return iced::clipboard::read().map(Message::ClipboardReceived);
+      }
+      Message::ClipboardReceived(text) => {
+        if let Some(text) = text {
+          if let Some(tab) = self.tabs.get(self.active_index) {
+            if let Some(tx) = &tab.pty_tx {
+              let _ = tx.try_send(PtyCommand::Input(text.into_bytes()));
+            }
+          }
+        }
       }
       Message::Tick => {}
     }
@@ -183,7 +222,9 @@ impl Nova {
         }
 
         if let Key::Character(c) = modified_key {
-          return Some(Message::Type(c.as_str().as_bytes().to_vec()));
+          if !modifiers.control() {
+            return Some(Message::Type(c.as_str().as_bytes().to_vec()));
+          }
         }
 
         if let Key::Character(c) = key {
@@ -195,6 +236,9 @@ impl Nova {
           }
           if char_str == "`" && modifiers.shift() {
             char_str = "~".to_string();
+          }
+          if char_str == "v" && modifiers.control() {
+            return Some(Message::PasteRequested);
           }
 
           return Some(Message::Type(char_str.as_bytes().to_vec()));
@@ -211,6 +255,9 @@ impl Nova {
       Event::Window(window::Event::Unfocused) => {
         return Some(Message::WindowUnfocused);
       }
+      Event::Window(window::Event::Resized(size)) => {
+        return Some(Message::WindowResized(size.width, size.height));
+      }
       _ => None,
     });
 
@@ -218,7 +265,11 @@ impl Nova {
 
     for tab in &self.tabs {
       let tab_id = tab.id;
-      let pty_sub = Subscription::run_with(tab_id, |tab_id| pty_worker(*tab_id));
+      let cols = tab.grid.cols as u16;
+      let rows = tab.grid.rows as u16;
+      let pty_sub = Subscription::run_with((tab_id, cols, rows), |(tab_id, cols, rows)| {
+        pty_worker(*tab_id, *cols, *rows)
+      });
       subs.push(pty_sub);
     }
 
@@ -226,20 +277,23 @@ impl Nova {
   }
 }
 
-fn pty_worker(tab_id: usize) -> impl iced::futures::Stream<Item = Message> {
+fn pty_worker(tab_id: usize, cols: u16, rows: u16) -> impl iced::futures::Stream<Item = Message> {
   stream::channel(
     100,
     move |mut output: iced::futures::channel::mpsc::Sender<Message>| async move {
       use iced::futures::SinkExt;
 
       let (tx_out, rx_out) = async_channel::unbounded::<Vec<u8>>();
-      let (tx_in, rx_in) = async_channel::unbounded::<Vec<u8>>();
+      let (tx_in, rx_in) = async_channel::unbounded::<PtyCommand>();
 
       std::thread::spawn(move || {
-        let mut pty = PtyBridge::new(tx_out).expect("Failed to create PTY bridge");
+        let mut pty = PtyBridge::new(tx_out, cols, rows).expect("failed to create PTY bridge");
 
-        while let Ok(bytes) = rx_in.recv_blocking() {
-          pty.write_to_pty(&bytes);
+        while let Ok(command) = rx_in.recv_blocking() {
+          match command {
+            PtyCommand::Input(bytes) => pty.write_to_pty(&bytes),
+            PtyCommand::Resize { cols, rows } => pty.resize_pty(cols, rows),
+          }
         }
       });
 

@@ -4,11 +4,12 @@ use async_channel::Sender;
 use vte::Parser;
 
 use crate::core::grid::Grid;
+use crate::sys::pty::PtyCommand;
 
 pub struct Tab {
   pub id: usize,
   pub grid: Grid,
-  pub pty_tx: Option<Sender<Vec<u8>>>,
+  pub pty_tx: Option<Sender<PtyCommand>>,
   pub ansi_parser: Parser,
   pub shell: String,
   pub pwd: String,

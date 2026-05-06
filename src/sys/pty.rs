@@ -3,6 +3,12 @@ use portable_pty::{Child, CommandBuilder, MasterPty, NativePtySystem, PtySize, P
 use std::io::{Read, Write};
 use std::thread;
 
+#[derive(Debug, Clone)]
+pub enum PtyCommand {
+  Input(Vec<u8>),
+  Resize { cols: u16, rows: u16 },
+}
+
 pub struct PtyBridge {
   writer: Box<dyn Write + Send>,
   _master_pty: Box<dyn MasterPty + Send>,
@@ -10,12 +16,12 @@ pub struct PtyBridge {
 }
 
 impl PtyBridge {
-  pub fn new(tx: Sender<Vec<u8>>) -> anyhow::Result<Self> {
+  pub fn new(tx: Sender<Vec<u8>>, cols: u16, rows: u16) -> anyhow::Result<Self> {
     let pty_system = NativePtySystem::default();
 
     let pair = pty_system.openpty(PtySize {
-      rows: 24,
-      cols: 80,
+      rows,
+      cols,
       pixel_width: 0,
       pixel_height: 0,
     })?;
@@ -100,5 +106,14 @@ impl PtyBridge {
 
   pub fn write_to_pty(&mut self, input: &[u8]) {
     let _ = self.writer.write_all(input);
+  }
+
+  pub fn resize_pty(&mut self, cols: u16, rows: u16) {
+    let _ = self._master_pty.resize(PtySize {
+      rows,
+      cols,
+      pixel_width: 0,
+      pixel_height: 0,
+    });
   }
 }

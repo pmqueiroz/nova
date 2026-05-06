@@ -7,6 +7,9 @@ pub mod typography;
 
 pub type Result = iced::Result;
 
+const FIRA_CODE_BYTES: &[u8] = include_bytes!("../../fonts/FiraCode-Regular.ttf");
+const FIRA_CODE_BOLD_BYTES: &[u8] = include_bytes!("../../fonts/FiraCode-Bold.ttf");
+
 pub fn start() -> Result {
   iced::application(
     app_state::Nova::default,
@@ -25,5 +28,9 @@ pub fn start() -> Result {
     background_color: theme::TRANSPARENT.as_color(),
     text_color: theme::FG.as_color(),
   })
+  .font(FIRA_CODE_BYTES)
+  .font(FIRA_CODE_BOLD_BYTES)
+  .default_font(theme::FIRA_CODE_FONT)
+  .antialiasing(true)
   .run()
 }

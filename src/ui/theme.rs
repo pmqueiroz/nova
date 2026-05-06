@@ -131,3 +131,17 @@ impl Hue {
     Self { a: alpha, ..*self }
   }
 }
+
+pub const FIRA_CODE_FONT: iced::Font = iced::Font {
+  family: iced::font::Family::Name("Fira Code"),
+  weight: iced::font::Weight::Normal,
+  stretch: iced::font::Stretch::Normal,
+  style: iced::font::Style::Normal,
+};
+
+pub const FIRA_CODE_BOLD_FONT: iced::Font = iced::Font {
+  family: iced::font::Family::Name("Fira Code"),
+  weight: iced::font::Weight::Bold,
+  stretch: iced::font::Stretch::Normal,
+  style: iced::font::Style::Normal,
+};

@@ -8,7 +8,7 @@ use iced::{
 use crate::ui::{
   app_state::{Message, Tab},
   theme,
-  typography::Typography,
+  typography::{self, Typography},
 };
 
 pub fn app<'a>(content: impl Into<Element<'a, Message>>) -> Element<'a, Message> {
@@ -55,6 +55,7 @@ pub fn title_bar(window_focused: bool) -> Element<'static, Message> {
     Typography {
       color: theme::FG_MUTED.as_color(),
       size: 12.into(),
+      ..Default::default()
     }
     .as_text("nova"),
     horizontal(),
@@ -381,6 +382,7 @@ pub fn status_bar_text(content: impl Into<String>) -> iced::widget::Text<'static
   Typography {
     color: theme::FG_MUTED.as_color(),
     size: 14.into(),
+    ..Default::default()
   }
   .as_text(content)
   .into()
@@ -411,6 +413,7 @@ pub fn agent_status() -> Element<'static, Message> {
       Typography {
         color: theme::ACCENT.as_color(),
         size: 14.into(),
+        weight: typography::Weight::Bold,
       }
       .as_text("connected")
     ]

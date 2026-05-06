@@ -2,6 +2,8 @@ use iced::{Size, window};
 
 pub mod app_state;
 pub mod components;
+mod helpers;
+mod tab;
 pub mod theme;
 pub mod typography;
 

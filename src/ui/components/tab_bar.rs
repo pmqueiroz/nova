@@ -1,22 +1,24 @@
+use std::path::Path;
+
 use iced::{
   Border, Element, Length, Padding, alignment,
   border::Radius,
   widget::{button, container, row},
 };
 
-use crate::ui::{
-  app_state::{Message, Tab},
-  theme,
-  typography::Typography,
-};
+use crate::ui::{app_state::Message, helpers::til_home, tab::Tab, theme, typography::Typography};
 
 pub fn tab_bar(tabs: &Vec<Tab>, active_index: usize) -> Element<'static, Message> {
   let mut tab_bar = row![];
 
   for (i, tab) in tabs.iter().enumerate() {
     let is_active = i == active_index;
+    let basename = Path::new(&til_home(&tab.pwd))
+      .file_name()
+      .map(|n| n.to_string_lossy().to_string())
+      .unwrap_or_else(|| tab.pwd.clone());
 
-    tab_bar = tab_bar.push(row![tab_item(format!("Terminal {}", tab.id), i, is_active)].spacing(2));
+    tab_bar = tab_bar.push(row![tab_item(basename, i, is_active)].spacing(2));
   }
 
   tab_bar = tab_bar.push(

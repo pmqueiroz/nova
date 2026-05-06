@@ -4,16 +4,18 @@ use iced::{
   widget::{container, mouse_area, row, space::horizontal},
 };
 
-use crate::ui::{app_state::Message, components::traffic_lights, theme, typography::Typography};
+use crate::ui::{
+  app_state::Message, components::traffic_lights, helpers::til_home, theme, typography::Typography,
+};
 
-pub fn title_bar(window_focused: bool) -> Element<'static, Message> {
+pub fn title_bar(window_focused: bool, pwd: &String) -> Element<'static, Message> {
   let controls = traffic_lights(window_focused);
   let title = Typography {
     color: theme::color::FG_MUTED.as_color(),
     size: 12.into(),
     ..Default::default()
   }
-  .as_text("nova");
+  .as_text(format!("nova - {}", til_home(pwd)));
 
   #[cfg(target_os = "windows")]
   let title_row = row![horizontal(), title, horizontal(), controls,].spacing(8);

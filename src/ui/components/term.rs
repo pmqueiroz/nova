@@ -4,11 +4,7 @@ use iced::{
   widget::{column, container, row, scrollable},
 };
 
-use crate::ui::{
-  app_state::{Message, Tab},
-  theme,
-  typography::Typography,
-};
+use crate::ui::{app_state::Message, tab::Tab, theme, typography::Typography};
 
 pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
   let mut grid_ui = column![].spacing(0);

@@ -27,6 +27,10 @@ impl PtyBridge {
 
     cmd.env("TERM", "xterm-256color");
     cmd.env("PS1", r"\w λ ");
+    cmd.env(
+      "PROMPT_COMMAND",
+      r#"printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
+    );
 
     let _child = pair.slave.spawn_command(cmd)?;
 

@@ -2,32 +2,13 @@ use async_channel::Sender;
 use iced::keyboard::Key;
 use iced::keyboard::key::Named;
 use iced::widget::column;
-use iced::{Element, Subscription, Theme, window};
+use iced::{Element, Subscription, Theme, time, window};
 use iced::{Event, event, keyboard, stream};
-use vte::Parser;
 
-use crate::core::grid::Grid;
 use crate::sys::parser::AnsiExecutor;
 use crate::sys::pty::PtyBridge;
 use crate::ui::components;
-
-pub struct Tab {
-  pub id: usize,
-  pub grid: Grid,
-  pub pty_tx: Option<Sender<Vec<u8>>>,
-  pub ansi_parser: Parser,
-}
-
-impl Tab {
-  pub fn new(id: usize) -> Self {
-    Self {
-      id,
-      grid: Grid::new(80, 24),
-      pty_tx: None,
-      ansi_parser: Parser::new(),
-    }
-  }
-}
+use crate::ui::tab::Tab;
 
 pub struct Nova {
   tabs: Vec<Tab>,
@@ -52,6 +33,7 @@ pub enum Message {
   WindowOpened(window::Id),
   WindowFocused,
   WindowUnfocused,
+  Tick,
 }
 
 impl Default for Nova {
@@ -110,6 +92,12 @@ impl Nova {
           for byte in bytes {
             tab.ansi_parser.advance(&mut executor, &[byte]);
           }
+
+          let new_pwd = tab.grid.pwd.clone();
+          if new_pwd != tab.pwd {
+            tab.pwd = new_pwd;
+          }
+          tab.update_git_status();
         }
       }
       Message::WindowOpened(id) => {
@@ -139,6 +127,7 @@ impl Nova {
       Message::WindowUnfocused => {
         self.window_focused = false;
       }
+      Message::Tick => {}
     }
 
     iced::Task::none()
@@ -148,10 +137,10 @@ impl Nova {
     let active_tab = &self.tabs[self.active_index];
 
     components::app(column![
-      components::title_bar(self.window_focused),
+      components::title_bar(self.window_focused, &active_tab.pwd),
       components::tab_bar(&self.tabs, self.active_index),
       components::term(active_tab),
-      components::status_bar()
+      components::status_bar(active_tab)
     ])
   }
 
@@ -161,6 +150,10 @@ impl Nova {
 
   pub fn subscription(&self) -> Subscription<Message> {
     let mut subs = Vec::new();
+
+    let time_sub = time::every(std::time::Duration::from_secs(1)).map(|_| Message::Tick);
+
+    subs.push(time_sub);
 
     let global_sub = event::listen_with(|event, _s, window_id| match event {
       Event::Keyboard(keyboard::Event::KeyPressed {
@@ -193,8 +186,12 @@ impl Nova {
         if let Key::Character(c) = key {
           let mut char_str = c.as_str().to_string();
 
+          // TODO: This is a bit of a hack to handle shifted characters. Ideally, we'd want to get the actual character that would be typed with the modifiers applied, but iced doesn't provide that directly.
           if char_str == "'" && modifiers.shift() {
             char_str = "\"".to_string();
+          }
+          if char_str == "`" && modifiers.shift() {
+            char_str = "~".to_string();
           }
 
           return Some(Message::Type(char_str.as_bytes().to_vec()));

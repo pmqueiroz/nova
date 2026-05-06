@@ -22,6 +22,7 @@ pub struct Grid {
   pub current_fg: Color,
   pub cols: usize,
   pub rows: usize,
+  pub pwd: String,
 }
 
 impl Grid {
@@ -34,6 +35,7 @@ impl Grid {
       current_fg: Color::WHITE,
       cols,
       rows,
+      pwd: String::from("~"),
     }
   }
 

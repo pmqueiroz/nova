@@ -7,18 +7,20 @@ use iced::{
 
 use crate::ui::{
   app_state::Message,
+  tab::Tab,
   theme,
   typography::{self, Typography},
 };
 
-pub fn status_bar<'a>() -> Element<'a, Message> {
+pub fn status_bar<'a>(active_tab: &Tab) -> Element<'a, Message> {
   let local_now = Local::now();
 
   container(
     row![
       agent_status(),
-      status_bar_text("bash"),
+      status_bar_text(&active_tab.shell),
       status_bar_text("utf-8"),
+      status_bar_text(active_tab.git_branch.as_ref().unwrap_or(&"".to_string())),
       horizontal(),
       status_bar_text(&local_now.format("%b %d").to_string()),
       status_bar_text(&local_now.format("%H:%M:%S").to_string()),

@@ -25,12 +25,12 @@ pub fn start() -> Result {
     ..Default::default()
   })
   .style(|_s, _t| iced::theme::Style {
-    background_color: theme::TRANSPARENT.as_color(),
-    text_color: theme::FG.as_color(),
+    background_color: theme::color::TRANSPARENT.as_color(),
+    text_color: theme::color::FG.as_color(),
   })
   .font(FIRA_CODE_BYTES)
   .font(FIRA_CODE_BOLD_BYTES)
-  .default_font(theme::FIRA_CODE_FONT)
+  .default_font(theme::font::REGULAR)
   .antialiasing(true)
   .run()
 }

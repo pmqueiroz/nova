@@ -26,9 +26,9 @@ pub fn status_bar<'a>() -> Element<'a, Message> {
     .spacing(16),
   )
   .style(move |_| container::Style {
-    background: Some(theme::BG_DEEP.as_color().into()),
+    background: Some(theme::color::BG_DEEP.as_color().into()),
     border: Border {
-      color: theme::BORDER.as_color(),
+      color: theme::color::BORDER.as_color(),
       radius: Radius {
         bottom_left: 12.0,
         bottom_right: 12.0,
@@ -46,7 +46,7 @@ pub fn status_bar<'a>() -> Element<'a, Message> {
 
 pub fn status_bar_text(content: impl Into<String>) -> iced::widget::Text<'static> {
   Typography {
-    color: theme::FG_MUTED.as_color(),
+    color: theme::color::FG_MUTED.as_color(),
     size: 14.into(),
     ..Default::default()
   }
@@ -64,20 +64,20 @@ pub fn agent_status() -> Element<'static, Message> {
       )
       .padding(0)
       .style(move |_t, _s| button::Style {
-        background: Some(theme::ACCENT.as_color().into(),),
+        background: Some(theme::color::ACCENT.as_color().into(),),
         border: iced::Border {
           radius: radius(120.0),
           ..Default::default()
         },
         shadow: Shadow {
-          color: theme::ACCENT.with_alpha(0.8).as_color(),
+          color: theme::color::ACCENT.with_alpha(0.8).as_color(),
           offset: iced::Vector::new(0.0, 0.0),
           blur_radius: 8.0,
         },
         ..Default::default()
       }),
       Typography {
-        color: theme::ACCENT.as_color(),
+        color: theme::color::ACCENT.as_color(),
         size: 14.into(),
         weight: typography::Weight::Bold,
       }

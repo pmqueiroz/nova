@@ -24,11 +24,11 @@ pub fn tab_bar(tabs: &Vec<Tab>, active_index: usize) -> Element<'static, Message
       button("+")
         .style(move |_t, status| button::Style {
           text_color: match status {
-            button::Status::Hovered => theme::ACCENT.as_color(),
-            button::Status::Pressed => theme::ACCENT_DIM.as_color(),
-            _ => theme::FG_MUTED.as_color(),
+            button::Status::Hovered => theme::color::ACCENT.as_color(),
+            button::Status::Pressed => theme::color::ACCENT_DIM.as_color(),
+            _ => theme::color::FG_MUTED.as_color(),
           },
-          background: Some(theme::TRANSPARENT.as_color().into()),
+          background: Some(theme::color::TRANSPARENT.as_color().into()),
           ..Default::default()
         })
         .on_press(Message::NewTab)
@@ -41,9 +41,9 @@ pub fn tab_bar(tabs: &Vec<Tab>, active_index: usize) -> Element<'static, Message
     .padding(Padding::from([0, 8]))
     .width(Length::Fill)
     .style(move |_| container::Style {
-      background: Some(theme::BG_DEEP.as_color().into()),
+      background: Some(theme::color::BG_DEEP.as_color().into()),
       border: Border {
-        color: theme::BORDER.as_color(),
+        color: theme::color::BORDER.as_color(),
         radius: Radius {
           ..Default::default()
         },
@@ -67,7 +67,7 @@ fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Messa
           .as_text(title),
         )
         .style(move |_t, _s| button::Style {
-          background: Some(theme::TRANSPARENT.as_color().into()),
+          background: Some(theme::color::TRANSPARENT.as_color().into()),
           ..Default::default()
         })
         .padding(0)
@@ -75,11 +75,11 @@ fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Messa
         button("✕")
           .style(move |_t, status| button::Style {
             text_color: if status == button::Status::Hovered {
-              theme::RED.as_color()
+              theme::color::RED.as_color()
             } else {
-              theme::FG_MUTED.as_color()
+              theme::color::FG_MUTED.as_color()
             },
-            background: Some(theme::TRANSPARENT.as_color().into()),
+            background: Some(theme::color::TRANSPARENT.as_color().into()),
             ..Default::default()
           })
           .on_press(Message::CloseTab(index))
@@ -89,14 +89,14 @@ fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Messa
     )
     .style(move |_t| container::Style {
       background: Some(
-        theme::BG
+        theme::color::BG
           .with_alpha(if active { 1.0 } else { 0.0 })
           .as_color()
           .into(),
       ),
       border: Border {
-        color: theme::BORDER
-          .with_alpha(if active { theme::BORDER.a } else { 0.0 })
+        color: theme::color::BORDER
+          .with_alpha(if active { theme::color::BORDER.a } else { 0.0 })
           .as_color(),
         radius: Radius {
           top_left: 8.0,
@@ -112,7 +112,7 @@ fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Messa
   )
   .padding(0)
   .style(move |_t, _s| button::Style {
-    background: Some(theme::TRANSPARENT.as_color().into()),
+    background: Some(theme::color::TRANSPARENT.as_color().into()),
     ..Default::default()
   })
   .on_press(Message::SwitchTab(index))

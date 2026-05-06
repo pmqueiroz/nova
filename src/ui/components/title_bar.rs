@@ -9,7 +9,7 @@ use crate::ui::{app_state::Message, components::traffic_lights, theme, typograph
 pub fn title_bar(window_focused: bool) -> Element<'static, Message> {
   let controls = traffic_lights(window_focused);
   let title = Typography {
-    color: theme::FG_MUTED.as_color(),
+    color: theme::color::FG_MUTED.as_color(),
     size: 12.into(),
     ..Default::default()
   }
@@ -23,9 +23,9 @@ pub fn title_bar(window_focused: bool) -> Element<'static, Message> {
   mouse_area(
     container(title_row)
       .style(move |_| container::Style {
-        background: Some(theme::BG_DEEP.as_color().into()),
+        background: Some(theme::color::BG_DEEP.as_color().into()),
         border: Border {
-          color: theme::BORDER.as_color(),
+          color: theme::color::BORDER.as_color(),
           radius: Radius {
             top_left: 12.0,
             top_right: 12.0,

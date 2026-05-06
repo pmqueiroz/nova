@@ -16,7 +16,7 @@ pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
   for (y, row_cells) in active_tab.grid.cells.iter().enumerate() {
     let mut ui_row = row![].spacing(0);
     let mut current_text = String::new();
-    let mut current_color = theme::FG.as_color();
+    let mut current_color = theme::color::FG.as_color();
 
     for (x, cell) in row_cells.iter().enumerate() {
       let is_cursor = x == active_tab.grid.cursor_x && y == active_tab.grid.cursor_y;
@@ -51,9 +51,9 @@ pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
 
   container(scrollable(grid_ui).height(Length::Fill).width(Length::Fill))
     .style(move |_| container::Style {
-      background: Some(theme::BG.as_color().into()),
+      background: Some(theme::color::BG.as_color().into()),
       border: Border {
-        color: theme::BORDER.as_color(),
+        color: theme::color::BORDER.as_color(),
         radius: Radius {
           ..Default::default()
         },
@@ -74,7 +74,7 @@ pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
 
 pub fn cursor<'a>() -> Element<'a, Message> {
   Typography {
-    color: theme::ACCENT.as_color(),
+    color: theme::color::ACCENT.as_color(),
     ..Default::default()
   }
   .as_text("_")

@@ -22,7 +22,7 @@ pub fn traffic_lights(window_focused: bool) -> Element<'static, Message> {
         if window_focused {
           color
         } else {
-          theme::TRAFFIC_LIGHT_INACTIVE.as_color()
+          theme::color::TRAFFIC_LIGHT_INACTIVE.as_color()
         }
         .into(),
       ),
@@ -34,13 +34,16 @@ pub fn traffic_lights(window_focused: bool) -> Element<'static, Message> {
     })
   };
 
-  let red_light = circle_btn(theme::TRAFFIC_LIGHT_RED.as_color(), Message::CloseWindow);
+  let red_light = circle_btn(
+    theme::color::TRAFFIC_LIGHT_RED.as_color(),
+    Message::CloseWindow,
+  );
   let yellow_light = circle_btn(
-    theme::TRAFFIC_LIGHT_YELLOW.as_color(),
+    theme::color::TRAFFIC_LIGHT_YELLOW.as_color(),
     Message::MinimizeWindow,
   );
   let green_light = circle_btn(
-    theme::TRAFFIC_LIGHT_GREEN.as_color(),
+    theme::color::TRAFFIC_LIGHT_GREEN.as_color(),
     Message::MaximizeWindow,
   );
 
@@ -61,7 +64,7 @@ pub fn traffic_lights(window_focused: bool) -> Element<'static, Message> {
         if window_focused {
           color
         } else {
-          theme::TRAFFIC_LIGHT_INACTIVE.as_color()
+          theme::color::TRAFFIC_LIGHT_INACTIVE.as_color()
         }
         .into(),
       ),
@@ -73,13 +76,16 @@ pub fn traffic_lights(window_focused: bool) -> Element<'static, Message> {
     })
   };
 
-  let red_light = circle_btn(theme::TRAFFIC_LIGHT_RED.as_color(), Message::CloseWindow);
+  let red_light = circle_btn(
+    theme::color::TRAFFIC_LIGHT_RED.as_color(),
+    Message::CloseWindow,
+  );
   let yellow_light = circle_btn(
-    theme::TRAFFIC_LIGHT_YELLOW.as_color(),
+    theme::color::TRAFFIC_LIGHT_YELLOW.as_color(),
     Message::MinimizeWindow,
   );
   let green_light = circle_btn(
-    theme::TRAFFIC_LIGHT_GREEN.as_color(),
+    theme::color::TRAFFIC_LIGHT_GREEN.as_color(),
     Message::MaximizeWindow,
   );
 

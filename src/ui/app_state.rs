@@ -93,6 +93,14 @@ impl Nova {
             tab.ansi_parser.advance(&mut executor, &[byte]);
           }
 
+          while !tab.grid.output_queue.is_empty() {
+            let response = tab.grid.output_queue.remove(0);
+
+            if let Some(tx) = &tab.pty_tx {
+              let _ = tx.send_blocking(response);
+            }
+          }
+
           let new_pwd = tab.grid.pwd.clone();
           if new_pwd != tab.pwd {
             tab.pwd = new_pwd;

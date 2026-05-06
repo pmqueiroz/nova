@@ -96,6 +96,20 @@ impl<'a> Perform for AnsiExecutor<'a> {
           _ => {}
         }
       }
+      'n' => {
+        println!("[ANSI] received cursor position query (CPR)");
+        let mut iter = params.iter();
+        if let Some(param) = iter.next() {
+          if param.contains(&6) {
+            let row = self.grid.cursor_y + 1;
+            let col = self.grid.cursor_x + 1;
+
+            let response = format!("\x1b[{};{}R", row, col);
+
+            self.grid.output_queue.push(response.into_bytes());
+          }
+        }
+      }
       _ => {}
     }
   }

@@ -23,6 +23,7 @@ pub struct Grid {
   pub cols: usize,
   pub rows: usize,
   pub pwd: String,
+  pub output_queue: Vec<Vec<u8>>,
 }
 
 impl Grid {
@@ -36,6 +37,7 @@ impl Grid {
       cols,
       rows,
       pwd: String::from("~"),
+      output_queue: Vec::new(),
     }
   }
 

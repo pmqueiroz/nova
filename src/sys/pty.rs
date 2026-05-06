@@ -1,10 +1,12 @@
 use async_channel::Sender;
-use portable_pty::{CommandBuilder, NativePtySystem, PtySize, PtySystem};
+use portable_pty::{Child, CommandBuilder, MasterPty, NativePtySystem, PtySize, PtySystem};
 use std::io::{Read, Write};
 use std::thread;
 
 pub struct PtyBridge {
-  master: Box<dyn Write + Send>,
+  writer: Box<dyn Write + Send>,
+  _master_pty: Box<dyn MasterPty + Send>,
+  _child: Box<dyn Child + Send + Sync>,
 }
 
 impl PtyBridge {
@@ -19,20 +21,33 @@ impl PtyBridge {
     })?;
 
     #[cfg(target_os = "windows")]
-    let mut cmd = CommandBuilder::new("powershell.exe");
+    let cmd = {
+      let mut c = CommandBuilder::new(r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe");
+      if let Ok(profile) = std::env::var("USERPROFILE") {
+        c.cwd(profile);
+      }
+      c.args(["-NoProfile", "-NoLogo"]);
+      c.env("TERM", "xterm-256color");
+      c
+    };
 
     #[cfg(not(target_os = "windows"))]
-    let mut cmd =
-      CommandBuilder::new(std::env::var("SHELL").unwrap_or_else(|_| "bash".to_string()));
+    let cmd = {
+      let shell = std::env::var("SHELL").unwrap_or_else(|_| "bash".to_string());
+      let mut c = CommandBuilder::new(shell);
+      if let Ok(home) = std::env::var("HOME") {
+        c.cwd(home);
+      }
+      c.env("TERM", "xterm-256color");
+      c.env("PS1", r"\w λ ");
+      c.env(
+        "PROMPT_COMMAND",
+        r#"printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
+      );
+      c
+    };
 
-    cmd.env("TERM", "xterm-256color");
-    cmd.env("PS1", r"\w λ ");
-    cmd.env(
-      "PROMPT_COMMAND",
-      r#"printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
-    );
-
-    let _child = pair.slave.spawn_command(cmd)?;
+    let child = pair.slave.spawn_command(cmd)?;
 
     let mut reader = pair.master.try_clone_reader()?;
     let writer = pair.master.take_writer()?;
@@ -41,22 +56,34 @@ impl PtyBridge {
       let mut buffer = [0u8; 1024];
       loop {
         match reader.read(&mut buffer) {
-          Ok(0) => break, // EOF
+          Ok(0) => {
+            println!("[PTY] process ended (EOF).");
+            break;
+          }
           Ok(n) => {
             let data = buffer[..n].to_vec();
-            if tx.try_send(data).is_err() {
+            println!("[PTY] {} bytes: {:?}", n, String::from_utf8_lossy(&data));
+            if tx.send_blocking(data).is_err() {
+              println!("[PTY] iced sender error: channel closed.");
               break;
             }
           }
-          Err(_) => break,
+          Err(e) => {
+            println!("[PTY] fatal read error: {}", e);
+            break;
+          }
         }
       }
     });
 
-    Ok(Self { master: writer })
+    Ok(Self {
+      writer,
+      _master_pty: pair.master,
+      _child: child,
+    })
   }
 
   pub fn write_to_pty(&mut self, input: &[u8]) {
-    let _ = self.master.write_all(input);
+    let _ = self.writer.write_all(input);
   }
 }

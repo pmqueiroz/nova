@@ -1,24 +1,31 @@
-use std::path::Path;
-
 use iced::{
   Border, Element, Length, Padding, alignment,
   border::Radius,
-  widget::{button, container, row},
+  widget::{button, container, row, space::horizontal},
 };
 
-use crate::ui::{app_state::Message, helpers::til_home, tab::Tab, theme, typography::Typography};
+use crate::ui::{
+  app_state::Message,
+  helpers::{basename, til_home, truncate},
+  tab::Tab,
+  theme,
+  typography::Typography,
+};
 
 pub fn tab_bar(tabs: &Vec<Tab>, active_index: usize) -> Element<'static, Message> {
   let mut tab_bar = row![];
 
   for (i, tab) in tabs.iter().enumerate() {
     let is_active = i == active_index;
-    let basename = Path::new(&til_home(&tab.pwd))
-      .file_name()
-      .map(|n| n.to_string_lossy().to_string())
-      .unwrap_or_else(|| tab.pwd.clone());
 
-    tab_bar = tab_bar.push(row![tab_item(basename, i, is_active)].spacing(2));
+    tab_bar = tab_bar.push(
+      row![tab_item(
+        truncate(&basename(&til_home(&tab.pwd)), 12),
+        i,
+        is_active
+      )]
+      .spacing(2),
+    );
   }
 
   tab_bar = tab_bar.push(
@@ -64,6 +71,12 @@ fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Messa
       row![
         button(
           Typography {
+            color: if active {
+              theme::color::FG.as_color()
+            } else {
+              theme::color::FG_MUTED.as_color()
+            },
+            size: 11.into(),
             ..Default::default()
           }
           .as_text(title),
@@ -72,8 +85,9 @@ fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Messa
           background: Some(theme::color::TRANSPARENT.as_color().into()),
           ..Default::default()
         })
-        .padding(0)
+        .padding(Padding::from([4, 0]))
         .on_press(Message::SwitchTab(index)),
+        horizontal(),
         button("✕")
           .style(move |_t, status| button::Style {
             text_color: if status == button::Status::Hovered {
@@ -85,9 +99,12 @@ fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Messa
             ..Default::default()
           })
           .on_press(Message::CloseTab(index))
-          .padding(0),
+          .padding(Padding {
+            left: 8.0,
+            ..Default::default()
+          }),
       ]
-      .spacing(8),
+      .spacing(0),
     )
     .style(move |_t| container::Style {
       background: Some(
@@ -117,6 +134,7 @@ fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Messa
     background: Some(theme::color::TRANSPARENT.as_color().into()),
     ..Default::default()
   })
+  .width(120)
   .on_press(Message::SwitchTab(index))
   .into()
 }

@@ -16,7 +16,7 @@ pub struct Typography {
 impl Default for Typography {
   fn default() -> Self {
     Self {
-      color: iced::Color::WHITE,
+      color: theme::color::FG.as_color(),
       size: 16.into(),
       weight: Weight::Normal,
     }

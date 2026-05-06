@@ -3,56 +3,57 @@ use iced::{
   widget::{button, row},
 };
 
-use crate::ui::{app_state::Message};
+use crate::ui::app_state::Message;
 
-// TODO: windows icons
 #[cfg(target_os = "windows")]
 pub fn traffic_lights(_: bool) -> Element<'static, Message> {
-let win_btn = |icon_unicode: &'static str, msg: Message, is_close: bool| {
-  use iced::widget::{container, text};
+  let win_btn = |icon_unicode: &'static str, msg: Message, is_close: bool| {
+    use iced::widget::{container, text};
 
-  let content = container(
-        text(icon_unicode)
-            .size(16)
-    )
-    .center_x(Length::Fill)
-    .center_y(Length::Fill);
+    let content = container(text(icon_unicode).size(16))
+      .center_x(Length::Fill)
+      .center_y(Length::Fill);
 
-  button(
-      content
-  )
-  .on_press(msg)
-  .width(Length::Fixed(46.0)) 
-  .height(Length::Fill)
-  .padding(0)
-  .style(move |_theme, status| {
-      let is_hovered = status == iced::widget::button::Status::Hovered;
-      
-      iced::widget::button::Style {
+    button(content)
+      .on_press(msg)
+      .width(Length::Fixed(46.0))
+      .height(Length::Fill)
+      .padding(0)
+      .style(move |_theme, status| {
+        let is_hovered = status == iced::widget::button::Status::Hovered;
+
+        iced::widget::button::Style {
           background: if is_hovered {
-              if is_close {
-                  Some(Color::from_rgb8(232, 17, 35).into()) 
-              } else {
-                  Some(Color::from_rgb(0.2, 0.2, 0.2).into()) 
-              }
+            if is_close {
+              Some(Color::from_rgb8(232, 17, 35).into())
+            } else {
+              Some(Color::from_rgb(0.2, 0.2, 0.2).into())
+            }
           } else {
-              None
+            None
           },
           text_color: Color::WHITE,
           border: iced::Border::default(),
           ..Default::default()
-      }
-  })
-};
-let minimize_btn = win_btn("─", Message::MinimizeWindow, false);
-let maximize_btn = win_btn("□", Message::MaximizeWindow, false); // Or use \u{EAC2} if already maximized
-let close_btn = win_btn("✕", Message::CloseWindow, true);
+        }
+      })
+  };
+  let minimize_btn = win_btn("─", Message::MinimizeWindow, false);
+  let maximize_btn = win_btn("□", Message::MaximizeWindow, false); // Or use \u{EAC2} if already maximized
+  let close_btn = win_btn("✕", Message::CloseWindow, true);
 
-  row![minimize_btn, maximize_btn, close_btn].spacing(8).height(Length::Fill).into()
+  row![minimize_btn, maximize_btn, close_btn]
+    .spacing(8)
+    .height(Length::Fill)
+    .into()
 }
 
 #[cfg(not(target_os = "windows"))]
 pub fn traffic_lights(window_focused: bool) -> Element<'static, Message> {
+  use crate::ui::theme;
+  use iced::border::radius;
+  use iced::widget::Space;
+
   let circle_btn = |color: Color, msg: Message| {
     button(
       Space::new()

@@ -1,8 +1,8 @@
 use chrono::Local;
 use iced::{
-  Border, Element, Length, Padding, Shadow,
-  border::{Radius, radius},
-  widget::{Space, button, container, row, space::horizontal},
+  Border, Element, Length, Padding,
+  border::Radius,
+  widget::{container, row, space::horizontal},
 };
 
 use crate::ui::{

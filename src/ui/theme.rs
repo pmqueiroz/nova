@@ -24,12 +24,12 @@ pub const ACCENT: Hue = Hue {
   b: 0.55686, // 0x8E
   a: 1.0,
 };
-// pub const ACCENT_DIM: Hue = Hue {
-//   r: 0.24314, // 0x3E
-//   g: 0.81176, // 0xCF
-//   b: 0.55686, // 0x8E
-//   a: 0.15,
-// };
+pub const ACCENT_DIM: Hue = Hue {
+  r: 0.24314, // 0x3E
+  g: 0.81176, // 0xCF
+  b: 0.55686, // 0x8E
+  a: 0.75,
+};
 // pub const BLUE: Hue = Hue {
 //   r: 0.48235, // 0x7B
 //   g: 0.57647, // 0x93
@@ -42,12 +42,12 @@ pub const ACCENT: Hue = Hue {
 //   b: 0.25098, // 0x40
 //   a: 1.0,
 // };
-// pub const RED: Hue = Hue {
-//   r: 1.0,     // 0xFF
-//   g: 0.37255, // 0x5F
-//   b: 0.34118, // 0x57
-//   a: 1.0,
-// };
+pub const RED: Hue = Hue {
+  r: 1.0,     // 0xFF
+  g: 0.37255, // 0x5F
+  b: 0.34118, // 0x57
+  a: 1.0,
+};
 pub const FG: Hue = Hue {
   r: 0.89804, // 0xE5
   g: 0.89804,

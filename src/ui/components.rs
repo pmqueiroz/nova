@@ -1,8 +1,10 @@
 use chrono::Local;
 use iced::{
-  Border, Color, Element, Length, Padding, alignment,
+  Border, Color, Element, Length, Padding, Shadow, alignment,
   border::{Radius, radius},
-  widget::{Space, button, column, container, mouse_area, row, scrollable, space::horizontal},
+  widget::{
+    Space, button, column, container, mouse_area, row, scrollable, space::horizontal, text,
+  },
 };
 
 use crate::ui::{
@@ -35,36 +37,50 @@ pub fn title_bar(window_focused: bool) -> Element<'static, Message> {
   #[cfg(not(target_os = "windows"))]
   let controls = traffic_lights(window_focused);
 
+  #[cfg(target_os = "windows")]
+  let title_row = row![
+    horizontal(),
+    Typography {
+      color: theme::FG_MUTED.as_color(),
+      size: 12.into(),
+    }
+    .as_text("nova"),
+    horizontal(),
+    controls,
+  ]
+  .spacing(8);
+
+  #[cfg(not(target_os = "windows"))]
+  let title_row = row![
+    controls,
+    horizontal(),
+    Typography {
+      color: theme::FG_MUTED.as_color(),
+      size: 12.into(),
+    }
+    .as_text("nova"),
+    horizontal(),
+  ]
+  .spacing(8);
+
   mouse_area(
-    container(
-      row![
-        controls,
-        horizontal(),
-        Typography {
-          color: theme::FG_MUTED.as_color(),
-          size: 12.into(),
-        }
-        .as_text("nova"),
-        horizontal(),
-      ]
-      .spacing(8),
-    )
-    .style(move |_| container::Style {
-      background: Some(theme::BG_DEEP.as_color().into()),
-      border: Border {
-        color: theme::BORDER.as_color(),
-        radius: Radius {
-          top_left: 12.0,
-          top_right: 12.0,
-          ..Default::default()
+    container(title_row)
+      .style(move |_| container::Style {
+        background: Some(theme::BG_DEEP.as_color().into()),
+        border: Border {
+          color: theme::BORDER.as_color(),
+          radius: Radius {
+            top_left: 12.0,
+            top_right: 12.0,
+            ..Default::default()
+          },
+          width: 0.5,
         },
-        width: 0.5,
-      },
-      ..container::Style::default()
-    })
-    .padding(Padding::from([0, 16]))
-    .width(Length::Fill)
-    .center_y(40),
+        ..container::Style::default()
+      })
+      .padding(Padding::from([0, 16]))
+      .width(Length::Fill)
+      .center_y(40),
   )
   .on_press(Message::DragWindow)
   .into()
@@ -161,8 +177,13 @@ pub fn tab_bar(tabs: &Vec<Tab>, active_index: usize) -> Element<'static, Message
 
   tab_bar = tab_bar.push(
     container(
-      button(Typography::span("+"))
-        .style(move |_t, _s| button::Style {
+      button("+")
+        .style(move |_t, status| button::Style {
+          text_color: match status {
+            button::Status::Hovered => theme::ACCENT.as_color(),
+            button::Status::Pressed => theme::ACCENT_DIM.as_color(),
+            _ => theme::FG_MUTED.as_color(),
+          },
           background: Some(theme::TRANSPARENT.as_color().into()),
           ..Default::default()
         })
@@ -207,18 +228,18 @@ fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Messa
         })
         .padding(0)
         .on_press(Message::SwitchTab(index)),
-        button(
-          Typography {
+        button("✕")
+          .style(move |_t, status| button::Style {
+            text_color: if status == button::Status::Hovered {
+              theme::RED.as_color()
+            } else {
+              theme::FG_MUTED.as_color()
+            },
+            background: Some(theme::TRANSPARENT.as_color().into()),
             ..Default::default()
-          }
-          .as_text("x")
-        )
-        .style(move |_t, _s| button::Style {
-          background: Some(theme::TRANSPARENT.as_color().into()),
-          ..Default::default()
-        })
-        .on_press(Message::CloseTab(index))
-        .padding(0),
+          })
+          .on_press(Message::CloseTab(index))
+          .padding(0),
       ]
       .spacing(8),
     )

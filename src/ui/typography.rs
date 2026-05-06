@@ -22,11 +22,4 @@ impl Typography {
       .size(self.size)
       .into()
   }
-
-  pub fn span<'a>(content: impl Into<String>) -> iced::widget::Text<'a> {
-    Typography {
-      ..Default::default()
-    }
-    .as_text(content)
-  }
 }

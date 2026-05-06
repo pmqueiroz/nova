@@ -2,9 +2,7 @@ use chrono::Local;
 use iced::{
   Border, Color, Element, Length, Padding, Shadow, alignment,
   border::{Radius, radius},
-  widget::{
-    Space, button, column, container, mouse_area, row, scrollable, space::horizontal, text,
-  },
+  widget::{Space, button, column, container, mouse_area, row, scrollable, space::horizontal},
 };
 
 use crate::ui::{
@@ -351,6 +349,7 @@ pub fn status_bar<'a>() -> Element<'a, Message> {
 
   container(
     row![
+      agent_status(),
       status_bar_text("bash"),
       status_bar_text("utf-8"),
       horizontal(),
@@ -378,12 +377,46 @@ pub fn status_bar<'a>() -> Element<'a, Message> {
   .into()
 }
 
-pub fn status_bar_text(content: impl Into<String>) -> Element<'static, Message> {
+pub fn status_bar_text(content: impl Into<String>) -> iced::widget::Text<'static> {
   Typography {
     color: theme::FG_MUTED.as_color(),
     size: 14.into(),
   }
   .as_text(content)
-  .align_y(alignment::Vertical::Center)
+  .into()
+}
+
+pub fn agent_status() -> Element<'static, Message> {
+  container(
+    row![
+      button(
+        Space::new()
+          .width(Length::Fixed(8.0))
+          .height(Length::Fixed(8.0)),
+      )
+      .padding(0)
+      .style(move |_t, _s| button::Style {
+        background: Some(theme::ACCENT.as_color().into(),),
+        border: iced::Border {
+          radius: radius(120.0),
+          ..Default::default()
+        },
+        shadow: Shadow {
+          color: theme::ACCENT.with_alpha(0.8).as_color(),
+          offset: iced::Vector::new(0.0, 0.0),
+          blur_radius: 8.0,
+        },
+        ..Default::default()
+      }),
+      Typography {
+        color: theme::ACCENT.as_color(),
+        size: 14.into(),
+      }
+      .as_text("connected")
+    ]
+    .padding(0)
+    .spacing(4),
+  )
+  .center_y(12)
   .into()
 }

@@ -21,5 +21,9 @@ pub fn start() -> Result {
     decorations: false,
     ..Default::default()
   })
+  .style(|_s, _t| iced::theme::Style {
+    background_color: theme::TRANSPARENT.as_color(),
+    text_color: theme::FG.as_color(),
+  })
   .run()
 }

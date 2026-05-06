@@ -1,7 +1,7 @@
 use async_channel::Sender;
 use iced::keyboard::Key;
 use iced::keyboard::key::Named;
-use iced::widget::{button, column, row, text};
+use iced::widget::column;
 use iced::{Element, Subscription, Theme};
 use iced::{Event, event, keyboard, stream};
 use vte::Parser;
@@ -105,25 +105,10 @@ impl Nova {
   }
 
   pub fn view(&self) -> Element<'_, Message> {
-    let mut tab_bar = row![].spacing(5).padding(5);
-
-    for (i, tab) in self.tabs.iter().enumerate() {
-      // let is_active = i == self.active_index;
-      let tab_btn = button(text(format!("Terminal {}", tab.id)))
-        .on_press(Message::SwitchTab(i))
-        .padding(8);
-
-      let close_btn = button(text("x")).on_press(Message::CloseTab(i)).padding(8);
-
-      tab_bar = tab_bar.push(row![tab_btn, close_btn].spacing(2));
-    }
-
-    tab_bar = tab_bar.push(button(text("+")).on_press(Message::NewTab).padding(8));
-
     let active_tab = &self.tabs[self.active_index];
 
     components::app(column![
-      tab_bar,
+      components::tab_bar(&self.tabs, self.active_index),
       components::term(active_tab),
       components::status_bar()
     ])

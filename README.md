@@ -18,7 +18,7 @@ Grab the latest installer for your platform from the [releases page](https://git
 
 | Platform | File |
 |----------|------|
-| Windows x86_64 | `.msi` installer |
+| Windows x86_64 | `.exe` installer |
 | macOS x86_64 | `.dmg` disk image |
 | macOS Apple Silicon | `.dmg` disk image |
 | Linux x86_64 | `.deb` package or `.AppImage` |

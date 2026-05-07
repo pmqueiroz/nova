@@ -26,9 +26,9 @@ name = "Nova"
 identifier = "com.pmqueiroz.nova"
 description = "A GPU-accelerated terminal emulator"
 long_description = "Nova is a fast, GPU-accelerated terminal emulator built with Rust and iced."
-homepage_url = "https://github.com/pmqueiroz/nova"
+homepage = "https://github.com/pmqueiroz/nova"
 license_file = "LICENSE"
-formats = ["app", "dmg", "msi", "deb", "appimage"]
+formats = ["app", "dmg", "nsis", "deb", "appimage"]
 icons = [
   "assets/icons/linux/nova-linux-16.png",
   "assets/icons/linux/nova-linux-24.png",

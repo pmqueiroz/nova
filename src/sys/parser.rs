@@ -2,6 +2,43 @@ use crate::core::grid::Grid;
 use iced::Color;
 use vte::{Params, Perform};
 
+fn rgb8(r: u8, g: u8, b: u8) -> Color {
+  Color::from_rgb(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0)
+}
+
+fn ansi_fg(index: u16, bright: bool) -> Color {
+  let (v, d) = if bright { (255u8, 85u8) } else { (170u8, 0u8) };
+  match index {
+    0 => rgb8(d, d, d),
+    1 => rgb8(v, d, d),
+    2 => rgb8(d, v, d),
+    3 => rgb8(v, v, d),
+    4 => rgb8(d, d, v),
+    5 => rgb8(v, d, v),
+    6 => rgb8(d, v, v),
+    _ => Color::WHITE,
+  }
+}
+
+fn color_256(n: u8) -> Color {
+  match n {
+    0..=7 => ansi_fg(n as u16, false),
+    8..=15 => ansi_fg(n as u16 - 8, true),
+    16..=231 => {
+      let idx = n as u32 - 16;
+      let b = idx % 6;
+      let g = (idx / 6) % 6;
+      let r = idx / 36;
+      let f = |x: u32| if x == 0 { 0u8 } else { (55 + x * 40) as u8 };
+      rgb8(f(r), f(g), f(b))
+    }
+    232..=255 => {
+      let v = (8 + (n as u32 - 232) * 10) as u8;
+      rgb8(v, v, v)
+    }
+  }
+}
+
 pub struct AnsiExecutor<'a> {
   pub grid: &'a mut Grid,
 }
@@ -51,18 +88,48 @@ impl<'a> Perform for AnsiExecutor<'a> {
           self.grid.current_fg = Color::WHITE;
           return;
         }
-        for param in params.iter() {
-          let code = param[0];
+        let mut iter = params.iter();
+        while let Some(param) = iter.next() {
+          let code = if param.is_empty() { 0 } else { param[0] };
           match code {
-            0 => self.grid.current_fg = Color::WHITE,
-            30 => self.grid.current_fg = Color::from_rgb(0.0, 0.0, 0.0),
-            31 => self.grid.current_fg = Color::from_rgb(1.0, 0.0, 0.0),
-            32 => self.grid.current_fg = Color::from_rgb(0.0, 1.0, 0.0),
-            33 => self.grid.current_fg = Color::from_rgb(1.0, 1.0, 0.0),
-            34 => self.grid.current_fg = Color::from_rgb(0.0, 0.0, 1.0),
-            35 => self.grid.current_fg = Color::from_rgb(1.0, 0.0, 1.0),
-            36 => self.grid.current_fg = Color::from_rgb(0.0, 1.0, 1.0),
-            37 => self.grid.current_fg = Color::from_rgb(1.0, 1.0, 1.0),
+            0 | 39 => self.grid.current_fg = Color::WHITE,
+            1..=9 | 21..=29 => {}
+            30..=37 => self.grid.current_fg = ansi_fg(code - 30, false),
+            38 => {
+              if param.len() >= 3 && param[1] == 5 {
+                self.grid.current_fg = color_256(param[2] as u8);
+              } else if param.len() >= 5 && param[1] == 2 {
+                self.grid.current_fg = rgb8(param[2] as u8, param[3] as u8, param[4] as u8);
+              } else {
+                let mode = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] });
+                match mode {
+                  5 => {
+                    let n = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] }) as u8;
+                    self.grid.current_fg = color_256(n);
+                  }
+                  2 => {
+                    let r = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] }) as u8;
+                    let g = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] }) as u8;
+                    let b = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] }) as u8;
+                    self.grid.current_fg = rgb8(r, g, b);
+                  }
+                  _ => {}
+                }
+              }
+            }
+            40..=47 | 49 => {}
+            48 => {
+              if param.len() == 1 {
+                let mode = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] });
+                match mode {
+                  5 => { iter.next(); }
+                  2 => { iter.next(); iter.next(); iter.next(); }
+                  _ => {}
+                }
+              }
+            }
+            90..=97 => self.grid.current_fg = ansi_fg(code - 90, true),
+            100..=107 => {}
             _ => {}
           }
         }

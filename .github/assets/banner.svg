@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 320" width="1280" height="320">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#050505"></stop>
+      <stop offset="1" stop-color="#0a0a0a"></stop>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.4">
+      <stop offset="0" stop-color="#3ecf8e" stop-opacity="0.18"></stop>
+      <stop offset="1" stop-color="#3ecf8e" stop-opacity="0"></stop>
+    </radialGradient>
+    <radialGradient id="markBg" cx="0.3" cy="0.25" r="0.9">
+      <stop offset="0" stop-color="#1c4a36"></stop>
+      <stop offset="0.7" stop-color="#050505"></stop>
+      <stop offset="1" stop-color="#050505"></stop>
+    </radialGradient>
+    <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="20" stdDeviation="30" flood-color="#000" flood-opacity="0.5"></feDropShadow>
+    </filter>
+    <symbol id="nova-mark" viewBox="0 0 100 100">
+      <g fill="none" stroke="currentColor" stroke-linecap="round">
+        <circle cx="50" cy="50" r="38" stroke-width="2" opacity="0.4"></circle>
+        <line x1="50" y1="50" x2="28" y2="28" stroke-width="5"></line>
+        <line x1="50" y1="50" x2="72" y2="28" stroke-width="5"></line>
+        <line x1="50" y1="50" x2="28" y2="72" stroke-width="5"></line>
+        <line x1="50" y1="50" x2="72" y2="72" stroke-width="5"></line>
+        <line x1="50" y1="50" x2="50" y2="6" stroke-width="6"></line>
+        <line x1="50" y1="50" x2="50" y2="94" stroke-width="6"></line>
+        <line x1="50" y1="50" x2="6" y2="50" stroke-width="6"></line>
+        <line x1="50" y1="50" x2="94" y2="50" stroke-width="6"></line>
+      </g>
+      <circle cx="50" cy="50" r="11" fill="currentColor"></circle>
+    </symbol>
+  </defs>
+
+  
+  <rect width="1280" height="320" fill="url(#bg)"></rect>
+  <rect width="1280" height="320" fill="url(#glow)"></rect>
+
+  
+    <text x="40" y="37" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)">~/projects/nova λ nova init</text>
+    <text x="40" y="57.8" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)">==&gt; Scanning workspace...</text>
+    <text x="40" y="78.6" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)">==&gt; Linking shell integration</text>
+    <text x="40" y="99.4" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)">==&gt; Loading agent profile (default)</text>
+    <text x="40" y="120.2" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)">==&gt; Ready in 42ms</text>
+    <text x="40" y="141" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)"></text>
+    <text x="40" y="161.8" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)">~/projects/nova λ git status</text>
+    <text x="40" y="182.6" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)">On branch main</text>
+    <text x="40" y="203.4" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)">Your branch is up to date with &#39;origin/main&#39;.</text>
+    <text x="40" y="224.20000000000002" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)"></text>
+    <text x="40" y="245" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)">nothing to commit, working tree clean</text>
+    <text x="40" y="265.8" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)"></text>
+    <text x="40" y="286.6" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)">~/projects/nova λ nova ask &#34;what changed?&#34;</text>
+    <text x="40" y="307.40000000000003" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)">✦ analysing recent commits...</text>
+    <text x="40" y="328.2" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)">  3 files in 2 commits — last 4h</text>
+    <text x="40" y="349" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)">  see: nova explain HEAD~2..HEAD</text>
+    <text x="40" y="369.8" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)"></text>
+    <text x="40" y="390.6" font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="13" fill="rgba(62,207,142,0.10)">~/projects/nova λ _</text>
+
+  
+  <g filter="url(#cardShadow)">
+    <rect x="360" y="60" width="560" height="200" rx="16" ry="16" fill="rgba(10,10,10,0.85)" stroke="rgba(62,207,142,0.18)" stroke-width="1"></rect>
+  </g>
+
+  
+  <rect x="392" y="90" width="140" height="140" rx="28" ry="28" fill="url(#markBg)" stroke="rgba(255,255,255,0.06)" stroke-width="1"></rect>
+  <g transform="translate(416, 114)" color="#3ecf8e">
+    <use href="#nova-mark" width="92" height="92"></use>
+  </g>
+
+  
+  <g font-family="&#39;Inter&#39;, system-ui, sans-serif" font-weight="700" font-size="72" letter-spacing="-3.6">
+    <text x="568" y="170" fill="#f0f0f0">no<tspan fill="#3ecf8e">v</tspan>a</text>
+  </g>
+
+  
+  <g font-family="&#39;Fira Code&#39;, ui-monospace, monospace" font-size="14">
+    <text x="568" y="200" fill="#888">a terminal that <tspan fill="#3ecf8e" font-weight="500">burns brighter</tspan></text>
+  </g>
+</svg>

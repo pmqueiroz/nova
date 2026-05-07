@@ -35,7 +35,7 @@ icons = [
   "assets/icons/macos/nova-mac-128.png",
   "assets/icons/macos/nova-mac-256.png",
   "assets/icons/macos/nova-mac-512.png",
-  "assets/icons/macos/nova-mac-1024.png",
+  "assets/icons/macos/nova-mac-512@2x.png",
 ]
 
 [package.metadata.packager.macos]

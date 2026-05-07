@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/pmqueiroz/nova/compare/v0.3.0...v0.3.1) (2026-05-07)
+
+
+### Bug Fixes
+
+* close tab button ([82fbcf5](https://github.com/pmqueiroz/nova/commit/82fbcf563a8b250b44b6d31edcbd29373aad2539))
+* prevent redraw on first paint ([109473e](https://github.com/pmqueiroz/nova/commit/109473e29d90435f7519e436b25c39490f933880))
+
 ## [0.3.0](https://github.com/pmqueiroz/nova/compare/v0.2.0...v0.3.0) (2026-05-07)
 
 

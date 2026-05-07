@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.2.0](https://github.com/pmqueiroz/nova/compare/v0.1.0...v0.2.0) (2026-05-07)
+
+
+### Features
+
+* add controls ([396123d](https://github.com/pmqueiroz/nova/commit/396123d81219143c900c89c748a220c129395f5b))
+* add mark to title bar ([d7f8b75](https://github.com/pmqueiroz/nova/commit/d7f8b7599cc23a806729f8097e8a0cef6bb0162a))
+* relayout title and tab bar ([ef5e26f](https://github.com/pmqueiroz/nova/commit/ef5e26f61063ec983d2871a0e8e680c1b78a6b2f))
+* remove shell icon ([70f505b](https://github.com/pmqueiroz/nova/commit/70f505b79b0ed76cabec0a4f4a2305eef831af5c))
+* rounded corner on windows ([60bdbb5](https://github.com/pmqueiroz/nova/commit/60bdbb55bb4d7b2eaa5b09bc5b7c6522d149d298))
+
+
+### Bug Fixes
+
+* hide cmd on prod build ([41cdb97](https://github.com/pmqueiroz/nova/commit/41cdb97d3a2e5fd3428213550ba1d7cd59e7cc95))
+* shell and pwd status on windows ([3d9b648](https://github.com/pmqueiroz/nova/commit/3d9b6488512af7209e4cb34f53e96ee8815499f3))
+* window resize on windows ([298a7c0](https://github.com/pmqueiroz/nova/commit/298a7c0f522779a005964819e1ce3b460671186e))
+* wrong icon on macos ([c37d243](https://github.com/pmqueiroz/nova/commit/c37d243c99222971643a07588390d619a33ea7ba))
+
 ## 0.1.0 (2026-05-07)
 
 

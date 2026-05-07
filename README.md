@@ -12,7 +12,22 @@
 
 ## 🚀 Installation
 
-Nova is built from source with Cargo. You'll need [Rust](https://rustup.rs/) (stable, 2024 edition).
+### Download a release
+
+Grab the latest binary for your platform from the [releases page](https://github.com/pmqueiroz/nova/releases):
+
+| Platform | File |
+|----------|------|
+| Windows x86_64 | `nova-windows-x86_64.zip` |
+| macOS x86_64 | `nova-macos-x86_64.tar.gz` |
+| macOS Apple Silicon | `nova-macos-aarch64.tar.gz` |
+| Linux x86_64 | `nova-linux-x86_64.tar.gz` |
+
+Each release includes a `checksums.txt` for verifying the download.
+
+### Build from source
+
+You'll need [Rust](https://rustup.rs/) (stable, 2024 edition).
 
 ```sh
 git clone https://github.com/pmqueiroz/nova.git
@@ -20,13 +35,7 @@ cd nova
 cargo build --release
 ```
 
-The binary will be at:
-
-```
-./target/release/nova
-```
-
-You can move it into your `$PATH`:
+The binary will be at `./target/release/nova`. Move it into your `$PATH`:
 
 ```sh
 cp ./target/release/nova ~/.local/bin/

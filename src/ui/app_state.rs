@@ -227,39 +227,51 @@ impl Nova {
         modified_key,
         ..
       }) => {
-        match key {
+        match &key {
           Key::Named(Named::Enter) => return Some(Message::Type(b"\r".to_vec())),
           Key::Named(Named::Backspace) => return Some(Message::Type(b"\x7F".to_vec())),
+          Key::Named(Named::Tab) => return Some(Message::Type(b"\t".to_vec())),
           Key::Named(Named::Space) => return Some(Message::Type(b" ".to_vec())),
+          Key::Named(Named::Escape) => return Some(Message::Type(b"\x1b".to_vec())),
           Key::Named(Named::ArrowUp) => return Some(Message::Type(b"\x1b[A".to_vec())),
           Key::Named(Named::ArrowDown) => return Some(Message::Type(b"\x1b[B".to_vec())),
           Key::Named(Named::ArrowRight) => return Some(Message::Type(b"\x1b[C".to_vec())),
           Key::Named(Named::ArrowLeft) => return Some(Message::Type(b"\x1b[D".to_vec())),
           Key::Named(Named::Delete) => return Some(Message::Type(b"\x1b[3~".to_vec())),
+          Key::Named(Named::Home) => return Some(Message::Type(b"\x1b[H".to_vec())),
+          Key::Named(Named::End) => return Some(Message::Type(b"\x1b[F".to_vec())),
+          Key::Named(Named::PageUp) => return Some(Message::Type(b"\x1b[5~".to_vec())),
+          Key::Named(Named::PageDown) => return Some(Message::Type(b"\x1b[6~".to_vec())),
           _ => {}
         }
 
-        if let Key::Character(c) = modified_key {
-          if !modifiers.control() {
-            return Some(Message::Type(c.as_str().as_bytes().to_vec()));
+        if modifiers.control() {
+          if let Key::Character(c) = &key {
+            if let Some(ch) = c.as_str().chars().next() {
+              if ch.is_ascii_alphabetic() {
+                let lower = ch.to_ascii_lowercase();
+                if lower == 'v' {
+                  return Some(Message::PasteRequested);
+                }
+                return Some(Message::Type(vec![(lower as u8) & 0x1f]));
+              }
+            }
           }
+          return None;
         }
 
-        if let Key::Character(c) = key {
-          let mut char_str = c.as_str().to_string();
+        let char_source = match &modified_key {
+          Key::Character(_) => &modified_key,
+          _ => &key,
+        };
 
-          // TODO: This is a bit of a hack to handle shifted characters. Ideally, we'd want to get the actual character that would be typed with the modifiers applied, but iced doesn't provide that directly.
-          if char_str == "'" && modifiers.shift() {
-            char_str = "\"".to_string();
+        if let Key::Character(c) = char_source {
+          let mut s = c.as_str().to_string();
+          if modifiers.shift() {
+            if s == "'" { s = "\"".to_string(); }
+            if s == "`" { s = "~".to_string(); }
           }
-          if char_str == "`" && modifiers.shift() {
-            char_str = "~".to_string();
-          }
-          if char_str == "v" && modifiers.control() {
-            return Some(Message::PasteRequested);
-          }
-
-          return Some(Message::Type(char_str.as_bytes().to_vec()));
+          return Some(Message::Type(s.into_bytes()));
         }
 
         None

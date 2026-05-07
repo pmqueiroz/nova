@@ -151,15 +151,17 @@ impl<'a> Perform for AnsiExecutor<'a> {
   }
 
   fn osc_dispatch(&mut self, params: &[&[u8]], _bell_terminated: bool) {
-    if params.len() >= 2 {
-      let cmd = params[0];
+    if params.len() >= 2 && params[0] == b"7" {
+      let raw_url = String::from_utf8_lossy(params[1]).to_string();
+      if let Some(after_scheme) = raw_url.strip_prefix("file://") {
+        if let Some((_, path)) = after_scheme.split_once('/') {
+          #[cfg(target_os = "windows")]
+          let pwd = path.replace('/', "\\");
 
-      if cmd == b"7" {
-        let raw_url = String::from_utf8_lossy(params[1]).to_string();
-        if let Some(path_with_host) = raw_url.split("file://").last() {
-          if let Some((_host, path)) = path_with_host.split_once('/') {
-            self.grid.pwd = format!("/{}", path);
-          }
+          #[cfg(not(target_os = "windows"))]
+          let pwd = format!("/{}", path);
+
+          self.grid.pwd = pwd;
         }
       }
     }

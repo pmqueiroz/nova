@@ -56,7 +56,6 @@ pub fn status_bar<'a>(active_tab: &Tab) -> Element<'a, Message> {
     })
     .center_y(22)
     .padding(Padding {
-      top: 4.0,
       left: 8.0,
       right: 8.0,
       ..Default::default()

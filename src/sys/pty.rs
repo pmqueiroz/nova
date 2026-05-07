@@ -38,7 +38,8 @@ impl PtyBridge {
               $p = $PWD.ProviderPath;
               $h = [regex]::Escape($env:USERPROFILE);
               $d = $p -replace ('^' + $h), '~';
-              Write-Host -NoNewline ('{0}]7;file://localhost{1}{0}{2}' -f [char]27, $p, [char]92);
+              $uri = 'file://localhost/' + ($p -replace '\\', '/');
+              Write-Host -NoNewline ('{0}]7;{1}{0}{2}' -f [char]27, $uri, [char]92);
               return $d + ' λ '
           }
       "#;

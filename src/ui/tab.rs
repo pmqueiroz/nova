@@ -18,11 +18,15 @@ pub struct Tab {
 
 impl Tab {
   pub fn new(id: usize) -> Self {
+    #[cfg(target_os = "windows")]
+    let shell = "powershell".to_string();
+
+    #[cfg(not(target_os = "windows"))]
     let shell = std::env::var("SHELL")
       .unwrap_or_else(|_| "bash".to_string())
       .split('/')
       .last()
-      .unwrap_or(&"bash".to_string())
+      .unwrap_or("bash")
       .to_string();
 
     Self {

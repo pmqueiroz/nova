@@ -47,15 +47,6 @@ The binary will be at `./target/release/nova`. Move it into your `$PATH`:
 cp ./target/release/nova ~/.local/bin/
 ```
 
-## ⌨️ Shortcuts
-
-| Key | Action |
-|-----|--------|
-| `Ctrl` + `T` | New tab |
-| `Ctrl` + `W` | Close tab |
-| `Ctrl` + `Tab` | Next tab |
-| `Ctrl` + `Shift` + `Tab` | Previous tab |
-
 ## 🛣️ Roadmap
 
 - [x] Multi-tab support

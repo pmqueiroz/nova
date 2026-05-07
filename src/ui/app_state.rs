@@ -42,6 +42,7 @@ pub enum Message {
   WindowResized(f32, f32),
   PasteRequested,
   ClipboardReceived(Option<String>),
+  OpenSettings,
   CursorMoved(Point),
   MousePressed,
   Tick,
@@ -137,7 +138,23 @@ impl Nova {
       }
       Message::PtyReady(tab_id, tx) => {
         if let Some(tab) = self.tabs.iter_mut().find(|t| t.id == tab_id) {
+          if let Some(cmd) = tab.pending_command.take() {
+            let _ = tx.send_blocking(PtyCommand::Input(cmd));
+          }
           tab.pty_tx = Some(tx);
+        }
+      }
+      Message::OpenSettings => {
+        if let Some(path) = config::config_path() {
+          let editor = &config::get().general.editor;
+          let cmd = format!("{} {}\r", editor, path.display());
+          let new_id = self.next_tab_id;
+          self.next_tab_id += 1;
+          let (cols, rows) = calc_grid(self.window_size.width, self.window_size.height);
+          let mut tab = Tab::new(new_id, cols, rows);
+          tab.pending_command = Some(cmd.into_bytes());
+          self.tabs.push(tab);
+          self.active_index = self.tabs.len() - 1;
         }
       }
       Message::PtyOutputReceived(tab_id, bytes) => {

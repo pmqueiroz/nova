@@ -1,7 +1,7 @@
 use iced::{
   Alignment, Border, Element, Length, Padding,
   border::Radius,
-  widget::{container, image, mouse_area, row, space::horizontal},
+  widget::{button, container, image, mouse_area, row, space::horizontal, text},
 };
 
 use crate::ui::{
@@ -31,6 +31,21 @@ fn nova_label() -> impl Into<Element<'static, Message>> {
   row![text("no", false), text("v", true), text("a", false),].spacing(0)
 }
 
+fn settings_button() -> Element<'static, Message> {
+  button(text("󰒓").size(14))
+    .style(move |_t, status| button::Style {
+      text_color: match status {
+        button::Status::Hovered => theme::color::runtime().accent,
+        _ => theme::color::runtime().foreground_muted,
+      },
+      background: Some(theme::color::TRANSPARENT.as_color().into()),
+      ..Default::default()
+    })
+    .on_press(Message::OpenSettings)
+    .padding(Padding::from([4, 6]))
+    .into()
+}
+
 pub fn title_bar(window_focused: bool, pwd: &String) -> Element<'static, Message> {
   let controls = traffic_lights(window_focused);
 
@@ -51,12 +66,12 @@ pub fn title_bar(window_focused: bool, pwd: &String) -> Element<'static, Message
     .align_y(Alignment::Center);
 
   #[cfg(target_os = "windows")]
-  let title_row = row![horizontal(), brand, horizontal(), controls,]
+  let title_row = row![settings_button(), horizontal(), brand, horizontal(), controls,]
     .spacing(8)
     .height(40)
     .align_y(Alignment::Center);
   #[cfg(not(target_os = "windows"))]
-  let title_row = row![controls, horizontal(), brand, horizontal(),]
+  let title_row = row![controls, horizontal(), brand, horizontal(), settings_button(),]
     .spacing(8)
     .height(40)
     .align_y(Alignment::Center);
@@ -78,9 +93,9 @@ pub fn title_bar(window_focused: bool, pwd: &String) -> Element<'static, Message
       })
       .padding(Padding {
         #[cfg(target_os = "windows")]
-        left: 46.0 * 3.0,
+        left: 8.0,
         #[cfg(not(target_os = "windows"))]
-        left: 16.0,
+        right: 8.0,
         ..Default::default()
       })
       .width(Length::Fill)

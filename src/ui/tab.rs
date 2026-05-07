@@ -14,6 +14,7 @@ pub struct Tab {
   pub shell: String,
   pub pwd: String,
   pub git_branch: Option<String>,
+  pub pending_command: Option<Vec<u8>>,
 }
 
 impl Tab {
@@ -37,6 +38,7 @@ impl Tab {
       shell,
       pwd: String::from("~"),
       git_branch: None,
+      pending_command: None,
     }
   }
 

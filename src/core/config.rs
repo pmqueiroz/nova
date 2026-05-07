@@ -8,12 +8,18 @@ const DEFAULT_CONFIG: &str = include_str!("../../assets/default_settings.toml");
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct Config {
+  pub general: GeneralConfig,
   #[serde(rename = "status-bar")]
   pub status_bar: StatusBarConfig,
-  #[allow(dead_code)]
-  pub bell: BellConfig,
   pub theme: ThemeConfig,
   pub keybindings: KeybindingsConfig,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct GeneralConfig {
+  pub editor: String,
+  #[allow(dead_code)]
+  pub bell: BellType,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -22,15 +28,9 @@ pub struct StatusBarConfig {
 }
 
 #[derive(Deserialize, Debug, Clone)]
-#[allow(dead_code)]
-pub struct BellConfig {
-  #[serde(rename = "type")]
-  pub bell_type: BellType,
-}
-
-#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "lowercase")]
 pub enum BellType {
+  None,
   Audio,
   Blink,
 }
@@ -137,6 +137,10 @@ pub fn parse_hex_color(hex: &str) -> anyhow::Result<iced::Color> {
   }
 }
 
+pub fn config_path() -> Option<std::path::PathBuf> {
+  dirs::config_dir().map(|d| d.join("nova").join("settings.toml"))
+}
+
 pub fn init() -> anyhow::Result<()> {
   let config_dir = dirs::config_dir()
     .ok_or_else(|| anyhow::anyhow!("cannot determine config directory"))?
@@ -150,8 +154,13 @@ pub fn init() -> anyhow::Result<()> {
   }
 
   let content = std::fs::read_to_string(&path)?;
-  let config: Config = toml::from_str(&content)
-    .map_err(|e| anyhow::anyhow!("config error in {}: {}", path.display(), e))?;
+  let config: Config = match toml::from_str(&content) {
+    Ok(c) => c,
+    Err(_) => {
+      std::fs::write(&path, DEFAULT_CONFIG)?;
+      toml::from_str(DEFAULT_CONFIG).expect("embedded default config is invalid")
+    }
+  };
 
   let parsed = ParsedKeybindings {
     new_tab: parse_keybinding(&config.keybindings.new_tab)

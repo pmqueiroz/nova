@@ -1,8 +1,9 @@
+[general]
+editor = "nano"
+bell = "none"
+
 [status-bar]
 visible = true
-
-[bell]
-type = "audio"
 
 [theme.font]
 size = 16

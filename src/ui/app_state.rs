@@ -211,7 +211,7 @@ impl Nova {
       Message::OpenSettings => {
         if let Some(path) = config::config_path() {
           let editor = &config::get().general.editor;
-          let cmd = format!("{} {}\r", editor, path.display());
+          let cmd = format!("{} \"{}\"\r", editor, path.display());
           let new_id = self.next_tab_id;
           self.next_tab_id += 1;
           let (cols, rows) = calc_grid(self.window_size.width, self.window_size.height);

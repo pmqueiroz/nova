@@ -2,8 +2,8 @@ use async_channel::Sender;
 use iced::keyboard::Key;
 use iced::keyboard::key::Named;
 use iced::widget::column;
-use iced::{Element, Subscription, Theme, time, window};
-use iced::{Event, event, keyboard, stream};
+use iced::{Element, Point, Size, Subscription, Theme, time, window};
+use iced::{Event, event, keyboard, mouse, stream};
 
 use crate::sys::parser::AnsiExecutor;
 use crate::sys::pty::{PtyBridge, PtyCommand};
@@ -16,6 +16,8 @@ pub struct Nova {
   next_tab_id: usize,
   window_id: Option<window::Id>,
   window_focused: bool,
+  window_size: Size,
+  cursor_position: Point,
 }
 
 #[derive(Debug, Clone)]
@@ -36,6 +38,8 @@ pub enum Message {
   WindowResized(f32, f32),
   PasteRequested,
   ClipboardReceived(Option<String>),
+  CursorMoved(Point),
+  MousePressed,
   Tick,
 }
 
@@ -47,6 +51,8 @@ impl Default for Nova {
       next_tab_id: 1,
       window_id: None,
       window_focused: false,
+      window_size: Size::new(1024.0, 768.0),
+      cursor_position: Point::ORIGIN,
     }
   }
 }
@@ -139,6 +145,8 @@ impl Nova {
         self.window_focused = false;
       }
       Message::WindowResized(width, height) => {
+        self.window_size = Size::new(width, height);
+
         let font_size = 16.0_f32;
         let char_width = font_size * 0.62;
         let char_height = font_size * 1.35;
@@ -159,6 +167,16 @@ impl Nova {
               cols: cols as u16,
               rows: rows as u16,
             });
+          }
+        }
+      }
+      Message::CursorMoved(position) => {
+        self.cursor_position = position;
+      }
+      Message::MousePressed => {
+        if let Some(window_id) = self.window_id {
+          if let Some(direction) = resize_direction(self.cursor_position, self.window_size) {
+            return window::drag_resize(window_id, direction);
           }
         }
       }
@@ -258,6 +276,12 @@ impl Nova {
       Event::Window(window::Event::Resized(size)) => {
         return Some(Message::WindowResized(size.width, size.height));
       }
+      Event::Mouse(mouse::Event::CursorMoved { position }) => {
+        return Some(Message::CursorMoved(position));
+      }
+      Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => {
+        return Some(Message::MousePressed);
+      }
       _ => None,
     });
 
@@ -274,6 +298,27 @@ impl Nova {
     }
 
     Subscription::batch(subs)
+  }
+}
+
+const RESIZE_EDGE: f32 = 8.0;
+
+fn resize_direction(pos: Point, size: Size) -> Option<window::Direction> {
+  let left = pos.x < RESIZE_EDGE;
+  let right = pos.x > size.width - RESIZE_EDGE;
+  let top = pos.y < RESIZE_EDGE;
+  let bottom = pos.y > size.height - RESIZE_EDGE;
+
+  match (top, bottom, left, right) {
+    (true, _, true, _) => Some(window::Direction::NorthWest),
+    (true, _, _, true) => Some(window::Direction::NorthEast),
+    (_, true, true, _) => Some(window::Direction::SouthWest),
+    (_, true, _, true) => Some(window::Direction::SouthEast),
+    (true, _, false, false) => Some(window::Direction::North),
+    (_, true, false, false) => Some(window::Direction::South),
+    (false, false, true, _) => Some(window::Direction::West),
+    (false, false, _, true) => Some(window::Direction::East),
+    _ => None,
   }
 }
 

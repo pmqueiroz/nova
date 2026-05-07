@@ -1,0 +1,41 @@
+# Changelog
+
+## 0.1.0 (2026-05-07)
+
+
+### Features
+
+* add properly support for powershell ([2452a91](https://github.com/pmqueiroz/nova/commit/2452a912366873e86cd1380099b32333be729f93))
+* adjust grid on resize ([7cb72d3](https://github.com/pmqueiroz/nova/commit/7cb72d3147b6cb5d0ad6959d999fcfdc55c0c2ec))
+* agent status ([47aa9ab](https://github.com/pmqueiroz/nova/commit/47aa9ab0ede3863751a79f6a13a2d23f5183841c))
+* app icons ([e9c9af3](https://github.com/pmqueiroz/nova/commit/e9c9af34c95cef5020cbe10e42536c5f8eb6a38c))
+* better tab icons ([adb9e2a](https://github.com/pmqueiroz/nova/commit/adb9e2aa40d48a2b36012263a32892d6e1a74b5a))
+* connect to pty ([bf66e2c](https://github.com/pmqueiroz/nova/commit/bf66e2c1d400597873996103b9f690d0bc2c7bc7))
+* create basic window ([791cd44](https://github.com/pmqueiroz/nova/commit/791cd443f91e0da8fa71b7912f91dd9da6e924db))
+* display statuses ([53bdb1a](https://github.com/pmqueiroz/nova/commit/53bdb1ac98de24b27b161216bf63fc637c15f4cc))
+* fixed tab width ([b64fa0f](https://github.com/pmqueiroz/nova/commit/b64fa0f2e39d361855e26a6e58cc0d8c46db23ec))
+* grid and ansi parser ([e678b0a](https://github.com/pmqueiroz/nova/commit/e678b0a149b54c7e7507326832cda6e0c03f109a))
+* icons ([231c83c](https://github.com/pmqueiroz/nova/commit/231c83c5969a8b5382dc4e7d00d63283272def1d))
+* implement missing csi dispatches ([7f223ed](https://github.com/pmqueiroz/nova/commit/7f223eddcd0de3dda371448015c80fe54a49a01f))
+* improve status bar style ([efe7cef](https://github.com/pmqueiroz/nova/commit/efe7cefe42ffa45369c7515caa6c969d988137bc))
+* powershell prompt ([17bbafc](https://github.com/pmqueiroz/nova/commit/17bbafc03e9545e5d9959f378e58b61a34c1bd17))
+* raw grid instead of input ([9139357](https://github.com/pmqueiroz/nova/commit/9139357d0341ee088cef033614010f5f87fdac0e))
+* scrollable term ([2d3ac31](https://github.com/pmqueiroz/nova/commit/2d3ac31d8de71667757eb45be92d08d297e57c52))
+* setup font ([d60b24f](https://github.com/pmqueiroz/nova/commit/d60b24ffeec95bf1a9391549e39d39034d8ac89a))
+* status bar ([19da9b4](https://github.com/pmqueiroz/nova/commit/19da9b4102dcfb6f6ba7bd61012d7a1e13c0555c))
+* tab bar comp ([80654aa](https://github.com/pmqueiroz/nova/commit/80654aabd0d38ca53038823105ba8d7d47162806))
+* tabs ([4bd2950](https://github.com/pmqueiroz/nova/commit/4bd295038c63f63a4de3f173e53ce1938a9dae19))
+* term component ([d898b4c](https://github.com/pmqueiroz/nova/commit/d898b4ccd088ca23995a6f8af69bd4f94324f5f4))
+* title bar comp ([6ce6789](https://github.com/pmqueiroz/nova/commit/6ce6789264108c856e26df81bf3454799c8bb90f))
+* use only ps1 instead of made up prompt ([eeec211](https://github.com/pmqueiroz/nova/commit/eeec2119c9caa9b282b364395400e1d8cdb26256))
+
+
+### Bug Fixes
+
+* backspace actually remove chars ([be236e2](https://github.com/pmqueiroz/nova/commit/be236e2cd0e38b49f714c6b16b5ed149d88d9704))
+* broken double quote ([844864e](https://github.com/pmqueiroz/nova/commit/844864e3f51c366237ecb5f430bf7fed597bff78))
+
+
+### Performance Improvements
+
+* use str buffer to render grid ([20dc77b](https://github.com/pmqueiroz/nova/commit/20dc77b7f63a25f39a1d6155b6909ed6f988a8ea))

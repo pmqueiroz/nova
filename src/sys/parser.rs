@@ -45,6 +45,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
         for param in params.iter() {
           let code = param[0];
           match code {
+            0 => self.grid.current_fg = Color::WHITE,
             30 => self.grid.current_fg = Color::from_rgb(0.0, 0.0, 0.0),
             31 => self.grid.current_fg = Color::from_rgb(1.0, 0.0, 0.0),
             32 => self.grid.current_fg = Color::from_rgb(0.0, 1.0, 0.0),

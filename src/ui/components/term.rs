@@ -1,48 +1,52 @@
 use iced::{
-  Border, Element, Length, Padding,
+  Border, Color, Element, Length, Padding,
   border::Radius,
-  widget::{column, container, row, scrollable},
+  widget::{column, container, rich_text, scrollable, text::Span},
 };
 
-use crate::ui::{app_state::Message, tab::Tab, theme, typography::Typography};
+use crate::ui::{app_state::Message, tab::Tab, theme};
 
 pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
   let mut grid_ui = column![].spacing(0);
 
+  let cursor_x = active_tab.grid.cursor_x;
+  let cursor_y = active_tab.grid.cursor_y;
+
   for (y, row_cells) in active_tab.grid.cells.iter().enumerate() {
-    let mut ui_row = row![].spacing(0);
-    let mut current_text = String::new();
-    let mut current_color = theme::color::FG.as_color();
+    let mut spans: Vec<Span<'static>> = Vec::new();
+    let mut seg_text = String::new();
+    let mut seg_color = Color::WHITE;
 
     for (x, cell) in row_cells.iter().enumerate() {
-      let is_cursor = x == active_tab.grid.cursor_x && y == active_tab.grid.cursor_y;
-
-      if is_cursor || cell.fg != current_color {
-        if !current_text.is_empty() {
-          ui_row = ui_row.push(Typography::default().as_text(current_text.clone()));
-          current_text.clear();
-        }
-        current_color = cell.fg;
-      }
+      let is_cursor = x == cursor_x && y == cursor_y;
 
       if is_cursor {
-        ui_row = ui_row.push(cursor());
+        if !seg_text.is_empty() {
+          spans.push(cell_span(std::mem::take(&mut seg_text), seg_color));
+        }
+        spans.push(
+          Span::new("_")
+            .color(theme::color::ACCENT.as_color())
+            .font(theme::font::REGULAR)
+            .size(16.0),
+        );
+        seg_color = cell.fg;
       } else {
-        current_text.push(cell.c);
+        if cell.fg != seg_color {
+          if !seg_text.is_empty() {
+            spans.push(cell_span(std::mem::take(&mut seg_text), seg_color));
+          }
+          seg_color = cell.fg;
+        }
+        seg_text.push(cell.c);
       }
     }
 
-    if !current_text.is_empty() {
-      ui_row = ui_row.push(
-        Typography {
-          color: current_color,
-          ..Default::default()
-        }
-        .as_text(&current_text),
-      );
+    if !seg_text.is_empty() {
+      spans.push(cell_span(seg_text, seg_color));
     }
 
-    grid_ui = grid_ui.push(ui_row);
+    grid_ui = grid_ui.push(rich_text(spans).size(16).font(theme::font::REGULAR));
   }
 
   container(scrollable(grid_ui).height(Length::Fill).width(Length::Fill))
@@ -68,11 +72,14 @@ pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
     .into()
 }
 
-pub fn cursor<'a>() -> Element<'a, Message> {
-  Typography {
-    color: theme::color::ACCENT.as_color(),
-    ..Default::default()
-  }
-  .as_text("_")
-  .into()
+fn cell_span(text: String, fg: Color) -> Span<'static> {
+  let color = if fg == Color::WHITE {
+    theme::color::FG.as_color()
+  } else {
+    fg
+  };
+  Span::new(text)
+    .color(color)
+    .font(theme::font::REGULAR)
+    .size(16.0)
 }

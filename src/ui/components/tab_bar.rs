@@ -47,7 +47,7 @@ pub fn tab_bar(tabs: &Vec<Tab>, active_index: usize) -> Element<'static, Message
   );
 
   container(tab_bar)
-    .padding(Padding::from([0, 8]))
+    .padding(Padding::from([4, 8]))
     .width(Length::Fill)
     .style(move |_| container::Style {
       background: Some(theme::color::BG_DEEP.as_color().into()),
@@ -108,20 +108,19 @@ fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Messa
     )
     .style(move |_t| container::Style {
       background: Some(
-        theme::color::BG
-          .with_alpha(if active { 1.0 } else { 0.0 })
-          .as_color()
-          .into(),
+        if active {
+          theme::color::BG_HIGH
+        } else {
+          theme::color::TRANSPARENT
+        }
+        .as_color()
+        .into(),
       ),
       border: Border {
         color: theme::color::BORDER
-          .with_alpha(if active { theme::color::BORDER.a } else { 0.0 })
+          .with_alpha(if active { 0.15 } else { 0.0 })
           .as_color(),
-        radius: Radius {
-          top_left: 8.0,
-          top_right: 8.0,
-          ..Default::default()
-        },
+        radius: Radius::new(4.0),
         width: 1.0,
       },
       ..Default::default()

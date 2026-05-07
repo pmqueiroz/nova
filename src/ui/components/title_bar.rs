@@ -18,7 +18,9 @@ pub fn title_bar(window_focused: bool, pwd: &String) -> Element<'static, Message
   .as_text(format!("nova - {}", til_home(pwd)));
 
   #[cfg(target_os = "windows")]
-  let title_row = row![horizontal(), title, horizontal(), controls,].spacing(8);
+  let title_row = row![horizontal(), title, horizontal(), controls,]
+    .spacing(8)
+    .align_y(iced::Alignment::Center);
   #[cfg(not(target_os = "windows"))]
   let title_row = row![controls, horizontal(), title, horizontal(),].spacing(8);
 

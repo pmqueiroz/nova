@@ -32,7 +32,6 @@ formats = ["app", "dmg", "nsis", "deb", "appimage"]
 icons = [
   "assets/icons/macos/nova-mac-16.png",
   "assets/icons/macos/nova-mac-32.png",
-  "assets/icons/macos/nova-mac-64.png",
   "assets/icons/macos/nova-mac-128.png",
   "assets/icons/macos/nova-mac-256.png",
   "assets/icons/macos/nova-mac-512.png",
@@ -45,4 +44,4 @@ minimum_system_version = "11.0"
 [package.metadata.packager.deb]
 section = "utils"
 priority = "optional"
-depends = "libxkbcommon0, libwayland-client0, libgl1"
+depends = ["libxkbcommon0", "libwayland-client0", "libgl1"]

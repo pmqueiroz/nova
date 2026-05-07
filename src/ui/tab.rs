@@ -17,7 +17,7 @@ pub struct Tab {
 }
 
 impl Tab {
-  pub fn new(id: usize) -> Self {
+  pub fn new(id: usize, cols: usize, rows: usize) -> Self {
     #[cfg(target_os = "windows")]
     let shell = "powershell".to_string();
 
@@ -31,7 +31,7 @@ impl Tab {
 
     Self {
       id,
-      grid: Grid::new(80, 24),
+      grid: Grid::new(cols, rows),
       pty_tx: None,
       ansi_parser: Parser::new(),
       shell,

@@ -43,10 +43,20 @@ pub enum Message {
   Tick,
 }
 
+fn calc_grid(width: f32, height: f32) -> (usize, usize) {
+  let font_size = 16.0_f32;
+  let char_width = font_size * 0.62;
+  let char_height = font_size * 1.35;
+  let cols = ((width - 40.0) / char_width).floor() as usize;
+  let rows = ((height - 118.0) / char_height).floor() as usize;
+  (cols.max(10), rows.max(5))
+}
+
 impl Default for Nova {
   fn default() -> Self {
+    let (cols, rows) = calc_grid(1024.0, 768.0);
     Self {
-      tabs: vec![Tab::new(0)],
+      tabs: vec![Tab::new(0, cols, rows)],
       active_index: 0,
       next_tab_id: 1,
       window_id: None,
@@ -70,7 +80,8 @@ impl Nova {
       Message::NewTab => {
         let new_id = self.next_tab_id;
         self.next_tab_id += 1;
-        self.tabs.push(Tab::new(new_id));
+        let (cols, rows) = calc_grid(self.window_size.width, self.window_size.height);
+        self.tabs.push(Tab::new(new_id, cols, rows));
         self.active_index = self.tabs.len() - 1;
       }
       Message::SwitchTab(index) => {
@@ -81,7 +92,8 @@ impl Nova {
       Message::CloseTab(index) => {
         self.tabs.remove(index);
         if self.tabs.is_empty() {
-          self.tabs.push(Tab::new(self.next_tab_id));
+          let (cols, rows) = calc_grid(self.window_size.width, self.window_size.height);
+          self.tabs.push(Tab::new(self.next_tab_id, cols, rows));
           self.next_tab_id += 1;
           self.active_index = 0;
         } else if self.active_index >= self.tabs.len() {
@@ -146,21 +158,12 @@ impl Nova {
       }
       Message::WindowResized(width, height) => {
         self.window_size = Size::new(width, height);
-
-        let font_size = 16.0_f32;
-        let char_width = font_size * 0.62;
-        let char_height = font_size * 1.35;
-
-        let padding_x = 40.0;
-        let padding_y = 118.0;
-
-        let new_cols = ((width - padding_x) / char_width).floor() as usize;
-        let new_rows = ((height - padding_y) / char_height).floor() as usize;
-
-        let cols = new_cols.max(10);
-        let rows = new_rows.max(5);
+        let (cols, rows) = calc_grid(width, height);
 
         for tab in self.tabs.iter_mut() {
+          if tab.grid.cols == cols && tab.grid.rows == rows {
+            continue;
+          }
           tab.grid.resize(cols, rows);
           if let Some(tx) = &tab.pty_tx {
             let _ = tx.send_blocking(PtyCommand::Resize {
@@ -268,8 +271,12 @@ impl Nova {
         if let Key::Character(c) = char_source {
           let mut s = c.as_str().to_string();
           if modifiers.shift() {
-            if s == "'" { s = "\"".to_string(); }
-            if s == "`" { s = "~".to_string(); }
+            if s == "'" {
+              s = "\"".to_string();
+            }
+            if s == "`" {
+              s = "~".to_string();
+            }
           }
           return Some(Message::Type(s.into_bytes()));
         }

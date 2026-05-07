@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/pmqueiroz/nova/compare/v0.5.1...v0.5.2) (2026-05-07)
+
+
+### Bug Fixes
+
+* build packages ([172f356](https://github.com/pmqueiroz/nova/commit/172f356b758653dbd4e4bb820ee9278ea6e4ba85))
+
 ## [0.5.1](https://github.com/pmqueiroz/nova/compare/v0.5.0...v0.5.1) (2026-05-07)
 
 

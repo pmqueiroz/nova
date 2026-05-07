@@ -14,14 +14,14 @@
 
 ### Download a release
 
-Grab the latest binary for your platform from the [releases page](https://github.com/pmqueiroz/nova/releases):
+Grab the latest installer for your platform from the [releases page](https://github.com/pmqueiroz/nova/releases):
 
 | Platform | File |
 |----------|------|
-| Windows x86_64 | `nova-windows-x86_64.zip` |
-| macOS x86_64 | `nova-macos-x86_64.tar.gz` |
-| macOS Apple Silicon | `nova-macos-aarch64.tar.gz` |
-| Linux x86_64 | `nova-linux-x86_64.tar.gz` |
+| Windows x86_64 | `.msi` installer |
+| macOS x86_64 | `.dmg` disk image |
+| macOS Apple Silicon | `.dmg` disk image |
+| Linux x86_64 | `.deb` package or `.AppImage` |
 
 Each release includes a `checksums.txt` for verifying the download.
 

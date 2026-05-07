@@ -70,6 +70,7 @@ pub struct KeybindingsConfig {
   #[serde(rename = "prev-tab")]
   pub prev_tab: String,
   pub paste: String,
+  pub copy: String,
 }
 
 pub struct ParsedKeybinding {
@@ -90,6 +91,7 @@ pub struct ParsedKeybindings {
   pub next_tab: ParsedKeybinding,
   pub prev_tab: ParsedKeybinding,
   pub paste: ParsedKeybinding,
+  pub copy: ParsedKeybinding,
 }
 
 fn parse_keybinding(s: &str) -> anyhow::Result<ParsedKeybinding> {
@@ -173,6 +175,8 @@ pub fn init() -> anyhow::Result<()> {
       .map_err(|e| anyhow::anyhow!("keybinding 'prev-tab': {}", e))?,
     paste: parse_keybinding(&config.keybindings.paste)
       .map_err(|e| anyhow::anyhow!("keybinding 'paste': {}", e))?,
+    copy: parse_keybinding(&config.keybindings.copy)
+      .map_err(|e| anyhow::anyhow!("keybinding 'copy': {}", e))?,
   };
 
   CONFIG.set(config).ok();

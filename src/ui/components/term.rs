@@ -7,7 +7,23 @@ use iced::{
 use crate::core::config;
 use crate::ui::{app_state::Message, tab::Tab, theme};
 
-pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
+fn in_selection(x: usize, y: usize, sel: Option<(usize, usize, usize, usize)>) -> bool {
+  let (sc, sr, ec, er) = match sel {
+    Some(s) => s,
+    None => return false,
+  };
+  if sr == er {
+    y == sr && x >= sc && x <= ec
+  } else if y == sr {
+    x >= sc
+  } else if y == er {
+    x <= ec
+  } else {
+    y > sr && y < er
+  }
+}
+
+pub fn term<'a>(active_tab: &Tab, selection: Option<(usize, usize, usize, usize)>) -> Element<'a, Message> {
   let mut grid_ui = column![].spacing(0);
 
   let cursor_x = active_tab.grid.cursor_x;
@@ -22,6 +38,14 @@ pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
 
     for (x, cell) in row_cells.iter().enumerate() {
       let is_cursor = x == cursor_x && y == cursor_y;
+      let is_selected = in_selection(x, y, selection);
+
+      let (eff_fg, eff_bg) = if is_selected {
+        let rt = theme::color::runtime();
+        (rt.background, rt.accent)
+      } else {
+        (cell.fg, cell.bg)
+      };
 
       if is_cursor {
         if !seg_text.is_empty() {
@@ -35,15 +59,15 @@ pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
             .font(theme::font::REGULAR)
             .size(font_size),
         );
-        seg_fg = cell.fg;
-        seg_bg = cell.bg;
+        seg_fg = eff_fg;
+        seg_bg = eff_bg;
       } else {
-        if cell.fg != seg_fg || cell.bg != seg_bg {
+        if eff_fg != seg_fg || eff_bg != seg_bg {
           if !seg_text.is_empty() {
             spans.push(cell_span(std::mem::take(&mut seg_text), seg_fg, seg_bg, font_size));
           }
-          seg_fg = cell.fg;
-          seg_bg = cell.bg;
+          seg_fg = eff_fg;
+          seg_bg = eff_bg;
         }
         seg_text.push(cell.c);
       }

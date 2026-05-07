@@ -19,6 +19,9 @@ pub struct Nova {
   window_focused: bool,
   window_size: Size,
   cursor_position: Point,
+  selection_start: Option<(usize, usize)>,
+  selection_end: Option<(usize, usize)>,
+  is_selecting: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -45,7 +48,59 @@ pub enum Message {
   OpenSettings,
   CursorMoved(Point),
   MousePressed,
+  MouseReleased,
+  CopySelection,
   Tick,
+}
+
+fn pixel_to_cell(pos: Point, font_size: f32) -> Option<(usize, usize)> {
+  let x_origin = 20.0_f32;
+  let y_origin = 88.0_f32;
+  if pos.y < y_origin || pos.x < x_origin {
+    return None;
+  }
+  let col = ((pos.x - x_origin) / (font_size * 0.62)).floor() as usize;
+  let row = ((pos.y - y_origin) / (font_size * 1.35)).floor() as usize;
+  Some((col, row))
+}
+
+fn normalize_sel(
+  start: (usize, usize),
+  end: (usize, usize),
+) -> ((usize, usize), (usize, usize)) {
+  let (sc, sr) = start;
+  let (ec, er) = end;
+  if sr < er || (sr == er && sc <= ec) {
+    (start, end)
+  } else {
+    (end, start)
+  }
+}
+
+fn extract_selection(
+  grid: &crate::core::grid::Grid,
+  start: (usize, usize),
+  end: (usize, usize),
+) -> String {
+  let ((sc, sr), (ec, er)) = normalize_sel(start, end);
+  if sr == er && sc == ec {
+    return String::new();
+  }
+  let sr = sr.min(grid.rows.saturating_sub(1));
+  let er = er.min(grid.rows.saturating_sub(1));
+  let mut result = String::new();
+  for row in sr..=er {
+    let row_cells = &grid.cells[row];
+    let col_start = if row == sr { sc.min(grid.cols.saturating_sub(1)) } else { 0 };
+    let col_end = if row == er { ec.min(grid.cols.saturating_sub(1)) } else { grid.cols.saturating_sub(1) };
+    for col in col_start..=col_end {
+      result.push(row_cells[col].c);
+    }
+    if row < er {
+      result.push('\n');
+    }
+  }
+  result.trim_end().to_string()
 }
 
 fn calc_grid(width: f32, height: f32) -> (usize, usize) {
@@ -82,6 +137,9 @@ impl Default for Nova {
       window_focused: false,
       window_size: Size::new(1024.0, 768.0),
       cursor_position: Point::ORIGIN,
+      selection_start: None,
+      selection_end: None,
+      is_selecting: false,
     }
   }
 }
@@ -90,6 +148,8 @@ impl Nova {
   pub fn update(&mut self, message: Message) -> iced::Task<Message> {
     match message {
       Message::Type(bytes) => {
+        self.selection_start = None;
+        self.selection_end = None;
         if let Some(active_tab) = self.tabs.get(self.active_index) {
           if let Some(tx) = &active_tab.pty_tx {
             let _ = tx.send_blocking(PtyCommand::Input(bytes));
@@ -227,11 +287,41 @@ impl Nova {
       }
       Message::CursorMoved(position) => {
         self.cursor_position = position;
+        if self.is_selecting {
+          let font_size = config::get().theme.font.size;
+          self.selection_end = pixel_to_cell(position, font_size);
+        }
       }
       Message::MousePressed => {
         if let Some(window_id) = self.window_id {
           if let Some(direction) = resize_direction(self.cursor_position, self.window_size) {
             return window::drag_resize(window_id, direction);
+          }
+        }
+        let font_size = config::get().theme.font.size;
+        let cell = pixel_to_cell(self.cursor_position, font_size);
+        self.selection_start = cell;
+        self.selection_end = cell;
+        self.is_selecting = cell.is_some();
+      }
+      Message::MouseReleased => {
+        self.is_selecting = false;
+        if let (Some(start), Some(end)) = (self.selection_start, self.selection_end) {
+          if let Some(active_tab) = self.tabs.get(self.active_index) {
+            let text = extract_selection(&active_tab.grid, start, end);
+            if !text.is_empty() {
+              return iced::clipboard::write(text);
+            }
+          }
+        }
+      }
+      Message::CopySelection => {
+        if let (Some(start), Some(end)) = (self.selection_start, self.selection_end) {
+          if let Some(active_tab) = self.tabs.get(self.active_index) {
+            let text = extract_selection(&active_tab.grid, start, end);
+            if !text.is_empty() {
+              return iced::clipboard::write(text);
+            }
           }
         }
       }
@@ -256,10 +346,18 @@ impl Nova {
   pub fn view(&self) -> Element<'_, Message> {
     let active_tab = &self.tabs[self.active_index];
 
+    let selection = match (self.selection_start, self.selection_end) {
+      (Some(start), Some(end)) => {
+        let ((sc, sr), (ec, er)) = normalize_sel(start, end);
+        Some((sc, sr, ec, er))
+      }
+      _ => None,
+    };
+
     let mut col = column![
       components::title_bar(self.window_focused, &active_tab.pwd),
       components::tab_bar(&self.tabs, self.active_index),
-      components::term(active_tab),
+      components::term(active_tab, selection),
     ];
 
     if config::get().status_bar.visible {
@@ -302,6 +400,9 @@ impl Nova {
         }
         if matches_kb(&kb.paste, &key, modifiers) {
           return Some(Message::PasteRequested);
+        }
+        if matches_kb(&kb.copy, &key, modifiers) {
+          return Some(Message::CopySelection);
         }
 
         match &key {
@@ -371,6 +472,9 @@ impl Nova {
       }
       Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => {
         return Some(Message::MousePressed);
+      }
+      Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
+        return Some(Message::MouseReleased);
       }
       _ => None,
     });

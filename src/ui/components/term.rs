@@ -1,7 +1,7 @@
 use iced::{
   Border, Color, Element, Length, Padding,
   border::Radius,
-  widget::{column, container, rich_text, scrollable, text, text::Span},
+  widget::{column, container, rich_text, scrollable, text::Span},
 };
 
 use crate::ui::{app_state::Message, tab::Tab, theme};

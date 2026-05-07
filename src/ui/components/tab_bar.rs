@@ -1,7 +1,7 @@
 use iced::{
   Border, Element, Length, Padding, alignment,
   border::Radius,
-  widget::{button, container, row, space::horizontal},
+  widget::{button, container, row, space::horizontal, text},
 };
 
 use crate::ui::{
@@ -88,7 +88,7 @@ fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Messa
         .padding(Padding::from([4, 0]))
         .on_press(Message::SwitchTab(index)),
         horizontal(),
-        button("󰅖")
+        button(text("󰅖").size(11))
           .style(move |_t, status| button::Style {
             text_color: if status == button::Status::Hovered {
               theme::color::RED.as_color()
@@ -100,11 +100,14 @@ fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Messa
           })
           .on_press(Message::CloseTab(index))
           .padding(Padding {
+            top: 2.0,
+            bottom: 2.0,
             left: 8.0,
-            ..Default::default()
+            right: 2.0,
           }),
       ]
-      .spacing(0),
+      .spacing(0)
+      .align_y(alignment::Vertical::Center),
     )
     .style(move |_t| container::Style {
       background: Some(

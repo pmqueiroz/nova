@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.4](https://github.com/pmqueiroz/nova/compare/v0.5.3...v0.5.4) (2026-05-07)
+
+
+### Bug Fixes
+
+* macos 1024 icon syntax ([a136461](https://github.com/pmqueiroz/nova/commit/a136461673f173c37e2deb66a5512b33d4adf00b))
+
 ## [0.5.3](https://github.com/pmqueiroz/nova/compare/v0.5.2...v0.5.3) (2026-05-07)
 
 

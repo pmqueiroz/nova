@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.0](https://github.com/pmqueiroz/nova/compare/v0.2.0...v0.3.0) (2026-05-07)
+
+
+### Features
+
+* better coloring ([c591b2c](https://github.com/pmqueiroz/nova/commit/c591b2c4eaa9869c1c367efd1c9779c836aed6b3))
+* better cursor ([374e9e4](https://github.com/pmqueiroz/nova/commit/374e9e4ab3338164683f35bed2aed9a5dbb93a74))
+* write term content with rich text ([7bc874e](https://github.com/pmqueiroz/nova/commit/7bc874e831c54ecf870122c2f107237def4a540c))
+
+
+### Bug Fixes
+
+* advance on tab ([201808f](https://github.com/pmqueiroz/nova/commit/201808fbe59db0b18ed8d31fa3895f992b015557))
+* rounded window on macos ([a2c179f](https://github.com/pmqueiroz/nova/commit/a2c179ff9e07bc2136a56157a7a88e5afd31b4c6))
+
 ## [0.2.0](https://github.com/pmqueiroz/nova/compare/v0.1.0...v0.2.0) (2026-05-07)
 
 

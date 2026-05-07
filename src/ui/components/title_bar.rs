@@ -92,7 +92,6 @@ pub fn title_bar(window_focused: bool, pwd: &String) -> Element<'static, Message
         ..container::Style::default()
       })
       .padding(Padding {
-        #[cfg(target_os = "windows")]
         left: 8.0,
         #[cfg(not(target_os = "windows"))]
         right: 8.0,

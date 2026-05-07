@@ -1,7 +1,7 @@
 use iced::{
   Border, Element, Length, Padding, alignment,
   border::Radius,
-  widget::{button, container, row, space::horizontal, text},
+  widget::{button, container, mouse_area, row, space::horizontal, text},
 };
 
 use crate::ui::{
@@ -19,11 +19,12 @@ pub fn tab_bar(tabs: &Vec<Tab>, active_index: usize) -> Element<'static, Message
     let is_active = i == active_index;
 
     tab_bar = tab_bar.push(
-      row![tab_item(
+      row![mouse_area(tab_item(
         truncate(&basename(&til_home(&tab.pwd)), 12),
         i,
         is_active
-      )]
+      ))
+      .on_middle_press(Message::CloseTab(i))]
       .spacing(2),
     );
   }

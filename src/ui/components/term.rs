@@ -1,5 +1,5 @@
 use iced::{
-  Border, Color, Element, Length, Padding,
+  Background, Border, Color, Element, Length, Padding,
   border::Radius,
   widget::{column, container, rich_text, scrollable, text::Span},
 };
@@ -17,14 +17,15 @@ pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
   for (y, row_cells) in active_tab.grid.cells.iter().enumerate() {
     let mut spans: Vec<Span<'static>> = Vec::new();
     let mut seg_text = String::new();
-    let mut seg_color = Color::WHITE;
+    let mut seg_fg = Color::WHITE;
+    let mut seg_bg = Color::TRANSPARENT;
 
     for (x, cell) in row_cells.iter().enumerate() {
       let is_cursor = x == cursor_x && y == cursor_y;
 
       if is_cursor {
         if !seg_text.is_empty() {
-          spans.push(cell_span(std::mem::take(&mut seg_text), seg_color, font_size));
+          spans.push(cell_span(std::mem::take(&mut seg_text), seg_fg, seg_bg, font_size));
         }
         let ch = if cell.c == ' ' { '_' } else { cell.c };
         spans.push(
@@ -34,20 +35,22 @@ pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
             .font(theme::font::REGULAR)
             .size(font_size),
         );
-        seg_color = cell.fg;
+        seg_fg = cell.fg;
+        seg_bg = cell.bg;
       } else {
-        if cell.fg != seg_color {
+        if cell.fg != seg_fg || cell.bg != seg_bg {
           if !seg_text.is_empty() {
-            spans.push(cell_span(std::mem::take(&mut seg_text), seg_color, font_size));
+            spans.push(cell_span(std::mem::take(&mut seg_text), seg_fg, seg_bg, font_size));
           }
-          seg_color = cell.fg;
+          seg_fg = cell.fg;
+          seg_bg = cell.bg;
         }
         seg_text.push(cell.c);
       }
     }
 
     if !seg_text.is_empty() {
-      spans.push(cell_span(seg_text, seg_color, font_size));
+      spans.push(cell_span(seg_text, seg_fg, seg_bg, font_size));
     }
 
     grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
@@ -78,14 +81,18 @@ pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
     .into()
 }
 
-fn cell_span(text: String, fg: Color, font_size: f32) -> Span<'static> {
+fn cell_span(text: String, fg: Color, bg: Color, font_size: f32) -> Span<'static> {
   let color = if fg == Color::WHITE {
     theme::color::runtime().foreground
   } else {
     fg
   };
-  Span::new(text)
+  let mut span = Span::new(text)
     .color(color)
     .font(theme::font::REGULAR)
-    .size(font_size)
+    .size(font_size);
+  if bg.a > 0.0 {
+    span = span.background(Background::Color(bg));
+  }
+  span
 }

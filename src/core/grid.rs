@@ -4,6 +4,7 @@ use iced::Color;
 pub struct Cell {
   pub c: char,
   pub fg: Color,
+  pub bg: Color,
 }
 
 impl Default for Cell {
@@ -11,6 +12,7 @@ impl Default for Cell {
     Self {
       c: ' ',
       fg: Color::WHITE,
+      bg: Color::TRANSPARENT,
     }
   }
 }
@@ -20,6 +22,7 @@ pub struct Grid {
   pub cursor_x: usize,
   pub cursor_y: usize,
   pub current_fg: Color,
+  pub current_bg: Color,
   pub cols: usize,
   pub rows: usize,
   pub pwd: String,
@@ -34,6 +37,7 @@ impl Grid {
       cursor_x: 0,
       cursor_y: 0,
       current_fg: Color::WHITE,
+      current_bg: Color::TRANSPARENT,
       cols,
       rows,
       pwd: String::from("~"),

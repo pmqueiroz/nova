@@ -6,7 +6,7 @@ fn rgb8(r: u8, g: u8, b: u8) -> Color {
   Color::from_rgb(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0)
 }
 
-fn ansi_fg(index: u16, bright: bool) -> Color {
+fn ansi_color(index: u16, bright: bool) -> Color {
   let (v, d) = if bright { (255u8, 85u8) } else { (170u8, 0u8) };
   match index {
     0 => rgb8(d, d, d),
@@ -18,6 +18,14 @@ fn ansi_fg(index: u16, bright: bool) -> Color {
     6 => rgb8(d, v, v),
     _ => Color::WHITE,
   }
+}
+
+fn ansi_fg(index: u16, bright: bool) -> Color {
+  ansi_color(index, bright)
+}
+
+fn ansi_bg(index: u16, bright: bool) -> Color {
+  ansi_color(index, bright)
 }
 
 fn color_256(n: u8) -> Color {
@@ -52,6 +60,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
       self.grid.cells[y][x] = crate::core::grid::Cell {
         c,
         fg: self.grid.current_fg,
+        bg: self.grid.current_bg,
       };
       self.grid.cursor_x += 1;
     }
@@ -86,13 +95,18 @@ impl<'a> Perform for AnsiExecutor<'a> {
       'm' => {
         if params.iter().next().is_none() {
           self.grid.current_fg = Color::WHITE;
+          self.grid.current_bg = Color::TRANSPARENT;
           return;
         }
         let mut iter = params.iter();
         while let Some(param) = iter.next() {
           let code = if param.is_empty() { 0 } else { param[0] };
           match code {
-            0 | 39 => self.grid.current_fg = Color::WHITE,
+            0 => {
+              self.grid.current_fg = Color::WHITE;
+              self.grid.current_bg = Color::TRANSPARENT;
+            }
+            39 => self.grid.current_fg = Color::WHITE,
             1..=9 | 21..=29 => {}
             30..=37 => self.grid.current_fg = ansi_fg(code - 30, false),
             38 => {
@@ -117,19 +131,32 @@ impl<'a> Perform for AnsiExecutor<'a> {
                 }
               }
             }
-            40..=47 | 49 => {}
+            40..=47 => self.grid.current_bg = ansi_bg(code - 40, false),
             48 => {
-              if param.len() == 1 {
+              if param.len() >= 3 && param[1] == 5 {
+                self.grid.current_bg = color_256(param[2] as u8);
+              } else if param.len() >= 5 && param[1] == 2 {
+                self.grid.current_bg = rgb8(param[2] as u8, param[3] as u8, param[4] as u8);
+              } else {
                 let mode = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] });
                 match mode {
-                  5 => { iter.next(); }
-                  2 => { iter.next(); iter.next(); iter.next(); }
+                  5 => {
+                    let n = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] }) as u8;
+                    self.grid.current_bg = color_256(n);
+                  }
+                  2 => {
+                    let r = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] }) as u8;
+                    let g = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] }) as u8;
+                    let b = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] }) as u8;
+                    self.grid.current_bg = rgb8(r, g, b);
+                  }
                   _ => {}
                 }
               }
             }
+            49 => self.grid.current_bg = Color::TRANSPARENT,
             90..=97 => self.grid.current_fg = ansi_fg(code - 90, true),
-            100..=107 => {}
+            100..=107 => self.grid.current_bg = ansi_bg(code - 100, true),
             _ => {}
           }
         }

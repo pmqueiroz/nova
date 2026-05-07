@@ -45,9 +45,10 @@ cp ./target/release/nova ~/.local/bin/
 
 | Key | Action |
 |-----|--------|
-| `Ctrl` + `V` | Paste from clipboard |
-
-Tab and window controls are available via the UI (title bar buttons and tab bar).
+| `Ctrl` + `T` | New tab |
+| `Ctrl` + `W` | Close tab |
+| `Ctrl` + `Tab` | Next tab |
+| `Ctrl` + `Shift` + `Tab` | Previous tab |
 
 ## 🛣️ Roadmap
 

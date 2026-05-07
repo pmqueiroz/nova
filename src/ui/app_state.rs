@@ -28,6 +28,9 @@ pub enum Message {
   CloseTab(usize),
   PtyReady(usize, Sender<PtyCommand>),
   PtyOutputReceived(usize, Vec<u8>),
+  CloseActiveTab,
+  NextTab,
+  PrevTab,
   CloseWindow,
   MinimizeWindow,
   MaximizeWindow,
@@ -98,6 +101,23 @@ impl Nova {
           self.active_index = 0;
         } else if self.active_index >= self.tabs.len() {
           self.active_index = self.tabs.len() - 1;
+        }
+      }
+      Message::CloseActiveTab => {
+        return self.update(Message::CloseTab(self.active_index));
+      }
+      Message::NextTab => {
+        if !self.tabs.is_empty() {
+          self.active_index = (self.active_index + 1) % self.tabs.len();
+        }
+      }
+      Message::PrevTab => {
+        if !self.tabs.is_empty() {
+          self.active_index = if self.active_index == 0 {
+            self.tabs.len() - 1
+          } else {
+            self.active_index - 1
+          };
         }
       }
       Message::PtyReady(tab_id, tx) => {
@@ -233,6 +253,12 @@ impl Nova {
         match &key {
           Key::Named(Named::Enter) => return Some(Message::Type(b"\r".to_vec())),
           Key::Named(Named::Backspace) => return Some(Message::Type(b"\x7F".to_vec())),
+          Key::Named(Named::Tab) if modifiers.control() && modifiers.shift() => {
+            return Some(Message::PrevTab);
+          }
+          Key::Named(Named::Tab) if modifiers.control() => {
+            return Some(Message::NextTab);
+          }
           Key::Named(Named::Tab) => return Some(Message::Type(b"\t".to_vec())),
           Key::Named(Named::Space) => return Some(Message::Type(b" ".to_vec())),
           Key::Named(Named::Escape) => return Some(Message::Type(b"\x1b".to_vec())),
@@ -253,10 +279,12 @@ impl Nova {
             if let Some(ch) = c.as_str().chars().next() {
               if ch.is_ascii_alphabetic() {
                 let lower = ch.to_ascii_lowercase();
-                if lower == 'v' {
-                  return Some(Message::PasteRequested);
+                match lower {
+                  'v' => return Some(Message::PasteRequested),
+                  'w' => return Some(Message::CloseActiveTab),
+                  't' => return Some(Message::NewTab),
+                  _ => return Some(Message::Type(vec![(lower as u8) & 0x1f])),
                 }
-                return Some(Message::Type(vec![(lower as u8) & 0x1f]));
               }
             }
           }

@@ -17,3 +17,31 @@ ico = "0.3"
 
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
+
+[package.metadata.packager]
+name = "Nova"
+identifier = "com.pmqueiroz.nova"
+description = "A GPU-accelerated terminal emulator"
+long_description = "Nova is a fast, GPU-accelerated terminal emulator built with Rust and iced."
+homepage_url = "https://github.com/pmqueiroz/nova"
+license_file = "LICENSE"
+formats = ["app", "dmg", "msi", "deb", "appimage"]
+icons = [
+  "assets/icons/linux/nova-linux-16.png",
+  "assets/icons/linux/nova-linux-24.png",
+  "assets/icons/linux/nova-linux-32.png",
+  "assets/icons/linux/nova-linux-48.png",
+  "assets/icons/linux/nova-linux-64.png",
+  "assets/icons/linux/nova-linux-128.png",
+  "assets/icons/linux/nova-linux-256.png",
+  "assets/icons/linux/nova-linux-512.png",
+  "assets/icons/macos/nova-mac-1024.png",
+]
+
+[package.metadata.packager.macos]
+minimum_system_version = "11.0"
+
+[package.metadata.packager.deb]
+section = "utils"
+priority = "optional"
+depends = "libxkbcommon0, libwayland-client0, libgl1"

@@ -9,8 +9,8 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build ${{ matrix.target }}
+  package:
+    name: Package ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -18,23 +18,15 @@ jobs:
         include:
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            artifact: nova-windows-x86_64.zip
-            binary: nova.exe
 
           - os: macos-15-intel
             target: x86_64-apple-darwin
-            artifact: nova-macos-x86_64.tar.gz
-            binary: nova
 
           - os: macos-latest
             target: aarch64-apple-darwin
-            artifact: nova-macos-aarch64.tar.gz
-            binary: nova
 
           - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-            artifact: nova-linux-x86_64.tar.gz
-            binary: nova
 
     steps:
       - uses: actions/checkout@v6
@@ -66,36 +58,34 @@ jobs:
             libxcursor-dev \
             pkg-config \
             libgl1-mesa-dev \
-            libegl1-mesa-dev
+            libegl1-mesa-dev \
+            libfuse2
 
-      - name: Build
-        run: cargo build --release --target ${{ matrix.target }}
+      - name: Install cargo-packager
+        run: cargo install cargo-packager --locked
 
       - name: Package (Windows)
         if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          Compress-Archive `
-            -Path "target/${{ matrix.target }}/release/${{ matrix.binary }}" `
-            -DestinationPath "${{ matrix.artifact }}"
+        run: cargo packager --release --formats msi --out-dir dist
 
-      - name: Package (Unix)
-        if: runner.os != 'Windows'
-        run: |
-          tar -czf "${{ matrix.artifact }}" \
-            -C "target/${{ matrix.target }}/release" \
-            "${{ matrix.binary }}"
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: cargo packager --release --formats dmg --out-dir dist
+
+      - name: Package (Linux)
+        if: runner.os == 'Linux'
+        run: cargo packager --release --formats deb --formats appimage --out-dir dist
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.artifact }}
-          path: ${{ matrix.artifact }}
+          name: packages-${{ matrix.target }}
+          path: dist/
           retention-days: 1
 
   release:
     name: Publish GitHub Release
-    needs: build
+    needs: package
     runs-on: ubuntu-latest
     steps:
       - name: Download all artifacts

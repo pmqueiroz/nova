@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/pmqueiroz/nova/compare/v0.3.1...v0.4.0) (2026-05-07)
+
+
+### Features
+
+* tab management shortcuts ([326a9d5](https://github.com/pmqueiroz/nova/commit/326a9d5a947b20164e99f34ec08efe32b5f0d317))
+
 ## [0.3.1](https://github.com/pmqueiroz/nova/compare/v0.3.0...v0.3.1) (2026-05-07)
 
 

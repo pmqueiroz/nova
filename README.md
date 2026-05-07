@@ -2,10 +2,6 @@
 
 <img src=".github/assets/banner.png" width="100%" />
 
-![Rust](https://img.shields.io/badge/built_with-rust-orange?style=flat-square&logo=rust)
-![License](https://img.shields.io/github/license/pmqueiroz/nova?style=flat-square)
-![Stars](https://img.shields.io/github/stars/pmqueiroz/nova?style=flat-square)
-
 </div>
 
 ## ✨ Features

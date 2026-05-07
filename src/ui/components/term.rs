@@ -1,7 +1,7 @@
 use iced::{
   Background, Border, Color, Element, Length, Padding,
   border::Radius,
-  widget::{column, container, rich_text, scrollable, text::Span},
+  widget::{column, container, rich_text, text::Span},
 };
 
 use crate::core::config;
@@ -35,21 +35,22 @@ pub fn term<'a>(active_tab: &Tab, selection: Option<(usize, usize, usize, usize)
     let mut seg_text = String::new();
     let mut seg_fg = Color::WHITE;
     let mut seg_bg = Color::TRANSPARENT;
+    let mut seg_reverse = false;
 
     for (x, cell) in row_cells.iter().enumerate() {
       let is_cursor = x == cursor_x && y == cursor_y;
       let is_selected = in_selection(x, y, selection);
 
-      let (eff_fg, eff_bg) = if is_selected {
+      let (eff_fg, eff_bg, eff_reverse) = if is_selected {
         let rt = theme::color::runtime();
-        (rt.background, rt.accent)
+        (rt.background, rt.accent, false)
       } else {
-        (cell.fg, cell.bg)
+        (cell.fg, cell.bg, cell.reverse)
       };
 
       if is_cursor {
         if !seg_text.is_empty() {
-          spans.push(cell_span(std::mem::take(&mut seg_text), seg_fg, seg_bg, font_size));
+          spans.push(cell_span(std::mem::take(&mut seg_text), seg_fg, seg_bg, seg_reverse, font_size));
         }
         let ch = if cell.c == ' ' { '_' } else { cell.c };
         spans.push(
@@ -61,20 +62,22 @@ pub fn term<'a>(active_tab: &Tab, selection: Option<(usize, usize, usize, usize)
         );
         seg_fg = eff_fg;
         seg_bg = eff_bg;
+        seg_reverse = eff_reverse;
       } else {
-        if eff_fg != seg_fg || eff_bg != seg_bg {
+        if eff_fg != seg_fg || eff_bg != seg_bg || eff_reverse != seg_reverse {
           if !seg_text.is_empty() {
-            spans.push(cell_span(std::mem::take(&mut seg_text), seg_fg, seg_bg, font_size));
+            spans.push(cell_span(std::mem::take(&mut seg_text), seg_fg, seg_bg, seg_reverse, font_size));
           }
           seg_fg = eff_fg;
           seg_bg = eff_bg;
+          seg_reverse = eff_reverse;
         }
         seg_text.push(cell.c);
       }
     }
 
     if !seg_text.is_empty() {
-      spans.push(cell_span(seg_text, seg_fg, seg_bg, font_size));
+      spans.push(cell_span(seg_text, seg_fg, seg_bg, seg_reverse, font_size));
     }
 
     grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
@@ -82,7 +85,7 @@ pub fn term<'a>(active_tab: &Tab, selection: Option<(usize, usize, usize, usize)
 
   let rt = theme::color::runtime();
 
-  container(scrollable(grid_ui).height(Length::Fill).width(Length::Fill))
+  container(grid_ui)
     .style(move |_| container::Style {
       background: Some(rt.background.into()),
       border: Border {
@@ -105,18 +108,25 @@ pub fn term<'a>(active_tab: &Tab, selection: Option<(usize, usize, usize, usize)
     .into()
 }
 
-fn cell_span(text: String, fg: Color, bg: Color, font_size: f32) -> Span<'static> {
-  let color = if fg == Color::WHITE {
-    theme::color::runtime().foreground
+fn cell_span(text: String, fg: Color, bg: Color, reverse: bool, font_size: f32) -> Span<'static> {
+  let rt = theme::color::runtime();
+  if reverse {
+    let rev_fg = if bg.a > 0.0 { bg } else { rt.background };
+    let rev_bg = if fg == Color::WHITE { rt.foreground } else { fg };
+    Span::new(text)
+      .color(rev_fg)
+      .background(Background::Color(rev_bg))
+      .font(theme::font::REGULAR)
+      .size(font_size)
   } else {
-    fg
-  };
-  let mut span = Span::new(text)
-    .color(color)
-    .font(theme::font::REGULAR)
-    .size(font_size);
-  if bg.a > 0.0 {
-    span = span.background(Background::Color(bg));
+    let color = if fg == Color::WHITE { rt.foreground } else { fg };
+    let mut span = Span::new(text)
+      .color(color)
+      .font(theme::font::REGULAR)
+      .size(font_size);
+    if bg.a > 0.0 {
+      span = span.background(Background::Color(bg));
+    }
+    span
   }
-  span
 }

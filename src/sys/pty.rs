@@ -79,19 +79,15 @@ impl PtyBridge {
       loop {
         match reader.read(&mut buffer) {
           Ok(0) => {
-            println!("[PTY] process ended (EOF).");
             break;
           }
           Ok(n) => {
             let data = buffer[..n].to_vec();
-            println!("[PTY] {} bytes: {:?}", n, String::from_utf8_lossy(&data));
             if tx.send_blocking(data).is_err() {
-              println!("[PTY] iced sender error: channel closed.");
               break;
             }
           }
-          Err(e) => {
-            println!("[PTY] fatal read error: {}", e);
+          Err(_) => {
             break;
           }
         }

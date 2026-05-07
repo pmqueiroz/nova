@@ -4,6 +4,7 @@ use iced::keyboard::key::Named;
 use iced::widget::column;
 use iced::{Element, Point, Size, Subscription, Theme, time, window};
 use iced::{Event, event, keyboard, mouse, stream};
+use std::io::Write;
 
 use crate::core::config::{self, KeyId, ParsedKeybinding};
 use crate::sys::parser::AnsiExecutor;
@@ -223,6 +224,11 @@ impl Nova {
       }
       Message::PtyOutputReceived(tab_id, bytes) => {
         if let Some(tab) = self.tabs.iter_mut().find(|t| t.id == tab_id) {
+          if std::env::var("NOVA_DEBUG_PTY").is_ok() {
+            if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open("C:\\Users\\Public\\nova_pty_debug.bin") {
+              let _ = f.write_all(&bytes);
+            }
+          }
           let mut executor = AnsiExecutor {
             grid: &mut tab.grid,
           };

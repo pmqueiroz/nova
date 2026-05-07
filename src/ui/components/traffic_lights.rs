@@ -39,7 +39,7 @@ pub fn traffic_lights(_: bool) -> Element<'static, Message> {
       })
   };
   let minimize_btn = win_btn("─", Message::MinimizeWindow, false);
-  let maximize_btn = win_btn("□", Message::MaximizeWindow, false); // Or use \u{EAC2} if already maximized
+  let maximize_btn = win_btn("□", Message::MaximizeWindow, false);
   let close_btn = win_btn("✕", Message::CloseWindow, true);
 
   row![minimize_btn, maximize_btn, close_btn]

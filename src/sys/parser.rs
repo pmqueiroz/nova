@@ -53,6 +53,12 @@ pub struct AnsiExecutor<'a> {
 
 impl<'a> Perform for AnsiExecutor<'a> {
   fn print(&mut self, c: char) {
+    if self.grid.wrap_next {
+      self.grid.cursor_x = 0;
+      self.grid.newline();
+      self.grid.wrap_next = false;
+    }
+
     let x = self.grid.cursor_x;
     let y = self.grid.cursor_y;
 
@@ -61,17 +67,47 @@ impl<'a> Perform for AnsiExecutor<'a> {
         c,
         fg: self.grid.current_fg,
         bg: self.grid.current_bg,
+        reverse: self.grid.reverse_video,
       };
-      self.grid.cursor_x += 1;
+      if x + 1 >= self.grid.cols {
+        self.grid.wrap_next = true;
+      } else {
+        self.grid.cursor_x += 1;
+      }
+    }
+  }
+
+  fn esc_dispatch(&mut self, _intermediates: &[u8], _ignore: bool, byte: u8) {
+    match byte {
+      b'7' => self.grid.saved_cursor = Some((self.grid.cursor_x, self.grid.cursor_y)),
+      b'8' => {
+        if let Some((x, y)) = self.grid.saved_cursor {
+          self.grid.cursor_x = x;
+          self.grid.cursor_y = y;
+          self.grid.wrap_next = false;
+        }
+      }
+      b'M' => self.grid.reverse_index(),
+      b'D' => self.grid.newline(),
+      b'E' => {
+        self.grid.cursor_x = 0;
+        self.grid.newline();
+      }
+      _ => {}
     }
   }
 
   fn execute(&mut self, byte: u8) {
     match byte {
-      // line feed
-      0x0A | 0x0B | 0x0C => self.grid.newline(),
+      0x0A | 0x0B | 0x0C => {
+        self.grid.cursor_x = 0;
+        self.grid.newline();
+      }
       // carriage return
-      0x0D => self.grid.cursor_x = 0,
+      0x0D => {
+        self.grid.cursor_x = 0;
+        self.grid.wrap_next = false;
+      }
       // backspace
       0x08 | 0x7F => {
         if self.grid.cursor_x > 0 {
@@ -87,7 +123,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
     }
   }
 
-  fn csi_dispatch(&mut self, params: &Params, _intermediates: &[u8], _ignore: bool, command: char) {
+  fn csi_dispatch(&mut self, params: &Params, intermediates: &[u8], _ignore: bool, command: char) {
     let param_value = params.iter().next().map(|p| p[0] as usize).unwrap_or(0);
     let n = if param_value == 0 { 1 } else { param_value };
 
@@ -105,9 +141,12 @@ impl<'a> Perform for AnsiExecutor<'a> {
             0 => {
               self.grid.current_fg = Color::WHITE;
               self.grid.current_bg = Color::TRANSPARENT;
+              self.grid.reverse_video = false;
             }
+            7 => self.grid.reverse_video = true,
+            27 => self.grid.reverse_video = false,
             39 => self.grid.current_fg = Color::WHITE,
-            1..=9 | 21..=29 => {}
+            1..=6 | 8..=9 | 21..=26 | 28..=29 => {}
             30..=37 => self.grid.current_fg = ansi_fg(code - 30, false),
             38 => {
               if param.len() >= 3 && param[1] == 5 {
@@ -115,16 +154,30 @@ impl<'a> Perform for AnsiExecutor<'a> {
               } else if param.len() >= 5 && param[1] == 2 {
                 self.grid.current_fg = rgb8(param[2] as u8, param[3] as u8, param[4] as u8);
               } else {
-                let mode = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] });
+                let mode = iter
+                  .next()
+                  .map_or(0, |p| if p.is_empty() { 0 } else { p[0] });
                 match mode {
                   5 => {
-                    let n = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] }) as u8;
+                    let n = iter
+                      .next()
+                      .map_or(0, |p| if p.is_empty() { 0 } else { p[0] })
+                      as u8;
                     self.grid.current_fg = color_256(n);
                   }
                   2 => {
-                    let r = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] }) as u8;
-                    let g = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] }) as u8;
-                    let b = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] }) as u8;
+                    let r = iter
+                      .next()
+                      .map_or(0, |p| if p.is_empty() { 0 } else { p[0] })
+                      as u8;
+                    let g = iter
+                      .next()
+                      .map_or(0, |p| if p.is_empty() { 0 } else { p[0] })
+                      as u8;
+                    let b = iter
+                      .next()
+                      .map_or(0, |p| if p.is_empty() { 0 } else { p[0] })
+                      as u8;
                     self.grid.current_fg = rgb8(r, g, b);
                   }
                   _ => {}
@@ -138,16 +191,30 @@ impl<'a> Perform for AnsiExecutor<'a> {
               } else if param.len() >= 5 && param[1] == 2 {
                 self.grid.current_bg = rgb8(param[2] as u8, param[3] as u8, param[4] as u8);
               } else {
-                let mode = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] });
+                let mode = iter
+                  .next()
+                  .map_or(0, |p| if p.is_empty() { 0 } else { p[0] });
                 match mode {
                   5 => {
-                    let n = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] }) as u8;
+                    let n = iter
+                      .next()
+                      .map_or(0, |p| if p.is_empty() { 0 } else { p[0] })
+                      as u8;
                     self.grid.current_bg = color_256(n);
                   }
                   2 => {
-                    let r = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] }) as u8;
-                    let g = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] }) as u8;
-                    let b = iter.next().map_or(0, |p| if p.is_empty() { 0 } else { p[0] }) as u8;
+                    let r = iter
+                      .next()
+                      .map_or(0, |p| if p.is_empty() { 0 } else { p[0] })
+                      as u8;
+                    let g = iter
+                      .next()
+                      .map_or(0, |p| if p.is_empty() { 0 } else { p[0] })
+                      as u8;
+                    let b = iter
+                      .next()
+                      .map_or(0, |p| if p.is_empty() { 0 } else { p[0] })
+                      as u8;
                     self.grid.current_bg = rgb8(r, g, b);
                   }
                   _ => {}
@@ -190,24 +257,27 @@ impl<'a> Perform for AnsiExecutor<'a> {
       'A' => {
         let param_value = params.iter().next().map_or(1, |p| p[0] as usize);
         let n = if param_value == 0 { 1 } else { param_value };
-
         self.grid.cursor_y = self.grid.cursor_y.saturating_sub(n);
+        self.grid.wrap_next = false;
       }
       'B' => {
         let param_value = params.iter().next().map_or(1, |p| p[0] as usize);
         let n = if param_value == 0 { 1 } else { param_value };
-
         self.grid.cursor_y = (self.grid.cursor_y + n).min(self.grid.rows.saturating_sub(1));
+        self.grid.wrap_next = false;
       }
       'C' => {
         self.grid.cursor_x = (self.grid.cursor_x + n).min(self.grid.cols.saturating_sub(1));
+        self.grid.wrap_next = false;
       }
       'D' => {
         self.grid.cursor_x = self.grid.cursor_x.saturating_sub(n);
+        self.grid.wrap_next = false;
       }
       'G' => {
         let col = if param_value == 0 { 0 } else { param_value - 1 };
         self.grid.cursor_x = col.min(self.grid.cols.saturating_sub(1));
+        self.grid.wrap_next = false;
       }
       'H' | 'f' => {
         let mut iter = params.iter();
@@ -220,24 +290,146 @@ impl<'a> Perform for AnsiExecutor<'a> {
 
         self.grid.cursor_y = (row - 1).min(self.grid.rows.saturating_sub(1));
         self.grid.cursor_x = (col - 1).min(self.grid.cols.saturating_sub(1));
+        self.grid.wrap_next = false;
       }
       'J' => {
         let mode = params.iter().next().map_or(0, |p| p[0]);
+        let x = self.grid.cursor_x;
+        let y = self.grid.cursor_y;
         match mode {
-          2 => {
+          0 => {
+            for col in x..self.grid.cols {
+              self.grid.cells[y][col] = crate::core::grid::Cell::default();
+            }
+            for row in (y + 1)..self.grid.rows {
+              for col in 0..self.grid.cols {
+                self.grid.cells[row][col] = crate::core::grid::Cell::default();
+              }
+            }
+          }
+          1 => {
+            for row in 0..y {
+              for col in 0..self.grid.cols {
+                self.grid.cells[row][col] = crate::core::grid::Cell::default();
+              }
+            }
+            for col in 0..=x {
+              self.grid.cells[y][col] = crate::core::grid::Cell::default();
+            }
+          }
+          2 | 3 => {
             for row in 0..self.grid.rows {
               for col in 0..self.grid.cols {
                 self.grid.cells[row][col] = crate::core::grid::Cell::default();
               }
             }
-            self.grid.cursor_x = 0;
-            self.grid.cursor_y = 0;
+          }
+          _ => {}
+        }
+      }
+      '@' => {
+        let y = self.grid.cursor_y;
+        let x = self.grid.cursor_x;
+        if y < self.grid.rows {
+          let row = &mut self.grid.cells[y];
+          let count = n.min(self.grid.cols - x);
+          for _ in 0..count {
+            row.insert(x, crate::core::grid::Cell::default());
+            row.pop();
+          }
+        }
+      }
+      'P' => {
+        let y = self.grid.cursor_y;
+        let x = self.grid.cursor_x;
+        if y < self.grid.rows {
+          let row = &mut self.grid.cells[y];
+          let count = n.min(self.grid.cols - x);
+          for _ in 0..count {
+            row.remove(x);
+            row.push(crate::core::grid::Cell::default());
+          }
+        }
+      }
+      'X' => {
+        let y = self.grid.cursor_y;
+        let x = self.grid.cursor_x;
+        if y < self.grid.rows {
+          for col in x..(x + n).min(self.grid.cols) {
+            self.grid.cells[y][col] = crate::core::grid::Cell::default();
+          }
+        }
+      }
+      'L' => {
+        let y = self.grid.cursor_y;
+        let bottom = self.grid.scroll_bottom;
+        let count = n.min(bottom.saturating_sub(y) + 1);
+        for _ in 0..count {
+          self
+            .grid
+            .cells
+            .insert(y, vec![crate::core::grid::Cell::default(); self.grid.cols]);
+          if self.grid.cells.len() > self.grid.rows {
+            self.grid.cells.remove(bottom + 1);
+          }
+        }
+      }
+      'M' => {
+        let y = self.grid.cursor_y;
+        let bottom = self.grid.scroll_bottom;
+        let count = n.min(bottom.saturating_sub(y) + 1);
+        for _ in 0..count {
+          if y < self.grid.cells.len() {
+            self.grid.cells.remove(y);
+            self.grid.cells.insert(
+              bottom,
+              vec![crate::core::grid::Cell::default(); self.grid.cols],
+            );
+          }
+        }
+      }
+      'r' if intermediates.is_empty() => {
+        let mut iter = params.iter();
+        let top = iter
+          .next()
+          .map_or(1, |p| if p[0] == 0 { 1 } else { p[0] as usize });
+        let bottom = iter.next().map_or(self.grid.rows, |p| {
+          if p[0] == 0 {
+            self.grid.rows
+          } else {
+            p[0] as usize
+          }
+        });
+        self.grid.scroll_top = (top - 1).min(self.grid.rows.saturating_sub(1));
+        self.grid.scroll_bottom = (bottom - 1).min(self.grid.rows.saturating_sub(1));
+        self.grid.cursor_x = 0;
+        self.grid.cursor_y = 0;
+        self.grid.wrap_next = false;
+      }
+      's' if intermediates.is_empty() => {
+        self.grid.saved_cursor = Some((self.grid.cursor_x, self.grid.cursor_y));
+      }
+      'u' if intermediates.is_empty() => {
+        if let Some((x, y)) = self.grid.saved_cursor {
+          self.grid.cursor_x = x;
+          self.grid.cursor_y = y;
+          self.grid.wrap_next = false;
+        }
+      }
+      'h' | 'l' if intermediates.contains(&b'?') => {
+        let mode = params.iter().next().map_or(0, |p| p[0]);
+        match mode {
+          47 | 1047 | 1049 => {
+            if command == 'h' {
+              self.grid.enter_alt_screen();
+            } else {
+              self.grid.leave_alt_screen();
+            }
           }
           _ => {}
         }
       }
       'n' => {
-        println!("[ANSI] received cursor position query (CPR)");
         let mut iter = params.iter();
         if let Some(param) = iter.next() {
           if param.contains(&6) {

@@ -30,14 +30,12 @@ homepage = "https://github.com/pmqueiroz/nova"
 license_file = "LICENSE"
 formats = ["app", "dmg", "nsis", "deb", "appimage"]
 icons = [
-  "assets/icons/linux/nova-linux-16.png",
-  "assets/icons/linux/nova-linux-24.png",
-  "assets/icons/linux/nova-linux-32.png",
-  "assets/icons/linux/nova-linux-48.png",
-  "assets/icons/linux/nova-linux-64.png",
-  "assets/icons/linux/nova-linux-128.png",
-  "assets/icons/linux/nova-linux-256.png",
-  "assets/icons/linux/nova-linux-512.png",
+  "assets/icons/macos/nova-mac-16.png",
+  "assets/icons/macos/nova-mac-32.png",
+  "assets/icons/macos/nova-mac-64.png",
+  "assets/icons/macos/nova-mac-128.png",
+  "assets/icons/macos/nova-mac-256.png",
+  "assets/icons/macos/nova-mac-512.png",
   "assets/icons/macos/nova-mac-1024.png",
 ]
 

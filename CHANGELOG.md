@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/pmqueiroz/nova/compare/v0.5.0...v0.5.1) (2026-05-07)
+
+
+### Bug Fixes
+
+* windows packager ([0542ab9](https://github.com/pmqueiroz/nova/commit/0542ab994dca634edc6910c50ee6a92437b38241))
+
 ## [0.5.0](https://github.com/pmqueiroz/nova/compare/v0.4.0...v0.5.0) (2026-05-07)
 
 

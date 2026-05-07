@@ -32,6 +32,11 @@ impl<'a> Perform for AnsiExecutor<'a> {
           self.grid.cursor_x -= 1;
         }
       }
+      // tab — advance to next 8-column tab stop
+      0x09 => {
+        let next = (self.grid.cursor_x / 8 + 1) * 8;
+        self.grid.cursor_x = next.min(self.grid.cols.saturating_sub(1));
+      }
       _ => {}
     }
   }
@@ -42,6 +47,10 @@ impl<'a> Perform for AnsiExecutor<'a> {
 
     match command {
       'm' => {
+        if params.iter().next().is_none() {
+          self.grid.current_fg = Color::WHITE;
+          return;
+        }
         for param in params.iter() {
           let code = param[0];
           match code {

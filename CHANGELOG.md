@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.5.0](https://github.com/pmqueiroz/nova/compare/v0.4.0...v0.5.0) (2026-05-07)
+
+
+### Features
+
+* char bg ([2d761e7](https://github.com/pmqueiroz/nova/commit/2d761e7a54c54e163c5fcfc2ace4b7a3a9de809c))
+* close tab on middle press ([6ec9020](https://github.com/pmqueiroz/nova/commit/6ec90204e8fef948532eb40e8138b412cf1d71a3))
+* config file ([51f8bbd](https://github.com/pmqueiroz/nova/commit/51f8bbd7a714c07f1940524b07163165d7f5f077))
+* implement full VT emulation for TUI app support ([eefdadd](https://github.com/pmqueiroz/nova/commit/eefdadd40871c029854d7e8454115cc5eeaa9d20))
+* macos default settings ([f6b5c46](https://github.com/pmqueiroz/nova/commit/f6b5c460b424b5567c2b27f49ffceebfa8314a48))
+* open config file ([5097ed0](https://github.com/pmqueiroz/nova/commit/5097ed0d0d6dbc37e5d9435462687c34873c22ce))
+* select and copy ([c4130f2](https://github.com/pmqueiroz/nova/commit/c4130f22679c329e35a9732503934e06775d86a1))
+
+
+### Bug Fixes
+
+* quote file on openning ([71fefae](https://github.com/pmqueiroz/nova/commit/71fefaee7fa9b31e641328dbe1883e804a6571ce))
+* traffic lights padding ([fb0b444](https://github.com/pmqueiroz/nova/commit/fb0b44466218f8c14ad26f28628770077586fbcd))
+
 ## [0.4.0](https://github.com/pmqueiroz/nova/compare/v0.3.1...v0.4.0) (2026-05-07)
 
 

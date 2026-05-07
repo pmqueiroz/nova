@@ -56,6 +56,7 @@ cp ./target/release/nova ~/.local/bin/
 - [x] PTY resize on window resize
 - [x] Clipboard paste
 - [x] Cross-platform icons
-- [ ] Configurable keybindings
-- [ ] Font size configuration
+- [x] Configurable keybindings
+- [x] Font size configuration
 - [ ] Scrollback buffer
+- [ ] AI ask for commands

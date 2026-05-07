@@ -4,6 +4,9 @@ use std::sync::OnceLock;
 static CONFIG: OnceLock<Config> = OnceLock::new();
 static PARSED_KB: OnceLock<ParsedKeybindings> = OnceLock::new();
 
+#[cfg(target_os = "macos")]
+const DEFAULT_CONFIG: &str = include_str!("../../assets/default_settings_macos.toml");
+#[cfg(not(target_os = "macos"))]
 const DEFAULT_CONFIG: &str = include_str!("../../assets/default_settings.toml");
 
 #[derive(Deserialize, Debug, Clone)]
@@ -77,6 +80,7 @@ pub struct ParsedKeybinding {
   pub ctrl: bool,
   pub shift: bool,
   pub alt: bool,
+  pub meta: bool,
   pub key: KeyId,
 }
 
@@ -96,13 +100,14 @@ pub struct ParsedKeybindings {
 
 fn parse_keybinding(s: &str) -> anyhow::Result<ParsedKeybinding> {
   let parts: Vec<&str> = s.split('+').collect();
-  let (mut ctrl, mut shift, mut alt) = (false, false, false);
+  let (mut ctrl, mut shift, mut alt, mut meta) = (false, false, false, false);
   let mut key_part = "";
   for p in &parts {
     match p.to_ascii_lowercase().as_str() {
       "ctrl" => ctrl = true,
       "shift" => shift = true,
-      "alt" => alt = true,
+      "alt" | "option" => alt = true,
+      "cmd" | "command" | "meta" | "super" => meta = true,
       _ => key_part = p,
     }
   }
@@ -111,7 +116,7 @@ fn parse_keybinding(s: &str) -> anyhow::Result<ParsedKeybinding> {
     c if c.len() == 1 => KeyId::Char(c.chars().next().unwrap()),
     _ => return Err(anyhow::anyhow!("unknown key in keybinding: '{}'", key_part)),
   };
-  Ok(ParsedKeybinding { ctrl, shift, alt, key })
+  Ok(ParsedKeybinding { ctrl, shift, alt, meta, key })
 }
 
 pub fn parse_hex_color(hex: &str) -> anyhow::Result<iced::Color> {

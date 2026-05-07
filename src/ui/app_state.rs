@@ -114,7 +114,11 @@ fn calc_grid(width: f32, height: f32) -> (usize, usize) {
 }
 
 fn matches_kb(kb: &ParsedKeybinding, key: &Key, mods: keyboard::Modifiers) -> bool {
-  if kb.ctrl != mods.control() || kb.shift != mods.shift() || kb.alt != mods.alt() {
+  if kb.ctrl != mods.control()
+    || kb.shift != mods.shift()
+    || kb.alt != mods.alt()
+    || kb.meta != mods.logo()
+  {
     return false;
   }
   match (&kb.key, key) {

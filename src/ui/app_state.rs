@@ -5,6 +5,7 @@ use iced::widget::column;
 use iced::{Element, Point, Size, Subscription, Theme, time, window};
 use iced::{Event, event, keyboard, mouse, stream};
 
+use crate::core::config::{self, KeyId, ParsedKeybinding};
 use crate::sys::parser::AnsiExecutor;
 use crate::sys::pty::{PtyBridge, PtyCommand};
 use crate::ui::components;
@@ -47,12 +48,26 @@ pub enum Message {
 }
 
 fn calc_grid(width: f32, height: f32) -> (usize, usize) {
-  let font_size = 16.0_f32;
+  let font_size = config::get().theme.font.size;
   let char_width = font_size * 0.62;
   let char_height = font_size * 1.35;
+  let padding_y = if config::get().status_bar.visible { 118.0 } else { 96.0 };
   let cols = ((width - 40.0) / char_width).floor() as usize;
-  let rows = ((height - 118.0) / char_height).floor() as usize;
+  let rows = ((height - padding_y) / char_height).floor() as usize;
   (cols.max(10), rows.max(5))
+}
+
+fn matches_kb(kb: &ParsedKeybinding, key: &Key, mods: keyboard::Modifiers) -> bool {
+  if kb.ctrl != mods.control() || kb.shift != mods.shift() || kb.alt != mods.alt() {
+    return false;
+  }
+  match (&kb.key, key) {
+    (KeyId::Tab, Key::Named(Named::Tab)) => true,
+    (KeyId::Char(c), Key::Character(s)) => {
+      s.as_str().chars().next().map(|sc| sc == *c).unwrap_or(false)
+    }
+    _ => false,
+  }
 }
 
 impl Default for Nova {
@@ -224,12 +239,17 @@ impl Nova {
   pub fn view(&self) -> Element<'_, Message> {
     let active_tab = &self.tabs[self.active_index];
 
-    components::app(column![
+    let mut col = column![
       components::title_bar(self.window_focused, &active_tab.pwd),
       components::tab_bar(&self.tabs, self.active_index),
       components::term(active_tab),
-      components::status_bar(active_tab)
-    ])
+    ];
+
+    if config::get().status_bar.visible {
+      col = col.push(components::status_bar(active_tab));
+    }
+
+    components::app(col)
   }
 
   pub fn theme(&self) -> Theme {
@@ -250,15 +270,26 @@ impl Nova {
         modified_key,
         ..
       }) => {
+        let kb = config::keybindings();
+        if matches_kb(&kb.prev_tab, &key, modifiers) {
+          return Some(Message::PrevTab);
+        }
+        if matches_kb(&kb.next_tab, &key, modifiers) {
+          return Some(Message::NextTab);
+        }
+        if matches_kb(&kb.new_tab, &key, modifiers) {
+          return Some(Message::NewTab);
+        }
+        if matches_kb(&kb.close_tab, &key, modifiers) {
+          return Some(Message::CloseActiveTab);
+        }
+        if matches_kb(&kb.paste, &key, modifiers) {
+          return Some(Message::PasteRequested);
+        }
+
         match &key {
           Key::Named(Named::Enter) => return Some(Message::Type(b"\r".to_vec())),
           Key::Named(Named::Backspace) => return Some(Message::Type(b"\x7F".to_vec())),
-          Key::Named(Named::Tab) if modifiers.control() && modifiers.shift() => {
-            return Some(Message::PrevTab);
-          }
-          Key::Named(Named::Tab) if modifiers.control() => {
-            return Some(Message::NextTab);
-          }
           Key::Named(Named::Tab) => return Some(Message::Type(b"\t".to_vec())),
           Key::Named(Named::Space) => return Some(Message::Type(b" ".to_vec())),
           Key::Named(Named::Escape) => return Some(Message::Type(b"\x1b".to_vec())),
@@ -279,12 +310,7 @@ impl Nova {
             if let Some(ch) = c.as_str().chars().next() {
               if ch.is_ascii_alphabetic() {
                 let lower = ch.to_ascii_lowercase();
-                match lower {
-                  'v' => return Some(Message::PasteRequested),
-                  'w' => return Some(Message::CloseActiveTab),
-                  't' => return Some(Message::NewTab),
-                  _ => return Some(Message::Type(vec![(lower as u8) & 0x1f])),
-                }
+                return Some(Message::Type(vec![(lower as u8) & 0x1f]));
               }
             }
           }

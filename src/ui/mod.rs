@@ -62,7 +62,7 @@ pub fn start() -> Result {
     background_color: theme::color::TRANSPARENT.as_color(),
     #[cfg(not(target_os = "macos"))]
     background_color: theme::color::BG_DEEP.as_color(),
-    text_color: theme::color::FG.as_color(),
+    text_color: theme::color::runtime().foreground,
   })
   .font(FIRA_CODE_BYTES)
   .font(FIRA_CODE_BOLD_BYTES)

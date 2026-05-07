@@ -33,9 +33,9 @@ pub fn tab_bar(tabs: &Vec<Tab>, active_index: usize) -> Element<'static, Message
       button("+")
         .style(move |_t, status| button::Style {
           text_color: match status {
-            button::Status::Hovered => theme::color::ACCENT.as_color(),
+            button::Status::Hovered => theme::color::runtime().accent,
             button::Status::Pressed => theme::color::ACCENT_DIM.as_color(),
-            _ => theme::color::FG_MUTED.as_color(),
+            _ => theme::color::runtime().foreground_muted,
           },
           background: Some(theme::color::TRANSPARENT.as_color().into()),
           ..Default::default()
@@ -52,7 +52,7 @@ pub fn tab_bar(tabs: &Vec<Tab>, active_index: usize) -> Element<'static, Message
     .style(move |_| container::Style {
       background: Some(theme::color::BG_DEEP.as_color().into()),
       border: Border {
-        color: theme::color::BORDER.as_color(),
+        color: theme::color::runtime().border,
         radius: Radius {
           ..Default::default()
         },
@@ -72,9 +72,9 @@ fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Messa
         button(
           Typography {
             color: if active {
-              theme::color::FG.as_color()
+              theme::color::runtime().foreground
             } else {
-              theme::color::FG_MUTED.as_color()
+              theme::color::runtime().foreground_muted
             },
             size: 11.into(),
             ..Default::default()
@@ -93,7 +93,7 @@ fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Messa
             text_color: if status == button::Status::Hovered {
               theme::color::RED.as_color()
             } else {
-              theme::color::FG_MUTED.as_color()
+              theme::color::runtime().foreground_muted
             },
             background: Some(theme::color::TRANSPARENT.as_color().into()),
             ..Default::default()
@@ -120,9 +120,10 @@ fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Messa
         .into(),
       ),
       border: Border {
-        color: theme::color::BORDER
-          .with_alpha(if active { 0.15 } else { 0.0 })
-          .as_color(),
+        color: {
+          let b = theme::color::runtime().border;
+          iced::Color { a: if active { 0.15 } else { 0.0 }, ..b }
+        },
         radius: Radius::new(4.0),
         width: 1.0,
       },

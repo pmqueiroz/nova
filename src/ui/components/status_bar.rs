@@ -44,7 +44,7 @@ pub fn status_bar<'a>(active_tab: &Tab) -> Element<'a, Message> {
     .style(move |_| container::Style {
       background: Some(theme::color::BG_DEEP.as_color().into()),
       border: Border {
-        color: theme::color::BORDER.as_color(),
+        color: theme::color::runtime().border,
         radius: Radius {
           bottom_left: 12.0,
           bottom_right: 12.0,
@@ -72,9 +72,9 @@ pub fn status_bar_text(content: impl Into<String>, accent: bool) -> iced::widget
       typography::Weight::Normal
     },
     color: if accent {
-      theme::color::ACCENT.as_color()
+      theme::color::runtime().accent
     } else {
-      theme::color::FG_MUTED.as_color()
+      theme::color::runtime().foreground_muted
     },
 
     size: 10.into(),

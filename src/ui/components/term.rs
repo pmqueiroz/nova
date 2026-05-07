@@ -4,6 +4,7 @@ use iced::{
   widget::{column, container, rich_text, scrollable, text::Span},
 };
 
+use crate::core::config;
 use crate::ui::{app_state::Message, tab::Tab, theme};
 
 pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
@@ -11,6 +12,7 @@ pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
 
   let cursor_x = active_tab.grid.cursor_x;
   let cursor_y = active_tab.grid.cursor_y;
+  let font_size = config::get().theme.font.size;
 
   for (y, row_cells) in active_tab.grid.cells.iter().enumerate() {
     let mut spans: Vec<Span<'static>> = Vec::new();
@@ -22,21 +24,21 @@ pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
 
       if is_cursor {
         if !seg_text.is_empty() {
-          spans.push(cell_span(std::mem::take(&mut seg_text), seg_color));
+          spans.push(cell_span(std::mem::take(&mut seg_text), seg_color, font_size));
         }
         let ch = if cell.c == ' ' { '_' } else { cell.c };
         spans.push(
           Span::new(ch.to_string())
-            .color(theme::color::ACCENT.as_color())
+            .color(theme::color::runtime().cursor)
             .underline(true)
             .font(theme::font::REGULAR)
-            .size(16.0),
+            .size(font_size),
         );
         seg_color = cell.fg;
       } else {
         if cell.fg != seg_color {
           if !seg_text.is_empty() {
-            spans.push(cell_span(std::mem::take(&mut seg_text), seg_color));
+            spans.push(cell_span(std::mem::take(&mut seg_text), seg_color, font_size));
           }
           seg_color = cell.fg;
         }
@@ -45,17 +47,19 @@ pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
     }
 
     if !seg_text.is_empty() {
-      spans.push(cell_span(seg_text, seg_color));
+      spans.push(cell_span(seg_text, seg_color, font_size));
     }
 
-    grid_ui = grid_ui.push(rich_text(spans).size(16).font(theme::font::REGULAR));
+    grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
   }
+
+  let rt = theme::color::runtime();
 
   container(scrollable(grid_ui).height(Length::Fill).width(Length::Fill))
     .style(move |_| container::Style {
-      background: Some(theme::color::BG.as_color().into()),
+      background: Some(rt.background.into()),
       border: Border {
-        color: theme::color::BORDER.as_color(),
+        color: rt.border,
         radius: Radius {
           ..Default::default()
         },
@@ -74,14 +78,14 @@ pub fn term<'a>(active_tab: &Tab) -> Element<'a, Message> {
     .into()
 }
 
-fn cell_span(text: String, fg: Color) -> Span<'static> {
+fn cell_span(text: String, fg: Color, font_size: f32) -> Span<'static> {
   let color = if fg == Color::WHITE {
-    theme::color::FG.as_color()
+    theme::color::runtime().foreground
   } else {
     fg
   };
   Span::new(text)
     .color(color)
     .font(theme::font::REGULAR)
-    .size(16.0)
+    .size(font_size)
 }

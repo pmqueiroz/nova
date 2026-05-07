@@ -1,4 +1,31 @@
 use iced::Color;
+use std::sync::OnceLock;
+
+pub struct RuntimeTheme {
+  pub background: Color,
+  pub foreground: Color,
+  pub accent: Color,
+  pub foreground_muted: Color,
+  pub border: Color,
+  pub cursor: Color,
+}
+
+static RUNTIME: OnceLock<RuntimeTheme> = OnceLock::new();
+
+pub fn init_runtime(t: RuntimeTheme) {
+  RUNTIME.set(t).ok();
+}
+
+pub fn runtime() -> &'static RuntimeTheme {
+  RUNTIME.get_or_init(|| RuntimeTheme {
+    background: BG.as_color(),
+    foreground: FG.as_color(),
+    accent: ACCENT.as_color(),
+    foreground_muted: FG_MUTED.as_color(),
+    border: BORDER.as_color(),
+    cursor: ACCENT.as_color(),
+  })
+}
 
 pub const BG: Hue = Hue {
   r: 0x0D,
@@ -112,7 +139,4 @@ impl Hue {
     }
   }
 
-  pub fn with_alpha(&self, alpha: f32) -> Self {
-    Self { a: alpha, ..*self }
-  }
 }

@@ -18,9 +18,9 @@ fn nova_label() -> impl Into<Element<'static, Message>> {
   let text = |s: &'static str, accent: bool| {
     Typography {
       color: if accent {
-        theme::color::ACCENT.as_color()
+        theme::color::runtime().accent
       } else {
-        theme::color::FG.as_color()
+        theme::color::runtime().foreground
       },
       size: 12.into(),
       weight: Weight::Bold,
@@ -39,7 +39,7 @@ pub fn title_bar(window_focused: bool, pwd: &String) -> Element<'static, Message
     .height(13);
 
   let pwd_text = Typography {
-    color: theme::color::FG_MUTED.as_color(),
+    color: theme::color::runtime().foreground_muted,
     size: 12.into(),
     ..Default::default()
   }
@@ -66,7 +66,7 @@ pub fn title_bar(window_focused: bool, pwd: &String) -> Element<'static, Message
       .style(move |_| container::Style {
         background: Some(theme::color::BG_DEEP.as_color().into()),
         border: Border {
-          color: theme::color::BORDER.as_color(),
+          color: theme::color::runtime().border,
           radius: Radius {
             top_left: 12.0,
             top_right: 12.0,

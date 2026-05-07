@@ -28,10 +28,7 @@ pub fn status_bar<'a>(active_tab: &Tab) -> Element<'a, Message> {
   }
 
   content = content
-    .push(status_bar_text(
-      format!("\u{f489} {}", active_tab.shell),
-      false,
-    ))
+    .push(status_bar_text(&active_tab.shell, false))
     .push(status_bar_text("utf-8", false))
     .push(horizontal())
     .push(status_bar_text(

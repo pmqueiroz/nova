@@ -12,6 +12,12 @@
 
 ## 🚀 Installation
 
+### Homebrew (macOS)
+
+```sh
+brew install --cask pmqueiroz/tap/nova
+```
+
 ### Download a release
 
 Grab the latest installer for your platform from the [releases page](https://github.com/pmqueiroz/nova/releases):

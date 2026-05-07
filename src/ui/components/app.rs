@@ -5,11 +5,11 @@ use crate::ui::{app_state::Message, theme};
 pub fn app<'a>(content: impl Into<Element<'a, Message>>) -> Element<'a, Message> {
   container(content)
     .style(move |_| container::Style {
-      background: Some(theme::color::TRANSPARENT.as_color().into()),
+      background: Some(theme::color::BG_DEEP.as_color().into()),
       border: Border {
         color: theme::color::TRANSPARENT.as_color(),
-        radius: Radius::new(12.0),
-        width: 0.5,
+        radius: Radius::new(0.0),
+        width: 0.0,
       },
       ..container::Style::default()
     })

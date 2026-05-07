@@ -31,6 +31,23 @@ fn app_icon() -> Option<window::Icon> {
   window::icon::from_rgba(rgba.into_raw(), width, height).ok()
 }
 
+fn window_settings() -> window::Settings {
+  #[allow(unused_mut)]
+  let mut settings = window::Settings {
+    size: Size::new(1024.0, 768.0),
+    transparent: true,
+    decorations: false,
+    icon: app_icon(),
+    ..Default::default()
+  };
+  #[cfg(target_os = "windows")]
+  {
+    settings.platform_specific.corner_preference =
+      window::settings::platform::CornerPreference::Round;
+  }
+  settings
+}
+
 pub fn start() -> Result {
   iced::application(
     app_state::Nova::default,
@@ -39,15 +56,9 @@ pub fn start() -> Result {
   )
   .theme(app_state::Nova::theme)
   .subscription(app_state::Nova::subscription)
-  .window(window::Settings {
-    size: Size::new(1024.0, 768.0),
-    transparent: true,
-    decorations: false,
-    icon: app_icon(),
-    ..Default::default()
-  })
+  .window(window_settings())
   .style(|_s, _t| iced::theme::Style {
-    background_color: theme::color::TRANSPARENT.as_color(),
+    background_color: theme::color::BG_DEEP.as_color(),
     text_color: theme::color::FG.as_color(),
   })
   .font(FIRA_CODE_BYTES)

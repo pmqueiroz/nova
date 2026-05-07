@@ -140,11 +140,11 @@ impl Nova {
       }
       Message::WindowResized(width, height) => {
         let font_size = 16.0_f32;
-        let char_width = font_size * 0.62;  // slight safety margin over 0.6
-        let char_height = font_size * 1.35; // iced line height is larger than 1.2x font size
+        let char_width = font_size * 0.62;
+        let char_height = font_size * 1.35;
 
-        let padding_x = 40.0; // term.rs: left(20) + right(20)
-        let padding_y = 118.0; // title(40) + tab(36) + status(22) + term vertical pad(20)
+        let padding_x = 40.0;
+        let padding_y = 118.0;
 
         let new_cols = ((width - padding_x) / char_width).floor() as usize;
         let new_rows = ((height - padding_y) / char_height).floor() as usize;

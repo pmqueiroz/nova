@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.8.0](https://github.com/pmqueiroz/nova/compare/v0.7.0...v0.8.0) (2026-05-08)
+
+
+### Features
+
+* colored prompt ([26c067c](https://github.com/pmqueiroz/nova/commit/26c067c9fc5f64a04ce929502c3416adbe3de14d))
+* improve title bar visual ([514aa15](https://github.com/pmqueiroz/nova/commit/514aa152b5f99c86ec2ae0f934ad312c35292d04))
+* scrollback buffer ([df68acf](https://github.com/pmqueiroz/nova/commit/df68acf85bd2dc8085c9bb6e97b1f61a293f168d))
+
+
+### Bug Fixes
+
+* macos icon too big ([a632509](https://github.com/pmqueiroz/nova/commit/a632509816f7f388effe95d30e0571817b16ccc6))
+* remove selection offset from cursor ([59015e4](https://github.com/pmqueiroz/nova/commit/59015e4d9d56690c5e59e409a8de1ad7e6426f43))
+
 ## [0.7.0](https://github.com/pmqueiroz/nova/compare/v0.6.0...v0.7.0) (2026-05-08)
 
 

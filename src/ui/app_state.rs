@@ -5,12 +5,35 @@ use iced::widget::{column, stack};
 use iced::{Element, Point, Size, Subscription, Theme, time, window};
 use iced::{Event, event, keyboard, mouse, stream};
 use std::io::Write;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::core::config::{self, KeyId, ParsedKeybinding};
 use crate::sys::parser::AnsiExecutor;
 use crate::sys::pty::{PtyBridge, PtyCommand};
 use crate::ui::components;
 use crate::ui::tab::Tab;
+
+pub static SETTINGS_OPEN: AtomicBool = AtomicBool::new(false);
+pub static KB_RECORDING: AtomicBool = AtomicBool::new(false);
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum SettingsTab {
+  General,
+  Theme,
+  Keybindings,
+  StatusBar,
+  Raw,
+}
+
+#[derive(Debug, Clone)]
+pub enum ColorField {
+  Background,
+  Foreground,
+  Accent,
+  ForegroundMuted,
+  Border,
+  Cursor,
+}
 
 pub struct Nova {
   tabs: Vec<Tab>,
@@ -26,6 +49,12 @@ pub struct Nova {
   shell_picker_open: bool,
   shell_picker_anchor: f32,
   available_shells: Vec<String>,
+  settings_open: bool,
+  settings_tab: SettingsTab,
+  settings: config::Config,
+  settings_shell_input: String,
+  settings_recording_index: Option<usize>,
+  raw_config_content: String,
 }
 
 #[derive(Debug, Clone)]
@@ -58,6 +87,26 @@ pub enum Message {
   MouseReleased,
   CopySelection,
   Tick,
+  CloseSettings,
+  SettingsTabSelected(SettingsTab),
+  SettingsEditorChanged(String),
+  SettingsBellChanged(config::BellType),
+  SettingsShellInputChanged(String),
+  SettingsAddShell,
+  SettingsRemoveShell(usize),
+  SettingsFontFamilyChanged(String),
+  SettingsFontSizeChanged(f32),
+  SettingsColorChanged(ColorField, String),
+  SettingsStatusBarToggled(bool),
+  SettingsStartRecordKb(usize),
+  SettingsRecordKb {
+    key: keyboard::Key,
+    modifiers: keyboard::Modifiers,
+  },
+  SettingsCancelRecordKb,
+  SettingsResetKb(usize),
+  SettingsResetAll,
+  NoOp,
 }
 
 fn pixel_to_cell(pos: Point, font_size: f32) -> Option<(usize, usize)> {
@@ -71,10 +120,7 @@ fn pixel_to_cell(pos: Point, font_size: f32) -> Option<(usize, usize)> {
   Some((col, row))
 }
 
-fn normalize_sel(
-  start: (usize, usize),
-  end: (usize, usize),
-) -> ((usize, usize), (usize, usize)) {
+fn normalize_sel(start: (usize, usize), end: (usize, usize)) -> ((usize, usize), (usize, usize)) {
   let (sc, sr) = start;
   let (ec, er) = end;
   if sr < er || (sr == er && sc <= ec) {
@@ -98,8 +144,16 @@ fn extract_selection(
   let mut result = String::new();
   for row in sr..=er {
     let row_cells = &grid.cells[row];
-    let col_start = if row == sr { sc.min(grid.cols.saturating_sub(1)) } else { 0 };
-    let col_end = if row == er { ec.min(grid.cols.saturating_sub(1)) } else { grid.cols.saturating_sub(1) };
+    let col_start = if row == sr {
+      sc.min(grid.cols.saturating_sub(1))
+    } else {
+      0
+    };
+    let col_end = if row == er {
+      ec.min(grid.cols.saturating_sub(1))
+    } else {
+      grid.cols.saturating_sub(1)
+    };
     for col in col_start..=col_end {
       result.push(row_cells[col].c);
     }
@@ -110,11 +164,10 @@ fn extract_selection(
   result.trim_end().to_string()
 }
 
-fn calc_grid(width: f32, height: f32) -> (usize, usize) {
-  let font_size = config::get().theme.font.size;
+fn calc_grid(width: f32, height: f32, font_size: f32, status_bar_visible: bool) -> (usize, usize) {
   let char_width = font_size * 0.62;
   let char_height = font_size * 1.35;
-  let padding_y = if config::get().status_bar.visible { 118.0 } else { 96.0 };
+  let padding_y = if status_bar_visible { 118.0 } else { 96.0 };
   let cols = ((width - 40.0) / char_width).floor() as usize;
   let rows = ((height - padding_y) / char_height).floor() as usize;
   (cols.max(10), rows.max(5))
@@ -130,11 +183,62 @@ fn matches_kb(kb: &ParsedKeybinding, key: &Key, mods: keyboard::Modifiers) -> bo
   }
   match (&kb.key, key) {
     (KeyId::Tab, Key::Named(Named::Tab)) => true,
-    (KeyId::Char(c), Key::Character(s)) => {
-      s.as_str().chars().next().map(|sc| sc == *c).unwrap_or(false)
-    }
+    (KeyId::Char(c), Key::Character(s)) => s
+      .as_str()
+      .chars()
+      .next()
+      .map(|sc| sc == *c)
+      .unwrap_or(false),
     _ => false,
   }
+}
+
+fn keybinding_to_string(key: &Key, mods: keyboard::Modifiers) -> Option<String> {
+  let mut parts: Vec<&str> = vec![];
+  if mods.control() {
+    parts.push("ctrl");
+  }
+  if mods.shift() {
+    parts.push("shift");
+  }
+  if mods.alt() {
+    parts.push("alt");
+  }
+  if mods.logo() {
+    parts.push("cmd");
+  }
+  match key {
+    Key::Named(Named::Tab) => parts.push("tab"),
+    Key::Character(s) => {
+      let lower = s.as_str().to_ascii_lowercase();
+      let leaked: &'static str = Box::leak(lower.into_boxed_str());
+      parts.push(leaked);
+    }
+    _ => return None,
+  }
+  Some(parts.join("+"))
+}
+
+fn derive_available_shells(settings: &config::Config) -> Vec<String> {
+  if let Some(shells) = &settings.general.shells {
+    if !shells.is_empty() {
+      return shells.clone();
+    }
+  }
+  config::detect_shells()
+}
+
+fn rebuild_runtime_theme(colors: &config::ThemeColorsConfig) {
+  use crate::ui::theme::color::{RuntimeTheme, update_runtime};
+  let parse = |h: &str| config::parse_hex_color(h).unwrap_or(iced::Color::BLACK);
+  update_runtime(RuntimeTheme {
+    background: parse(&colors.background),
+    foreground: parse(&colors.foreground),
+    accent: parse(&colors.accent),
+    foreground_muted: parse(&colors.foreground_muted),
+    border: parse(&colors.border),
+    cursor: parse(&colors.cursor),
+  });
 }
 
 impl Default for Nova {
@@ -142,11 +246,16 @@ impl Default for Nova {
     let available_shells = config::available_shells();
     let default_shell = available_shells.first().cloned().unwrap_or_else(|| {
       #[cfg(target_os = "windows")]
-      { "powershell".to_string() }
+      {
+        "powershell".to_string()
+      }
       #[cfg(not(target_os = "windows"))]
-      { std::env::var("SHELL").unwrap_or_else(|_| "bash".to_string()) }
+      {
+        std::env::var("SHELL").unwrap_or_else(|_| "bash".to_string())
+      }
     });
-    let (cols, rows) = calc_grid(1024.0, 768.0);
+    let cfg = config::get();
+    let (cols, rows) = calc_grid(1024.0, 768.0, cfg.theme.font.size, cfg.status_bar.visible);
     Self {
       tabs: vec![Tab::new(0, cols, rows, default_shell)],
       active_index: 0,
@@ -161,18 +270,39 @@ impl Default for Nova {
       shell_picker_open: false,
       shell_picker_anchor: 0.0,
       available_shells,
+      settings_open: false,
+      settings_tab: SettingsTab::General,
+      settings: config::get().clone(),
+      settings_shell_input: String::new(),
+      settings_recording_index: None,
+      raw_config_content: String::new(),
     }
   }
 }
 
 impl Nova {
+  fn resize_all_grids(&mut self) {
+    let (cols, rows) = calc_grid(
+      self.window_size.width,
+      self.window_size.height,
+      self.settings.theme.font.size,
+      self.settings.status_bar.visible,
+    );
+    for tab in self.tabs.iter_mut() {
+      tab.grid.resize(cols, rows);
+      if let Some(tx) = &tab.pty_tx {
+        let _ = tx.send_blocking(PtyCommand::Resize {
+          cols: cols as u16,
+          rows: rows as u16,
+        });
+      }
+    }
+  }
+
   pub fn update(&mut self, message: Message) -> iced::Task<Message> {
     match message {
       Message::Type(bytes) => {
-        if self.shell_picker_open {
-          if bytes.as_slice() == b"\x1b" {
-            self.shell_picker_open = false;
-          }
+        if self.settings_open {
           return iced::Task::none();
         }
         self.selection_start = None;
@@ -202,7 +332,12 @@ impl Nova {
         self.shell_picker_open = false;
         let new_id = self.next_tab_id;
         self.next_tab_id += 1;
-        let (cols, rows) = calc_grid(self.window_size.width, self.window_size.height);
+        let (cols, rows) = calc_grid(
+          self.window_size.width,
+          self.window_size.height,
+          self.settings.theme.font.size,
+          self.settings.status_bar.visible,
+        );
         self.tabs.push(Tab::new(new_id, cols, rows, shell));
         self.active_index = self.tabs.len() - 1;
       }
@@ -215,8 +350,15 @@ impl Nova {
         self.tabs.remove(index);
         if self.tabs.is_empty() {
           let shell = self.available_shells.first().cloned().unwrap_or_default();
-          let (cols, rows) = calc_grid(self.window_size.width, self.window_size.height);
-          self.tabs.push(Tab::new(self.next_tab_id, cols, rows, shell));
+          let (cols, rows) = calc_grid(
+            self.window_size.width,
+            self.window_size.height,
+            self.settings.theme.font.size,
+            self.settings.status_bar.visible,
+          );
+          self
+            .tabs
+            .push(Tab::new(self.next_tab_id, cols, rows, shell));
           self.next_tab_id += 1;
           self.active_index = 0;
         } else if self.active_index >= self.tabs.len() {
@@ -249,23 +391,148 @@ impl Nova {
         }
       }
       Message::OpenSettings => {
-        if let Some(path) = config::config_path() {
-          let editor = &config::get().general.editor;
-          let cmd = format!("{} \"{}\"\r", editor, path.display());
-          let shell = self.available_shells.first().cloned().unwrap_or_default();
-          let new_id = self.next_tab_id;
-          self.next_tab_id += 1;
-          let (cols, rows) = calc_grid(self.window_size.width, self.window_size.height);
-          let mut tab = Tab::new(new_id, cols, rows, shell);
-          tab.pending_command = Some(cmd.into_bytes());
-          self.tabs.push(tab);
-          self.active_index = self.tabs.len() - 1;
+        self.settings = config::get().clone();
+        self.settings_open = true;
+        self.settings_tab = SettingsTab::General;
+        self.settings_shell_input = String::new();
+        self.settings_recording_index = None;
+        SETTINGS_OPEN.store(true, Ordering::SeqCst);
+      }
+      Message::CloseSettings => {
+        self.settings_open = false;
+        self.settings_recording_index = None;
+        KB_RECORDING.store(false, Ordering::SeqCst);
+        SETTINGS_OPEN.store(false, Ordering::SeqCst);
+      }
+      Message::SettingsTabSelected(tab) => {
+        if tab == SettingsTab::Raw {
+          self.raw_config_content = toml::to_string_pretty(&self.settings)
+            .unwrap_or_else(|_| String::from("# error serializing config"));
+        }
+        self.settings_tab = tab;
+      }
+      Message::SettingsEditorChanged(s) => {
+        self.settings.general.editor = s;
+        let _ = config::save(&self.settings);
+      }
+      Message::SettingsBellChanged(bell) => {
+        self.settings.general.bell = bell;
+        let _ = config::save(&self.settings);
+      }
+      Message::SettingsShellInputChanged(s) => {
+        self.settings_shell_input = s;
+      }
+      Message::SettingsAddShell => {
+        let s = self.settings_shell_input.trim().to_string();
+        if !s.is_empty() {
+          self
+            .settings
+            .general
+            .shells
+            .get_or_insert_with(Vec::new)
+            .push(s);
+          self.settings_shell_input = String::new();
+          let _ = config::save(&self.settings);
+          self.available_shells = derive_available_shells(&self.settings);
+        }
+      }
+      Message::SettingsRemoveShell(i) => {
+        if let Some(shells) = &mut self.settings.general.shells {
+          if i < shells.len() {
+            shells.remove(i);
+          }
+        }
+        let _ = config::save(&self.settings);
+        self.available_shells = derive_available_shells(&self.settings);
+      }
+      Message::SettingsFontFamilyChanged(s) => {
+        self.settings.theme.font.family = s;
+        let _ = config::save(&self.settings);
+      }
+      Message::SettingsFontSizeChanged(size) => {
+        let size = size.clamp(8.0, 72.0);
+        self.settings.theme.font.size = size;
+        let _ = config::save(&self.settings);
+        self.resize_all_grids();
+      }
+      Message::SettingsColorChanged(field, hex) => {
+        if config::parse_hex_color(&hex).is_ok() {
+          match field {
+            ColorField::Background => self.settings.theme.colors.background = hex,
+            ColorField::Foreground => self.settings.theme.colors.foreground = hex,
+            ColorField::Accent => self.settings.theme.colors.accent = hex,
+            ColorField::ForegroundMuted => self.settings.theme.colors.foreground_muted = hex,
+            ColorField::Border => self.settings.theme.colors.border = hex,
+            ColorField::Cursor => self.settings.theme.colors.cursor = hex,
+          }
+          let _ = config::save(&self.settings);
+          rebuild_runtime_theme(&self.settings.theme.colors);
+        }
+      }
+      Message::SettingsStatusBarToggled(visible) => {
+        self.settings.status_bar.visible = visible;
+        let _ = config::save(&self.settings);
+        self.resize_all_grids();
+      }
+      Message::SettingsStartRecordKb(idx) => {
+        self.settings_recording_index = Some(idx);
+        KB_RECORDING.store(true, Ordering::SeqCst);
+      }
+      Message::SettingsRecordKb { key, modifiers } => {
+        if let Some(idx) = self.settings_recording_index {
+          if let Some(s) = keybinding_to_string(&key, modifiers) {
+            match idx {
+              0 => self.settings.keybindings.new_tab = s,
+              1 => self.settings.keybindings.close_tab = s,
+              2 => self.settings.keybindings.next_tab = s,
+              3 => self.settings.keybindings.prev_tab = s,
+              4 => self.settings.keybindings.paste = s,
+              5 => self.settings.keybindings.copy = s,
+              _ => {}
+            }
+            let _ = config::save(&self.settings);
+            let _ = config::reload_parsed_keybindings(&self.settings);
+            self.settings_recording_index = None;
+            KB_RECORDING.store(false, Ordering::SeqCst);
+          }
+        }
+      }
+      Message::SettingsCancelRecordKb => {
+        self.settings_recording_index = None;
+        KB_RECORDING.store(false, Ordering::SeqCst);
+      }
+      Message::SettingsResetKb(idx) => {
+        let default_cfg: config::Config =
+          toml::from_str(config::default_config_str()).expect("invalid default config");
+        match idx {
+          0 => self.settings.keybindings.new_tab = default_cfg.keybindings.new_tab,
+          1 => self.settings.keybindings.close_tab = default_cfg.keybindings.close_tab,
+          2 => self.settings.keybindings.next_tab = default_cfg.keybindings.next_tab,
+          3 => self.settings.keybindings.prev_tab = default_cfg.keybindings.prev_tab,
+          4 => self.settings.keybindings.paste = default_cfg.keybindings.paste,
+          5 => self.settings.keybindings.copy = default_cfg.keybindings.copy,
+          _ => {}
+        }
+        let _ = config::save(&self.settings);
+        let _ = config::reload_parsed_keybindings(&self.settings);
+      }
+      Message::SettingsResetAll => {
+        if let Ok(cfg) = config::reset_to_defaults() {
+          self.settings = cfg;
+          rebuild_runtime_theme(&self.settings.theme.colors);
+          self.available_shells = derive_available_shells(&self.settings);
+          let _ = config::reload_parsed_keybindings(&self.settings);
+          self.resize_all_grids();
         }
       }
       Message::PtyOutputReceived(tab_id, bytes) => {
         if let Some(tab) = self.tabs.iter_mut().find(|t| t.id == tab_id) {
           if std::env::var("NOVA_DEBUG_PTY").is_ok() {
-            if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open("C:\\Users\\Public\\nova_pty_debug.bin") {
+            if let Ok(mut f) = std::fs::OpenOptions::new()
+              .create(true)
+              .append(true)
+              .open("C:\\Users\\Public\\nova_pty_debug.bin")
+            {
               let _ = f.write_all(&bytes);
             }
           }
@@ -278,7 +545,6 @@ impl Nova {
 
           while !tab.grid.output_queue.is_empty() {
             let response = tab.grid.output_queue.remove(0);
-
             if let Some(tx) = &tab.pty_tx {
               let _ = tx.send_blocking(PtyCommand::Input(response));
             }
@@ -320,7 +586,12 @@ impl Nova {
       }
       Message::WindowResized(width, height) => {
         self.window_size = Size::new(width, height);
-        let (cols, rows) = calc_grid(width, height);
+        let (cols, rows) = calc_grid(
+          width,
+          height,
+          self.settings.theme.font.size,
+          self.settings.status_bar.visible,
+        );
 
         for tab in self.tabs.iter_mut() {
           if tab.grid.cols == cols && tab.grid.rows == rows {
@@ -338,17 +609,20 @@ impl Nova {
       Message::CursorMoved(position) => {
         self.cursor_position = position;
         if self.is_selecting {
-          let font_size = config::get().theme.font.size;
+          let font_size = self.settings.theme.font.size;
           self.selection_end = pixel_to_cell(position, font_size);
         }
       }
       Message::MousePressed => {
+        if self.settings_open {
+          return iced::Task::none();
+        }
         if let Some(window_id) = self.window_id {
           if let Some(direction) = resize_direction(self.cursor_position, self.window_size) {
             return window::drag_resize(window_id, direction);
           }
         }
-        let font_size = config::get().theme.font.size;
+        let font_size = self.settings.theme.font.size;
         let cell = pixel_to_cell(self.cursor_position, font_size);
         self.selection_start = cell;
         self.selection_end = cell;
@@ -388,6 +662,7 @@ impl Nova {
         }
       }
       Message::Tick => {}
+      Message::NoOp => {}
     }
 
     iced::Task::none()
@@ -404,17 +679,32 @@ impl Nova {
       _ => None,
     };
 
+    let font_size = self.settings.theme.font.size;
+
     let mut col = column![
       components::title_bar(self.window_focused, &active_tab.pwd),
       components::tab_bar(&self.tabs, self.active_index),
-      components::term(active_tab, selection),
+      components::term(active_tab, selection, font_size),
     ];
 
-    if config::get().status_bar.visible {
+    if self.settings.status_bar.visible {
       col = col.push(components::status_bar(active_tab));
     }
 
-    if self.shell_picker_open {
+    if self.settings_open {
+      let config_path_str = config::config_path()
+        .map(|p| p.display().to_string())
+        .unwrap_or_default();
+      let modal = components::settings_modal(
+        &self.settings,
+        &self.settings_tab,
+        &self.settings_shell_input,
+        self.settings_recording_index,
+        &self.raw_config_content,
+        config_path_str,
+      );
+      components::app(stack![col, modal])
+    } else if self.shell_picker_open {
       let picker = components::shell_picker(
         &self.available_shells,
         self.shell_picker_anchor,
@@ -434,7 +724,6 @@ impl Nova {
     let mut subs = Vec::new();
 
     let time_sub = time::every(std::time::Duration::from_secs(1)).map(|_| Message::Tick);
-
     subs.push(time_sub);
 
     let global_sub = event::listen_with(|event, _s, window_id| match event {
@@ -444,6 +733,19 @@ impl Nova {
         modified_key,
         ..
       }) => {
+        if KB_RECORDING.load(Ordering::SeqCst) {
+          return match &key {
+            Key::Named(Named::Escape) => Some(Message::SettingsCancelRecordKb),
+            _ => Some(Message::SettingsRecordKb {
+              key: key.clone(),
+              modifiers,
+            }),
+          };
+        }
+        if SETTINGS_OPEN.load(Ordering::SeqCst) {
+          return None;
+        }
+
         let kb = config::keybindings();
         if matches_kb(&kb.prev_tab, &key, modifiers) {
           return Some(Message::PrevTab);
@@ -463,6 +765,7 @@ impl Nova {
         if matches_kb(&kb.copy, &key, modifiers) {
           return Some(Message::CopySelection);
         }
+        drop(kb);
 
         match &key {
           Key::Named(Named::Enter) => return Some(Message::Type(b"\r".to_vec())),
@@ -577,7 +880,12 @@ fn resize_direction(pos: Point, size: Size) -> Option<window::Direction> {
   }
 }
 
-fn pty_worker(tab_id: usize, cols: u16, rows: u16, shell: String) -> impl iced::futures::Stream<Item = Message> {
+fn pty_worker(
+  tab_id: usize,
+  cols: u16,
+  rows: u16,
+  shell: String,
+) -> impl iced::futures::Stream<Item = Message> {
   stream::channel(
     100,
     move |mut output: iced::futures::channel::mpsc::Sender<Message>| async move {
@@ -587,7 +895,8 @@ fn pty_worker(tab_id: usize, cols: u16, rows: u16, shell: String) -> impl iced::
       let (tx_in, rx_in) = async_channel::unbounded::<PtyCommand>();
 
       std::thread::spawn(move || {
-        let mut pty = PtyBridge::new(tx_out, cols, rows, &shell).expect("failed to create PTY bridge");
+        let mut pty =
+          PtyBridge::new(tx_out, cols, rows, &shell).expect("failed to create PTY bridge");
 
         while let Ok(command) = rx_in.recv_blocking() {
           match command {

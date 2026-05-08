@@ -10,21 +10,30 @@ pub struct RuntimeTheme {
   pub cursor: Color,
 }
 
-static RUNTIME: OnceLock<RuntimeTheme> = OnceLock::new();
+static RUNTIME: OnceLock<std::sync::Mutex<RuntimeTheme>> = OnceLock::new();
 
 pub fn init_runtime(t: RuntimeTheme) {
-  RUNTIME.set(t).ok();
+  RUNTIME.set(std::sync::Mutex::new(t)).ok();
 }
 
-pub fn runtime() -> &'static RuntimeTheme {
-  RUNTIME.get_or_init(|| RuntimeTheme {
-    background: BG.as_color(),
-    foreground: FG.as_color(),
-    accent: ACCENT.as_color(),
-    foreground_muted: FG_MUTED.as_color(),
-    border: BORDER.as_color(),
-    cursor: ACCENT.as_color(),
-  })
+pub fn runtime() -> std::sync::MutexGuard<'static, RuntimeTheme> {
+  RUNTIME
+    .get_or_init(|| std::sync::Mutex::new(RuntimeTheme {
+      background: BG.as_color(),
+      foreground: FG.as_color(),
+      accent: ACCENT.as_color(),
+      foreground_muted: FG_MUTED.as_color(),
+      border: BORDER.as_color(),
+      cursor: ACCENT.as_color(),
+    }))
+    .lock()
+    .unwrap()
+}
+
+pub fn update_runtime(t: RuntimeTheme) {
+  if let Some(m) = RUNTIME.get() {
+    *m.lock().unwrap() = t;
+  }
 }
 
 pub const BG: Hue = Hue {
@@ -45,7 +54,6 @@ pub const BG_DEEP: Hue = Hue {
   b: 0x08,
   a: 1.0,
 };
-// pub const BG_PANEL: Hue = Hue { r: 0x16, g: 0x16, b: 0x16, a: 1.0 };
 pub const ACCENT: Hue = Hue {
   r: 0x3E,
   g: 0xCF,
@@ -58,8 +66,6 @@ pub const ACCENT_DIM: Hue = Hue {
   b: 0x8E,
   a: 0.75,
 };
-// pub const BLUE: Hue = Hue { r: 0x7B, g: 0x93, b: 0xFD, a: 1.0 };
-// pub const YELLOW: Hue = Hue { r: 0xF0, g: 0xC0, b: 0x40, a: 1.0 };
 pub const RED: Hue = Hue {
   r: 0xFF,
   g: 0x5F,
@@ -72,14 +78,12 @@ pub const FG: Hue = Hue {
   b: 0xE5,
   a: 1.0,
 };
-// pub const FG_DIM: Hue = Hue { r: 0xC8, g: 0xC8, b: 0xC8, a: 1.0 };
 pub const FG_MUTED: Hue = Hue {
   r: 0x66,
   g: 0x66,
   b: 0x66,
   a: 1.0,
 };
-// pub const FG_FAINT: Hue = Hue { r: 0x33, g: 0x33, b: 0x33, a: 1.0 };
 pub const BORDER: Hue = Hue {
   r: 0xFF,
   g: 0xFF,
@@ -138,5 +142,4 @@ impl Hue {
       a: self.a,
     }
   }
-
 }

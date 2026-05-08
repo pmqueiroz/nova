@@ -1,15 +1,15 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
 
 static CONFIG: OnceLock<Config> = OnceLock::new();
-static PARSED_KB: OnceLock<ParsedKeybindings> = OnceLock::new();
+static PARSED_KB: OnceLock<std::sync::Mutex<ParsedKeybindings>> = OnceLock::new();
 
 #[cfg(target_os = "macos")]
 const DEFAULT_CONFIG: &str = include_str!("../../assets/default_settings_macos.toml");
 #[cfg(not(target_os = "macos"))]
 const DEFAULT_CONFIG: &str = include_str!("../../assets/default_settings.toml");
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Config {
   pub general: GeneralConfig,
   #[serde(rename = "status-bar")]
@@ -18,21 +18,20 @@ pub struct Config {
   pub keybindings: KeybindingsConfig,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct GeneralConfig {
   pub editor: String,
-  #[allow(dead_code)]
   pub bell: BellType,
-  #[serde(default)]
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub shells: Option<Vec<String>>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct StatusBarConfig {
   pub visible: bool,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub enum BellType {
   None,
@@ -40,20 +39,29 @@ pub enum BellType {
   Blink,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+impl std::fmt::Display for BellType {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      BellType::None => write!(f, "None"),
+      BellType::Audio => write!(f, "Audio"),
+      BellType::Blink => write!(f, "Blink"),
+    }
+  }
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct ThemeConfig {
   pub font: FontConfig,
   pub colors: ThemeColorsConfig,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct FontConfig {
   pub size: f32,
-  #[allow(dead_code)]
   pub family: String,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct ThemeColorsConfig {
   pub background: String,
   pub foreground: String,
@@ -64,7 +72,7 @@ pub struct ThemeColorsConfig {
   pub cursor: String,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct KeybindingsConfig {
   #[serde(rename = "new-tab")]
   pub new_tab: String,
@@ -100,7 +108,7 @@ pub struct ParsedKeybindings {
   pub copy: ParsedKeybinding,
 }
 
-fn parse_keybinding(s: &str) -> anyhow::Result<ParsedKeybinding> {
+pub fn parse_keybinding(s: &str) -> anyhow::Result<ParsedKeybinding> {
   let parts: Vec<&str> = s.split('+').collect();
   let (mut ctrl, mut shift, mut alt, mut meta) = (false, false, false, false);
   let mut key_part = "";
@@ -171,7 +179,16 @@ pub fn init() -> anyhow::Result<()> {
     }
   };
 
-  let parsed = ParsedKeybindings {
+  let parsed = build_parsed_keybindings(&config)?;
+
+  CONFIG.set(config).ok();
+  PARSED_KB.set(std::sync::Mutex::new(parsed)).ok();
+
+  Ok(())
+}
+
+fn build_parsed_keybindings(config: &Config) -> anyhow::Result<ParsedKeybindings> {
+  Ok(ParsedKeybindings {
     new_tab: parse_keybinding(&config.keybindings.new_tab)
       .map_err(|e| anyhow::anyhow!("keybinding 'new-tab': {}", e))?,
     close_tab: parse_keybinding(&config.keybindings.close_tab)
@@ -184,20 +201,21 @@ pub fn init() -> anyhow::Result<()> {
       .map_err(|e| anyhow::anyhow!("keybinding 'paste': {}", e))?,
     copy: parse_keybinding(&config.keybindings.copy)
       .map_err(|e| anyhow::anyhow!("keybinding 'copy': {}", e))?,
-  };
-
-  CONFIG.set(config).ok();
-  PARSED_KB.set(parsed).ok();
-
-  Ok(())
+  })
 }
 
 pub fn get() -> &'static Config {
   CONFIG.get().expect("config not initialized")
 }
 
-pub fn keybindings() -> &'static ParsedKeybindings {
-  PARSED_KB.get().expect("keybindings not initialized")
+pub fn keybindings() -> std::sync::MutexGuard<'static, ParsedKeybindings> {
+  PARSED_KB.get().expect("keybindings not initialized").lock().unwrap()
+}
+
+pub fn update_keybindings(new: ParsedKeybindings) {
+  if let Some(m) = PARSED_KB.get() {
+    *m.lock().unwrap() = new;
+  }
 }
 
 pub fn available_shells() -> Vec<String> {
@@ -209,7 +227,7 @@ pub fn available_shells() -> Vec<String> {
   detect_shells()
 }
 
-fn detect_shells() -> Vec<String> {
+pub fn detect_shells() -> Vec<String> {
   #[cfg(target_os = "windows")]
   {
     let mut shells = vec!["powershell".to_string()];
@@ -239,4 +257,28 @@ fn detect_shells() -> Vec<String> {
     }
     vec![std::env::var("SHELL").unwrap_or_else(|_| "bash".to_string())]
   }
+}
+
+pub fn save(config: &Config) -> anyhow::Result<()> {
+  let path = config_path().ok_or_else(|| anyhow::anyhow!("cannot determine config path"))?;
+  let content = toml::to_string_pretty(config)?;
+  std::fs::write(path, content)?;
+  Ok(())
+}
+
+pub fn default_config_str() -> &'static str {
+  DEFAULT_CONFIG
+}
+
+pub fn reset_to_defaults() -> anyhow::Result<Config> {
+  let path = config_path().ok_or_else(|| anyhow::anyhow!("cannot determine config path"))?;
+  std::fs::write(&path, DEFAULT_CONFIG)?;
+  let config: Config = toml::from_str(DEFAULT_CONFIG).expect("embedded default config is invalid");
+  Ok(config)
+}
+
+pub fn reload_parsed_keybindings(config: &Config) -> anyhow::Result<()> {
+  let parsed = build_parsed_keybindings(config)?;
+  update_keybindings(parsed);
+  Ok(())
 }

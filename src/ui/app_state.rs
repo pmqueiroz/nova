@@ -108,6 +108,7 @@ pub enum Message {
   SettingsCancelRecordKb,
   SettingsResetKb(usize),
   SettingsResetAll,
+  Scroll(f32),
   NoOp,
 }
 
@@ -309,7 +310,8 @@ impl Nova {
         }
         self.selection_start = None;
         self.selection_end = None;
-        if let Some(active_tab) = self.tabs.get(self.active_index) {
+        if let Some(active_tab) = self.tabs.get_mut(self.active_index) {
+          active_tab.scroll_offset = 0;
           if let Some(tx) = &active_tab.pty_tx {
             let _ = tx.send_blocking(PtyCommand::Input(bytes));
           }
@@ -565,6 +567,7 @@ impl Nova {
             tab.pwd = new_pwd;
           }
           tab.update_git_status();
+          tab.scroll_offset = 0;
         }
       }
       Message::WindowOpened(id) => {
@@ -671,6 +674,19 @@ impl Nova {
           }
         }
       }
+      Message::Scroll(delta) => {
+        if !self.settings_open {
+          if let Some(tab) = self.tabs.get_mut(self.active_index) {
+            let rows = (delta.abs() * 3.0).round() as usize;
+            if delta > 0.0 {
+              let new_offset = tab.scroll_offset.saturating_add(rows);
+              tab.scroll_offset = new_offset.min(tab.grid.scrollback.len());
+            } else {
+              tab.scroll_offset = tab.scroll_offset.saturating_sub(rows);
+            }
+          }
+        }
+      }
       Message::Tick => {}
       Message::NoOp => {}
     }
@@ -694,7 +710,7 @@ impl Nova {
     let mut col = column![
       components::title_bar(self.window_focused, &active_tab.pwd),
       components::tab_bar(&self.tabs, self.active_index),
-      components::term(active_tab, selection, font_size),
+      components::term(active_tab, selection, font_size, active_tab.scroll_offset),
     ];
 
     if self.settings.status_bar.visible {
@@ -851,6 +867,16 @@ impl Nova {
       }
       Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
         return Some(Message::MouseReleased);
+      }
+      Event::Mouse(mouse::Event::WheelScrolled { delta }) => {
+        let lines = match delta {
+          mouse::ScrollDelta::Lines { y, .. } => y,
+          mouse::ScrollDelta::Pixels { y, .. } => y / 20.0,
+        };
+        if lines != 0.0 {
+          return Some(Message::Scroll(lines));
+        }
+        None
       }
       _ => None,
     });

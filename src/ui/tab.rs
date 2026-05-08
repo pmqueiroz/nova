@@ -16,6 +16,7 @@ pub struct Tab {
   pub pwd: String,
   pub git_branch: Option<String>,
   pub pending_command: Option<Vec<u8>>,
+  pub scroll_offset: usize,
 }
 
 impl Tab {
@@ -31,6 +32,7 @@ impl Tab {
       pwd: String::from("~"),
       git_branch: None,
       pending_command: None,
+      scroll_offset: 0,
     }
   }
 

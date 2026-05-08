@@ -22,35 +22,54 @@ fn in_selection(x: usize, y: usize, sel: Option<(usize, usize, usize, usize)>) -
   }
 }
 
-pub fn term<'a>(
-  active_tab: &Tab,
+fn row_spans(
+  row_cells: &[crate::core::grid::Cell],
+  cursor_col: Option<usize>,
+  y: usize,
   selection: Option<(usize, usize, usize, usize)>,
   font_size: f32,
-) -> Element<'a, Message> {
-  let mut grid_ui = column![].spacing(0);
+) -> Vec<Span<'static>> {
+  let mut spans: Vec<Span<'static>> = Vec::new();
+  let mut seg_text = String::new();
+  let mut seg_fg: Option<Color> = None;
+  let mut seg_bg: Option<Color> = None;
+  let mut seg_reverse = false;
 
-  let cursor_x = active_tab.grid.cursor_x;
-  let cursor_y = active_tab.grid.cursor_y;
+  for (x, cell) in row_cells.iter().enumerate() {
+    let is_cursor = cursor_col == Some(x);
+    let is_selected = in_selection(x, y, selection);
 
-  for (y, row_cells) in active_tab.grid.cells.iter().enumerate() {
-    let mut spans: Vec<Span<'static>> = Vec::new();
-    let mut seg_text = String::new();
-    let mut seg_fg: Option<Color> = None;
-    let mut seg_bg: Option<Color> = None;
-    let mut seg_reverse = false;
+    let (eff_fg, eff_bg, eff_reverse) = if is_selected {
+      let rt = theme::color::runtime();
+      (Some(rt.background), Some(rt.accent), false)
+    } else {
+      (cell.fg, cell.bg, cell.reverse)
+    };
 
-    for (x, cell) in row_cells.iter().enumerate() {
-      let is_cursor = x == cursor_x && y == cursor_y;
-      let is_selected = in_selection(x, y, selection);
-
-      let (eff_fg, eff_bg, eff_reverse) = if is_selected {
-        let rt = theme::color::runtime();
-        (Some(rt.background), Some(rt.accent), false)
-      } else {
-        (cell.fg, cell.bg, cell.reverse)
-      };
-
-      if is_cursor {
+    if is_cursor {
+      if !seg_text.is_empty() {
+        spans.push(cell_span(
+          std::mem::take(&mut seg_text),
+          seg_fg,
+          seg_bg,
+          seg_reverse,
+          font_size,
+        ));
+      }
+      let ch = if cell.c == ' ' { '_' } else { cell.c };
+      let cursor_color = theme::color::runtime().cursor;
+      spans.push(
+        Span::new(ch.to_string())
+          .color(cursor_color)
+          .underline(true)
+          .font(theme::font::REGULAR)
+          .size(font_size),
+      );
+      seg_fg = eff_fg;
+      seg_bg = eff_bg;
+      seg_reverse = eff_reverse;
+    } else {
+      if eff_fg != seg_fg || eff_bg != seg_bg || eff_reverse != seg_reverse {
         if !seg_text.is_empty() {
           spans.push(cell_span(
             std::mem::take(&mut seg_text),
@@ -60,41 +79,50 @@ pub fn term<'a>(
             font_size,
           ));
         }
-        let ch = if cell.c == ' ' { '_' } else { cell.c };
-        let cursor_color = theme::color::runtime().cursor;
-        spans.push(
-          Span::new(ch.to_string())
-            .color(cursor_color)
-            .underline(true)
-            .font(theme::font::REGULAR)
-            .size(font_size),
-        );
         seg_fg = eff_fg;
         seg_bg = eff_bg;
         seg_reverse = eff_reverse;
-      } else {
-        if eff_fg != seg_fg || eff_bg != seg_bg || eff_reverse != seg_reverse {
-          if !seg_text.is_empty() {
-            spans.push(cell_span(
-              std::mem::take(&mut seg_text),
-              seg_fg,
-              seg_bg,
-              seg_reverse,
-              font_size,
-            ));
-          }
-          seg_fg = eff_fg;
-          seg_bg = eff_bg;
-          seg_reverse = eff_reverse;
-        }
-        seg_text.push(cell.c);
       }
+      seg_text.push(cell.c);
     }
+  }
 
-    if !seg_text.is_empty() {
-      spans.push(cell_span(seg_text, seg_fg, seg_bg, seg_reverse, font_size));
-    }
+  if !seg_text.is_empty() {
+    spans.push(cell_span(seg_text, seg_fg, seg_bg, seg_reverse, font_size));
+  }
 
+  spans
+}
+
+pub fn term<'a>(
+  active_tab: &Tab,
+  selection: Option<(usize, usize, usize, usize)>,
+  font_size: f32,
+  scroll_offset: usize,
+) -> Element<'a, Message> {
+  let mut grid_ui = column![].spacing(0);
+
+  let cursor_x = active_tab.grid.cursor_x;
+  let cursor_y = active_tab.grid.cursor_y;
+  let scrollback = &active_tab.grid.scrollback;
+  let sb_len = scrollback.len();
+  let clamped_offset = scroll_offset.min(sb_len);
+
+  let sb_start = sb_len.saturating_sub(clamped_offset);
+  for row_cells in &scrollback[sb_start..] {
+    let spans = row_spans(row_cells, None, 0, None, font_size);
+    grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
+  }
+
+  let live_count = active_tab.grid.rows.saturating_sub(clamped_offset);
+  let eff_selection = if clamped_offset == 0 { selection } else { None };
+  for (y, row_cells) in active_tab.grid.cells[..live_count].iter().enumerate() {
+    let cursor_col = if clamped_offset == 0 && y == cursor_y {
+      Some(cursor_x)
+    } else {
+      None
+    };
+    let spans = row_spans(row_cells, cursor_col, y, eff_selection, font_size);
     grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
   }
 

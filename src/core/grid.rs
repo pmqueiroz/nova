@@ -1,5 +1,7 @@
 use iced::Color;
 
+const SCROLLBACK_LIMIT: usize = 10_000;
+
 #[derive(Clone, Copy, Debug)]
 pub struct Cell {
   pub c: char,
@@ -34,8 +36,10 @@ pub struct Grid {
   pub output_queue: Vec<Vec<u8>>,
   pub saved_cursor: Option<(usize, usize)>,
   pub wrap_next: bool,
+  pub scrollback: Vec<Vec<Cell>>,
   alt_cells: Option<Vec<Vec<Cell>>>,
   alt_cursor: Option<(usize, usize)>,
+  alt_scrollback: Option<Vec<Vec<Cell>>>,
 }
 
 impl Grid {
@@ -56,8 +60,10 @@ impl Grid {
       output_queue: Vec::new(),
       saved_cursor: None,
       wrap_next: false,
+      scrollback: Vec::new(),
       alt_cells: None,
       alt_cursor: None,
+      alt_scrollback: None,
     }
   }
 
@@ -65,6 +71,7 @@ impl Grid {
     if self.alt_cells.is_none() {
       self.alt_cells = Some(self.cells.clone());
       self.alt_cursor = Some((self.cursor_x, self.cursor_y));
+      self.alt_scrollback = Some(std::mem::take(&mut self.scrollback));
       self.cells = vec![vec![Cell::default(); self.cols]; self.rows];
       self.cursor_x = 0;
       self.cursor_y = 0;
@@ -85,6 +92,9 @@ impl Grid {
       self.cursor_x = x;
       self.cursor_y = y;
     }
+    if let Some(sb) = self.alt_scrollback.take() {
+      self.scrollback = sb;
+    }
     self.scroll_top = 0;
     self.scroll_bottom = self.rows.saturating_sub(1);
     self.current_fg = None;
@@ -95,7 +105,13 @@ impl Grid {
 
   pub fn newline(&mut self) {
     if self.cursor_y == self.scroll_bottom {
-      self.cells.remove(self.scroll_top);
+      let removed = self.cells.remove(self.scroll_top);
+      if self.scroll_top == 0 {
+        self.scrollback.push(removed);
+        if self.scrollback.len() > SCROLLBACK_LIMIT {
+          self.scrollback.remove(0);
+        }
+      }
       self
         .cells
         .insert(self.scroll_bottom, vec![Cell::default(); self.cols]);

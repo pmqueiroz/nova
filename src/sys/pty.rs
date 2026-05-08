@@ -75,6 +75,19 @@ impl PtyBridge {
   }
 }
 
+fn accent_rgb() -> (u8, u8, u8) {
+  let hex = &crate::core::config::get().theme.colors.accent;
+  let h = hex.trim_start_matches('#');
+  if h.len() >= 6 {
+    let r = u8::from_str_radix(&h[0..2], 16).unwrap_or(123);
+    let g = u8::from_str_radix(&h[2..4], 16).unwrap_or(147);
+    let b = u8::from_str_radix(&h[4..6], 16).unwrap_or(253);
+    (r, g, b)
+  } else {
+    (123, 147, 253)
+  }
+}
+
 fn build_shell_command(shell: &str) -> CommandBuilder {
   #[cfg(target_os = "windows")]
   {
@@ -97,17 +110,19 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       }
       c.env("TERM", "xterm-256color");
       c.env("COLORTERM", "truecolor");
-      let ps_prompt_script = r#"
-          Set-Item function:prompt {
+      let (ar, ag, ab) = accent_rgb();
+      let ps_prompt_script = format!(r#"
+          Set-Item function:prompt {{
               $p = $PWD.ProviderPath;
               $h = [regex]::Escape($env:USERPROFILE);
               $d = $p -replace ('^' + $h), '~';
               $uri = 'file://localhost/' + ($p -replace '\\', '/');
-              Write-Host -NoNewline ('{0}]7;{1}{0}{2}' -f [char]27, $uri, [char]92);
-              return $d + ' λ '
-          }
-      "#;
-      c.args(["-NoProfile", "-NoLogo", "-NoExit", "-Command", ps_prompt_script]);
+              $ESC = [char]27;
+              Write-Host -NoNewline ('{{0}}]7;{{1}}{{0}}{{2}}' -f [char]27, $uri, [char]92);
+              return ($ESC + '[38;2;128;128;128m' + $d + $ESC + '[0m ' + $ESC + '[38;2;{ar};{ag};{ab}mλ' + $ESC + '[0m ')
+          }}
+      "#);
+      c.args(["-NoProfile", "-NoLogo", "-NoExit", "-Command", ps_prompt_script.as_str()]);
       c
     } else if is_cmd {
       let mut c = CommandBuilder::new(r"C:\Windows\System32\cmd.exe");
@@ -119,7 +134,8 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       let mut c = CommandBuilder::new("wsl.exe");
       c.env("TERM", "xterm-256color");
       c.env("COLORTERM", "truecolor");
-      c.env("PS1", r"\w λ ");
+      let (ar, ag, ab) = accent_rgb();
+      c.env("PS1", format!("\\[\\e[38;2;128;128;128m\\]\\w\\[\\e[0m\\] \\[\\e[38;2;{ar};{ag};{ab}m\\]λ\\[\\e[0m\\] "));
       c.env(
         "PROMPT_COMMAND",
         r#"printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
@@ -134,7 +150,8 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       }
       c.env("TERM", "xterm-256color");
       c.env("COLORTERM", "truecolor");
-      c.env("PS1", r"\w λ ");
+      let (ar, ag, ab) = accent_rgb();
+      c.env("PS1", format!("\\[\\e[38;2;128;128;128m\\]\\w\\[\\e[0m\\] \\[\\e[38;2;{ar};{ag};{ab}m\\]λ\\[\\e[0m\\] "));
       c.env(
         "PROMPT_COMMAND",
         r#"printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
@@ -162,7 +179,8 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
     c.env("TERM", "xterm-256color");
     c.env("COLORTERM", "truecolor");
     if shell_name != "fish" {
-      c.env("PS1", r"\w λ ");
+      let (ar, ag, ab) = accent_rgb();
+      c.env("PS1", format!("\\[\\e[38;2;128;128;128m\\]\\w\\[\\e[0m\\] \\[\\e[38;2;{ar};{ag};{ab}m\\]λ\\[\\e[0m\\] "));
       c.env(
         "PROMPT_COMMAND",
         r#"printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,

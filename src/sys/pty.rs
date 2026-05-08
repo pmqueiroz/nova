@@ -82,6 +82,8 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
     let is_pwsh = lower == "pwsh" || lower.ends_with("pwsh.exe");
     let is_powershell = lower == "powershell" || lower.ends_with("powershell.exe");
     let is_cmd = lower == "cmd" || lower.ends_with("cmd.exe");
+    let is_wsl = lower == "wsl" || lower.ends_with("wsl.exe");
+    let is_git_bash = lower == "git-bash";
 
     if is_powershell || is_pwsh {
       let exe = if is_pwsh {
@@ -112,6 +114,30 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
         c.cwd(profile);
       }
       c
+    } else if is_wsl {
+      let mut c = CommandBuilder::new("wsl.exe");
+      c.env("TERM", "xterm-256color");
+      c.env("PS1", r"\w λ ");
+      c.env(
+        "PROMPT_COMMAND",
+        r#"printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
+      );
+      c
+    } else if is_git_bash {
+      let exe = find_git_bash_exe()
+        .unwrap_or_else(|| r"C:\Program Files\Git\bin\bash.exe".to_string());
+      let mut c = CommandBuilder::new(exe);
+      if let Ok(profile) = std::env::var("USERPROFILE") {
+        c.cwd(profile);
+      }
+      c.env("TERM", "xterm-256color");
+      c.env("PS1", r"\w λ ");
+      c.env(
+        "PROMPT_COMMAND",
+        r#"printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
+      );
+      c.args(["--login", "-i"]);
+      c
     } else {
       let mut c = CommandBuilder::new(shell);
       if let Ok(profile) = std::env::var("USERPROFILE") {
@@ -140,4 +166,17 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
     }
     c
   }
+}
+
+#[cfg(target_os = "windows")]
+fn find_git_bash_exe() -> Option<String> {
+  let candidates = [
+    r"C:\Program Files\Git\bin\bash.exe",
+    r"C:\Program Files (x86)\Git\bin\bash.exe",
+    r"C:\Git\bin\bash.exe",
+  ];
+  candidates
+    .iter()
+    .find(|p| std::path::Path::new(p).exists())
+    .map(|p| p.to_string())
 }

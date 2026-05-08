@@ -235,6 +235,7 @@ pub fn detect_shells() -> Vec<String> {
   #[cfg(target_os = "windows")]
   {
     let mut shells = vec!["powershell".to_string()];
+
     let has_pwsh = std::process::Command::new("where")
       .arg("pwsh")
       .output()
@@ -243,7 +244,27 @@ pub fn detect_shells() -> Vec<String> {
     if has_pwsh {
       shells.push("pwsh".to_string());
     }
+
     shells.push("cmd".to_string());
+
+    let has_wsl = std::process::Command::new("wsl")
+      .args(["--list", "--quiet"])
+      .output()
+      .map(|o| o.status.success())
+      .unwrap_or(false);
+    if has_wsl {
+      shells.push("wsl".to_string());
+    }
+
+    let git_bash_paths = [
+      r"C:\Program Files\Git\bin\bash.exe",
+      r"C:\Program Files (x86)\Git\bin\bash.exe",
+      r"C:\Git\bin\bash.exe",
+    ];
+    if git_bash_paths.iter().any(|p| std::path::Path::new(p).exists()) {
+      shells.push("git-bash".to_string());
+    }
+
     shells
   }
   #[cfg(not(target_os = "windows"))]

@@ -120,7 +120,7 @@ fn pixel_to_cell(pos: Point, font_size: f32) -> Option<(usize, usize)> {
     return None;
   }
   let col = ((pos.x - x_origin) / (font_size * 0.62)).floor() as usize;
-  let row = ((pos.y - y_origin) / (font_size * 1.35)).floor() as usize;
+  let row = ((pos.y - y_origin) / (font_size * 1.29)).floor() as usize;
   Some((col, row))
 }
 
@@ -647,7 +647,10 @@ impl Nova {
       Message::MouseReleased => {
         self.is_selecting = false;
         if let (Some(start), Some(end)) = (self.selection_start, self.selection_end) {
-          if let Some(active_tab) = self.tabs.get(self.active_index) {
+          if start == end {
+            self.selection_start = None;
+            self.selection_end = None;
+          } else if let Some(active_tab) = self.tabs.get(self.active_index) {
             let text = extract_selection(&active_tab.grid, start, end);
             if !text.is_empty() {
               return iced::clipboard::write(text);
@@ -701,7 +704,7 @@ impl Nova {
     let active_tab = &self.tabs[self.active_index];
 
     let selection = match (self.selection_start, self.selection_end) {
-      (Some(start), Some(end)) => {
+      (Some(start), Some(end)) if start != end => {
         let ((sc, sr), (ec, er)) = normalize_sel(start, end);
         Some((sc, sr, ec, er))
       }

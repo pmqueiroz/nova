@@ -12,7 +12,7 @@ use crate::ui::{
   typography::{self, Typography},
 };
 
-pub fn status_bar<'a>(active_tab: &Tab, date_format: &str, time_format: &str) -> Element<'a, Message> {
+pub fn status_bar<'a>(active_tab: &Tab, date_format: &str, time_format: &str, maximized: bool) -> Element<'a, Message> {
   let local_now = Local::now();
 
   let resolved_branch = if let Some(b) = &active_tab.git_branch {
@@ -34,16 +34,22 @@ pub fn status_bar<'a>(active_tab: &Tab, date_format: &str, time_format: &str) ->
     .push(status_bar_text(local_now.format(date_format).to_string(), false))
     .push(status_bar_text(local_now.format(time_format).to_string(), false));
 
+  let corner_radius = if maximized {
+    Radius::default()
+  } else {
+    Radius {
+      bottom_left: 12.0,
+      bottom_right: 12.0,
+      ..Default::default()
+    }
+  };
+
   container(content)
     .style(move |_| container::Style {
       background: Some(theme::color::BG_DEEP.as_color().into()),
       border: Border {
         color: theme::color::runtime().border,
-        radius: Radius {
-          bottom_left: 12.0,
-          bottom_right: 12.0,
-          ..Default::default()
-        },
+        radius: corner_radius,
         width: 0.5,
       },
       ..container::Style::default()

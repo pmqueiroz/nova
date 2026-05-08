@@ -1,7 +1,8 @@
 use iced::{
   Alignment, Border, Element, Length, Padding,
+  alignment::Horizontal,
   border::Radius,
-  widget::{button, container, image, mouse_area, row, space::horizontal, text},
+  widget::{button, container, image, mouse_area, row, text},
 };
 
 use crate::ui::{
@@ -46,12 +47,10 @@ fn settings_button() -> Element<'static, Message> {
     .into()
 }
 
-pub fn title_bar(window_focused: bool, pwd: &String) -> Element<'static, Message> {
+pub fn title_bar(window_focused: bool, pwd: &String, maximized: bool) -> Element<'static, Message> {
   let controls = traffic_lights(window_focused);
 
-  let mark = image(MARK_HANDLE.clone())
-    .width(13)
-    .height(13);
+  let mark = image(MARK_HANDLE.clone()).width(13).height(13);
 
   let pwd_text = Typography {
     color: theme::color::runtime().foreground_muted,
@@ -66,15 +65,47 @@ pub fn title_bar(window_focused: bool, pwd: &String) -> Element<'static, Message
     .align_y(Alignment::Center);
 
   #[cfg(target_os = "windows")]
-  let title_row = row![settings_button(), horizontal(), brand, horizontal(), controls,]
-    .spacing(8)
-    .height(40)
-    .align_y(Alignment::Center);
+  let title_row = row![
+    container(settings_button())
+      .width(Length::FillPortion(1))
+      .center_y(40)
+      .padding(Padding { left: 8.0, ..Default::default() }),
+    container(brand)
+      .center_x(Length::FillPortion(2))
+      .center_y(40),
+    container(controls)
+      .width(Length::FillPortion(1))
+      .height(Length::Fill)
+      .align_x(Horizontal::Right),
+  ]
+  .height(40);
+
   #[cfg(not(target_os = "windows"))]
-  let title_row = row![controls, horizontal(), brand, horizontal(), settings_button(),]
-    .spacing(8)
-    .height(40)
-    .align_y(Alignment::Center);
+  let title_row = row![
+    container(controls)
+      .width(Length::FillPortion(1))
+      .center_y(40)
+      .padding(Padding { left: 8.0, ..Default::default() }),
+    container(brand)
+      .center_x(Length::FillPortion(2))
+      .center_y(40),
+    container(settings_button())
+      .width(Length::FillPortion(1))
+      .height(40)
+      .align_x(Horizontal::Right)
+      .padding(Padding { right: 8.0, ..Default::default() }),
+  ]
+  .height(40);
+
+  let corner_radius = if maximized {
+    Radius::default()
+  } else {
+    Radius {
+      top_left: 12.0,
+      top_right: 12.0,
+      ..Default::default()
+    }
+  };
 
   mouse_area(
     container(title_row)
@@ -82,24 +113,16 @@ pub fn title_bar(window_focused: bool, pwd: &String) -> Element<'static, Message
         background: Some(theme::color::BG_DEEP.as_color().into()),
         border: Border {
           color: theme::color::runtime().border,
-          radius: Radius {
-            top_left: 12.0,
-            top_right: 12.0,
-            ..Default::default()
-          },
+          radius: corner_radius,
           width: 0.5,
         },
         ..container::Style::default()
       })
-      .padding(Padding {
-        left: 8.0,
-        #[cfg(not(target_os = "windows"))]
-        right: 8.0,
-        ..Default::default()
-      })
+      .padding(Padding::default())
       .width(Length::Fill)
-      .center_y(40),
+      .height(40),
   )
   .on_press(Message::DragWindow)
+  .on_double_click(Message::MaximizeWindow)
   .into()
 }

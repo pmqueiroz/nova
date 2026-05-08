@@ -46,14 +46,3 @@ The binary will be at `./target/release/nova`. Move it into your `$PATH`:
 ```sh
 cp ./target/release/nova ~/.local/bin/
 ```
-
-## 🛣️ Roadmap
-
-- [x] Multi-tab support
-- [x] PTY resize on window resize
-- [x] Clipboard paste
-- [x] Cross-platform icons
-- [x] Configurable keybindings
-- [x] Font size configuration
-- [ ] Scrollback buffer
-- [ ] AI ask for commands

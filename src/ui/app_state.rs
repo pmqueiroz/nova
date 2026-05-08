@@ -41,6 +41,7 @@ pub struct Nova {
   next_tab_id: usize,
   window_id: Option<window::Id>,
   window_focused: bool,
+  window_maximized: bool,
   window_size: Size,
   cursor_position: Point,
   selection_start: Option<(usize, usize)>,
@@ -265,6 +266,7 @@ impl Default for Nova {
       next_tab_id: 1,
       window_id: None,
       window_focused: false,
+      window_maximized: false,
       window_size: Size::new(1024.0, 768.0),
       cursor_position: Point::ORIGIN,
       selection_start: None,
@@ -580,6 +582,7 @@ impl Nova {
       }
       Message::MaximizeWindow => {
         if let Some(window_id) = self.window_id {
+          self.window_maximized = !self.window_maximized;
           return window::toggle_maximize(window_id);
         }
       }
@@ -708,7 +711,7 @@ impl Nova {
     let font_size = self.settings.theme.font.size;
 
     let mut col = column![
-      components::title_bar(self.window_focused, &active_tab.pwd),
+      components::title_bar(self.window_focused, &active_tab.pwd, self.window_maximized),
       components::tab_bar(&self.tabs, self.active_index),
       components::term(active_tab, selection, font_size, active_tab.scroll_offset),
     ];
@@ -718,6 +721,7 @@ impl Nova {
         active_tab,
         &self.settings.status_bar.date_format,
         &self.settings.status_bar.time_format,
+        self.window_maximized,
       ));
     }
 

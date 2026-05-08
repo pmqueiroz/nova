@@ -30,6 +30,16 @@
 
 Each release includes a [`checksums.txt`](https://github.com/pmqueiroz/nova/releases/download/v0.8.0/checksums.txt) for verifying the download.
 
+> [!WARNING]
+> Nova is not notarized — macOS may block it with *"Nova is damaged and can't be opened."*
+> Run this once after installing:
+> ```sh
+> xattr -cr /Applications/Nova.app
+> ```
+
+> [!TIP]
+> If you'd like to see Nova become a signed and notarized app, consider [sponsoring the project](https://github.com/sponsors/pmqueiroz). ❤️
+
 ### Build from source
 
 You'll need [Rust](https://rustup.rs/) (stable, 2024 edition).

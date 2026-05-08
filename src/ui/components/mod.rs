@@ -1,5 +1,12 @@
 mod app;
+mod color_row;
+mod section_label;
+mod setting_row;
 mod settings;
+mod settings_general;
+mod settings_keybindings;
+mod settings_status_bar;
+mod settings_theme;
 mod shell_picker;
 mod status_bar;
 mod tab_bar;
@@ -8,6 +15,9 @@ mod title_bar;
 mod traffic_lights;
 
 pub use app::*;
+pub use color_row::*;
+pub use section_label::*;
+pub use setting_row::*;
 pub use settings::*;
 pub use shell_picker::*;
 pub use status_bar::*;

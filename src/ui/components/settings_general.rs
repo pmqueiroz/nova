@@ -1,0 +1,131 @@
+use iced::{
+  Border, Element, Padding, Shadow,
+  border::Radius,
+  widget::{button, column, container, overlay::menu, pick_list, row, text, text_input},
+};
+
+use crate::core::config::{self, BellType};
+use crate::ui::{app_state::Message, theme};
+use super::{input_style, setting_row};
+
+pub fn general_tab<'a>(settings: &'a config::Config, shell_input: &'a str) -> Element<'a, Message> {
+  let mut col = column![].spacing(20);
+
+  col = col.push(setting_row(
+    "Editor",
+    "External editor for opening files",
+    text_input("editor", &settings.general.editor)
+      .on_input(Message::SettingsEditorChanged)
+      .font(theme::font::REGULAR)
+      .size(12)
+      .style(input_style)
+      .padding(Padding::from([6, 10]))
+      .into(),
+  ));
+
+  let bell_list: Element<'a, Message> = pick_list(
+    [BellType::None, BellType::Audio, BellType::Blink].as_slice(),
+    Some(settings.general.bell.clone()),
+    Message::SettingsBellChanged,
+  )
+  .font(theme::font::REGULAR)
+  .text_size(12)
+  .style(|_t, status| {
+    let rt = theme::color::runtime();
+    let (border_c, fg, fg_muted) = (rt.border, rt.foreground, rt.foreground_muted);
+    let accent = rt.accent;
+    drop(rt);
+    let active_border = match status {
+      pick_list::Status::Opened { .. } | pick_list::Status::Hovered => accent,
+      _ => border_c,
+    };
+    pick_list::Style {
+      text_color: fg,
+      background: theme::color::BG_HIGH.as_color().into(),
+      border: Border {
+        color: active_border,
+        radius: Radius::new(4.0),
+        width: 1.0,
+      },
+      handle_color: fg_muted,
+      placeholder_color: fg_muted,
+    }
+  })
+  .menu_style(|_t| {
+    let rt = theme::color::runtime();
+    let (fg, accent, border_c) = (rt.foreground, rt.accent, rt.border);
+    drop(rt);
+    menu::Style {
+      background: theme::color::BG_DEEP.as_color().into(),
+      border: Border {
+        color: border_c,
+        radius: Radius::new(6.0),
+        width: 1.0,
+      },
+      text_color: fg,
+      selected_text_color: theme::color::BG_DEEP.as_color(),
+      selected_background: accent.into(),
+      shadow: Shadow::default(),
+    }
+  })
+  .into();
+
+  col = col.push(setting_row("Bell", "Terminal bell behavior", bell_list));
+
+  let shells = settings.general.shells.as_deref().unwrap_or(&[]);
+  let mut chips = row![].spacing(6);
+  for (i, shell) in shells.iter().enumerate() {
+    let label: &'static str = Box::leak(shell.clone().into_boxed_str());
+    let fg = theme::color::runtime().foreground;
+    let fg_muted = theme::color::runtime().foreground_muted;
+    chips = chips.push(
+      container(
+        row![
+          text(label).font(theme::font::REGULAR).size(11).color(fg),
+          button(text("×").size(10).color(fg_muted))
+            .style(|_t, _s| button::Style {
+              background: Some(theme::color::TRANSPARENT.as_color().into()),
+              ..Default::default()
+            })
+            .on_press(Message::SettingsRemoveShell(i))
+            .padding(Padding::from([0, 4])),
+        ]
+        .align_y(iced::alignment::Vertical::Center)
+        .spacing(2),
+      )
+      .style(|_| {
+        let border_c = theme::color::runtime().border;
+        container::Style {
+          background: Some(theme::color::BG_HIGH.as_color().into()),
+          border: Border {
+            color: border_c,
+            radius: Radius::new(4.0),
+            width: 1.0,
+          },
+          ..Default::default()
+        }
+      })
+      .padding(Padding::from([3, 8])),
+    );
+  }
+
+  let shells_widget: Element<'a, Message> = column![
+    chips,
+    text_input("add shell…", shell_input)
+      .on_input(Message::SettingsShellInputChanged)
+      .on_submit(Message::SettingsAddShell)
+      .font(theme::font::REGULAR)
+      .size(12)
+      .style(input_style)
+      .padding(Padding::from([6, 10])),
+  ]
+  .spacing(8)
+  .into();
+
+  col = col.push(setting_row(
+    "Shells",
+    "Available shells for new tabs",
+    shells_widget,
+  ));
+  col.into()
+}

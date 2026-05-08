@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.0](https://github.com/pmqueiroz/nova/compare/v0.5.4...v0.6.0) (2026-05-08)
+
+
+### Features
+
+* configure date and time format ([2395192](https://github.com/pmqueiroz/nova/commit/239519273b8f0f595cec397b7f320094ed4abb8b))
+* settings pannel ([f4e8253](https://github.com/pmqueiroz/nova/commit/f4e82538dd1c113bc4dcbba3fc3fdf11e5f7c554))
+* shell picker ([20328cf](https://github.com/pmqueiroz/nova/commit/20328cfcaf36437fc0f67d56be986642be243d57))
+
+
+### Bug Fixes
+
+* default font name ([21b9c46](https://github.com/pmqueiroz/nova/commit/21b9c46edad22630a9fc0f8a48eb2fe7266de870))
+
 ## [0.5.4](https://github.com/pmqueiroz/nova/compare/v0.5.3...v0.5.4) (2026-05-07)
 
 

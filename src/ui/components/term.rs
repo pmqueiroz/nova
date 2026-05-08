@@ -4,6 +4,7 @@ use iced::{
   widget::{column, container, rich_text, text::Span},
 };
 
+use crate::core::url::detect_urls;
 use crate::ui::{app_state::Message, tab::Tab, theme};
 
 fn in_selection(x: usize, y: usize, sel: Option<(usize, usize, usize, usize)>) -> bool {
@@ -28,16 +29,33 @@ fn row_spans(
   y: usize,
   selection: Option<(usize, usize, usize, usize)>,
   font_size: f32,
+  hovered_url: Option<&str>,
 ) -> Vec<Span<'static>> {
+  let url_highlight: Vec<bool> = if let Some(url) = hovered_url {
+    let mut v = vec![false; row_cells.len()];
+    for (start, end, u) in detect_urls(row_cells) {
+      if u == url {
+        for i in start..=end.min(v.len().saturating_sub(1)) {
+          v[i] = true;
+        }
+      }
+    }
+    v
+  } else {
+    vec![]
+  };
+
   let mut spans: Vec<Span<'static>> = Vec::new();
   let mut seg_text = String::new();
   let mut seg_fg: Option<Color> = None;
   let mut seg_bg: Option<Color> = None;
   let mut seg_reverse = false;
+  let mut seg_underline = false;
 
   for (x, cell) in row_cells.iter().enumerate() {
     let is_cursor = cursor_col == Some(x);
     let is_selected = in_selection(x, y, selection);
+    let is_url_hovered = url_highlight.get(x).copied().unwrap_or(false);
 
     let (eff_fg, eff_bg, eff_reverse) = if is_selected {
       let rt = theme::color::runtime();
@@ -53,6 +71,7 @@ fn row_spans(
           seg_fg,
           seg_bg,
           seg_reverse,
+          seg_underline,
           font_size,
         ));
       }
@@ -68,27 +87,34 @@ fn row_spans(
       seg_fg = eff_fg;
       seg_bg = eff_bg;
       seg_reverse = eff_reverse;
+      seg_underline = is_url_hovered;
     } else {
-      if eff_fg != seg_fg || eff_bg != seg_bg || eff_reverse != seg_reverse {
+      if eff_fg != seg_fg
+        || eff_bg != seg_bg
+        || eff_reverse != seg_reverse
+        || is_url_hovered != seg_underline
+      {
         if !seg_text.is_empty() {
           spans.push(cell_span(
             std::mem::take(&mut seg_text),
             seg_fg,
             seg_bg,
             seg_reverse,
+            seg_underline,
             font_size,
           ));
         }
         seg_fg = eff_fg;
         seg_bg = eff_bg;
         seg_reverse = eff_reverse;
+        seg_underline = is_url_hovered;
       }
       seg_text.push(cell.c);
     }
   }
 
   if !seg_text.is_empty() {
-    spans.push(cell_span(seg_text, seg_fg, seg_bg, seg_reverse, font_size));
+    spans.push(cell_span(seg_text, seg_fg, seg_bg, seg_reverse, seg_underline, font_size));
   }
 
   spans
@@ -99,6 +125,7 @@ pub fn term<'a>(
   selection: Option<(usize, usize, usize, usize)>,
   font_size: f32,
   scroll_offset: usize,
+  hovered_url: Option<&str>,
 ) -> Element<'a, Message> {
   let mut grid_ui = column![].spacing(0);
 
@@ -110,7 +137,7 @@ pub fn term<'a>(
 
   let sb_start = sb_len.saturating_sub(clamped_offset);
   for row_cells in &scrollback[sb_start..] {
-    let spans = row_spans(row_cells, None, 0, None, font_size);
+    let spans = row_spans(row_cells, None, 0, None, font_size, hovered_url);
     grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
   }
 
@@ -122,7 +149,7 @@ pub fn term<'a>(
     } else {
       None
     };
-    let spans = row_spans(row_cells, cursor_col, y, eff_selection, font_size);
+    let spans = row_spans(row_cells, cursor_col, y, eff_selection, font_size, hovered_url);
     grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
   }
 
@@ -159,6 +186,7 @@ fn cell_span(
   fg: Option<Color>,
   bg: Option<Color>,
   reverse: bool,
+  underline: bool,
   font_size: f32,
 ) -> Span<'static> {
   let rt = theme::color::runtime();
@@ -171,12 +199,14 @@ fn cell_span(
     Span::new(text)
       .color(rev_fg)
       .background(Background::Color(rev_bg))
+      .underline(underline)
       .font(theme::font::REGULAR)
       .size(font_size)
   } else {
     let color = fg.unwrap_or(term_fg);
     let mut span = Span::new(text)
       .color(color)
+      .underline(underline)
       .font(theme::font::REGULAR)
       .size(font_size);
     if let Some(bg_color) = bg {

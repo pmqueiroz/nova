@@ -1,7 +1,7 @@
 use async_channel::Sender;
 use iced::keyboard::Key;
 use iced::keyboard::key::Named;
-use iced::widget::{column, stack};
+use iced::widget::{column, mouse_area, stack};
 use iced::{Element, Point, Size, Subscription, Theme, time, window};
 use iced::{Event, event, keyboard, mouse, stream};
 use std::io::Write;
@@ -47,6 +47,8 @@ pub struct Nova {
   selection_start: Option<(usize, usize)>,
   selection_end: Option<(usize, usize)>,
   is_selecting: bool,
+  ctrl_held: bool,
+  hovered_url: Option<String>,
   shell_picker_open: bool,
   shell_picker_anchor: f32,
   available_shells: Vec<String>,
@@ -110,7 +112,22 @@ pub enum Message {
   SettingsResetKb(usize),
   SettingsResetAll,
   Scroll(f32),
+  ModifiersChanged(keyboard::Modifiers),
   NoOp,
+}
+
+fn get_display_row(
+  grid: &crate::core::grid::Grid,
+  scroll_offset: usize,
+  y: usize,
+) -> Option<&[crate::core::grid::Cell]> {
+  let sb_len = grid.scrollback.len();
+  let clamped = scroll_offset.min(sb_len);
+  if y < clamped {
+    grid.scrollback.get(sb_len - clamped + y).map(|r| r.as_slice())
+  } else {
+    grid.cells.get(y - clamped).map(|r| r.as_slice())
+  }
 }
 
 fn pixel_to_cell(pos: Point, font_size: f32) -> Option<(usize, usize)> {
@@ -272,6 +289,8 @@ impl Default for Nova {
       selection_start: None,
       selection_end: None,
       is_selecting: false,
+      ctrl_held: false,
+      hovered_url: None,
       shell_picker_open: false,
       shell_picker_anchor: 0.0,
       available_shells,
@@ -286,6 +305,30 @@ impl Default for Nova {
 }
 
 impl Nova {
+  fn update_hovered_url(&mut self) {
+    if !self.ctrl_held {
+      self.hovered_url = None;
+      return;
+    }
+    let font_size = self.settings.theme.font.size;
+    let Some((col, row)) = pixel_to_cell(self.cursor_position, font_size) else {
+      self.hovered_url = None;
+      return;
+    };
+    let Some(tab) = self.tabs.get(self.active_index) else {
+      self.hovered_url = None;
+      return;
+    };
+    let Some(row_cells) = get_display_row(&tab.grid, tab.scroll_offset, row) else {
+      self.hovered_url = None;
+      return;
+    };
+    self.hovered_url = crate::core::url::detect_urls(row_cells)
+      .into_iter()
+      .find(|(start, end, _)| col >= *start && col <= *end)
+      .map(|(_, _, url)| url);
+  }
+
   fn resize_all_grids(&mut self) {
     let (cols, rows) = calc_grid(
       self.window_size.width,
@@ -628,10 +671,17 @@ impl Nova {
           let font_size = self.settings.theme.font.size;
           self.selection_end = pixel_to_cell(position, font_size);
         }
+        self.update_hovered_url();
       }
       Message::MousePressed => {
         if self.settings_open {
           return iced::Task::none();
+        }
+        if self.ctrl_held {
+          if let Some(url) = self.hovered_url.clone() {
+            let _ = open::that_detached(&url);
+            return iced::Task::none();
+          }
         }
         if let Some(window_id) = self.window_id {
           if let Some(direction) = resize_direction(self.cursor_position, self.window_size) {
@@ -693,6 +743,10 @@ impl Nova {
           }
         }
       }
+      Message::ModifiersChanged(mods) => {
+        self.ctrl_held = mods.command();
+        self.update_hovered_url();
+      }
       Message::Tick => {}
       Message::NoOp => {}
     }
@@ -713,10 +767,20 @@ impl Nova {
 
     let font_size = self.settings.theme.font.size;
 
+    let term_interaction = if self.hovered_url.is_some() {
+      mouse::Interaction::Pointer
+    } else {
+      mouse::Interaction::Text
+    };
+    let term = mouse_area(
+      components::term(active_tab, selection, font_size, active_tab.scroll_offset, self.hovered_url.as_deref()),
+    )
+    .interaction(term_interaction);
+
     let mut col = column![
       components::title_bar(self.window_focused, &active_tab.pwd, self.window_maximized),
       components::tab_bar(&self.tabs, self.active_index),
-      components::term(active_tab, selection, font_size, active_tab.scroll_offset),
+      term,
     ];
 
     if self.settings.status_bar.visible {
@@ -884,6 +948,9 @@ impl Nova {
           return Some(Message::Scroll(lines));
         }
         None
+      }
+      Event::Keyboard(keyboard::Event::ModifiersChanged(mods)) => {
+        Some(Message::ModifiersChanged(mods))
       }
       _ => None,
     });

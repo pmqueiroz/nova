@@ -23,12 +23,12 @@
 
 | Platform | Download |
 |----------|----------|
-| Windows x86_64 | [`.exe` installer](https://github.com/pmqueiroz/nova/releases/download/v0.8.0/nova_0.8.0_x64-setup.exe) |
-| macOS x86_64 | [`.dmg` disk image](https://github.com/pmqueiroz/nova/releases/download/v0.8.0/nova_0.8.0_x64.dmg) |
-| macOS Apple Silicon | [`.dmg` disk image](https://github.com/pmqueiroz/nova/releases/download/v0.8.0/nova_0.8.0_aarch64.dmg) |
-| Linux x86_64 | [`.deb` package](https://github.com/pmqueiroz/nova/releases/download/v0.8.0/nova_0.8.0_amd64.deb) · [`.AppImage`](https://github.com/pmqueiroz/nova/releases/download/v0.8.0/nova_0.8.0_x86_64.AppImage) |
+| Windows x86_64 | [`.exe` installer](https://github.com/pmqueiroz/nova/releases/download/v0.9.0/nova_0.9.0_x64-setup.exe) |
+| macOS x86_64 | [`.dmg` disk image](https://github.com/pmqueiroz/nova/releases/download/v0.9.0/nova_0.9.0_x64.dmg) |
+| macOS Apple Silicon | [`.dmg` disk image](https://github.com/pmqueiroz/nova/releases/download/v0.9.0/nova_0.9.0_aarch64.dmg) |
+| Linux x86_64 | [`.deb` package](https://github.com/pmqueiroz/nova/releases/download/v0.9.0/nova_0.9.0_amd64.deb) · [`.AppImage`](https://github.com/pmqueiroz/nova/releases/download/v0.9.0/nova_0.9.0_x86_64.AppImage) |
 
-Each release includes a [`checksums.txt`](https://github.com/pmqueiroz/nova/releases/download/v0.8.0/checksums.txt) for verifying the download.
+Each release includes a [`checksums.txt`](https://github.com/pmqueiroz/nova/releases/download/v0.9.0/checksums.txt) for verifying the download.
 
 > [!WARNING]
 > Nova is not notarized — macOS may block it with *"Nova is damaged and can't be opened."*

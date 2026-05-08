@@ -98,6 +98,8 @@ pub enum Message {
   SettingsFontSizeChanged(f32),
   SettingsColorChanged(ColorField, String),
   SettingsStatusBarToggled(bool),
+  SettingsDateFormatChanged(String),
+  SettingsTimeFormatChanged(String),
   SettingsStartRecordKb(usize),
   SettingsRecordKb {
     key: keyboard::Key,
@@ -474,6 +476,14 @@ impl Nova {
         let _ = config::save(&self.settings);
         self.resize_all_grids();
       }
+      Message::SettingsDateFormatChanged(s) => {
+        self.settings.status_bar.date_format = s;
+        let _ = config::save(&self.settings);
+      }
+      Message::SettingsTimeFormatChanged(s) => {
+        self.settings.status_bar.time_format = s;
+        let _ = config::save(&self.settings);
+      }
       Message::SettingsStartRecordKb(idx) => {
         self.settings_recording_index = Some(idx);
         KB_RECORDING.store(true, Ordering::SeqCst);
@@ -688,7 +698,11 @@ impl Nova {
     ];
 
     if self.settings.status_bar.visible {
-      col = col.push(components::status_bar(active_tab));
+      col = col.push(components::status_bar(
+        active_tab,
+        &self.settings.status_bar.date_format,
+        &self.settings.status_bar.time_format,
+      ));
     }
 
     if self.settings_open {

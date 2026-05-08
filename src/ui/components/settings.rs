@@ -695,7 +695,29 @@ fn status_bar_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
         }),
     ]
     .spacing(12)
-    .align_y(iced::alignment::Vertical::Center)
+    .align_y(iced::alignment::Vertical::Center),
+    setting_row(
+      "Date format",
+      "chrono format string for the date",
+      text_input("%b %d", &settings.status_bar.date_format)
+        .on_input(Message::SettingsDateFormatChanged)
+        .font(theme::font::REGULAR)
+        .size(12)
+        .style(input_style)
+        .padding(Padding::from([6, 10]))
+        .into(),
+    ),
+    setting_row(
+      "Time format",
+      "chrono format string for the time",
+      text_input("%H:%M:%S", &settings.status_bar.time_format)
+        .on_input(Message::SettingsTimeFormatChanged)
+        .font(theme::font::REGULAR)
+        .size(12)
+        .style(input_style)
+        .padding(Padding::from([6, 10]))
+        .into(),
+    ),
   ]
   .spacing(16)
   .into()

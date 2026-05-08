@@ -29,6 +29,10 @@ pub struct GeneralConfig {
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct StatusBarConfig {
   pub visible: bool,
+  #[serde(rename = "date-format")]
+  pub date_format: String,
+  #[serde(rename = "time-format")]
+  pub time_format: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]

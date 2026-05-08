@@ -12,7 +12,7 @@ use crate::ui::{
   typography::{self, Typography},
 };
 
-pub fn status_bar<'a>(active_tab: &Tab) -> Element<'a, Message> {
+pub fn status_bar<'a>(active_tab: &Tab, date_format: &str, time_format: &str) -> Element<'a, Message> {
   let local_now = Local::now();
 
   let resolved_branch = if let Some(b) = &active_tab.git_branch {
@@ -31,14 +31,8 @@ pub fn status_bar<'a>(active_tab: &Tab) -> Element<'a, Message> {
     .push(status_bar_text(&active_tab.shell, false))
     .push(status_bar_text("utf-8", false))
     .push(horizontal())
-    .push(status_bar_text(
-      local_now.format("%b %d").to_string(),
-      false,
-    ))
-    .push(status_bar_text(
-      local_now.format("%H:%M:%S").to_string(),
-      false,
-    ));
+    .push(status_bar_text(local_now.format(date_format).to_string(), false))
+    .push(status_bar_text(local_now.format(time_format).to_string(), false));
 
   container(content)
     .style(move |_| container::Style {

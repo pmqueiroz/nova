@@ -4,6 +4,8 @@ bell = "none"
 
 [status-bar]
 visible = true
+date-format = "%b %d"
+time-format = "%H:%M:%S"
 
 [theme.font]
 size = 16

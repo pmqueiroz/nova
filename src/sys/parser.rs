@@ -7,16 +7,24 @@ fn rgb8(r: u8, g: u8, b: u8) -> Color {
 }
 
 fn ansi_color(index: u16, bright: bool) -> Color {
-  let (v, d) = if bright { (255u8, 85u8) } else { (170u8, 0u8) };
-  match index {
-    0 => rgb8(d, d, d),
-    1 => rgb8(v, d, d),
-    2 => rgb8(d, v, d),
-    3 => rgb8(v, v, d),
-    4 => rgb8(d, d, v),
-    5 => rgb8(v, d, v),
-    6 => rgb8(d, v, v),
-    _ => Color::WHITE,
+  match (index, bright) {
+    (0, false) => rgb8(0x1a, 0x1a, 0x1a),
+    (1, false) => rgb8(0xff, 0x5f, 0x57),
+    (2, false) => rgb8(0x3e, 0xcf, 0x8e),
+    (3, false) => rgb8(0xf0, 0xc0, 0x40),
+    (4, false) => rgb8(0x7b, 0x93, 0xfd),
+    (5, false) => rgb8(0xc0, 0x84, 0xfc),
+    (6, false) => rgb8(0x67, 0xe8, 0xf9),
+    (7, false) => rgb8(0xe5, 0xe5, 0xe5),
+    (0, true)  => rgb8(0x55, 0x55, 0x55),
+    (1, true)  => rgb8(0xff, 0x6e, 0x6e),
+    (2, true)  => rgb8(0x5a, 0xf7, 0x8e),
+    (3, true)  => rgb8(0xf4, 0xf9, 0x9d),
+    (4, true)  => rgb8(0xca, 0xe8, 0xff),
+    (5, true)  => rgb8(0xd5, 0x7b, 0xff),
+    (6, true)  => rgb8(0x9a, 0xed, 0xfe),
+    (7, true)  => rgb8(0xff, 0xff, 0xff),
+    _          => Color::WHITE,
   }
 }
 

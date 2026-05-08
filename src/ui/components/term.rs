@@ -35,8 +35,8 @@ pub fn term<'a>(
   for (y, row_cells) in active_tab.grid.cells.iter().enumerate() {
     let mut spans: Vec<Span<'static>> = Vec::new();
     let mut seg_text = String::new();
-    let mut seg_fg = Color::WHITE;
-    let mut seg_bg = Color::TRANSPARENT;
+    let mut seg_fg: Option<Color> = None;
+    let mut seg_bg: Option<Color> = None;
     let mut seg_reverse = false;
 
     for (x, cell) in row_cells.iter().enumerate() {
@@ -45,7 +45,7 @@ pub fn term<'a>(
 
       let (eff_fg, eff_bg, eff_reverse) = if is_selected {
         let rt = theme::color::runtime();
-        (rt.background, rt.accent, false)
+        (Some(rt.background), Some(rt.accent), false)
       } else {
         (cell.fg, cell.bg, cell.reverse)
       };
@@ -126,27 +126,33 @@ pub fn term<'a>(
     .into()
 }
 
-fn cell_span(text: String, fg: Color, bg: Color, reverse: bool, font_size: f32) -> Span<'static> {
+fn cell_span(
+  text: String,
+  fg: Option<Color>,
+  bg: Option<Color>,
+  reverse: bool,
+  font_size: f32,
+) -> Span<'static> {
   let rt = theme::color::runtime();
   let term_fg = rt.foreground;
   let term_bg = rt.background;
   drop(rt);
   if reverse {
-    let rev_fg = if bg.a > 0.0 { bg } else { term_bg };
-    let rev_bg = if fg == Color::WHITE { term_fg } else { fg };
+    let rev_fg = bg.unwrap_or(term_bg);
+    let rev_bg = fg.unwrap_or(term_fg);
     Span::new(text)
       .color(rev_fg)
       .background(Background::Color(rev_bg))
       .font(theme::font::REGULAR)
       .size(font_size)
   } else {
-    let color = if fg == Color::WHITE { term_fg } else { fg };
+    let color = fg.unwrap_or(term_fg);
     let mut span = Span::new(text)
       .color(color)
       .font(theme::font::REGULAR)
       .size(font_size);
-    if bg.a > 0.0 {
-      span = span.background(Background::Color(bg));
+    if let Some(bg_color) = bg {
+      span = span.background(Background::Color(bg_color));
     }
     span
   }

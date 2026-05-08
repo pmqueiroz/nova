@@ -138,8 +138,8 @@ impl<'a> Perform for AnsiExecutor<'a> {
     match command {
       'm' => {
         if params.iter().next().is_none() {
-          self.grid.current_fg = Color::WHITE;
-          self.grid.current_bg = Color::TRANSPARENT;
+          self.grid.current_fg = None;
+          self.grid.current_bg = None;
           return;
         }
         let mut iter = params.iter();
@@ -147,20 +147,20 @@ impl<'a> Perform for AnsiExecutor<'a> {
           let code = if param.is_empty() { 0 } else { param[0] };
           match code {
             0 => {
-              self.grid.current_fg = Color::WHITE;
-              self.grid.current_bg = Color::TRANSPARENT;
+              self.grid.current_fg = None;
+              self.grid.current_bg = None;
               self.grid.reverse_video = false;
             }
             7 => self.grid.reverse_video = true,
             27 => self.grid.reverse_video = false,
-            39 => self.grid.current_fg = Color::WHITE,
+            39 => self.grid.current_fg = None,
             1..=6 | 8..=9 | 21..=26 | 28..=29 => {}
-            30..=37 => self.grid.current_fg = ansi_fg(code - 30, false),
+            30..=37 => self.grid.current_fg = Some(ansi_fg(code - 30, false)),
             38 => {
               if param.len() >= 3 && param[1] == 5 {
-                self.grid.current_fg = color_256(param[2] as u8);
+                self.grid.current_fg = Some(color_256(param[2] as u8));
               } else if param.len() >= 5 && param[1] == 2 {
-                self.grid.current_fg = rgb8(param[2] as u8, param[3] as u8, param[4] as u8);
+                self.grid.current_fg = Some(rgb8(param[2] as u8, param[3] as u8, param[4] as u8));
               } else {
                 let mode = iter
                   .next()
@@ -171,7 +171,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
                       .next()
                       .map_or(0, |p| if p.is_empty() { 0 } else { p[0] })
                       as u8;
-                    self.grid.current_fg = color_256(n);
+                    self.grid.current_fg = Some(color_256(n));
                   }
                   2 => {
                     let r = iter
@@ -186,18 +186,18 @@ impl<'a> Perform for AnsiExecutor<'a> {
                       .next()
                       .map_or(0, |p| if p.is_empty() { 0 } else { p[0] })
                       as u8;
-                    self.grid.current_fg = rgb8(r, g, b);
+                    self.grid.current_fg = Some(rgb8(r, g, b));
                   }
                   _ => {}
                 }
               }
             }
-            40..=47 => self.grid.current_bg = ansi_bg(code - 40, false),
+            40..=47 => self.grid.current_bg = Some(ansi_bg(code - 40, false)),
             48 => {
               if param.len() >= 3 && param[1] == 5 {
-                self.grid.current_bg = color_256(param[2] as u8);
+                self.grid.current_bg = Some(color_256(param[2] as u8));
               } else if param.len() >= 5 && param[1] == 2 {
-                self.grid.current_bg = rgb8(param[2] as u8, param[3] as u8, param[4] as u8);
+                self.grid.current_bg = Some(rgb8(param[2] as u8, param[3] as u8, param[4] as u8));
               } else {
                 let mode = iter
                   .next()
@@ -208,7 +208,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
                       .next()
                       .map_or(0, |p| if p.is_empty() { 0 } else { p[0] })
                       as u8;
-                    self.grid.current_bg = color_256(n);
+                    self.grid.current_bg = Some(color_256(n));
                   }
                   2 => {
                     let r = iter
@@ -223,15 +223,15 @@ impl<'a> Perform for AnsiExecutor<'a> {
                       .next()
                       .map_or(0, |p| if p.is_empty() { 0 } else { p[0] })
                       as u8;
-                    self.grid.current_bg = rgb8(r, g, b);
+                    self.grid.current_bg = Some(rgb8(r, g, b));
                   }
                   _ => {}
                 }
               }
             }
-            49 => self.grid.current_bg = Color::TRANSPARENT,
-            90..=97 => self.grid.current_fg = ansi_fg(code - 90, true),
-            100..=107 => self.grid.current_bg = ansi_bg(code - 100, true),
+            49 => self.grid.current_bg = None,
+            90..=97 => self.grid.current_fg = Some(ansi_fg(code - 90, true)),
+            100..=107 => self.grid.current_bg = Some(ansi_bg(code - 100, true)),
             _ => {}
           }
         }

@@ -96,6 +96,7 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
         c.cwd(profile);
       }
       c.env("TERM", "xterm-256color");
+      c.env("COLORTERM", "truecolor");
       let ps_prompt_script = r#"
           Set-Item function:prompt {
               $p = $PWD.ProviderPath;
@@ -117,6 +118,7 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
     } else if is_wsl {
       let mut c = CommandBuilder::new("wsl.exe");
       c.env("TERM", "xterm-256color");
+      c.env("COLORTERM", "truecolor");
       c.env("PS1", r"\w λ ");
       c.env(
         "PROMPT_COMMAND",
@@ -131,6 +133,7 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
         c.cwd(profile);
       }
       c.env("TERM", "xterm-256color");
+      c.env("COLORTERM", "truecolor");
       c.env("PS1", r"\w λ ");
       c.env(
         "PROMPT_COMMAND",
@@ -157,6 +160,7 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       c.cwd(home);
     }
     c.env("TERM", "xterm-256color");
+    c.env("COLORTERM", "truecolor");
     if shell_name != "fish" {
       c.env("PS1", r"\w λ ");
       c.env(

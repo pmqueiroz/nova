@@ -3,8 +3,8 @@ use iced::Color;
 #[derive(Clone, Copy, Debug)]
 pub struct Cell {
   pub c: char,
-  pub fg: Color,
-  pub bg: Color,
+  pub fg: Option<Color>,
+  pub bg: Option<Color>,
   pub reverse: bool,
 }
 
@@ -12,8 +12,8 @@ impl Default for Cell {
   fn default() -> Self {
     Self {
       c: ' ',
-      fg: Color::WHITE,
-      bg: Color::TRANSPARENT,
+      fg: None,
+      bg: None,
       reverse: false,
     }
   }
@@ -23,8 +23,8 @@ pub struct Grid {
   pub cells: Vec<Vec<Cell>>,
   pub cursor_x: usize,
   pub cursor_y: usize,
-  pub current_fg: Color,
-  pub current_bg: Color,
+  pub current_fg: Option<Color>,
+  pub current_bg: Option<Color>,
   pub reverse_video: bool,
   pub cols: usize,
   pub rows: usize,
@@ -45,8 +45,8 @@ impl Grid {
       cells,
       cursor_x: 0,
       cursor_y: 0,
-      current_fg: Color::WHITE,
-      current_bg: Color::TRANSPARENT,
+      current_fg: None,
+      current_bg: None,
       reverse_video: false,
       cols,
       rows,
@@ -70,8 +70,8 @@ impl Grid {
       self.cursor_y = 0;
       self.scroll_top = 0;
       self.scroll_bottom = self.rows.saturating_sub(1);
-      self.current_fg = Color::WHITE;
-      self.current_bg = Color::TRANSPARENT;
+      self.current_fg = None;
+      self.current_bg = None;
       self.reverse_video = false;
       self.wrap_next = false;
     }
@@ -87,8 +87,8 @@ impl Grid {
     }
     self.scroll_top = 0;
     self.scroll_bottom = self.rows.saturating_sub(1);
-    self.current_fg = Color::WHITE;
-    self.current_bg = Color::TRANSPARENT;
+    self.current_fg = None;
+    self.current_bg = None;
     self.reverse_video = false;
     self.wrap_next = false;
   }

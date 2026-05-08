@@ -168,7 +168,7 @@ fn extract_selection(
 
 fn calc_grid(width: f32, height: f32, font_size: f32, status_bar_visible: bool) -> (usize, usize) {
   let char_width = font_size * 0.62;
-  let char_height = font_size * 1.35;
+  let char_height = font_size * 1.29;
   let padding_y = if status_bar_visible { 118.0 } else { 96.0 };
   let cols = ((width - 40.0) / char_width).floor() as usize;
   let rows = ((height - padding_y) / char_height).floor() as usize;

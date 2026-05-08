@@ -47,7 +47,12 @@ fn settings_button() -> Element<'static, Message> {
     .into()
 }
 
-pub fn title_bar(window_focused: bool, pwd: &String, maximized: bool) -> Element<'static, Message> {
+pub fn title_bar(
+  window_focused: bool,
+  pwd: &String,
+  maximized: bool,
+  cursor_interaction: iced::mouse::Interaction,
+) -> Element<'static, Message> {
   let controls = traffic_lights(window_focused);
 
   let mark = image(MARK_HANDLE.clone()).width(13).height(13);
@@ -124,5 +129,6 @@ pub fn title_bar(window_focused: bool, pwd: &String, maximized: bool) -> Element
   )
   .on_press(Message::DragWindow)
   .on_double_click(Message::MaximizeWindow)
+  .interaction(cursor_interaction)
   .into()
 }

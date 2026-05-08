@@ -767,18 +767,24 @@ impl Nova {
 
     let font_size = self.settings.theme.font.size;
 
-    let term_interaction = if self.hovered_url.is_some() {
-      mouse::Interaction::Pointer
-    } else {
-      mouse::Interaction::Text
-    };
+    let resize_cursor = resize_direction(self.cursor_position, self.window_size).map(dir_to_cursor);
+
+    let term_interaction = resize_cursor.unwrap_or_else(|| {
+      if self.hovered_url.is_some() {
+        mouse::Interaction::Pointer
+      } else {
+        mouse::Interaction::Text
+      }
+    });
     let term = mouse_area(
       components::term(active_tab, selection, font_size, active_tab.scroll_offset, self.hovered_url.as_deref()),
     )
     .interaction(term_interaction);
 
+    let tb_interaction = resize_cursor.unwrap_or(mouse::Interaction::Idle);
+
     let mut col = column![
-      components::title_bar(self.window_focused, &active_tab.pwd, self.window_maximized),
+      components::title_bar(self.window_focused, &active_tab.pwd, self.window_maximized, tb_interaction),
       components::tab_bar(&self.tabs, self.active_index),
       term,
     ];
@@ -792,7 +798,9 @@ impl Nova {
       ));
     }
 
-    if self.settings_open {
+    let outer_interaction = resize_cursor.unwrap_or(mouse::Interaction::Idle);
+
+    let inner = if self.settings_open {
       let config_path_str = config::config_path()
         .map(|p| p.display().to_string())
         .unwrap_or_default();
@@ -814,7 +822,9 @@ impl Nova {
       components::app(stack![col, picker])
     } else {
       components::app(col)
-    }
+    };
+
+    mouse_area(inner).interaction(outer_interaction).into()
   }
 
   pub fn theme(&self) -> Theme {
@@ -970,6 +980,19 @@ impl Nova {
     }
 
     Subscription::batch(subs)
+  }
+}
+
+fn dir_to_cursor(dir: window::Direction) -> mouse::Interaction {
+  match dir {
+    window::Direction::North | window::Direction::South => mouse::Interaction::ResizingVertically,
+    window::Direction::East | window::Direction::West => mouse::Interaction::ResizingHorizontally,
+    window::Direction::NorthWest | window::Direction::SouthEast => {
+      mouse::Interaction::ResizingDiagonallyDown
+    }
+    window::Direction::NorthEast | window::Direction::SouthWest => {
+      mouse::Interaction::ResizingDiagonallyUp
+    }
   }
 }
 

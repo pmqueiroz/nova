@@ -18,7 +18,7 @@ const ICON_BYTES: &[u8] =
 
 #[cfg(target_os = "macos")]
 const ICON_BYTES: &[u8] =
-  include_bytes!("../../assets/icons/macos/nova-mac-1024.png");
+  include_bytes!("../../assets/icons/macos/nova-mac-512.png");
 
 #[cfg(target_os = "linux")]
 const ICON_BYTES: &[u8] =

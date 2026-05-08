@@ -23,6 +23,8 @@ pub struct GeneralConfig {
   pub editor: String,
   #[allow(dead_code)]
   pub bell: BellType,
+  #[serde(default)]
+  pub shells: Option<Vec<String>>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -196,4 +198,45 @@ pub fn get() -> &'static Config {
 
 pub fn keybindings() -> &'static ParsedKeybindings {
   PARSED_KB.get().expect("keybindings not initialized")
+}
+
+pub fn available_shells() -> Vec<String> {
+  if let Some(shells) = &get().general.shells {
+    if !shells.is_empty() {
+      return shells.clone();
+    }
+  }
+  detect_shells()
+}
+
+fn detect_shells() -> Vec<String> {
+  #[cfg(target_os = "windows")]
+  {
+    let mut shells = vec!["powershell".to_string()];
+    let has_pwsh = std::process::Command::new("where")
+      .arg("pwsh")
+      .output()
+      .map(|o| o.status.success())
+      .unwrap_or(false);
+    if has_pwsh {
+      shells.push("pwsh".to_string());
+    }
+    shells.push("cmd".to_string());
+    shells
+  }
+  #[cfg(not(target_os = "windows"))]
+  {
+    if let Ok(content) = std::fs::read_to_string("/etc/shells") {
+      let shells: Vec<String> = content
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.starts_with('#') && !l.is_empty())
+        .map(String::from)
+        .collect();
+      if !shells.is_empty() {
+        return shells;
+      }
+    }
+    vec![std::env::var("SHELL").unwrap_or_else(|_| "bash".to_string())]
+  }
 }

@@ -1,7 +1,7 @@
 use async_channel::Sender;
 use iced::keyboard::Key;
 use iced::keyboard::key::Named;
-use iced::widget::column;
+use iced::widget::{column, stack};
 use iced::{Element, Point, Size, Subscription, Theme, time, window};
 use iced::{Event, event, keyboard, mouse, stream};
 use std::io::Write;
@@ -23,6 +23,9 @@ pub struct Nova {
   selection_start: Option<(usize, usize)>,
   selection_end: Option<(usize, usize)>,
   is_selecting: bool,
+  shell_picker_open: bool,
+  shell_picker_anchor: f32,
+  available_shells: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -47,6 +50,9 @@ pub enum Message {
   PasteRequested,
   ClipboardReceived(Option<String>),
   OpenSettings,
+  OpenShellPicker,
+  CloseShellPicker,
+  NewTabWithShell(String),
   CursorMoved(Point),
   MousePressed,
   MouseReleased,
@@ -133,9 +139,16 @@ fn matches_kb(kb: &ParsedKeybinding, key: &Key, mods: keyboard::Modifiers) -> bo
 
 impl Default for Nova {
   fn default() -> Self {
+    let available_shells = config::available_shells();
+    let default_shell = available_shells.first().cloned().unwrap_or_else(|| {
+      #[cfg(target_os = "windows")]
+      { "powershell".to_string() }
+      #[cfg(not(target_os = "windows"))]
+      { std::env::var("SHELL").unwrap_or_else(|_| "bash".to_string()) }
+    });
     let (cols, rows) = calc_grid(1024.0, 768.0);
     Self {
-      tabs: vec![Tab::new(0, cols, rows)],
+      tabs: vec![Tab::new(0, cols, rows, default_shell)],
       active_index: 0,
       next_tab_id: 1,
       window_id: None,
@@ -145,6 +158,9 @@ impl Default for Nova {
       selection_start: None,
       selection_end: None,
       is_selecting: false,
+      shell_picker_open: false,
+      shell_picker_anchor: 0.0,
+      available_shells,
     }
   }
 }
@@ -153,6 +169,12 @@ impl Nova {
   pub fn update(&mut self, message: Message) -> iced::Task<Message> {
     match message {
       Message::Type(bytes) => {
+        if self.shell_picker_open {
+          if bytes.as_slice() == b"\x1b" {
+            self.shell_picker_open = false;
+          }
+          return iced::Task::none();
+        }
         self.selection_start = None;
         self.selection_end = None;
         if let Some(active_tab) = self.tabs.get(self.active_index) {
@@ -162,10 +184,26 @@ impl Nova {
         }
       }
       Message::NewTab => {
+        let shell = self.available_shells.first().cloned().unwrap_or_default();
+        return self.update(Message::NewTabWithShell(shell));
+      }
+      Message::OpenShellPicker => {
+        if self.available_shells.len() <= 1 {
+          let shell = self.available_shells.first().cloned().unwrap_or_default();
+          return self.update(Message::NewTabWithShell(shell));
+        }
+        self.shell_picker_anchor = self.cursor_position.x;
+        self.shell_picker_open = true;
+      }
+      Message::CloseShellPicker => {
+        self.shell_picker_open = false;
+      }
+      Message::NewTabWithShell(shell) => {
+        self.shell_picker_open = false;
         let new_id = self.next_tab_id;
         self.next_tab_id += 1;
         let (cols, rows) = calc_grid(self.window_size.width, self.window_size.height);
-        self.tabs.push(Tab::new(new_id, cols, rows));
+        self.tabs.push(Tab::new(new_id, cols, rows, shell));
         self.active_index = self.tabs.len() - 1;
       }
       Message::SwitchTab(index) => {
@@ -176,8 +214,9 @@ impl Nova {
       Message::CloseTab(index) => {
         self.tabs.remove(index);
         if self.tabs.is_empty() {
+          let shell = self.available_shells.first().cloned().unwrap_or_default();
           let (cols, rows) = calc_grid(self.window_size.width, self.window_size.height);
-          self.tabs.push(Tab::new(self.next_tab_id, cols, rows));
+          self.tabs.push(Tab::new(self.next_tab_id, cols, rows, shell));
           self.next_tab_id += 1;
           self.active_index = 0;
         } else if self.active_index >= self.tabs.len() {
@@ -213,10 +252,11 @@ impl Nova {
         if let Some(path) = config::config_path() {
           let editor = &config::get().general.editor;
           let cmd = format!("{} \"{}\"\r", editor, path.display());
+          let shell = self.available_shells.first().cloned().unwrap_or_default();
           let new_id = self.next_tab_id;
           self.next_tab_id += 1;
           let (cols, rows) = calc_grid(self.window_size.width, self.window_size.height);
-          let mut tab = Tab::new(new_id, cols, rows);
+          let mut tab = Tab::new(new_id, cols, rows, shell);
           tab.pending_command = Some(cmd.into_bytes());
           self.tabs.push(tab);
           self.active_index = self.tabs.len() - 1;
@@ -374,7 +414,16 @@ impl Nova {
       col = col.push(components::status_bar(active_tab));
     }
 
-    components::app(col)
+    if self.shell_picker_open {
+      let picker = components::shell_picker(
+        &self.available_shells,
+        self.shell_picker_anchor,
+        self.window_size.width,
+      );
+      components::app(stack![col, picker])
+    } else {
+      components::app(col)
+    }
   }
 
   pub fn theme(&self) -> Theme {
@@ -495,9 +544,11 @@ impl Nova {
       let tab_id = tab.id;
       let cols = tab.grid.cols as u16;
       let rows = tab.grid.rows as u16;
-      let pty_sub = Subscription::run_with((tab_id, cols, rows), |(tab_id, cols, rows)| {
-        pty_worker(*tab_id, *cols, *rows)
-      });
+      let shell_cmd = tab.shell_cmd.clone();
+      let pty_sub = Subscription::run_with(
+        (tab_id, cols, rows, shell_cmd),
+        |(tab_id, cols, rows, shell)| pty_worker(*tab_id, *cols, *rows, shell.clone()),
+      );
       subs.push(pty_sub);
     }
 
@@ -526,7 +577,7 @@ fn resize_direction(pos: Point, size: Size) -> Option<window::Direction> {
   }
 }
 
-fn pty_worker(tab_id: usize, cols: u16, rows: u16) -> impl iced::futures::Stream<Item = Message> {
+fn pty_worker(tab_id: usize, cols: u16, rows: u16, shell: String) -> impl iced::futures::Stream<Item = Message> {
   stream::channel(
     100,
     move |mut output: iced::futures::channel::mpsc::Sender<Message>| async move {
@@ -536,7 +587,7 @@ fn pty_worker(tab_id: usize, cols: u16, rows: u16) -> impl iced::futures::Stream
       let (tx_in, rx_in) = async_channel::unbounded::<PtyCommand>();
 
       std::thread::spawn(move || {
-        let mut pty = PtyBridge::new(tx_out, cols, rows).expect("failed to create PTY bridge");
+        let mut pty = PtyBridge::new(tx_out, cols, rows, &shell).expect("failed to create PTY bridge");
 
         while let Ok(command) = rx_in.recv_blocking() {
           match command {

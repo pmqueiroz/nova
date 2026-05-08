@@ -41,7 +41,7 @@ pub fn tab_bar(tabs: &Vec<Tab>, active_index: usize) -> Element<'static, Message
           background: Some(theme::color::TRANSPARENT.as_color().into()),
           ..Default::default()
         })
-        .on_press(Message::NewTab)
+        .on_press(Message::OpenShellPicker)
         .padding(4),
     )
     .padding(Padding::from([0, 8])),

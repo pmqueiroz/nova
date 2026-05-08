@@ -1,7 +1,6 @@
 [general]
 editor = "nano"
 bell = "none"
-shells = ["pwsh", "cmd"]
 
 [status-bar]
 visible = true

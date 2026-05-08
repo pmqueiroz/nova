@@ -113,8 +113,8 @@ jobs:
           generate_release_notes: true
           files: artifacts/*
 
-  publish-homebrew-cask:
-    name: Publish Homebrew Cask
+  publish-homebrew:
+    name: Publish Homebrew
     needs: release
     runs-on: ubuntu-22.04
     env:
@@ -129,17 +129,27 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      - name: Fetch Linux artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: packages-*linux*
+          path: artifacts
+          merge-multiple: true
+
       - name: Compute checksums and filenames
         id: meta
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           INTEL_DMG=$(find artifacts -name "*.dmg" | grep x86_64 | head -1)
           ARM_DMG=$(find artifacts -name "*.dmg" | grep aarch64 | head -1)
+          LINUX_APPIMAGE=$(find artifacts -name "*.AppImage" | head -1)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "intel_sha=$(sha256sum "$INTEL_DMG" | awk '{print $1}')" >> $GITHUB_OUTPUT
           echo "arm_sha=$(sha256sum "$ARM_DMG" | awk '{print $1}')" >> $GITHUB_OUTPUT
+          echo "linux_sha=$(sha256sum "$LINUX_APPIMAGE" | awk '{print $1}')" >> $GITHUB_OUTPUT
           echo "intel_dmg=$(basename "$INTEL_DMG")" >> $GITHUB_OUTPUT
           echo "arm_dmg=$(basename "$ARM_DMG")" >> $GITHUB_OUTPUT
+          echo "linux_appimage=$(basename "$LINUX_APPIMAGE")" >> $GITHUB_OUTPUT
 
       - uses: actions/checkout@v6
         with:
@@ -177,10 +187,35 @@ jobs:
           end
           CASK
 
-      - name: Commit cask file
+      - name: Write Linux formula
+        run: |
+          VERSION="${{ steps.meta.outputs.version }}"
+          LINUX_SHA="${{ steps.meta.outputs.linux_sha }}"
+          LINUX_APPIMAGE="${{ steps.meta.outputs.linux_appimage }}"
+          mkdir -p Formula
+          cat > Formula/nova.rb << FORMULA
+          class Nova < Formula
+            desc "A GPU-accelerated terminal emulator"
+            homepage "https://github.com/pmqueiroz/nova"
+            version "$VERSION"
+
+            on_linux do
+              url "https://github.com/pmqueiroz/nova/releases/download/v#{version}/$LINUX_APPIMAGE"
+              sha256 "$LINUX_SHA"
+            end
+
+            def install
+              appimage = Dir["*.AppImage"].first
+              chmod "+x", appimage
+              bin.install appimage => "nova"
+            end
+          end
+          FORMULA
+
+      - name: Commit
         run: |
           git config --global user.name "${GITHUB_USER}"
           git config --global user.email "${GITHUB_EMAIL}"
-          git add Casks/nova.rb
+          git add Casks/nova.rb Formula/nova.rb
           git commit -m "nova ${{ steps.meta.outputs.version }}"
           git push

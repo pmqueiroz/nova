@@ -12,24 +12,23 @@
 
 ## 🚀 Installation
 
-### Homebrew (macOS)
-
-```sh
-brew install --cask pmqueiroz/tap/nova
-```
-
-### Download a release
-
-Grab the latest installer for your platform from the [releases page](https://github.com/pmqueiroz/nova/releases):
+### Homebrew
 
 | Platform | File |
 |----------|------|
-| Windows x86_64 | `.exe` installer |
-| macOS x86_64 | `.dmg` disk image |
-| macOS Apple Silicon | `.dmg` disk image |
-| Linux x86_64 | `.deb` package or `.AppImage` |
+| macOS | `brew install --cask pmqueiroz/tap/nova` |
+| Linux | `brew install pmqueiroz/tap/nova` |
 
-Each release includes a `checksums.txt` for verifying the download.
+### Download a release
+
+| Platform | Download |
+|----------|----------|
+| Windows x86_64 | [`.exe` installer](https://github.com/pmqueiroz/nova/releases/download/v0.8.0/nova_0.8.0_x64-setup.exe) |
+| macOS x86_64 | [`.dmg` disk image](https://github.com/pmqueiroz/nova/releases/download/v0.8.0/nova_0.8.0_x64.dmg) |
+| macOS Apple Silicon | [`.dmg` disk image](https://github.com/pmqueiroz/nova/releases/download/v0.8.0/nova_0.8.0_aarch64.dmg) |
+| Linux x86_64 | [`.deb` package](https://github.com/pmqueiroz/nova/releases/download/v0.8.0/nova_0.8.0_amd64.deb) · [`.AppImage`](https://github.com/pmqueiroz/nova/releases/download/v0.8.0/nova_0.8.0_x86_64.AppImage) |
+
+Each release includes a [`checksums.txt`](https://github.com/pmqueiroz/nova/releases/download/v0.8.0/checksums.txt) for verifying the download.
 
 ### Build from source
 

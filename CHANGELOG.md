@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.7.0](https://github.com/pmqueiroz/nova/compare/v0.6.0...v0.7.0) (2026-05-08)
+
+
+### Features
+
+* add 24 bit true color support ([43030b0](https://github.com/pmqueiroz/nova/commit/43030b031e7f3c8daba15b20433f04be6bb05b20))
+* add wsl and git bash support ([21e1d69](https://github.com/pmqueiroz/nova/commit/21e1d69c68acef9e4e5acd24698e7d3cf8920904))
+* ansi colors palette ([8397d35](https://github.com/pmqueiroz/nova/commit/8397d35a8e52ca1c589bfebbcbd9b0f8afdc0521))
+* fit grid better in term area ([c3839ce](https://github.com/pmqueiroz/nova/commit/c3839ceb7b3ed0ea2d4c66699cf6e3b87ba9df47))
+
 ## [0.6.0](https://github.com/pmqueiroz/nova/compare/v0.5.4...v0.6.0) (2026-05-08)
 
 

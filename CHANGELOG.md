@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.12.0](https://github.com/pmqueiroz/nova/compare/v0.11.0...v0.12.0) (2026-05-09)
+
+
+### Features
+
+* detect ssh connection ([4961e60](https://github.com/pmqueiroz/nova/commit/4961e60a23656a70cd35e5e9582ef92f2cdfa20d))
+* word and line backward and forward ([2e1db38](https://github.com/pmqueiroz/nova/commit/2e1db38cf8314d76193397df4c4435ebb01906a6))
+
 ## [0.11.0](https://github.com/pmqueiroz/nova/compare/v0.10.1...v0.11.0) (2026-05-09)
 
 

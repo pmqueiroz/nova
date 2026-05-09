@@ -121,6 +121,22 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
               Write-Host -NoNewline ('{{0}}]7;{{1}}{{0}}{{2}}' -f [char]27, $uri, [char]92);
               return ($ESC + '[38;2;128;128;128m' + $d + $ESC + '[0m ' + $ESC + '[38;2;{ar};{ag};{ab}mλ' + $ESC + '[0m ')
           }}
+          if (-not (Get-Command ssh -CommandType Function -ErrorAction SilentlyContinue)) {{
+              function global:ssh {{
+                  $fwa = 'b','c','D','E','e','F','I','i','J','L','l','m','o','p','Q','R','S','W','w'
+                  $skip = $false; $host_arg = $null
+                  foreach ($a in $args) {{
+                      if ($skip) {{ $skip = $false; continue }}
+                      if ($a -match '^-([a-zA-Z])$' -and ($fwa -contains $Matches[1])) {{ $skip = $true }}
+                      elseif ($a -notmatch '^-') {{ $host_arg = $a; break }}
+                  }}
+                  if ($host_arg) {{ Write-Host -NoNewline ('{{0}}]7;ssh://{{1}}{{0}}{{2}}' -f [char]27, $host_arg, [char]92) }}
+                  $ssh_exe = (Get-Command -Name ssh -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1).Source
+                  if ($ssh_exe) {{ & $ssh_exe @args }} else {{ Write-Error 'ssh not found' }}
+                  $p2 = $PWD.ProviderPath; $u2 = 'file://localhost/' + ($p2 -replace '\\', '/')
+                  Write-Host -NoNewline ('{{0}}]7;{{1}}{{0}}{{2}}' -f [char]27, $u2, [char]92)
+              }}
+          }}
       "#
       );
       c.args([
@@ -150,7 +166,7 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       );
       c.env(
         "PROMPT_COMMAND",
-        r#"printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
+        r#"if ! declare -f ssh > /dev/null 2>&1; then ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }; fi; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
       );
       c
     } else if is_git_bash {
@@ -171,7 +187,7 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       );
       c.env(
         "PROMPT_COMMAND",
-        r#"printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
+        r#"if ! declare -f ssh > /dev/null 2>&1; then ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }; fi; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
       );
       c.args(["--login", "-i"]);
       c
@@ -205,7 +221,7 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       );
       c.env(
         "PROMPT_COMMAND",
-        r#"printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
+        r#"if ! declare -f ssh > /dev/null 2>&1; then ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }; fi; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
       );
     }
     c

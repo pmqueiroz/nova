@@ -328,13 +328,23 @@ impl<'a> Perform for AnsiExecutor<'a> {
       'A' => {
         let param_value = params.iter().next().map_or(1, |p| p[0] as usize);
         let n = if param_value == 0 { 1 } else { param_value };
-        self.grid.cursor_y = self.grid.cursor_y.saturating_sub(n);
+        let top = if self.grid.cursor_y >= self.grid.scroll_top {
+          self.grid.scroll_top
+        } else {
+          0
+        };
+        self.grid.cursor_y = self.grid.cursor_y.saturating_sub(n).max(top);
         self.grid.wrap_next = false;
       }
       'B' => {
         let param_value = params.iter().next().map_or(1, |p| p[0] as usize);
         let n = if param_value == 0 { 1 } else { param_value };
-        self.grid.cursor_y = (self.grid.cursor_y + n).min(self.grid.rows.saturating_sub(1));
+        let bottom = if self.grid.cursor_y <= self.grid.scroll_bottom {
+          self.grid.scroll_bottom
+        } else {
+          self.grid.rows.saturating_sub(1)
+        };
+        self.grid.cursor_y = (self.grid.cursor_y + n).min(bottom);
         self.grid.wrap_next = false;
       }
       'C' => {

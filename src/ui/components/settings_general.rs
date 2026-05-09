@@ -19,7 +19,7 @@ pub fn general_tab<'a>(settings: &'a config::Config, shell_input: &'a str) -> El
       .font(theme::font::REGULAR)
       .size(12)
       .style(input_style)
-      .padding(Padding::from([6, 10]))
+      .padding(Padding { top: 7.0, bottom: 5.0, left: 10.0, right: 10.0 })
       .into(),
   ));
 
@@ -79,7 +79,7 @@ pub fn general_tab<'a>(settings: &'a config::Config, shell_input: &'a str) -> El
       .font(theme::font::REGULAR)
       .size(12)
       .style(input_style)
-      .padding(Padding::from([6, 10])),
+      .padding(Padding { top: 7.0, bottom: 5.0, left: 10.0, right: 10.0 }),
   ]
   .spacing(8)
   .into();

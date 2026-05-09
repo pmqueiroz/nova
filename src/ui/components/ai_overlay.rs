@@ -167,7 +167,7 @@ pub fn ai_overlay<'a>(
           ..Default::default()
         })
         .on_press(Message::AiSubmit)
-        .padding(Padding::from([4, 10])),
+        .padding(Padding { top: 5.0, bottom: 3.0, left: 10.0, right: 10.0 }),
     ]
     .spacing(8)
     .align_y(iced::alignment::Vertical::Center),

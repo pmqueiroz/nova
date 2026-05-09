@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.2](https://github.com/pmqueiroz/nova/compare/v0.12.1...v0.12.2) (2026-05-09)
+
+
+### Bug Fixes
+
+* add missing license field for cargo-generate-rpm ([cb89607](https://github.com/pmqueiroz/nova/commit/cb8960708c4173421d45280f9728ff736671468a))
+
 ## [0.12.1](https://github.com/pmqueiroz/nova/compare/v0.12.0...v0.12.1) (2026-05-09)
 
 

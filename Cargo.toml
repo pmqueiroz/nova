@@ -34,7 +34,7 @@ description = "A GPU-accelerated terminal emulator"
 long_description = "Nova is a fast, GPU-accelerated terminal emulator built with Rust and iced."
 homepage = "https://github.com/pmqueiroz/nova"
 license_file = "LICENSE"
-formats = ["app", "dmg", "nsis", "deb", "appimage"]
+formats = ["app", "dmg", "nsis", "deb", "appimage", "rpm"]
 icons = [
   "assets/icons/macos/nova-mac-16.png",
   "assets/icons/macos/nova-mac-32.png",
@@ -61,3 +61,6 @@ section = "utils"
 priority = "optional"
 depends = ["libxkbcommon0", "libwayland-client0", "libgl1"]
 desktop_template = "assets/nova.desktop"
+
+[package.metadata.packager.rpm]
+release = "1"

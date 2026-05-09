@@ -64,7 +64,8 @@ jobs:
             libgl1-mesa-dev \
             libegl1-mesa-dev \
             libfuse2 \
-            libasound2-dev
+            libasound2-dev \
+            rpm
 
       - name: Install cargo-packager
         if: steps.cache-packager.outputs.cache-hit != 'true'
@@ -77,13 +78,20 @@ jobs:
         if: runner.os == 'Windows'
         run: cargo packager --release --formats nsis --out-dir dist
 
+      - name: Package (Windows portable ZIP)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $ver = "${env:GITHUB_REF_NAME}".TrimStart('v')
+          Compress-Archive -Path target/release/nova.exe -DestinationPath "dist/nova_${ver}_x64_portable.zip"
+
       - name: Package (macOS)
         if: runner.os == 'macOS'
         run: cargo packager --release --formats dmg --out-dir dist
 
       - name: Package (Linux)
         if: runner.os == 'Linux'
-        run: cargo packager --release --formats deb --formats appimage --out-dir dist
+        run: cargo packager --release --formats deb --formats appimage --formats rpm --out-dir dist
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
@@ -246,4 +254,215 @@ jobs:
           git config --global user.email "${GITHUB_EMAIL}"
           git add Casks/nova.rb Formula/nova.rb
           git commit -m "nova ${{ steps.meta.outputs.version }}"
+          git push
+
+  publish-winget:
+    name: Publish Winget
+    needs: release
+    runs-on: windows-latest
+    steps:
+      - uses: vedantmgoyal2009/winget-releaser@v2
+        with:
+          identifier: pmqueiroz.Nova
+          token: ${{ secrets.WINGET_TOKEN }}
+          installers-regex: '_x64-setup\.exe$'
+
+  publish-scoop:
+    name: Publish Scoop
+    needs: release
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_USER: "github-actions[bot]"
+      GITHUB_EMAIL: "github-actions[bot]@users.noreply.github.com"
+    steps:
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v8
+        with:
+          pattern: packages-x86_64-pc-windows-msvc
+          path: artifacts
+          merge-multiple: true
+
+      - name: Compute metadata
+        id: meta
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          ZIP=$(find artifacts -name "*_x64_portable.zip" | head -1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "sha=$(sha256sum "$ZIP" | awk '{print $1}')" >> $GITHUB_OUTPUT
+          echo "zip=$(basename "$ZIP")" >> $GITHUB_OUTPUT
+
+      - uses: actions/checkout@v6
+        with:
+          repository: pmqueiroz/scoop-bucket
+          token: ${{ secrets.PACKAGES_TOKEN }}
+          persist-credentials: true
+
+      - name: Write manifest
+        run: |
+          VERSION="${{ steps.meta.outputs.version }}"
+          SHA="${{ steps.meta.outputs.sha }}"
+          ZIP="${{ steps.meta.outputs.zip }}"
+          cat > nova.json << EOF
+          {
+            "version": "$VERSION",
+            "description": "A GPU-accelerated terminal emulator",
+            "homepage": "https://github.com/pmqueiroz/nova",
+            "license": "MIT",
+            "architecture": {
+              "64bit": {
+                "url": "https://github.com/pmqueiroz/nova/releases/download/v$VERSION/$ZIP",
+                "hash": "$SHA"
+              }
+            },
+            "bin": "nova.exe",
+            "checkver": { "github": "https://github.com/pmqueiroz/nova" },
+            "autoupdate": {
+              "architecture": {
+                "64bit": {
+                  "url": "https://github.com/pmqueiroz/nova/releases/download/v\$version/nova_\$version_x64_portable.zip"
+                }
+              }
+            }
+          }
+          EOF
+
+      - name: Commit and push
+        run: |
+          git config user.name "${GITHUB_USER}"
+          git config user.email "${GITHUB_EMAIL}"
+          git add nova.json
+          git diff --cached --quiet || git commit -m "nova ${{ steps.meta.outputs.version }}"
+          git push
+
+  publish-aur:
+    name: Publish AUR
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v8
+        with:
+          pattern: packages-x86_64-unknown-linux-gnu
+          path: artifacts
+          merge-multiple: true
+
+      - name: Compute metadata
+        id: meta
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          APPIMAGE=$(find artifacts -name "*.AppImage" | head -1)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "sha=$(sha256sum "$APPIMAGE" | awk '{print $1}')" >> $GITHUB_OUTPUT
+          echo "appimage=$(basename "$APPIMAGE")" >> $GITHUB_OUTPUT
+
+      - name: Write PKGBUILD
+        run: |
+          VERSION="${{ steps.meta.outputs.version }}"
+          SHA="${{ steps.meta.outputs.sha }}"
+          APPIMAGE="${{ steps.meta.outputs.appimage }}"
+          mkdir aur-pkg
+          cat > aur-pkg/PKGBUILD << EOF
+          # Maintainer: pmqueiroz <pedroqueiroz593@gmail.com>
+          pkgname=nova-bin
+          pkgver=$VERSION
+          pkgrel=1
+          pkgdesc="A GPU-accelerated terminal emulator"
+          arch=('x86_64')
+          url="https://github.com/pmqueiroz/nova"
+          license=('MIT')
+          depends=('libxkbcommon' 'wayland' 'libgl')
+          provides=('nova')
+          conflicts=('nova')
+          source_x86_64=("https://github.com/pmqueiroz/nova/releases/download/v\$pkgver/$APPIMAGE")
+          sha256sums_x86_64=('$SHA')
+
+          package() {
+            chmod +x "\${srcdir}/$APPIMAGE"
+            install -Dm755 "\${srcdir}/$APPIMAGE" "\${pkgdir}/usr/bin/nova"
+          }
+          EOF
+
+      - uses: nickelc/publish-aur-package@v2
+        with:
+          pkgbuild: aur-pkg/PKGBUILD
+          private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+
+  publish-apt:
+    name: Publish APT repo
+    needs: release
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_USER: "github-actions[bot]"
+      GITHUB_EMAIL: "github-actions[bot]@users.noreply.github.com"
+    steps:
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v8
+        with:
+          pattern: packages-x86_64-unknown-linux-gnu
+          path: /tmp/nova-artifacts
+          merge-multiple: true
+
+      - uses: actions/checkout@v6
+        with:
+          repository: pmqueiroz/apt-repo
+          token: ${{ secrets.PACKAGES_TOKEN }}
+          persist-credentials: true
+
+      - name: Install apt-ftparchive
+        run: sudo apt-get install -y apt-utils
+
+      - name: Add .deb and rebuild index
+        run: |
+          mkdir -p pool/main dists/stable/main/binary-amd64
+          cp /tmp/nova-artifacts/*.deb pool/main/
+          apt-ftparchive packages pool/main > dists/stable/main/binary-amd64/Packages
+          gzip -k dists/stable/main/binary-amd64/Packages
+          apt-ftparchive release dists/stable > dists/stable/Release
+
+      - name: Commit and push
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          git config user.name "${GITHUB_USER}"
+          git config user.email "${GITHUB_EMAIL}"
+          git add pool/ dists/
+          git diff --cached --quiet || git commit -m "nova $VERSION"
+          git push
+
+  publish-rpm:
+    name: Publish RPM repo
+    needs: release
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_USER: "github-actions[bot]"
+      GITHUB_EMAIL: "github-actions[bot]@users.noreply.github.com"
+    steps:
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v8
+        with:
+          pattern: packages-x86_64-unknown-linux-gnu
+          path: /tmp/nova-artifacts
+          merge-multiple: true
+
+      - uses: actions/checkout@v6
+        with:
+          repository: pmqueiroz/rpm-repo
+          token: ${{ secrets.PACKAGES_TOKEN }}
+          persist-credentials: true
+
+      - name: Install createrepo_c
+        run: sudo apt-get install -y createrepo-c
+
+      - name: Add RPM and rebuild metadata
+        run: |
+          mkdir -p packages
+          cp /tmp/nova-artifacts/*.rpm packages/
+          createrepo_c packages/
+
+      - name: Commit and push
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          git config user.name "${GITHUB_USER}"
+          git config user.email "${GITHUB_EMAIL}"
+          git add packages/ repodata/
+          git diff --cached --quiet || git commit -m "nova $VERSION"
           git push

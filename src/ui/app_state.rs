@@ -78,6 +78,7 @@ pub enum Message {
   CloseTab(usize),
   PtyReady(usize, Sender<PtyCommand>),
   PtyOutputReceived(usize, Vec<u8>),
+  PtyExited(usize),
   CloseActiveTab,
   NextTab,
   PrevTab,
@@ -477,6 +478,13 @@ impl Nova {
             let _ = tx.send_blocking(PtyCommand::Input(cmd));
           }
           tab.pty_tx = Some(tx);
+          tab.pty_alive = true;
+        }
+      }
+      Message::PtyExited(tab_id) => {
+        if let Some(tab) = self.tabs.iter_mut().find(|t| t.id == tab_id) {
+          tab.pty_alive = false;
+          tab.pty_tx = None;
         }
       }
       Message::OpenSettings => {
@@ -683,6 +691,9 @@ impl Nova {
         self.window_focused = false;
       }
       Message::WindowResized(width, height) => {
+        if width < 100.0 || height < 100.0 {
+          return iced::Task::none();
+        }
         self.window_size = Size::new(width, height);
         let (cols, rows) = calc_grid(
           width,
@@ -1202,6 +1213,9 @@ impl Nova {
     subs.push(global_sub);
 
     for tab in &self.tabs {
+      if !tab.pty_alive {
+        continue;
+      }
       let key = PtyKey {
         tab_id: tab.id,
         shell_cmd: tab.shell_cmd.clone(),
@@ -1314,6 +1328,8 @@ fn pty_worker(
       while let Ok(bytes) = rx_out.recv().await {
         let _ = output.send(Message::PtyOutputReceived(tab_id, bytes)).await;
       }
+
+      let _ = output.send(Message::PtyExited(tab_id)).await;
     },
   )
 }

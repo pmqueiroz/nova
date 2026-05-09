@@ -103,11 +103,6 @@ impl Grid {
   }
 
   #[inline]
-  pub fn cell(&self, row: usize, col: usize) -> &Cell {
-    &self.cells[row * self.cols + col]
-  }
-
-  #[inline]
   pub fn cell_mut(&mut self, row: usize, col: usize) -> &mut Cell {
     &mut self.cells[row * self.cols + col]
   }

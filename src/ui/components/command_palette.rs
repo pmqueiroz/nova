@@ -17,14 +17,26 @@ struct Cmd {
 }
 
 const COMMANDS: &[Cmd] = &[
-  Cmd { id: "ask_ai", label: "Ask AI", description: "Ask a question with terminal context" },
+  Cmd {
+    id: "ask_ai",
+    label: "Ask AI",
+    description: "Ask a question with terminal context",
+  },
   Cmd {
     id: "explain_error",
     label: "Explain Error",
     description: "Explain errors in the last output",
   },
-  Cmd { id: "new_tab", label: "New Tab", description: "Open a new terminal tab" },
-  Cmd { id: "settings", label: "Settings", description: "Open settings" },
+  Cmd {
+    id: "new_tab",
+    label: "New Tab",
+    description: "Open a new terminal tab",
+  },
+  Cmd {
+    id: "settings",
+    label: "Settings",
+    description: "Open settings",
+  },
 ];
 
 fn fuzzy(query: &str, target: &str) -> bool {
@@ -73,7 +85,13 @@ pub fn command_palette<'a>(query: &'a str, selected: usize) -> Element<'a, Messa
       .width(Length::Fill)
       .height(Length::Fill)
       .style(|_| container::Style {
-        background: Some(Color { a: 0.55, ..Color::BLACK }.into()),
+        background: Some(
+          Color {
+            a: 0.55,
+            ..Color::BLACK
+          }
+          .into(),
+        ),
         ..Default::default()
       }),
   )
@@ -94,7 +112,12 @@ pub fn command_palette<'a>(query: &'a str, selected: usize) -> Element<'a, Messa
         selection: Color { a: 0.3, ..accent },
       }),
   )
-  .padding(Padding { top: 12.0, bottom: 12.0, left: 16.0, right: 16.0 })
+  .padding(Padding {
+    top: 12.0,
+    bottom: 12.0,
+    left: 16.0,
+    right: 16.0,
+  })
   .style(move |_| container::Style {
     border: Border {
       color: border_c,
@@ -136,7 +159,12 @@ pub fn command_palette<'a>(query: &'a str, selected: usize) -> Element<'a, Messa
         ]
         .spacing(8),
       )
-      .padding(Padding { top: 10.0, bottom: 10.0, left: 16.0, right: 16.0 })
+      .padding(Padding {
+        top: 10.0,
+        bottom: 10.0,
+        left: 16.0,
+        right: 16.0,
+      })
       .width(Length::Fill)
       .style(move |_| container::Style {
         background: Some(item_bg.into()),
@@ -148,14 +176,26 @@ pub fn command_palette<'a>(query: &'a str, selected: usize) -> Element<'a, Messa
     items = items.push(item);
   }
 
-  let footer = container(
-    row![
-      text("↑↓ navigate").size(10).color(fg_muted).font(theme::font::REGULAR),
-      text("  ↵ confirm").size(10).color(fg_muted).font(theme::font::REGULAR),
-      text("  esc close").size(10).color(fg_muted).font(theme::font::REGULAR),
-    ],
-  )
-  .padding(Padding { top: 8.0, bottom: 10.0, left: 16.0, right: 16.0 })
+  let footer = container(row![
+    text("↑↓ navigate")
+      .size(10)
+      .color(fg_muted)
+      .font(theme::font::REGULAR),
+    text("  ↵ confirm")
+      .size(10)
+      .color(fg_muted)
+      .font(theme::font::REGULAR),
+    text("  esc close")
+      .size(10)
+      .color(fg_muted)
+      .font(theme::font::REGULAR),
+  ])
+  .padding(Padding {
+    top: 8.0,
+    bottom: 10.0,
+    left: 16.0,
+    right: 16.0,
+  })
   .style(move |_| container::Style {
     border: Border {
       color: border_c,
@@ -170,7 +210,10 @@ pub fn command_palette<'a>(query: &'a str, selected: usize) -> Element<'a, Messa
     input_row,
     container(iced::widget::rule::horizontal(1))
       .style(move |_| container::Style {
-        border: Border { color: border_c, ..Default::default() },
+        border: Border {
+          color: border_c,
+          ..Default::default()
+        },
         ..Default::default()
       })
       .width(Length::Fill),
@@ -193,7 +236,10 @@ pub fn command_palette<'a>(query: &'a str, selected: usize) -> Element<'a, Messa
         .width(560),
     )
     .center_x(Length::Fill)
-    .padding(Padding { top: 80.0, ..Default::default() })
+    .padding(Padding {
+      top: 80.0,
+      ..Default::default()
+    })
     .width(Length::Fill)
     .height(Length::Fill),
   )

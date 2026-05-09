@@ -201,7 +201,13 @@ pub fn parse_keybinding(s: &str) -> anyhow::Result<ParsedKeybinding> {
     c if c.len() == 1 => KeyId::Char(c.chars().next().unwrap()),
     _ => return Err(anyhow::anyhow!("unknown key in keybinding: '{}'", key_part)),
   };
-  Ok(ParsedKeybinding { ctrl, shift, alt, meta, key })
+  Ok(ParsedKeybinding {
+    ctrl,
+    shift,
+    alt,
+    meta,
+    key,
+  })
 }
 
 pub fn parse_hex_color(hex: &str) -> anyhow::Result<iced::Color> {
@@ -286,7 +292,11 @@ pub fn get() -> &'static Config {
 }
 
 pub fn keybindings() -> std::sync::MutexGuard<'static, ParsedKeybindings> {
-  PARSED_KB.get().expect("keybindings not initialized").lock().unwrap()
+  PARSED_KB
+    .get()
+    .expect("keybindings not initialized")
+    .lock()
+    .unwrap()
 }
 
 pub fn update_keybindings(new: ParsedKeybindings) {
@@ -334,7 +344,10 @@ pub fn detect_shells() -> Vec<String> {
       r"C:\Program Files (x86)\Git\bin\bash.exe",
       r"C:\Git\bin\bash.exe",
     ];
-    if git_bash_paths.iter().any(|p| std::path::Path::new(p).exists()) {
+    if git_bash_paths
+      .iter()
+      .any(|p| std::path::Path::new(p).exists())
+    {
       shells.push("git-bash".to_string());
     }
 

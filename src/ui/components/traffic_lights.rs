@@ -36,9 +36,18 @@ pub fn traffic_lights(window_focused: bool) -> Element<'static, Message> {
   };
 
   row![
-    circle_btn(theme::color::TRAFFIC_LIGHT_RED.as_color(), Message::CloseWindow),
-    circle_btn(theme::color::TRAFFIC_LIGHT_YELLOW.as_color(), Message::MinimizeWindow),
-    circle_btn(theme::color::TRAFFIC_LIGHT_GREEN.as_color(), Message::MaximizeWindow),
+    circle_btn(
+      theme::color::TRAFFIC_LIGHT_RED.as_color(),
+      Message::CloseWindow
+    ),
+    circle_btn(
+      theme::color::TRAFFIC_LIGHT_YELLOW.as_color(),
+      Message::MinimizeWindow
+    ),
+    circle_btn(
+      theme::color::TRAFFIC_LIGHT_GREEN.as_color(),
+      Message::MaximizeWindow
+    ),
   ]
   .spacing(8)
   .into()

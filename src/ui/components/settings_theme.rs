@@ -4,9 +4,12 @@ use iced::{
   widget::{button, column, container, pick_list, row, text, text_input},
 };
 
-use crate::core::config::{self, WindowControls};
-use crate::ui::{app_state::{ColorField, Message}, theme};
 use super::{btn_subtle_style, color_row, input_style, section_label, setting_row};
+use crate::core::config::{self, WindowControls};
+use crate::ui::{
+  app_state::{ColorField, Message},
+  theme,
+};
 
 pub fn theme_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
   let mut col = column![].spacing(24);
@@ -86,7 +89,11 @@ pub fn theme_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
   col = col.push(
     column![
       section_label("WINDOW"),
-      setting_row("Controls", "Style of the window control buttons", controls_list),
+      setting_row(
+        "Controls",
+        "Style of the window control buttons",
+        controls_list
+      ),
     ]
     .spacing(8),
   );
@@ -99,7 +106,11 @@ pub fn theme_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
         color_row("Background", &c.background, ColorField::Background),
         color_row("Foreground", &c.foreground, ColorField::Foreground),
         color_row("Accent", &c.accent, ColorField::Accent),
-        color_row("Foreground muted", &c.foreground_muted, ColorField::ForegroundMuted),
+        color_row(
+          "Foreground muted",
+          &c.foreground_muted,
+          ColorField::ForegroundMuted
+        ),
         color_row("Border", &c.border, ColorField::Border),
         color_row("Cursor", &c.cursor, ColorField::Cursor),
       ]

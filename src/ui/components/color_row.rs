@@ -1,8 +1,15 @@
-use iced::{Border, Element, Padding, border::Radius, widget::{container, row, text, text_input}};
+use iced::{
+  Border, Element, Padding,
+  border::Radius,
+  widget::{container, row, text, text_input},
+};
 
-use crate::core::config;
-use crate::ui::{app_state::{ColorField, Message}, theme};
 use super::input_style;
+use crate::core::config;
+use crate::ui::{
+  app_state::{ColorField, Message},
+  theme,
+};
 
 pub fn color_row<'a>(label: &'static str, hex: &'a str, field: ColorField) -> Element<'a, Message> {
   let swatch_color = config::parse_hex_color(hex).unwrap_or(theme::color::RED.as_color());

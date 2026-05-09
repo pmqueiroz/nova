@@ -3,9 +3,9 @@ use iced::{
   widget::{column, row, space::horizontal, text, text_input, toggler},
 };
 
+use super::{input_style, setting_row};
 use crate::core::config;
 use crate::ui::{app_state::Message, theme};
-use super::{input_style, setting_row};
 
 pub fn status_bar_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
   let (fg, fg_muted) = {

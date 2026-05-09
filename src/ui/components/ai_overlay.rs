@@ -35,7 +35,11 @@ fn parse_segments(response: &str) -> Vec<Segment> {
         remaining = &remaining[3..];
         let lang_end = remaining.find('\n').unwrap_or(remaining.len());
         let lang = remaining[..lang_end].trim().to_string();
-        remaining = if lang_end < remaining.len() { &remaining[lang_end + 1..] } else { "" };
+        remaining = if lang_end < remaining.len() {
+          &remaining[lang_end + 1..]
+        } else {
+          ""
+        };
         match remaining.find("```") {
           Some(end) => {
             let content = remaining[..end].trim_end_matches('\n').to_string();
@@ -83,14 +87,25 @@ pub fn ai_overlay<'a>(
   let border_c = rt.border;
   drop(rt);
 
-  let red = Color { r: 0.9, g: 0.3, b: 0.3, a: 1.0 };
+  let red = Color {
+    r: 0.9,
+    g: 0.3,
+    b: 0.3,
+    a: 1.0,
+  };
 
   let backdrop = mouse_area(
     container(iced::widget::Space::new())
       .width(Length::Fill)
       .height(Length::Fill)
       .style(|_| container::Style {
-        background: Some(Color { a: 0.55, ..Color::BLACK }.into()),
+        background: Some(
+          Color {
+            a: 0.55,
+            ..Color::BLACK
+          }
+          .into(),
+        ),
         ..Default::default()
       }),
   )
@@ -110,7 +125,12 @@ pub fn ai_overlay<'a>(
     ]
     .align_y(iced::alignment::Vertical::Center),
   )
-  .padding(Padding { top: 12.0, bottom: 12.0, left: 16.0, right: 8.0 })
+  .padding(Padding {
+    top: 12.0,
+    bottom: 12.0,
+    left: 16.0,
+    right: 8.0,
+  })
   .width(Length::Fill);
 
   let input_area = container(
@@ -138,7 +158,11 @@ pub fn ai_overlay<'a>(
             }
             .into(),
           ),
-          border: Border { color: accent, width: 1.0, radius: Radius::new(4.0) },
+          border: Border {
+            color: accent,
+            width: 1.0,
+            radius: Radius::new(4.0)
+          },
           text_color: accent,
           ..Default::default()
         })
@@ -148,7 +172,12 @@ pub fn ai_overlay<'a>(
     .spacing(8)
     .align_y(iced::alignment::Vertical::Center),
   )
-  .padding(Padding { top: 10.0, bottom: 10.0, left: 16.0, right: 12.0 })
+  .padding(Padding {
+    top: 10.0,
+    bottom: 10.0,
+    left: 16.0,
+    right: 12.0,
+  })
   .width(Length::Fill);
 
   let show_response = is_loading || response.is_some();
@@ -157,91 +186,113 @@ pub fn ai_overlay<'a>(
 
   if show_response {
     let response_content: Element<'a, Message> = if is_loading {
-      text("Thinking…").size(12).color(fg_muted).font(theme::font::REGULAR).into()
+      text("Thinking…")
+        .size(12)
+        .color(fg_muted)
+        .font(theme::font::REGULAR)
+        .into()
     } else if let Some(content) = response {
       if is_error {
-        text(content).size(12).color(red).font(theme::font::REGULAR).width(Length::Fill).into()
+        text(content)
+          .size(12)
+          .color(red)
+          .font(theme::font::REGULAR)
+          .width(Length::Fill)
+          .into()
       } else {
         let segments = parse_segments(content);
         let mut col = column![].spacing(10).width(Length::Fill);
         for segment in segments {
           let widget: Element<'a, Message> = match segment {
-            Segment::Text(t) => {
-              text(t)
-                .size(12)
-                .color(fg)
-                .font(theme::font::REGULAR)
-                .width(Length::Fill)
-                .into()
-            }
+            Segment::Text(t) => text(t)
+              .size(12)
+              .color(fg)
+              .font(theme::font::REGULAR)
+              .width(Length::Fill)
+              .into(),
             Segment::Code { lang, content } => {
-              let label = if lang.is_empty() { "code".to_string() } else { lang };
+              let label = if lang.is_empty() {
+                "code".to_string()
+              } else {
+                lang
+              };
               let code = content.trim().to_string();
               let copy_code = code.clone();
               let run_code = code.clone();
 
-              container(
-                column![
-                  container(
-                    row![
-                      text(label)
-                        .size(10)
-                        .color(fg_muted)
-                        .font(theme::font::REGULAR),
-                      space::horizontal(),
-                      button(text("Copy").size(10).color(fg_muted))
-                        .style(move |_t, status| button::Style {
-                          background: Some(match status {
-                            button::Status::Hovered => Color { a: 0.12, ..fg_muted }.into(),
-                            _ => Color::TRANSPARENT.into(),
-                          }),
-                          border: Border {
-                            color: border_c,
-                            width: 1.0,
-                            radius: Radius::new(3.0),
-                          },
-                          text_color: fg_muted,
-                          ..Default::default()
-                        })
-                        .on_press(Message::CopyCodeBlock(copy_code))
-                        .padding(Padding::from([2, 6])),
-                      button(text("Run").size(10).color(accent))
-                        .style(move |_t, status| button::Style {
-                          background: Some(match status {
-                            button::Status::Hovered => Color { a: 0.15, ..accent }.into(),
-                            _ => Color::TRANSPARENT.into(),
-                          }),
-                          border: Border {
-                            color: accent,
-                            width: 1.0,
-                            radius: Radius::new(3.0),
-                          },
-                          text_color: accent,
-                          ..Default::default()
-                        })
-                        .on_press(Message::RunCodeInTerminal(run_code))
-                        .padding(Padding::from([2, 6])),
-                    ]
-                    .spacing(6)
-                    .align_y(iced::alignment::Vertical::Center),
-                  )
-                  .padding(Padding { top: 6.0, bottom: 6.0, left: 10.0, right: 6.0 })
-                  .width(Length::Fill),
-                  rule::horizontal(1),
-                  container(
-                    text(code)
-                      .size(11)
-                      .color(fg)
-                      .font(theme::font::REGULAR)
-                      .width(Length::Fill),
-                  )
-                  .padding(Padding::from([8, 10]))
-                  .width(Length::Fill),
-                ]
-              )
+              container(column![
+                container(
+                  row![
+                    text(label)
+                      .size(10)
+                      .color(fg_muted)
+                      .font(theme::font::REGULAR),
+                    space::horizontal(),
+                    button(text("Copy").size(10).color(fg_muted))
+                      .style(move |_t, status| button::Style {
+                        background: Some(match status {
+                          button::Status::Hovered => Color {
+                            a: 0.12,
+                            ..fg_muted
+                          }
+                          .into(),
+                          _ => Color::TRANSPARENT.into(),
+                        }),
+                        border: Border {
+                          color: border_c,
+                          width: 1.0,
+                          radius: Radius::new(3.0),
+                        },
+                        text_color: fg_muted,
+                        ..Default::default()
+                      })
+                      .on_press(Message::CopyCodeBlock(copy_code))
+                      .padding(Padding::from([2, 6])),
+                    button(text("Run").size(10).color(accent))
+                      .style(move |_t, status| button::Style {
+                        background: Some(match status {
+                          button::Status::Hovered => Color { a: 0.15, ..accent }.into(),
+                          _ => Color::TRANSPARENT.into(),
+                        }),
+                        border: Border {
+                          color: accent,
+                          width: 1.0,
+                          radius: Radius::new(3.0),
+                        },
+                        text_color: accent,
+                        ..Default::default()
+                      })
+                      .on_press(Message::RunCodeInTerminal(run_code))
+                      .padding(Padding::from([2, 6])),
+                  ]
+                  .spacing(6)
+                  .align_y(iced::alignment::Vertical::Center),
+                )
+                .padding(Padding {
+                  top: 6.0,
+                  bottom: 6.0,
+                  left: 10.0,
+                  right: 6.0
+                })
+                .width(Length::Fill),
+                rule::horizontal(1),
+                container(
+                  text(code)
+                    .size(11)
+                    .color(fg)
+                    .font(theme::font::REGULAR)
+                    .width(Length::Fill),
+                )
+                .padding(Padding::from([8, 10]))
+                .width(Length::Fill),
+              ])
               .style(move |_| container::Style {
                 background: Some(Color { a: 0.06, ..fg }.into()),
-                border: Border { color: border_c, width: 1.0, radius: Radius::new(4.0) },
+                border: Border {
+                  color: border_c,
+                  width: 1.0,
+                  radius: Radius::new(4.0),
+                },
                 ..Default::default()
               })
               .width(Length::Fill)
@@ -264,10 +315,18 @@ pub fn ai_overlay<'a>(
       )
       .height(350)
       .direction(scrollable::Direction::Vertical(
-        scrollable::Scrollbar::new().width(4).margin(4).scroller_width(4),
+        scrollable::Scrollbar::new()
+          .width(4)
+          .margin(4)
+          .scroller_width(4),
       )),
     )
-    .padding(Padding { top: 12.0, bottom: 12.0, left: 16.0, right: 12.0 })
+    .padding(Padding {
+      top: 12.0,
+      bottom: 12.0,
+      left: 16.0,
+      right: 12.0,
+    })
     .width(Length::Fill);
 
     modal_col = modal_col.push(rule::horizontal(1)).push(response_pane);
@@ -278,7 +337,11 @@ pub fn ai_overlay<'a>(
       container(modal_col)
         .style(move |_| container::Style {
           background: Some(bg.into()),
-          border: Border { color: border_c, width: 1.0, radius: Radius::new(8.0) },
+          border: Border {
+            color: border_c,
+            width: 1.0,
+            radius: Radius::new(8.0),
+          },
           ..Default::default()
         })
         .width(600),

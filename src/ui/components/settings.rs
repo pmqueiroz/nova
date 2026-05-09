@@ -2,8 +2,7 @@ use iced::{
   Border, Color, Element, Length, Padding, Shadow,
   border::Radius,
   widget::{
-    button, column, container, mouse_area,
-    row, rule, scrollable,
+    button, column, container, mouse_area, row, rule, scrollable,
     space::{horizontal, vertical},
     stack, text,
   },
@@ -15,7 +14,9 @@ use crate::ui::{
   theme,
 };
 
-use super::{settings_ai, settings_general, settings_keybindings, settings_status_bar, settings_theme};
+use super::{
+  settings_ai, settings_general, settings_keybindings, settings_status_bar, settings_theme,
+};
 
 const SIDEBAR_WIDTH: f32 = 160.0;
 
@@ -132,7 +133,8 @@ fn modal_inner<'a>(
       scrollable(match active_tab {
         SettingsTab::General => settings_general::general_tab(settings, shell_input),
         SettingsTab::Theme => settings_theme::theme_tab(settings),
-        SettingsTab::Keybindings => settings_keybindings::keybindings_tab(settings, recording_index),
+        SettingsTab::Keybindings =>
+          settings_keybindings::keybindings_tab(settings, recording_index),
         SettingsTab::StatusBar => settings_status_bar::status_bar_tab(settings),
         SettingsTab::Ai => settings_ai::ai_tab(settings),
         SettingsTab::Raw => edit_raw_tab(raw_content),
@@ -199,27 +201,31 @@ fn modal_inner<'a>(
         .size(11)
         .color(fg_muted),
       horizontal(),
-      button(text("Done").size(12).color(theme::color::BG_DEEP.as_color()))
-        .style(|_t, status| {
-          let bg = match status {
-            button::Status::Hovered | button::Status::Pressed => iced::Color {
-              a: 0.85,
-              ..theme::color::runtime().accent
-            },
-            _ => theme::color::runtime().accent,
-          };
-          button::Style {
-            text_color: theme::color::BG_DEEP.as_color(),
-            background: Some(bg.into()),
-            border: Border {
-              radius: Radius::new(4.0),
-              ..Default::default()
-            },
+      button(
+        text("Done")
+          .size(12)
+          .color(theme::color::BG_DEEP.as_color())
+      )
+      .style(|_t, status| {
+        let bg = match status {
+          button::Status::Hovered | button::Status::Pressed => iced::Color {
+            a: 0.85,
+            ..theme::color::runtime().accent
+          },
+          _ => theme::color::runtime().accent,
+        };
+        button::Style {
+          text_color: theme::color::BG_DEEP.as_color(),
+          background: Some(bg.into()),
+          border: Border {
+            radius: Radius::new(4.0),
             ..Default::default()
-          }
-        })
-        .on_press(Message::CloseSettings)
-        .padding(Padding::from([6, 16])),
+          },
+          ..Default::default()
+        }
+      })
+      .on_press(Message::CloseSettings)
+      .padding(Padding::from([6, 16])),
     ]
     .align_y(iced::alignment::Vertical::Center),
   )
@@ -259,7 +265,11 @@ fn sidebar_nav<'a>(active_tab: &'a SettingsTab) -> Element<'a, Message> {
 
     let label_color = {
       let rt = theme::color::runtime();
-      if is_active { rt.accent } else { rt.foreground_muted }
+      if is_active {
+        rt.accent
+      } else {
+        rt.foreground_muted
+      }
     };
 
     nav = nav.push(

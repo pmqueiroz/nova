@@ -64,7 +64,6 @@ impl PtyBridge {
     let _ = self.writer.write_all(input);
   }
 
-
   pub fn resize_pty(&mut self, cols: u16, rows: u16) {
     let _ = self._master_pty.resize(PtySize {
       rows,
@@ -111,7 +110,8 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       c.env("TERM", "xterm-256color");
       c.env("COLORTERM", "truecolor");
       let (ar, ag, ab) = accent_rgb();
-      let ps_prompt_script = format!(r#"
+      let ps_prompt_script = format!(
+        r#"
           Set-Item function:prompt {{
               $p = $PWD.ProviderPath;
               $h = [regex]::Escape($env:USERPROFILE);
@@ -121,8 +121,15 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
               Write-Host -NoNewline ('{{0}}]7;{{1}}{{0}}{{2}}' -f [char]27, $uri, [char]92);
               return ($ESC + '[38;2;128;128;128m' + $d + $ESC + '[0m ' + $ESC + '[38;2;{ar};{ag};{ab}mλ' + $ESC + '[0m ')
           }}
-      "#);
-      c.args(["-NoProfile", "-NoLogo", "-NoExit", "-Command", ps_prompt_script.as_str()]);
+      "#
+      );
+      c.args([
+        "-NoProfile",
+        "-NoLogo",
+        "-NoExit",
+        "-Command",
+        ps_prompt_script.as_str(),
+      ]);
       c
     } else if is_cmd {
       let mut c = CommandBuilder::new(r"C:\Windows\System32\cmd.exe");
@@ -135,15 +142,20 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       c.env("TERM", "xterm-256color");
       c.env("COLORTERM", "truecolor");
       let (ar, ag, ab) = accent_rgb();
-      c.env("PS1", format!("\\[\\e[38;2;128;128;128m\\]\\w\\[\\e[0m\\] \\[\\e[38;2;{ar};{ag};{ab}m\\]λ\\[\\e[0m\\] "));
+      c.env(
+        "PS1",
+        format!(
+          "\\[\\e[38;2;128;128;128m\\]\\w\\[\\e[0m\\] \\[\\e[38;2;{ar};{ag};{ab}m\\]λ\\[\\e[0m\\] "
+        ),
+      );
       c.env(
         "PROMPT_COMMAND",
         r#"printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
       );
       c
     } else if is_git_bash {
-      let exe = find_git_bash_exe()
-        .unwrap_or_else(|| r"C:\Program Files\Git\bin\bash.exe".to_string());
+      let exe =
+        find_git_bash_exe().unwrap_or_else(|| r"C:\Program Files\Git\bin\bash.exe".to_string());
       let mut c = CommandBuilder::new(exe);
       if let Ok(profile) = std::env::var("USERPROFILE") {
         c.cwd(profile);
@@ -151,7 +163,12 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       c.env("TERM", "xterm-256color");
       c.env("COLORTERM", "truecolor");
       let (ar, ag, ab) = accent_rgb();
-      c.env("PS1", format!("\\[\\e[38;2;128;128;128m\\]\\w\\[\\e[0m\\] \\[\\e[38;2;{ar};{ag};{ab}m\\]λ\\[\\e[0m\\] "));
+      c.env(
+        "PS1",
+        format!(
+          "\\[\\e[38;2;128;128;128m\\]\\w\\[\\e[0m\\] \\[\\e[38;2;{ar};{ag};{ab}m\\]λ\\[\\e[0m\\] "
+        ),
+      );
       c.env(
         "PROMPT_COMMAND",
         r#"printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
@@ -180,7 +197,12 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
     c.env("COLORTERM", "truecolor");
     if shell_name != "fish" {
       let (ar, ag, ab) = accent_rgb();
-      c.env("PS1", format!("\\[\\e[38;2;128;128;128m\\]\\w\\[\\e[0m\\] \\[\\e[38;2;{ar};{ag};{ab}m\\]λ\\[\\e[0m\\] "));
+      c.env(
+        "PS1",
+        format!(
+          "\\[\\e[38;2;128;128;128m\\]\\w\\[\\e[0m\\] \\[\\e[38;2;{ar};{ag};{ab}m\\]λ\\[\\e[0m\\] "
+        ),
+      );
       c.env(
         "PROMPT_COMMAND",
         r#"printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,

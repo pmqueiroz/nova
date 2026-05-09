@@ -4,9 +4,9 @@ use iced::{
   widget::{button, column, container, pick_list, row, text, text_input},
 };
 
+use super::{input_style, setting_row};
 use crate::core::config::{self, BellType};
 use crate::ui::{app_state::Message, theme};
-use super::{input_style, setting_row};
 
 pub fn general_tab<'a>(settings: &'a config::Config, shell_input: &'a str) -> Element<'a, Message> {
   let mut col = column![].spacing(20);

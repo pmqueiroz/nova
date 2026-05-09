@@ -98,10 +98,30 @@ pub const TRANSPARENT: Hue = Hue {
   a: 0.0,
 };
 
-pub const TRAFFIC_LIGHT_RED: Hue = Hue { r: 0xFF, g: 0x60, b: 0x5C, a: 1.0 };
-pub const TRAFFIC_LIGHT_YELLOW: Hue = Hue { r: 0xFF, g: 0xBD, b: 0x44, a: 1.0 };
-pub const TRAFFIC_LIGHT_GREEN: Hue = Hue { r: 0x00, g: 0xCA, b: 0x4E, a: 1.0 };
-pub const TRAFFIC_LIGHT_INACTIVE: Hue = Hue { r: 0x4C, g: 0x4C, b: 0x4C, a: 1.0 };
+pub const TRAFFIC_LIGHT_RED: Hue = Hue {
+  r: 0xFF,
+  g: 0x60,
+  b: 0x5C,
+  a: 1.0,
+};
+pub const TRAFFIC_LIGHT_YELLOW: Hue = Hue {
+  r: 0xFF,
+  g: 0xBD,
+  b: 0x44,
+  a: 1.0,
+};
+pub const TRAFFIC_LIGHT_GREEN: Hue = Hue {
+  r: 0x00,
+  g: 0xCA,
+  b: 0x4E,
+  a: 1.0,
+};
+pub const TRAFFIC_LIGHT_INACTIVE: Hue = Hue {
+  r: 0x4C,
+  g: 0x4C,
+  b: 0x4C,
+  a: 1.0,
+};
 
 pub struct Hue {
   pub r: u8,

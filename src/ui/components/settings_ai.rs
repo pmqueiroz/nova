@@ -1,8 +1,11 @@
-use iced::{Element, Padding, widget::{column, container, pick_list, text, text_input}};
+use iced::{
+  Element, Padding,
+  widget::{column, container, pick_list, text, text_input},
+};
 
+use super::{input_style, setting_row};
 use crate::core::config::{self, AiProvider};
 use crate::ui::{app_state::Message, theme};
-use super::{input_style, setting_row};
 
 pub(super) fn ai_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
   let mut col = column![].spacing(20);
@@ -16,7 +19,11 @@ pub(super) fn ai_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
   .text_size(12)
   .into();
 
-  col = col.push(setting_row("Provider", "AI provider backend", provider_list));
+  col = col.push(setting_row(
+    "Provider",
+    "AI provider backend",
+    provider_list,
+  ));
 
   col = col.push(setting_row(
     "Model",
@@ -57,14 +64,27 @@ pub(super) fn ai_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
   ));
 
   let (status_text, status_color) = if settings.ai.api_key.is_empty() {
-    ("AI features disabled — enter an API key to enable.", iced::Color { r: 0.9, g: 0.3, b: 0.3, a: 1.0 })
+    (
+      "AI features disabled — enter an API key to enable.",
+      iced::Color {
+        r: 0.9,
+        g: 0.3,
+        b: 0.3,
+        a: 1.0,
+      },
+    )
   } else {
     ("AI features enabled.", theme::color::runtime().accent)
   };
 
   col = col.push(
-    container(text(status_text).font(theme::font::REGULAR).size(11).color(status_color))
-      .padding(Padding::from([4, 0])),
+    container(
+      text(status_text)
+        .font(theme::font::REGULAR)
+        .size(11)
+        .color(status_color),
+    )
+    .padding(Padding::from([4, 0])),
   );
 
   col.into()

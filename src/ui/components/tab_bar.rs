@@ -19,12 +19,14 @@ pub fn tab_bar(tabs: &Vec<Tab>, active_index: usize) -> Element<'static, Message
     let is_active = i == active_index;
 
     tab_bar = tab_bar.push(
-      row![mouse_area(tab_item(
-        truncate(&basename(&til_home(&tab.pwd)), 12),
-        i,
-        is_active
-      ))
-      .on_middle_press(Message::CloseTab(i))]
+      row![
+        mouse_area(tab_item(
+          truncate(&basename(&til_home(&tab.pwd)), 12),
+          i,
+          is_active
+        ))
+        .on_middle_press(Message::CloseTab(i))
+      ]
       .spacing(2),
     );
   }
@@ -123,7 +125,10 @@ fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Messa
       border: Border {
         color: {
           let b = theme::color::runtime().border;
-          iced::Color { a: if active { 0.15 } else { 0.0 }, ..b }
+          iced::Color {
+            a: if active { 0.15 } else { 0.0 },
+            ..b
+          }
         },
         radius: Radius::new(4.0),
         width: 1.0,

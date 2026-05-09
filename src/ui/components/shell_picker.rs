@@ -8,7 +8,11 @@ use crate::ui::{app_state::Message, theme, typography::Typography};
 
 const PANEL_WIDTH: f32 = 180.0;
 
-pub fn shell_picker(shells: &[String], anchor_x: f32, window_width: f32) -> Element<'static, Message> {
+pub fn shell_picker(
+  shells: &[String],
+  anchor_x: f32,
+  window_width: f32,
+) -> Element<'static, Message> {
   let mut items = column![].spacing(2);
 
   for shell in shells {
@@ -30,9 +34,7 @@ pub fn shell_picker(shells: &[String], anchor_x: f32, window_width: f32) -> Elem
         },
         background: Some(
           match status {
-            button::Status::Hovered | button::Status::Pressed => {
-              theme::color::BG_HIGH.as_color()
-            }
+            button::Status::Hovered | button::Status::Pressed => theme::color::BG_HIGH.as_color(),
             _ => theme::color::TRANSPARENT.as_color(),
           }
           .into(),

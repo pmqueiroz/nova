@@ -114,7 +114,14 @@ fn row_spans(
   }
 
   if !seg_text.is_empty() {
-    spans.push(cell_span(seg_text, seg_fg, seg_bg, seg_reverse, seg_underline, font_size));
+    spans.push(cell_span(
+      seg_text,
+      seg_fg,
+      seg_bg,
+      seg_reverse,
+      seg_underline,
+      font_size,
+    ));
   }
 
   spans
@@ -149,7 +156,14 @@ pub fn term<'a>(
     } else {
       None
     };
-    let spans = row_spans(row_cells, cursor_col, y, eff_selection, font_size, hovered_url);
+    let spans = row_spans(
+      row_cells,
+      cursor_col,
+      y,
+      eff_selection,
+      font_size,
+      hovered_url,
+    );
     grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
   }
 

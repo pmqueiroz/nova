@@ -37,7 +37,6 @@ impl Tab {
       scroll_offset: 0,
     }
   }
-
 }
 
 fn shell_display_name(cmd: &str) -> String {

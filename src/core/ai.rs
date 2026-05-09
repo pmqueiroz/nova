@@ -19,14 +19,23 @@ pub struct AiQuery {
 /// Scan visible rows bottom-up for the last λ prompt; return rows after it as text.
 pub fn extract_last_output(grid: &Grid) -> String {
   let rows = &grid.cells;
-  let prompt_row = (0..rows.len()).rev().find(|&r| rows[r].iter().any(|c| c.c == 'λ'));
+  let prompt_row = (0..rows.len())
+    .rev()
+    .find(|&r| rows[r].iter().any(|c| c.c == 'λ'));
   let start = match prompt_row {
     Some(r) => r + 1,
     None => return String::new(),
   };
   rows[start..]
     .iter()
-    .map(|row| row.iter().map(|c| c.c).collect::<String>().trim_end().to_string())
+    .map(|row| {
+      row
+        .iter()
+        .map(|c| c.c)
+        .collect::<String>()
+        .trim_end()
+        .to_string()
+    })
     .filter(|l| !l.is_empty())
     .collect::<Vec<_>>()
     .join("\n")
@@ -59,8 +68,10 @@ async fn query_anthropic(q: AiQuery) -> Result<String, String> {
     .build()
     .map_err(|e| e.to_string())?;
 
-  let api_base =
-    q.base_url.clone().unwrap_or_else(|| "https://api.anthropic.com".to_string());
+  let api_base = q
+    .base_url
+    .clone()
+    .unwrap_or_else(|| "https://api.anthropic.com".to_string());
   let client = ClientBuilder::default()
     .api_key(q.api_key.clone())
     .api_base(api_base)
@@ -73,13 +84,20 @@ async fn query_anthropic(q: AiQuery) -> Result<String, String> {
     .content
     .into_iter()
     .find_map(|block| {
-      if let ContentBlock::Text { text } = block { Some(text) } else { None }
+      if let ContentBlock::Text { text } = block {
+        Some(text)
+      } else {
+        None
+      }
     })
     .ok_or_else(|| "No text in response".to_string())
 }
 
 async fn query_openai(q: AiQuery) -> Result<String, String> {
-  let mut base = q.base_url.clone().unwrap_or_else(|| "https://api.openai.com/v1/".to_string());
+  let mut base = q
+    .base_url
+    .clone()
+    .unwrap_or_else(|| "https://api.openai.com/v1/".to_string());
   if !base.ends_with('/') {
     base.push('/');
   }
@@ -92,7 +110,10 @@ async fn query_openai(q: AiQuery) -> Result<String, String> {
     let body = ChatBody {
       model: q.model,
       messages: vec![
-        OaiMessage { role: OaiRole::System, content: system },
+        OaiMessage {
+          role: OaiRole::System,
+          content: system,
+        },
         OaiMessage {
           role: OaiRole::User,
           content: build_user_message(&q.context, &q.question),

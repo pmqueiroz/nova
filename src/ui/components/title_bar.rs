@@ -82,7 +82,10 @@ pub fn title_bar(
       container(settings_button())
         .width(Length::FillPortion(1))
         .center_y(40)
-        .padding(Padding { left: 8.0, ..Default::default() }),
+        .padding(Padding {
+          left: 8.0,
+          ..Default::default()
+        }),
       container(brand)
         .center_x(Length::FillPortion(2))
         .center_y(40),
@@ -97,7 +100,10 @@ pub fn title_bar(
       container(controls)
         .width(Length::FillPortion(1))
         .center_y(40)
-        .padding(Padding { left: 8.0, ..Default::default() }),
+        .padding(Padding {
+          left: 8.0,
+          ..Default::default()
+        }),
       container(brand)
         .center_x(Length::FillPortion(2))
         .center_y(40),
@@ -105,7 +111,10 @@ pub fn title_bar(
         .width(Length::FillPortion(1))
         .center_y(40)
         .align_x(Horizontal::Right)
-        .padding(Padding { right: 8.0, ..Default::default() }),
+        .padding(Padding {
+          right: 8.0,
+          ..Default::default()
+        }),
     ]
     .height(40)
   };

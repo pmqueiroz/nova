@@ -4,9 +4,9 @@ use iced::{
   widget::{button, column, container, row, space::horizontal, text},
 };
 
+use super::btn_subtle_style;
 use crate::core::config;
 use crate::ui::{app_state::Message, theme};
-use super::btn_subtle_style;
 
 pub fn keybindings_tab<'a>(
   settings: &'a config::Config,

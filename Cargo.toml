@@ -2,6 +2,10 @@
 name = "nova"
 version = "0.12.2"
 edition = "2024"
+description = "A GPU-accelerated terminal emulator"
+license = "MIT"
+homepage = "https://github.com/pmqueiroz/nova"
+repository = "https://github.com/pmqueiroz/nova"
 
 [dependencies]
 anyhow = "1.0.102"

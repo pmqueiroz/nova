@@ -180,10 +180,7 @@ fn stitch_continuation(
   let mut url = base;
   let mut end_row = start_row.saturating_sub(1);
   let mut r = start_row;
-  loop {
-    let Some(cells) = get_display_row(grid, scroll_offset, r) else {
-      break;
-    };
+  while let Some(cells) = get_display_row(grid, scroll_offset, r) {
     let cont = crate::core::url::url_continuation_len(cells);
     if cont == 0 {
       break;

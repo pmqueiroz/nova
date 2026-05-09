@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.5](https://github.com/pmqueiroz/nova/compare/v0.12.4...v0.12.5) (2026-05-09)
+
+
+### Bug Fixes
+
+* force overwrite Packages.gz in apt repo job ([74b24ed](https://github.com/pmqueiroz/nova/commit/74b24ed182da757f1f9c4e9923ffe05c8fffe4f0))
+
 ## [0.12.4](https://github.com/pmqueiroz/nova/compare/v0.12.3...v0.12.4) (2026-05-09)
 
 

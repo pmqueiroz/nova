@@ -77,7 +77,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
         c,
         fg: self.grid.current_fg,
         bg: self.grid.current_bg,
-        reverse: self.grid.reverse_video,
+        attrs: self.grid.current_attrs,
         uri: self.grid.current_uri.clone(),
       };
       if x + 1 >= self.grid.cols {
@@ -145,6 +145,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
         if params.iter().next().is_none() {
           self.grid.current_fg = None;
           self.grid.current_bg = None;
+          self.grid.current_attrs = crate::core::grid::CellAttrs::empty();
           return;
         }
         let mut iter = params.iter();
@@ -154,12 +155,69 @@ impl<'a> Perform for AnsiExecutor<'a> {
             0 => {
               self.grid.current_fg = None;
               self.grid.current_bg = None;
-              self.grid.reverse_video = false;
+              self.grid.current_attrs = crate::core::grid::CellAttrs::empty();
             }
-            7 => self.grid.reverse_video = true,
-            27 => self.grid.reverse_video = false,
+            1 => self
+              .grid
+              .current_attrs
+              .insert(crate::core::grid::CellAttrs::BOLD),
+            2 => self
+              .grid
+              .current_attrs
+              .insert(crate::core::grid::CellAttrs::DIM),
+            3 => self
+              .grid
+              .current_attrs
+              .insert(crate::core::grid::CellAttrs::ITALIC),
+            4 => self
+              .grid
+              .current_attrs
+              .insert(crate::core::grid::CellAttrs::UNDERLINE),
+            5 | 6 => self
+              .grid
+              .current_attrs
+              .insert(crate::core::grid::CellAttrs::BLINK),
+            7 => self
+              .grid
+              .current_attrs
+              .insert(crate::core::grid::CellAttrs::REVERSE),
+            8 => {} // HIDDEN
+            9 => self
+              .grid
+              .current_attrs
+              .insert(crate::core::grid::CellAttrs::STRIKETHROUGH),
+            21 | 22 => {
+              self
+                .grid
+                .current_attrs
+                .remove(crate::core::grid::CellAttrs::BOLD);
+              self
+                .grid
+                .current_attrs
+                .remove(crate::core::grid::CellAttrs::DIM);
+            }
+            23 => self
+              .grid
+              .current_attrs
+              .remove(crate::core::grid::CellAttrs::ITALIC),
+            24 => self
+              .grid
+              .current_attrs
+              .remove(crate::core::grid::CellAttrs::UNDERLINE),
+            25 => self
+              .grid
+              .current_attrs
+              .remove(crate::core::grid::CellAttrs::BLINK),
+            27 => self
+              .grid
+              .current_attrs
+              .remove(crate::core::grid::CellAttrs::REVERSE),
+            28 => {} // REVEAL
+            29 => self
+              .grid
+              .current_attrs
+              .remove(crate::core::grid::CellAttrs::STRIKETHROUGH),
             39 => self.grid.current_fg = None,
-            1..=6 | 8..=9 | 21..=26 | 28..=29 => {}
             30..=37 => self.grid.current_fg = Some(ansi_fg(code - 30, false)),
             38 => {
               if param.len() >= 3 && param[1] == 5 {

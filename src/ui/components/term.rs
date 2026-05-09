@@ -80,8 +80,7 @@ fn row_spans(
   let mut seg_text = String::new();
   let mut seg_fg: Option<Color> = None;
   let mut seg_bg: Option<Color> = None;
-  let mut seg_reverse = false;
-  let mut seg_underline = false;
+  let mut seg_attrs = crate::core::grid::CellAttrs::empty();
 
   for (x, cell) in row_cells.iter().enumerate() {
     let is_cursor = cursor_col == Some(x);
@@ -92,12 +91,20 @@ fn row_spans(
       false
     };
 
-    let (eff_fg, eff_bg, eff_reverse) = if is_selected {
+    let (eff_fg, eff_bg, mut eff_attrs) = if is_selected {
       let rt = theme::color::runtime();
-      (Some(rt.background), Some(rt.accent), false)
+      (
+        Some(rt.background),
+        Some(rt.accent),
+        crate::core::grid::CellAttrs::empty(),
+      )
     } else {
-      (cell.fg, cell.bg, cell.reverse)
+      (cell.fg, cell.bg, cell.attrs)
     };
+
+    if is_url_hovered {
+      eff_attrs.insert(crate::core::grid::CellAttrs::UNDERLINE);
+    }
 
     if is_cursor {
       if !seg_text.is_empty() {
@@ -105,8 +112,7 @@ fn row_spans(
           std::mem::take(&mut seg_text),
           seg_fg,
           seg_bg,
-          seg_reverse,
-          seg_underline,
+          seg_attrs,
           font_size,
         ));
       }
@@ -121,42 +127,28 @@ fn row_spans(
       );
       seg_fg = eff_fg;
       seg_bg = eff_bg;
-      seg_reverse = eff_reverse;
-      seg_underline = is_url_hovered;
+      seg_attrs = eff_attrs;
     } else {
-      if eff_fg != seg_fg
-        || eff_bg != seg_bg
-        || eff_reverse != seg_reverse
-        || is_url_hovered != seg_underline
-      {
+      if eff_fg != seg_fg || eff_bg != seg_bg || eff_attrs != seg_attrs {
         if !seg_text.is_empty() {
           spans.push(cell_span(
             std::mem::take(&mut seg_text),
             seg_fg,
             seg_bg,
-            seg_reverse,
-            seg_underline,
+            seg_attrs,
             font_size,
           ));
         }
         seg_fg = eff_fg;
         seg_bg = eff_bg;
-        seg_reverse = eff_reverse;
-        seg_underline = is_url_hovered;
+        seg_attrs = eff_attrs;
       }
       seg_text.push(cell.c);
     }
   }
 
   if !seg_text.is_empty() {
-    spans.push(cell_span(
-      seg_text,
-      seg_fg,
-      seg_bg,
-      seg_reverse,
-      seg_underline,
-      font_size,
-    ));
+    spans.push(cell_span(seg_text, seg_fg, seg_bg, seg_attrs, font_size));
   }
 
   spans
@@ -240,16 +232,50 @@ pub fn term<'a>(
 
 fn cell_span(
   text: String,
-  fg: Option<Color>,
+  mut fg: Option<Color>,
   bg: Option<Color>,
-  reverse: bool,
-  underline: bool,
+  attrs: crate::core::grid::CellAttrs,
   font_size: f32,
 ) -> Span<'static> {
   let rt = theme::color::runtime();
   let term_fg = rt.foreground;
   let term_bg = rt.background;
   drop(rt);
+
+  let reverse = attrs.contains(crate::core::grid::CellAttrs::REVERSE);
+  let bold = attrs.contains(crate::core::grid::CellAttrs::BOLD);
+  let italic = attrs.contains(crate::core::grid::CellAttrs::ITALIC);
+  let underline = attrs.contains(crate::core::grid::CellAttrs::UNDERLINE);
+  let strikethrough = attrs.contains(crate::core::grid::CellAttrs::STRIKETHROUGH);
+  let dim = attrs.contains(crate::core::grid::CellAttrs::DIM);
+
+  if dim {
+    if let Some(c) = fg.as_mut() {
+      c.a = 0.5;
+    } else {
+      let mut c = term_fg;
+      c.a = 0.5;
+      fg = Some(c);
+    }
+  }
+
+  let font = match (bold, italic) {
+    (true, true) => iced::Font {
+      family: iced::font::Family::Name("FiraCode Nerd Font"),
+      weight: iced::font::Weight::Bold,
+      style: iced::font::Style::Italic,
+      stretch: iced::font::Stretch::Normal,
+    },
+    (true, false) => theme::font::BOLD,
+    (false, true) => iced::Font {
+      family: iced::font::Family::Name("FiraCode Nerd Font"),
+      weight: iced::font::Weight::Normal,
+      style: iced::font::Style::Italic,
+      stretch: iced::font::Stretch::Normal,
+    },
+    (false, false) => theme::font::REGULAR,
+  };
+
   if reverse {
     let rev_fg = bg.unwrap_or(term_bg);
     let rev_bg = fg.unwrap_or(term_fg);
@@ -257,14 +283,16 @@ fn cell_span(
       .color(rev_fg)
       .background(Background::Color(rev_bg))
       .underline(underline)
-      .font(theme::font::REGULAR)
+      .strikethrough(strikethrough)
+      .font(font)
       .size(font_size)
   } else {
     let color = fg.unwrap_or(term_fg);
     let mut span = Span::new(text)
       .color(color)
       .underline(underline)
-      .font(theme::font::REGULAR)
+      .strikethrough(strikethrough)
+      .font(font)
       .size(font_size);
     if let Some(bg_color) = bg {
       span = span.background(Background::Color(bg_color));

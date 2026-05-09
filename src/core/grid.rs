@@ -1,14 +1,28 @@
+use bitflags::bitflags;
 use iced::Color;
 use std::sync::Arc;
 
 const SCROLLBACK_LIMIT: usize = 10_000;
+
+bitflags! {
+    #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+    pub struct CellAttrs: u8 {
+        const BOLD          = 0b00000001;
+        const DIM           = 0b00000010;
+        const ITALIC        = 0b00000100;
+        const UNDERLINE     = 0b00001000;
+        const BLINK         = 0b00010000;
+        const REVERSE       = 0b00100000;
+        const STRIKETHROUGH = 0b01000000;
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Cell {
   pub c: char,
   pub fg: Option<Color>,
   pub bg: Option<Color>,
-  pub reverse: bool,
+  pub attrs: CellAttrs,
   pub uri: Option<Arc<str>>,
 }
 
@@ -18,7 +32,7 @@ impl Default for Cell {
       c: ' ',
       fg: None,
       bg: None,
-      reverse: false,
+      attrs: CellAttrs::empty(),
       uri: None,
     }
   }
@@ -31,7 +45,7 @@ pub struct Grid {
   pub current_fg: Option<Color>,
   pub current_bg: Option<Color>,
   pub current_uri: Option<Arc<str>>,
-  pub reverse_video: bool,
+  pub current_attrs: CellAttrs,
   pub cols: usize,
   pub rows: usize,
   pub scroll_top: usize,
@@ -56,7 +70,7 @@ impl Grid {
       current_fg: None,
       current_bg: None,
       current_uri: None,
-      reverse_video: false,
+      current_attrs: CellAttrs::empty(),
       cols,
       rows,
       scroll_top: 0,
@@ -85,7 +99,7 @@ impl Grid {
       self.current_fg = None;
       self.current_bg = None;
       self.current_uri = None;
-      self.reverse_video = false;
+      self.current_attrs = CellAttrs::empty();
       self.wrap_next = false;
     }
   }
@@ -106,7 +120,7 @@ impl Grid {
     self.current_fg = None;
     self.current_bg = None;
     self.current_uri = None;
-    self.reverse_video = false;
+    self.current_attrs = CellAttrs::empty();
     self.wrap_next = false;
   }
 

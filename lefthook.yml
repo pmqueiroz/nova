@@ -1,9 +1,9 @@
 pre-commit:
-  parallel: true
+  parallel: false
   jobs:
-    - run: cargo fmt -- {staged_files}
+    - run: cargo clippy --fix --allow-dirty --allow-staged
       glob: "*.rs"
       stage_fixed: true
-    - run: cargo clippy --fix --allow-dirty --allow-staged
+    - run: cargo fmt -- {staged_files}
       glob: "*.rs"
       stage_fixed: true

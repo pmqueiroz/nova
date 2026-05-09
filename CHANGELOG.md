@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.4](https://github.com/pmqueiroz/nova/compare/v0.12.3...v0.12.4) (2026-05-09)
+
+
+### Bug Fixes
+
+* correct AUR action, RPM git add path, winget continue-on-error ([24c822f](https://github.com/pmqueiroz/nova/commit/24c822f8bf00fdfb3c4fd460ae784cdf07a44da7))
+
 ## [0.12.3](https://github.com/pmqueiroz/nova/compare/v0.12.2...v0.12.3) (2026-05-09)
 
 

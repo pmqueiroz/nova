@@ -117,10 +117,9 @@ impl<'a> Perform for AnsiExecutor<'a> {
         self.grid.wrap_next = false;
       }
       // backspace
-      0x08 | 0x7F
-        if self.grid.cursor_x > 0 => {
-          self.grid.cursor_x -= 1;
-        }
+      0x08 | 0x7F if self.grid.cursor_x > 0 => {
+        self.grid.cursor_x -= 1;
+      }
       // tab — advance to next 8-column tab stop
       0x09 => {
         let next = (self.grid.cursor_x / 8 + 1) * 8;
@@ -439,14 +438,15 @@ impl<'a> Perform for AnsiExecutor<'a> {
       'n' => {
         let mut iter = params.iter();
         if let Some(param) = iter.next()
-          && param.contains(&6) {
-            let row = self.grid.cursor_y + 1;
-            let col = self.grid.cursor_x + 1;
+          && param.contains(&6)
+        {
+          let row = self.grid.cursor_y + 1;
+          let col = self.grid.cursor_x + 1;
 
-            let response = format!("\x1b[{};{}R", row, col);
+          let response = format!("\x1b[{};{}R", row, col);
 
-            self.grid.output_queue.push(response.into_bytes());
-          }
+          self.grid.output_queue.push(response.into_bytes());
+        }
       }
       _ => {}
     }
@@ -456,15 +456,16 @@ impl<'a> Perform for AnsiExecutor<'a> {
     if params.len() >= 2 && params[0] == b"7" {
       let raw_url = String::from_utf8_lossy(params[1]).to_string();
       if let Some(after_scheme) = raw_url.strip_prefix("file://")
-        && let Some((_, path)) = after_scheme.split_once('/') {
-          #[cfg(target_os = "windows")]
-          let pwd = path.replace('/', "\\");
+        && let Some((_, path)) = after_scheme.split_once('/')
+      {
+        #[cfg(target_os = "windows")]
+        let pwd = path.replace('/', "\\");
 
-          #[cfg(not(target_os = "windows"))]
-          let pwd = format!("/{}", path);
+        #[cfg(not(target_os = "windows"))]
+        let pwd = format!("/{}", path);
 
-          self.grid.pwd = pwd;
-        }
+        self.grid.pwd = pwd;
+      }
     }
   }
 }

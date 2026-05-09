@@ -278,9 +278,10 @@ fn keybinding_to_string(key: &Key, mods: keyboard::Modifiers) -> Option<String> 
 
 fn derive_available_shells(settings: &config::Config) -> Vec<String> {
   if let Some(shells) = &settings.general.shells
-    && !shells.is_empty() {
-      return shells.clone();
-    }
+    && !shells.is_empty()
+  {
+    return shells.clone();
+  }
   config::detect_shells()
 }
 
@@ -540,9 +541,10 @@ impl Nova {
       }
       Message::SettingsRemoveShell(i) => {
         if let Some(shells) = &mut self.settings.general.shells
-          && i < shells.len() {
-            shells.remove(i);
-          }
+          && i < shells.len()
+        {
+          shells.remove(i);
+        }
         let _ = config::save(&self.settings);
         self.available_shells = derive_available_shells(&self.settings);
       }
@@ -589,21 +591,22 @@ impl Nova {
       }
       Message::SettingsRecordKb { key, modifiers } => {
         if let Some(idx) = self.settings_recording_index
-          && let Some(s) = keybinding_to_string(&key, modifiers) {
-            match idx {
-              0 => self.settings.keybindings.new_tab = s,
-              1 => self.settings.keybindings.close_tab = s,
-              2 => self.settings.keybindings.next_tab = s,
-              3 => self.settings.keybindings.prev_tab = s,
-              4 => self.settings.keybindings.paste = s,
-              5 => self.settings.keybindings.copy = s,
-              _ => {}
-            }
-            let _ = config::save(&self.settings);
-            let _ = config::reload_parsed_keybindings(&self.settings);
-            self.settings_recording_index = None;
-            KB_RECORDING.store(false, Ordering::SeqCst);
+          && let Some(s) = keybinding_to_string(&key, modifiers)
+        {
+          match idx {
+            0 => self.settings.keybindings.new_tab = s,
+            1 => self.settings.keybindings.close_tab = s,
+            2 => self.settings.keybindings.next_tab = s,
+            3 => self.settings.keybindings.prev_tab = s,
+            4 => self.settings.keybindings.paste = s,
+            5 => self.settings.keybindings.copy = s,
+            _ => {}
           }
+          let _ = config::save(&self.settings);
+          let _ = config::reload_parsed_keybindings(&self.settings);
+          self.settings_recording_index = None;
+          KB_RECORDING.store(false, Ordering::SeqCst);
+        }
       }
       Message::SettingsCancelRecordKb => {
         self.settings_recording_index = None;
@@ -640,9 +643,9 @@ impl Nova {
               .create(true)
               .append(true)
               .open("C:\\Users\\Public\\nova_pty_debug.bin")
-            {
-              let _ = f.write_all(&bytes);
-            }
+          {
+            let _ = f.write_all(&bytes);
+          }
           let mut executor = AnsiExecutor {
             grid: &mut tab.grid,
           };
@@ -737,14 +740,16 @@ impl Nova {
           return iced::Task::none();
         }
         if self.ctrl_held
-          && let Some(url) = self.hovered_url.clone() {
-            let _ = open::that_detached(&url);
-            return iced::Task::none();
-          }
+          && let Some(url) = self.hovered_url.clone()
+        {
+          let _ = open::that_detached(&url);
+          return iced::Task::none();
+        }
         if let Some(window_id) = self.window_id
-          && let Some(direction) = resize_direction(self.cursor_position, self.window_size) {
-            return window::drag_resize(window_id, direction);
-          }
+          && let Some(direction) = resize_direction(self.cursor_position, self.window_size)
+        {
+          return window::drag_resize(window_id, direction);
+        }
         let font_size = self.settings.theme.font.size;
         let cell = pixel_to_cell(self.cursor_position, font_size);
         self.selection_start = cell;
@@ -774,12 +779,13 @@ impl Nova {
       }
       Message::CopySelection => {
         if let (Some(start), Some(end)) = (self.selection_start, self.selection_end)
-          && let Some(active_tab) = self.tabs.get(self.active_index) {
-            let text = extract_selection(&active_tab.grid, start, end);
-            if !text.is_empty() {
-              return iced::clipboard::write(text);
-            }
+          && let Some(active_tab) = self.tabs.get(self.active_index)
+        {
+          let text = extract_selection(&active_tab.grid, start, end);
+          if !text.is_empty() {
+            return iced::clipboard::write(text);
           }
+        }
       }
       Message::PasteRequested => {
         return iced::clipboard::read().map(Message::ClipboardReceived);
@@ -787,21 +793,23 @@ impl Nova {
       Message::ClipboardReceived(text) => {
         if let Some(text) = text
           && let Some(tab) = self.tabs.get(self.active_index)
-            && let Some(tx) = &tab.pty_tx {
-              let _ = tx.try_send(PtyCommand::Input(text.into_bytes()));
-            }
+          && let Some(tx) = &tab.pty_tx
+        {
+          let _ = tx.try_send(PtyCommand::Input(text.into_bytes()));
+        }
       }
       Message::Scroll(delta) => {
         if !self.settings_open
-          && let Some(tab) = self.tabs.get_mut(self.active_index) {
-            let rows = (delta.abs() * 3.0).round() as usize;
-            if delta > 0.0 {
-              let new_offset = tab.scroll_offset.saturating_add(rows);
-              tab.scroll_offset = new_offset.min(tab.grid.scrollback.len());
-            } else {
-              tab.scroll_offset = tab.scroll_offset.saturating_sub(rows);
-            }
+          && let Some(tab) = self.tabs.get_mut(self.active_index)
+        {
+          let rows = (delta.abs() * 3.0).round() as usize;
+          if delta > 0.0 {
+            let new_offset = tab.scroll_offset.saturating_add(rows);
+            tab.scroll_offset = new_offset.min(tab.grid.scrollback.len());
+          } else {
+            tab.scroll_offset = tab.scroll_offset.saturating_sub(rows);
           }
+        }
       }
       Message::ModifiersChanged(mods) => {
         self.ctrl_held = mods.command();
@@ -949,9 +957,10 @@ impl Nova {
         self.ai_is_error = false;
         self.ai_loading = false;
         if let Some(tab) = self.tabs.get(self.active_index)
-          && let Some(tx) = &tab.pty_tx {
-            let _ = tx.try_send(crate::sys::pty::PtyCommand::Input(code.into_bytes()));
-          }
+          && let Some(tx) = &tab.pty_tx
+        {
+          let _ = tx.try_send(crate::sys::pty::PtyCommand::Input(code.into_bytes()));
+        }
       }
       Message::SettingsAiProviderChanged(provider) => {
         self.settings.ai.provider = provider;
@@ -1169,10 +1178,11 @@ impl Nova {
         if modifiers.control() {
           if let Key::Character(c) = &key
             && let Some(ch) = c.as_str().chars().next()
-              && ch.is_ascii_alphabetic() {
-                let lower = ch.to_ascii_lowercase();
-                return Some(Message::Type(vec![(lower as u8) & 0x1f]));
-              }
+            && ch.is_ascii_alphabetic()
+          {
+            let lower = ch.to_ascii_lowercase();
+            return Some(Message::Type(vec![(lower as u8) & 0x1f]));
+          }
           return None;
         }
 
@@ -1196,24 +1206,14 @@ impl Nova {
 
         None
       }
-      Event::Window(window::Event::Opened { .. }) => {
-        Some(Message::WindowOpened(window_id))
-      }
-      Event::Window(window::Event::Focused) => {
-        Some(Message::WindowFocused)
-      }
-      Event::Window(window::Event::Unfocused) => {
-        Some(Message::WindowUnfocused)
-      }
+      Event::Window(window::Event::Opened { .. }) => Some(Message::WindowOpened(window_id)),
+      Event::Window(window::Event::Focused) => Some(Message::WindowFocused),
+      Event::Window(window::Event::Unfocused) => Some(Message::WindowUnfocused),
       Event::Window(window::Event::Resized(size)) => {
         Some(Message::WindowResized(size.width, size.height))
       }
-      Event::Mouse(mouse::Event::CursorMoved { position }) => {
-        Some(Message::CursorMoved(position))
-      }
-      Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => {
-        Some(Message::MousePressed)
-      }
+      Event::Mouse(mouse::Event::CursorMoved { position }) => Some(Message::CursorMoved(position)),
+      Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => Some(Message::MousePressed),
       Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
         Some(Message::MouseReleased)
       }

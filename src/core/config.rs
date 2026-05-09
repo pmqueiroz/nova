@@ -307,9 +307,10 @@ pub fn update_keybindings(new: ParsedKeybindings) {
 
 pub fn available_shells() -> Vec<String> {
   if let Some(shells) = &get().general.shells
-    && !shells.is_empty() {
-      return shells.clone();
-    }
+    && !shells.is_empty()
+  {
+    return shells.clone();
+  }
   detect_shells()
 }
 

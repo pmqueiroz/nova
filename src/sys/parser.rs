@@ -521,6 +521,9 @@ impl<'a> Perform for AnsiExecutor<'a> {
           1006 => {
             self.grid.mouse_sgr = command == 'h';
           }
+          2004 => {
+            self.grid.bracketed_paste = command == 'h';
+          }
           _ => {}
         }
       }

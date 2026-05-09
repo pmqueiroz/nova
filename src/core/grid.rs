@@ -57,6 +57,7 @@ pub struct Grid {
   pub current_attrs: CellAttrs,
   pub mouse_mode: MouseMode,
   pub mouse_sgr: bool,
+  pub bracketed_paste: bool,
   pub cols: usize,
   pub rows: usize,
   pub scroll_top: usize,
@@ -84,6 +85,7 @@ impl Grid {
       current_attrs: CellAttrs::empty(),
       mouse_mode: MouseMode::None,
       mouse_sgr: false,
+      bracketed_paste: false,
       cols,
       rows,
       scroll_top: 0,
@@ -113,6 +115,7 @@ impl Grid {
       self.current_bg = None;
       self.current_uri = None;
       self.current_attrs = CellAttrs::empty();
+      self.bracketed_paste = false;
       self.wrap_next = false;
     }
   }

@@ -992,7 +992,15 @@ impl Nova {
           && let Some(tab) = self.tabs.get(self.active_index)
           && let Some(tx) = &tab.pty_tx
         {
-          let _ = tx.try_send(PtyCommand::Input(text.into_bytes()));
+          if tab.grid.bracketed_paste {
+            let mut payload = Vec::with_capacity(text.len() + 12);
+            payload.extend_from_slice(b"\x1b[200~");
+            payload.extend_from_slice(text.as_bytes());
+            payload.extend_from_slice(b"\x1b[201~");
+            let _ = tx.try_send(PtyCommand::Input(payload));
+          } else {
+            let _ = tx.try_send(PtyCommand::Input(text.into_bytes()));
+          }
         }
       }
       Message::Scroll(delta) => {

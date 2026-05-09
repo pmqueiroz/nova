@@ -34,7 +34,8 @@ jobs:
             libxcursor-dev \
             pkg-config \
             libgl1-mesa-dev \
-            libegl1-mesa-dev
+            libegl1-mesa-dev \
+            libasound2-dev
       - name: Check formatting
         run: cargo fmt --check
       - name: Run Clippy

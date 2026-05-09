@@ -63,7 +63,8 @@ jobs:
             pkg-config \
             libgl1-mesa-dev \
             libegl1-mesa-dev \
-            libfuse2
+            libfuse2 \
+            libasound2-dev
 
       - name: Install cargo-packager
         if: steps.cache-packager.outputs.cache-hit != 'true'

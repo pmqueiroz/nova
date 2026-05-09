@@ -12,7 +12,7 @@ use crate::ui::{
   typography::Typography,
 };
 
-pub fn tab_bar(tabs: &Vec<Tab>, active_index: usize) -> Element<'static, Message> {
+pub fn tab_bar(tabs: &[Tab], active_index: usize) -> Element<'static, Message> {
   let mut tab_bar = row![];
 
   for (i, tab) in tabs.iter().enumerate() {

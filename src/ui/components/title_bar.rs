@@ -53,7 +53,7 @@ fn settings_button() -> Element<'static, Message> {
 
 pub fn title_bar(
   window_focused: bool,
-  pwd: &String,
+  pwd: &str,
   maximized: bool,
   cursor_interaction: iced::mouse::Interaction,
   window_controls: &WindowControls,

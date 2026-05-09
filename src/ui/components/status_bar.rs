@@ -89,8 +89,6 @@ pub fn status_bar_text(content: impl Into<String>, accent: bool) -> iced::widget
     },
 
     size: 10.into(),
-    ..Default::default()
   }
   .as_text(content)
-  .into()
 }

@@ -32,6 +32,5 @@ impl Typography {
       })
       .color(self.color)
       .size(self.size)
-      .into()
   }
 }

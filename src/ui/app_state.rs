@@ -211,8 +211,8 @@ fn extract_selection(
     } else {
       grid.cols.saturating_sub(1)
     };
-    for col in col_start..=col_end {
-      result.push(row_cells[col].c);
+    for cell in row_cells.iter().take(col_end + 1).skip(col_start) {
+      result.push(cell.c);
     }
     if row < er {
       result.push('\n');
@@ -277,11 +277,10 @@ fn keybinding_to_string(key: &Key, mods: keyboard::Modifiers) -> Option<String> 
 }
 
 fn derive_available_shells(settings: &config::Config) -> Vec<String> {
-  if let Some(shells) = &settings.general.shells {
-    if !shells.is_empty() {
+  if let Some(shells) = &settings.general.shells
+    && !shells.is_empty() {
       return shells.clone();
     }
-  }
   config::detect_shells()
 }
 
@@ -540,11 +539,10 @@ impl Nova {
         }
       }
       Message::SettingsRemoveShell(i) => {
-        if let Some(shells) = &mut self.settings.general.shells {
-          if i < shells.len() {
+        if let Some(shells) = &mut self.settings.general.shells
+          && i < shells.len() {
             shells.remove(i);
           }
-        }
         let _ = config::save(&self.settings);
         self.available_shells = derive_available_shells(&self.settings);
       }
@@ -590,8 +588,8 @@ impl Nova {
         KB_RECORDING.store(true, Ordering::SeqCst);
       }
       Message::SettingsRecordKb { key, modifiers } => {
-        if let Some(idx) = self.settings_recording_index {
-          if let Some(s) = keybinding_to_string(&key, modifiers) {
+        if let Some(idx) = self.settings_recording_index
+          && let Some(s) = keybinding_to_string(&key, modifiers) {
             match idx {
               0 => self.settings.keybindings.new_tab = s,
               1 => self.settings.keybindings.close_tab = s,
@@ -606,7 +604,6 @@ impl Nova {
             self.settings_recording_index = None;
             KB_RECORDING.store(false, Ordering::SeqCst);
           }
-        }
       }
       Message::SettingsCancelRecordKb => {
         self.settings_recording_index = None;
@@ -638,15 +635,14 @@ impl Nova {
       }
       Message::PtyOutputReceived(tab_id, bytes) => {
         if let Some(tab) = self.tabs.iter_mut().find(|t| t.id == tab_id) {
-          if std::env::var("NOVA_DEBUG_PTY").is_ok() {
-            if let Ok(mut f) = std::fs::OpenOptions::new()
+          if std::env::var("NOVA_DEBUG_PTY").is_ok()
+            && let Ok(mut f) = std::fs::OpenOptions::new()
               .create(true)
               .append(true)
               .open("C:\\Users\\Public\\nova_pty_debug.bin")
             {
               let _ = f.write_all(&bytes);
             }
-          }
           let mut executor = AnsiExecutor {
             grid: &mut tab.grid,
           };
@@ -740,17 +736,15 @@ impl Nova {
         {
           return iced::Task::none();
         }
-        if self.ctrl_held {
-          if let Some(url) = self.hovered_url.clone() {
+        if self.ctrl_held
+          && let Some(url) = self.hovered_url.clone() {
             let _ = open::that_detached(&url);
             return iced::Task::none();
           }
-        }
-        if let Some(window_id) = self.window_id {
-          if let Some(direction) = resize_direction(self.cursor_position, self.window_size) {
+        if let Some(window_id) = self.window_id
+          && let Some(direction) = resize_direction(self.cursor_position, self.window_size) {
             return window::drag_resize(window_id, direction);
           }
-        }
         let font_size = self.settings.theme.font.size;
         let cell = pixel_to_cell(self.cursor_position, font_size);
         self.selection_start = cell;
@@ -779,30 +773,27 @@ impl Nova {
         }
       }
       Message::CopySelection => {
-        if let (Some(start), Some(end)) = (self.selection_start, self.selection_end) {
-          if let Some(active_tab) = self.tabs.get(self.active_index) {
+        if let (Some(start), Some(end)) = (self.selection_start, self.selection_end)
+          && let Some(active_tab) = self.tabs.get(self.active_index) {
             let text = extract_selection(&active_tab.grid, start, end);
             if !text.is_empty() {
               return iced::clipboard::write(text);
             }
           }
-        }
       }
       Message::PasteRequested => {
         return iced::clipboard::read().map(Message::ClipboardReceived);
       }
       Message::ClipboardReceived(text) => {
-        if let Some(text) = text {
-          if let Some(tab) = self.tabs.get(self.active_index) {
-            if let Some(tx) = &tab.pty_tx {
+        if let Some(text) = text
+          && let Some(tab) = self.tabs.get(self.active_index)
+            && let Some(tx) = &tab.pty_tx {
               let _ = tx.try_send(PtyCommand::Input(text.into_bytes()));
             }
-          }
-        }
       }
       Message::Scroll(delta) => {
-        if !self.settings_open {
-          if let Some(tab) = self.tabs.get_mut(self.active_index) {
+        if !self.settings_open
+          && let Some(tab) = self.tabs.get_mut(self.active_index) {
             let rows = (delta.abs() * 3.0).round() as usize;
             if delta > 0.0 {
               let new_offset = tab.scroll_offset.saturating_add(rows);
@@ -811,7 +802,6 @@ impl Nova {
               tab.scroll_offset = tab.scroll_offset.saturating_sub(rows);
             }
           }
-        }
       }
       Message::ModifiersChanged(mods) => {
         self.ctrl_held = mods.command();
@@ -958,11 +948,10 @@ impl Nova {
         self.ai_response = None;
         self.ai_is_error = false;
         self.ai_loading = false;
-        if let Some(tab) = self.tabs.get(self.active_index) {
-          if let Some(tx) = &tab.pty_tx {
+        if let Some(tab) = self.tabs.get(self.active_index)
+          && let Some(tx) = &tab.pty_tx {
             let _ = tx.try_send(crate::sys::pty::PtyCommand::Input(code.into_bytes()));
           }
-        }
       }
       Message::SettingsAiProviderChanged(provider) => {
         self.settings.ai.provider = provider;
@@ -1178,14 +1167,12 @@ impl Nova {
         }
 
         if modifiers.control() {
-          if let Key::Character(c) = &key {
-            if let Some(ch) = c.as_str().chars().next() {
-              if ch.is_ascii_alphabetic() {
+          if let Key::Character(c) = &key
+            && let Some(ch) = c.as_str().chars().next()
+              && ch.is_ascii_alphabetic() {
                 let lower = ch.to_ascii_lowercase();
                 return Some(Message::Type(vec![(lower as u8) & 0x1f]));
               }
-            }
-          }
           return None;
         }
 
@@ -1210,25 +1197,25 @@ impl Nova {
         None
       }
       Event::Window(window::Event::Opened { .. }) => {
-        return Some(Message::WindowOpened(window_id));
+        Some(Message::WindowOpened(window_id))
       }
       Event::Window(window::Event::Focused) => {
-        return Some(Message::WindowFocused);
+        Some(Message::WindowFocused)
       }
       Event::Window(window::Event::Unfocused) => {
-        return Some(Message::WindowUnfocused);
+        Some(Message::WindowUnfocused)
       }
       Event::Window(window::Event::Resized(size)) => {
-        return Some(Message::WindowResized(size.width, size.height));
+        Some(Message::WindowResized(size.width, size.height))
       }
       Event::Mouse(mouse::Event::CursorMoved { position }) => {
-        return Some(Message::CursorMoved(position));
+        Some(Message::CursorMoved(position))
       }
       Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => {
-        return Some(Message::MousePressed);
+        Some(Message::MousePressed)
       }
       Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
-        return Some(Message::MouseReleased);
+        Some(Message::MouseReleased)
       }
       Event::Mouse(mouse::Event::WheelScrolled { delta }) => {
         let lines = match delta {

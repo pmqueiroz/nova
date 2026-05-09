@@ -69,6 +69,8 @@ pub struct Nova {
   ai_loading: bool,
   ai_response: Option<String>,
   ai_is_error: bool,
+  bell_blink_visible: bool,
+  bell_blink_remaining: u8,
 }
 
 #[derive(Debug, Clone)]
@@ -102,6 +104,7 @@ pub enum Message {
   MouseReleased,
   CopySelection,
   Tick,
+  BellBlinkTick,
   CloseSettings,
   SettingsTabSelected(SettingsTab),
   SettingsEditorChanged(String),
@@ -345,6 +348,8 @@ impl Default for Nova {
       ai_loading: false,
       ai_response: None,
       ai_is_error: false,
+      bell_blink_visible: true,
+      bell_blink_remaining: 0,
     }
   }
 }
@@ -649,10 +654,12 @@ impl Nova {
           }
           let mut executor = AnsiExecutor {
             grid: &mut tab.grid,
+            bell_pending: false,
           };
           for byte in bytes {
             tab.ansi_parser.advance(&mut executor, &[byte]);
           }
+          let bell_fired = executor.bell_pending;
 
           while !tab.grid.output_queue.is_empty() {
             let response = tab.grid.output_queue.remove(0);
@@ -667,6 +674,19 @@ impl Nova {
           }
           tab.update_git_status();
           tab.scroll_offset = 0;
+
+          if bell_fired {
+            match self.settings.general.bell {
+              config::BellType::Blink => {
+                self.bell_blink_visible = false;
+                self.bell_blink_remaining = 5;
+              }
+              config::BellType::Audio => {
+                crate::sys::bell::play();
+              }
+              config::BellType::None => {}
+            }
+          }
         }
       }
       Message::WindowOpened(id) => {
@@ -988,6 +1008,15 @@ impl Nova {
         self.settings.ai.base_url = if s.trim().is_empty() { None } else { Some(s) };
         let _ = config::save(&self.settings);
       }
+      Message::BellBlinkTick => {
+        if self.bell_blink_remaining > 0 {
+          self.bell_blink_remaining -= 1;
+          self.bell_blink_visible = !self.bell_blink_visible;
+          if self.bell_blink_remaining == 0 {
+            self.bell_blink_visible = true;
+          }
+        }
+      }
       Message::Tick => {}
       Message::NoOp => {}
     }
@@ -1034,7 +1063,8 @@ impl Nova {
         &active_tab.pwd,
         self.window_maximized,
         tb_interaction,
-        &self.settings.general.window_controls
+        &self.settings.general.window_controls,
+        self.bell_blink_visible,
       ),
       components::tab_bar(&self.tabs, self.active_index),
       term,
@@ -1109,6 +1139,12 @@ impl Nova {
 
     let time_sub = time::every(std::time::Duration::from_secs(1)).map(|_| Message::Tick);
     subs.push(time_sub);
+
+    if self.bell_blink_remaining > 0 {
+      let blink_sub =
+        time::every(std::time::Duration::from_millis(200)).map(|_| Message::BellBlinkTick);
+      subs.push(blink_sub);
+    }
 
     let global_sub = event::listen_with(|event, _s, window_id| match event {
       Event::Keyboard(keyboard::Event::KeyPressed {

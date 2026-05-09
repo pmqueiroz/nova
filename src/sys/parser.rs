@@ -57,6 +57,7 @@ fn color_256(n: u8) -> Color {
 
 pub struct AnsiExecutor<'a> {
   pub grid: &'a mut Grid,
+  pub bell_pending: bool,
 }
 
 impl<'a> Perform for AnsiExecutor<'a> {
@@ -124,6 +125,10 @@ impl<'a> Perform for AnsiExecutor<'a> {
       0x09 => {
         let next = (self.grid.cursor_x / 8 + 1) * 8;
         self.grid.cursor_x = next.min(self.grid.cols.saturating_sub(1));
+      }
+      // BEL
+      0x07 => {
+        self.bell_pending = true;
       }
       _ => {}
     }

@@ -57,13 +57,18 @@ pub fn title_bar(
   maximized: bool,
   cursor_interaction: iced::mouse::Interaction,
   window_controls: &WindowControls,
+  icon_visible: bool,
 ) -> Element<'static, Message> {
   let controls = match window_controls {
     WindowControls::TrafficLights => traffic_lights(window_focused),
     WindowControls::System => system_controls(window_focused),
   };
 
-  let mark = image(MARK_HANDLE.clone()).width(13).height(13);
+  let mark: Element<'static, Message> = if icon_visible {
+    image(MARK_HANDLE.clone()).width(13).height(13).into()
+  } else {
+    iced::widget::Space::new().width(13).height(13).into()
+  };
 
   let pwd_text = Typography {
     color: theme::color::runtime().foreground_muted,

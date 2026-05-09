@@ -41,7 +41,16 @@ icons = [
   "assets/icons/macos/nova-mac-256.png",
   "assets/icons/macos/nova-mac-512.png",
   "assets/icons/macos/nova-mac-512@2x.png",
+  "assets/icons/linux/nova-linux-16.png",
+  "assets/icons/linux/nova-linux-24.png",
+  "assets/icons/linux/nova-linux-32.png",
+  "assets/icons/linux/nova-linux-48.png",
+  "assets/icons/linux/nova-linux-64.png",
+  "assets/icons/linux/nova-linux-128.png",
+  "assets/icons/linux/nova-linux-256.png",
+  "assets/icons/linux/nova-linux-512.png",
 ]
+category = "Utility"
 
 [package.metadata.packager.macos]
 minimum_system_version = "11.0"
@@ -50,3 +59,4 @@ minimum_system_version = "11.0"
 section = "utils"
 priority = "optional"
 depends = ["libxkbcommon0", "libwayland-client0", "libgl1"]
+desktop_template = "assets/nova.desktop"

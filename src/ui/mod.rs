@@ -45,6 +45,10 @@ fn window_settings() -> window::Settings {
     settings.platform_specific.corner_preference =
       window::settings::platform::CornerPreference::Round;
   }
+  #[cfg(target_os = "linux")]
+  {
+    settings.platform_specific.application_id = "nova".to_string();
+  }
   settings
 }
 

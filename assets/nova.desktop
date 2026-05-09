@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name={{name}}
+GenericName=Terminal Emulator
+{{#if comment}}Comment={{comment}}
+{{/if}}Exec={{exec}}{{#if exec_arg}} {{exec_arg}}{{/if}}
+Icon={{icon}}
+Type=Application
+Terminal=false
+StartupNotify=true
+StartupWMClass=nova
+Categories={{categories}}
+Keywords=Terminal;Shell;Command;Prompt;

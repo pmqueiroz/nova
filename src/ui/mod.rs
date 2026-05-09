@@ -58,9 +58,9 @@ pub fn start() -> Result {
   .subscription(app_state::Nova::subscription)
   .window(window_settings())
   .style(|_s, _t| iced::theme::Style {
-    #[cfg(target_os = "macos")]
+    #[cfg(any(target_os = "macos", target_os = "linux"))]
     background_color: theme::color::TRANSPARENT.as_color(),
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(not(any(target_os = "macos", target_os = "linux")))]
     background_color: theme::color::BG_DEEP.as_color(),
     text_color: theme::color::runtime().foreground,
   })

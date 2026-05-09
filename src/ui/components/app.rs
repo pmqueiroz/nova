@@ -3,7 +3,7 @@ use iced::{Border, Element, Length, border::Radius, widget::container};
 use crate::ui::{app_state::Message, theme};
 
 pub fn app<'a>(content: impl Into<Element<'a, Message>>) -> Element<'a, Message> {
-  #[cfg(target_os = "macos")]
+  #[cfg(any(target_os = "macos", target_os = "linux"))]
   let style = container::Style {
     background: Some(theme::color::BG_DEEP.as_color().into()),
     border: Border {
@@ -14,7 +14,7 @@ pub fn app<'a>(content: impl Into<Element<'a, Message>>) -> Element<'a, Message>
     ..container::Style::default()
   };
 
-  #[cfg(not(target_os = "macos"))]
+  #[cfg(not(any(target_os = "macos", target_os = "linux")))]
   let style = container::Style {
     background: Some(theme::color::BG_DEEP.as_color().into()),
     border: Border {

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.1](https://github.com/pmqueiroz/nova/compare/v0.10.0...v0.10.1) (2026-05-09)
+
+
+### Bug Fixes
+
+* missing icon on linux ([9ba8347](https://github.com/pmqueiroz/nova/commit/9ba83477cdf96efac88d3bbdd8e65f6571d87459))
+* start hidden on windows to prevent flicker ([9bc8b29](https://github.com/pmqueiroz/nova/commit/9bc8b2998f07c78f4ee90bdcf4029e5b1f0c3552))
+
 ## [0.10.0](https://github.com/pmqueiroz/nova/compare/v0.9.0...v0.10.0) (2026-05-09)
 
 

@@ -9,6 +9,7 @@
 - **Multi-tab workflow:** Open, close, and switch between terminal tabs without leaving the window.
 - **ANSI & VTE support:** Full escape code processing via `vte` for accurate rendering of colors, cursor movement, and control sequences.
 - **Built-in font:** Ships with Fira Code Nerd Font — no system font installation required.
+- **AI Agentic Features:** Integrated LLM capabilities directly within the terminal, including "Ask AI" for natural language command generation and automated explanations for complex command outputs.
 
 ## 🚀 Installation
 

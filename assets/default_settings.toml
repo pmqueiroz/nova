@@ -26,3 +26,9 @@ next-tab = "ctrl+tab"
 prev-tab = "ctrl+shift+tab"
 paste = "ctrl+v"
 copy = "ctrl+shift+c"
+open-palette = "ctrl+k"
+
+[ai]
+provider = "anthropic"
+model = "claude-haiku-4-5-20251001"
+api_key = ""

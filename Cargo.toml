@@ -6,6 +6,10 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.102"
 open = "5"
+anthropic = "0.0.8"
+openai_api_rust = "0.1.9"
+serde_json = "1"
+tokio = { version = "1", features = ["rt"] }
 async-channel = "2.5.0"
 chrono = "0.4.44"
 dirs = "5"

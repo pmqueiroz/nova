@@ -16,6 +16,45 @@ pub struct Config {
   pub status_bar: StatusBarConfig,
   pub theme: ThemeConfig,
   pub keybindings: KeybindingsConfig,
+  #[serde(default)]
+  pub ai: AiConfig,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum AiProvider {
+  #[default]
+  Anthropic,
+  OpenAi,
+}
+
+impl std::fmt::Display for AiProvider {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      AiProvider::Anthropic => write!(f, "Anthropic"),
+      AiProvider::OpenAi => write!(f, "OpenAI"),
+    }
+  }
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct AiConfig {
+  pub provider: AiProvider,
+  pub model: String,
+  pub api_key: String,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub base_url: Option<String>,
+}
+
+impl Default for AiConfig {
+  fn default() -> Self {
+    Self {
+      provider: AiProvider::Anthropic,
+      model: "claude-haiku-4-5-20251001".into(),
+      api_key: String::new(),
+      base_url: None,
+    }
+  }
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -88,6 +127,12 @@ pub struct KeybindingsConfig {
   pub prev_tab: String,
   pub paste: String,
   pub copy: String,
+  #[serde(rename = "open-palette", default = "default_open_palette")]
+  pub open_palette: String,
+}
+
+fn default_open_palette() -> String {
+  "ctrl+k".to_string()
 }
 
 pub struct ParsedKeybinding {
@@ -110,6 +155,7 @@ pub struct ParsedKeybindings {
   pub prev_tab: ParsedKeybinding,
   pub paste: ParsedKeybinding,
   pub copy: ParsedKeybinding,
+  pub open_palette: ParsedKeybinding,
 }
 
 pub fn parse_keybinding(s: &str) -> anyhow::Result<ParsedKeybinding> {
@@ -205,6 +251,8 @@ fn build_parsed_keybindings(config: &Config) -> anyhow::Result<ParsedKeybindings
       .map_err(|e| anyhow::anyhow!("keybinding 'paste': {}", e))?,
     copy: parse_keybinding(&config.keybindings.copy)
       .map_err(|e| anyhow::anyhow!("keybinding 'copy': {}", e))?,
+    open_palette: parse_keybinding(&config.keybindings.open_palette)
+      .unwrap_or_else(|_| parse_keybinding("ctrl+k").unwrap()),
   })
 }
 

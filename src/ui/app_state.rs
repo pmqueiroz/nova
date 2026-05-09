@@ -15,6 +15,7 @@ use crate::ui::tab::Tab;
 
 pub static SETTINGS_OPEN: AtomicBool = AtomicBool::new(false);
 pub static KB_RECORDING: AtomicBool = AtomicBool::new(false);
+pub static PALETTE_OPEN: AtomicBool = AtomicBool::new(false);
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SettingsTab {
@@ -22,6 +23,7 @@ pub enum SettingsTab {
   Theme,
   Keybindings,
   StatusBar,
+  Ai,
   Raw,
 }
 
@@ -58,6 +60,14 @@ pub struct Nova {
   settings_shell_input: String,
   settings_recording_index: Option<usize>,
   raw_config_content: String,
+  command_palette_open: bool,
+  palette_query: String,
+  palette_selected: usize,
+  ai_overlay_open: bool,
+  ai_input: String,
+  ai_loading: bool,
+  ai_response: Option<String>,
+  ai_is_error: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -113,6 +123,27 @@ pub enum Message {
   SettingsResetAll,
   Scroll(f32),
   ModifiersChanged(keyboard::Modifiers),
+  // Command palette
+  OpenCommandPalette,
+  CloseCommandPalette,
+  PaletteQueryChanged(String),
+  PaletteNavigate(i32),
+  PaletteConfirm,
+  PaletteSelectAndConfirm(usize),
+  // AI overlay
+  OpenAskAi,
+  CloseAiOverlay,
+  AiOverlayInputChanged(String),
+  AiSubmit,
+  AiResponseReceived(Result<String, String>),
+  ExplainError,
+  CopyCodeBlock(String),
+  RunCodeInTerminal(String),
+  // Settings AI tab
+  SettingsAiProviderChanged(config::AiProvider),
+  SettingsAiModelChanged(String),
+  SettingsAiApiKeyChanged(String),
+  SettingsAiBaseUrlChanged(String),
   NoOp,
 }
 
@@ -300,6 +331,14 @@ impl Default for Nova {
       settings_shell_input: String::new(),
       settings_recording_index: None,
       raw_config_content: String::new(),
+      command_palette_open: false,
+      palette_query: String::new(),
+      palette_selected: 0,
+      ai_overlay_open: false,
+      ai_input: String::new(),
+      ai_loading: false,
+      ai_response: None,
+      ai_is_error: false,
     }
   }
 }
@@ -350,7 +389,7 @@ impl Nova {
   pub fn update(&mut self, message: Message) -> iced::Task<Message> {
     match message {
       Message::Type(bytes) => {
-        if self.settings_open {
+        if self.settings_open || self.command_palette_open || self.ai_overlay_open || self.ai_loading {
           return iced::Task::none();
         }
         self.selection_start = None;
@@ -440,7 +479,6 @@ impl Nova {
         }
       }
       Message::OpenSettings => {
-        self.settings = config::get().clone();
         self.settings_open = true;
         self.settings_tab = SettingsTab::General;
         self.settings_shell_input = String::new();
@@ -674,7 +712,7 @@ impl Nova {
         self.update_hovered_url();
       }
       Message::MousePressed => {
-        if self.settings_open {
+        if self.settings_open || self.command_palette_open || self.ai_overlay_open || self.ai_loading {
           return iced::Task::none();
         }
         if self.ctrl_held {
@@ -696,6 +734,9 @@ impl Nova {
       }
       Message::MouseReleased => {
         self.is_selecting = false;
+        if self.settings_open || self.command_palette_open || self.ai_overlay_open || self.ai_loading {
+          return iced::Task::none();
+        }
         if let (Some(start), Some(end)) = (self.selection_start, self.selection_end) {
           if start == end {
             self.selection_start = None;
@@ -746,6 +787,159 @@ impl Nova {
       Message::ModifiersChanged(mods) => {
         self.ctrl_held = mods.command();
         self.update_hovered_url();
+      }
+      Message::OpenCommandPalette => {
+        self.command_palette_open = true;
+        self.palette_query = String::new();
+        self.palette_selected = 0;
+        PALETTE_OPEN.store(true, Ordering::SeqCst);
+        return iced::widget::operation::focus(components::PALETTE_INPUT_ID.clone());
+      }
+      Message::CloseCommandPalette => {
+        self.command_palette_open = false;
+        self.palette_query = String::new();
+        self.palette_selected = 0;
+        PALETTE_OPEN.store(false, Ordering::SeqCst);
+      }
+      Message::PaletteQueryChanged(s) => {
+        self.palette_query = s;
+        self.palette_selected = 0;
+      }
+      Message::PaletteNavigate(d) => {
+        let count = components::palette_filtered_count(&self.palette_query);
+        if count > 0 {
+          self.palette_selected =
+            (self.palette_selected as i32 + d).rem_euclid(count as i32) as usize;
+        }
+      }
+      Message::PaletteConfirm => {
+        return self.update(Message::PaletteSelectAndConfirm(self.palette_selected));
+      }
+      Message::PaletteSelectAndConfirm(i) => {
+        if let Some(id) = components::palette_command_id_at(&self.palette_query, i) {
+          let msg = match id {
+            "ask_ai" => Message::OpenAskAi,
+            "explain_error" => Message::ExplainError,
+            "new_tab" => Message::NewTab,
+            "settings" => Message::OpenSettings,
+            _ => Message::NoOp,
+          };
+          self.command_palette_open = false;
+          self.palette_query = String::new();
+          self.palette_selected = 0;
+          PALETTE_OPEN.store(false, Ordering::SeqCst);
+          return self.update(msg);
+        }
+      }
+      Message::OpenAskAi => {
+        self.ai_overlay_open = true;
+        self.ai_input = String::new();
+        self.ai_response = None;
+        self.ai_is_error = false;
+        self.ai_loading = false;
+        return iced::widget::operation::focus(components::AI_INPUT_ID.clone());
+      }
+      Message::CloseAiOverlay => {
+        self.ai_overlay_open = false;
+        self.ai_input = String::new();
+        self.ai_response = None;
+        self.ai_is_error = false;
+        self.ai_loading = false;
+      }
+      Message::AiOverlayInputChanged(s) => {
+        self.ai_input = s;
+      }
+      Message::AiSubmit => {
+        if self.ai_input.trim().is_empty() {
+          return iced::Task::none();
+        }
+        let question = self.ai_input.clone();
+        let (context, shell) = self
+          .tabs
+          .get(self.active_index)
+          .map(|tab| (crate::core::ai::extract_last_output(&tab.grid), tab.shell.clone()))
+          .unwrap_or_default();
+        let ai_cfg = &self.settings.ai;
+        let q = crate::core::ai::AiQuery {
+          question,
+          context,
+          provider: ai_cfg.provider.clone(),
+          model: ai_cfg.model.clone(),
+          api_key: ai_cfg.api_key.clone(),
+          base_url: ai_cfg.base_url.clone(),
+          shell,
+          os: os_name(),
+        };
+        self.ai_loading = true;
+        self.ai_response = None;
+        self.ai_overlay_open = true;
+        return iced::Task::perform(crate::core::ai::query(q), Message::AiResponseReceived);
+      }
+      Message::AiResponseReceived(result) => {
+        self.ai_loading = false;
+        match result {
+          Ok(text) => {
+            self.ai_response = Some(text);
+            self.ai_is_error = false;
+          }
+          Err(e) => {
+            self.ai_response = Some(e);
+            self.ai_is_error = true;
+          }
+        }
+      }
+      Message::ExplainError => {
+        let (context, shell) = self
+          .tabs
+          .get(self.active_index)
+          .map(|tab| (crate::core::ai::extract_last_output(&tab.grid), tab.shell.clone()))
+          .unwrap_or_default();
+        let ai_cfg = &self.settings.ai;
+        let q = crate::core::ai::AiQuery {
+          question: "Explain any errors in the terminal output above.".to_string(),
+          context,
+          provider: ai_cfg.provider.clone(),
+          model: ai_cfg.model.clone(),
+          api_key: ai_cfg.api_key.clone(),
+          base_url: ai_cfg.base_url.clone(),
+          shell,
+          os: os_name(),
+        };
+        self.ai_loading = true;
+        self.ai_response = None;
+        self.ai_overlay_open = true;
+        self.ai_input = String::new();
+        return iced::Task::perform(crate::core::ai::query(q), Message::AiResponseReceived);
+      }
+      Message::CopyCodeBlock(code) => {
+        return iced::clipboard::write(code);
+      }
+      Message::RunCodeInTerminal(code) => {
+        self.ai_overlay_open = false;
+        self.ai_response = None;
+        self.ai_is_error = false;
+        self.ai_loading = false;
+        if let Some(tab) = self.tabs.get(self.active_index) {
+          if let Some(tx) = &tab.pty_tx {
+            let _ = tx.try_send(crate::sys::pty::PtyCommand::Input(code.into_bytes()));
+          }
+        }
+      }
+      Message::SettingsAiProviderChanged(provider) => {
+        self.settings.ai.provider = provider;
+        let _ = config::save(&self.settings);
+      }
+      Message::SettingsAiModelChanged(s) => {
+        self.settings.ai.model = s;
+        let _ = config::save(&self.settings);
+      }
+      Message::SettingsAiApiKeyChanged(s) => {
+        self.settings.ai.api_key = s;
+        let _ = config::save(&self.settings);
+      }
+      Message::SettingsAiBaseUrlChanged(s) => {
+        self.settings.ai.base_url = if s.trim().is_empty() { None } else { Some(s) };
+        let _ = config::save(&self.settings);
       }
       Message::Tick => {}
       Message::NoOp => {}
@@ -813,6 +1007,18 @@ impl Nova {
         config_path_str,
       );
       components::app(stack![col, modal])
+    } else if self.command_palette_open {
+      let palette =
+        components::command_palette(&self.palette_query, self.palette_selected);
+      components::app(stack![col, palette])
+    } else if self.ai_overlay_open || self.ai_loading {
+      let overlay = components::ai_overlay(
+        &self.ai_input,
+        self.ai_response.as_deref(),
+        self.ai_loading,
+        self.ai_is_error,
+      );
+      components::app(stack![col, overlay])
     } else if self.shell_picker_open {
       let picker = components::shell_picker(
         &self.available_shells,
@@ -856,6 +1062,15 @@ impl Nova {
         if SETTINGS_OPEN.load(Ordering::SeqCst) {
           return None;
         }
+        if PALETTE_OPEN.load(Ordering::SeqCst) {
+          return match &key {
+            Key::Named(Named::Escape) => Some(Message::CloseCommandPalette),
+            Key::Named(Named::ArrowUp) => Some(Message::PaletteNavigate(-1)),
+            Key::Named(Named::ArrowDown) => Some(Message::PaletteNavigate(1)),
+            Key::Named(Named::Enter) => Some(Message::PaletteConfirm),
+            _ => None,
+          };
+        }
 
         let kb = config::keybindings();
         if matches_kb(&kb.prev_tab, &key, modifiers) {
@@ -875,6 +1090,9 @@ impl Nova {
         }
         if matches_kb(&kb.copy, &key, modifiers) {
           return Some(Message::CopySelection);
+        }
+        if matches_kb(&kb.open_palette, &key, modifiers) {
+          return Some(Message::OpenCommandPalette);
         }
         drop(kb);
 
@@ -980,6 +1198,15 @@ impl Nova {
     }
 
     Subscription::batch(subs)
+  }
+}
+
+fn os_name() -> String {
+  match std::env::consts::OS {
+    "macos" => "macOS".to_string(),
+    "windows" => "Windows".to_string(),
+    "linux" => "Linux".to_string(),
+    other => other.to_string(),
   }
 }
 

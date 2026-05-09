@@ -18,14 +18,16 @@ pub fn init_runtime(t: RuntimeTheme) {
 
 pub fn runtime() -> std::sync::MutexGuard<'static, RuntimeTheme> {
   RUNTIME
-    .get_or_init(|| std::sync::Mutex::new(RuntimeTheme {
-      background: BG.as_color(),
-      foreground: FG.as_color(),
-      accent: ACCENT.as_color(),
-      foreground_muted: FG_MUTED.as_color(),
-      border: BORDER.as_color(),
-      cursor: ACCENT.as_color(),
-    }))
+    .get_or_init(|| {
+      std::sync::Mutex::new(RuntimeTheme {
+        background: BG.as_color(),
+        foreground: FG.as_color(),
+        accent: ACCENT.as_color(),
+        foreground_muted: FG_MUTED.as_color(),
+        border: BORDER.as_color(),
+        cursor: ACCENT.as_color(),
+      })
+    })
     .lock()
     .unwrap()
 }
@@ -35,11 +37,16 @@ pub fn update_runtime(t: RuntimeTheme) {
     *m.lock().unwrap() = t;
   }
 }
-
 pub const BG: Hue = Hue {
-  r: 0x0D,
-  g: 0x0D,
-  b: 0x0D,
+  r: 0x22,
+  g: 0x22,
+  b: 0x22,
+  a: 1.0,
+};
+pub const BG_DEEP: Hue = Hue {
+  r: 0x14,
+  g: 0x14,
+  b: 0x14,
   a: 1.0,
 };
 pub const BG_HIGH: Hue = Hue {
@@ -47,12 +54,6 @@ pub const BG_HIGH: Hue = Hue {
   g: 0xFF,
   b: 0xFF,
   a: 0.05,
-};
-pub const BG_DEEP: Hue = Hue {
-  r: 0x08,
-  g: 0x08,
-  b: 0x08,
-  a: 1.0,
 };
 pub const ACCENT: Hue = Hue {
   r: 0x3E,

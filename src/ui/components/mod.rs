@@ -1,8 +1,11 @@
+mod ai_overlay;
 mod app;
 mod color_row;
+mod command_palette;
 mod section_label;
 mod setting_row;
 mod settings;
+mod settings_ai;
 mod settings_general;
 mod settings_keybindings;
 mod settings_status_bar;
@@ -14,8 +17,10 @@ mod term;
 mod title_bar;
 mod traffic_lights;
 
+pub use ai_overlay::*;
 pub use app::*;
 pub use color_row::*;
+pub use command_palette::*;
 pub use section_label::*;
 pub use setting_row::*;
 pub use settings::*;

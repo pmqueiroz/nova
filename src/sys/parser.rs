@@ -73,7 +73,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
     let y = self.grid.cursor_y;
 
     if x < self.grid.cols && y < self.grid.rows {
-      self.grid.cells[y][x] = crate::core::grid::Cell {
+      *self.grid.cell_mut(y, x) = crate::core::grid::Cell {
         c,
         fg: self.grid.current_fg,
         bg: self.grid.current_bg,
@@ -308,17 +308,17 @@ impl<'a> Perform for AnsiExecutor<'a> {
           match mode {
             0 => {
               for col in x..self.grid.cols {
-                self.grid.cells[y][col] = crate::core::grid::Cell::default();
+                *self.grid.cell_mut(y, col) = crate::core::grid::Cell::default();
               }
             }
             1 => {
               for col in 0..=x {
-                self.grid.cells[y][col] = crate::core::grid::Cell::default();
+                *self.grid.cell_mut(y, col) = crate::core::grid::Cell::default();
               }
             }
             2 => {
               for col in 0..self.grid.cols {
-                self.grid.cells[y][col] = crate::core::grid::Cell::default();
+                *self.grid.cell_mut(y, col) = crate::core::grid::Cell::default();
               }
             }
             _ => {}
@@ -370,28 +370,28 @@ impl<'a> Perform for AnsiExecutor<'a> {
         match mode {
           0 => {
             for col in x..self.grid.cols {
-              self.grid.cells[y][col] = crate::core::grid::Cell::default();
+              *self.grid.cell_mut(y, col) = crate::core::grid::Cell::default();
             }
             for row in (y + 1)..self.grid.rows {
               for col in 0..self.grid.cols {
-                self.grid.cells[row][col] = crate::core::grid::Cell::default();
+                *self.grid.cell_mut(row, col) = crate::core::grid::Cell::default();
               }
             }
           }
           1 => {
             for row in 0..y {
               for col in 0..self.grid.cols {
-                self.grid.cells[row][col] = crate::core::grid::Cell::default();
+                *self.grid.cell_mut(row, col) = crate::core::grid::Cell::default();
               }
             }
             for col in 0..=x {
-              self.grid.cells[y][col] = crate::core::grid::Cell::default();
+              *self.grid.cell_mut(y, col) = crate::core::grid::Cell::default();
             }
           }
           2 | 3 => {
             for row in 0..self.grid.rows {
               for col in 0..self.grid.cols {
-                self.grid.cells[row][col] = crate::core::grid::Cell::default();
+                *self.grid.cell_mut(row, col) = crate::core::grid::Cell::default();
               }
             }
           }
@@ -402,11 +402,13 @@ impl<'a> Perform for AnsiExecutor<'a> {
         let y = self.grid.cursor_y;
         let x = self.grid.cursor_x;
         if y < self.grid.rows {
-          let row = &mut self.grid.cells[y];
           let count = n.min(self.grid.cols - x);
-          for _ in 0..count {
-            row.insert(x, crate::core::grid::Cell::default());
-            row.pop();
+          let start_idx = y * self.grid.cols + x;
+          let end_idx = (y + 1) * self.grid.cols;
+
+          self.grid.cells[start_idx..end_idx].rotate_right(count);
+          for col in x..(x + count) {
+            *self.grid.cell_mut(y, col) = crate::core::grid::Cell::default();
           }
         }
       }
@@ -414,11 +416,13 @@ impl<'a> Perform for AnsiExecutor<'a> {
         let y = self.grid.cursor_y;
         let x = self.grid.cursor_x;
         if y < self.grid.rows {
-          let row = &mut self.grid.cells[y];
           let count = n.min(self.grid.cols - x);
-          for _ in 0..count {
-            row.remove(x);
-            row.push(crate::core::grid::Cell::default());
+          let start_idx = y * self.grid.cols + x;
+          let end_idx = (y + 1) * self.grid.cols;
+
+          self.grid.cells[start_idx..end_idx].rotate_left(count);
+          for col in (self.grid.cols - count)..self.grid.cols {
+            *self.grid.cell_mut(y, col) = crate::core::grid::Cell::default();
           }
         }
       }
@@ -427,37 +431,37 @@ impl<'a> Perform for AnsiExecutor<'a> {
         let x = self.grid.cursor_x;
         if y < self.grid.rows {
           for col in x..(x + n).min(self.grid.cols) {
-            self.grid.cells[y][col] = crate::core::grid::Cell::default();
+            *self.grid.cell_mut(y, col) = crate::core::grid::Cell::default();
           }
         }
       }
       'L' => {
         let y = self.grid.cursor_y;
         let bottom = self.grid.scroll_bottom;
-        let count = n.min(bottom.saturating_sub(y) + 1);
-        for _ in 0..count {
-          self
-            .grid
-            .cells
-            .insert(y, vec![crate::core::grid::Cell::default(); self.grid.cols]);
-          if self.grid.cells.len() > self.grid.rows {
-            self.grid.cells.remove(bottom + 1);
-          }
+        if y <= bottom {
+          let count = n.min(bottom.saturating_sub(y) + 1);
+          let old_top = self.grid.scroll_top;
+          self.grid.scroll_top = y;
+          self.grid.scroll_down(count);
+          self.grid.scroll_top = old_top;
         }
       }
       'M' => {
         let y = self.grid.cursor_y;
         let bottom = self.grid.scroll_bottom;
-        let count = n.min(bottom.saturating_sub(y) + 1);
-        for _ in 0..count {
-          if y < self.grid.cells.len() {
-            self.grid.cells.remove(y);
-            self.grid.cells.insert(
-              bottom,
-              vec![crate::core::grid::Cell::default(); self.grid.cols],
-            );
-          }
+        if y <= bottom {
+          let count = n.min(bottom.saturating_sub(y) + 1);
+          let old_top = self.grid.scroll_top;
+          self.grid.scroll_top = y;
+          self.grid.scroll_up(count);
+          self.grid.scroll_top = old_top;
         }
+      }
+      'S' => {
+        self.grid.scroll_up(n);
+      }
+      'T' => {
+        self.grid.scroll_down(n);
       }
       'r' if intermediates.is_empty() => {
         let mut iter = params.iter();

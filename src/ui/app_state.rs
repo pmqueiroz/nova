@@ -169,8 +169,10 @@ fn get_display_row(
       .scrollback
       .get(sb_len - clamped + y)
       .map(|r| r.as_slice())
+  } else if y - clamped < grid.rows {
+    Some(grid.row(y - clamped))
   } else {
-    grid.cells.get(y - clamped).map(|r| r.as_slice())
+    None
   }
 }
 
@@ -232,7 +234,7 @@ fn extract_selection(
   let er = er.min(grid.rows.saturating_sub(1));
   let mut result = String::new();
   for row in sr..=er {
-    let row_cells = &grid.cells[row];
+    let row_cells = grid.row(row);
     let col_start = if row == sr {
       sc.min(grid.cols.saturating_sub(1))
     } else {

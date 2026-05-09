@@ -17,18 +17,17 @@ pub struct AiQuery {
 }
 
 pub fn extract_last_output(grid: &Grid) -> String {
-  let rows = &grid.cells;
-  let prompt_row = (0..rows.len())
+  let prompt_row = (0..grid.rows)
     .rev()
-    .find(|&r| rows[r].iter().any(|c| c.c == 'λ'));
+    .find(|&r| grid.row(r).iter().any(|c| c.c == 'λ'));
   let start = match prompt_row {
     Some(r) => r + 1,
     None => return String::new(),
   };
-  rows[start..]
-    .iter()
-    .map(|row| {
-      row
+  (start..grid.rows)
+    .map(|r| {
+      grid
+        .row(r)
         .iter()
         .map(|c| c.c)
         .collect::<String>()

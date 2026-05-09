@@ -1,5 +1,6 @@
 use bitflags::bitflags;
 use iced::Color;
+use std::collections::VecDeque;
 use std::sync::Arc;
 
 const SCROLLBACK_LIMIT: usize = 10_000;
@@ -48,7 +49,7 @@ pub enum MouseMode {
 }
 
 pub struct Grid {
-  pub cells: Vec<Vec<Cell>>,
+  pub cells: Vec<Cell>,
   pub cursor_x: usize,
   pub cursor_y: usize,
   pub current_fg: Option<Color>,
@@ -66,15 +67,15 @@ pub struct Grid {
   pub output_queue: Vec<Vec<u8>>,
   pub saved_cursor: Option<(usize, usize)>,
   pub wrap_next: bool,
-  pub scrollback: Vec<Vec<Cell>>,
-  alt_cells: Option<Vec<Vec<Cell>>>,
+  pub scrollback: VecDeque<Vec<Cell>>,
+  alt_cells: Option<Vec<Cell>>,
   alt_cursor: Option<(usize, usize)>,
-  alt_scrollback: Option<Vec<Vec<Cell>>>,
+  alt_scrollback: Option<VecDeque<Vec<Cell>>>,
 }
 
 impl Grid {
   pub fn new(cols: usize, rows: usize) -> Self {
-    let cells = vec![vec![Cell::default(); cols]; rows];
+    let cells = vec![Cell::default(); cols * rows];
     Self {
       cells,
       cursor_x: 0,
@@ -94,11 +95,26 @@ impl Grid {
       output_queue: Vec::new(),
       saved_cursor: None,
       wrap_next: false,
-      scrollback: Vec::new(),
+      scrollback: VecDeque::new(),
       alt_cells: None,
       alt_cursor: None,
       alt_scrollback: None,
     }
+  }
+
+  #[inline]
+  pub fn cell(&self, row: usize, col: usize) -> &Cell {
+    &self.cells[row * self.cols + col]
+  }
+
+  #[inline]
+  pub fn cell_mut(&mut self, row: usize, col: usize) -> &mut Cell {
+    &mut self.cells[row * self.cols + col]
+  }
+
+  pub fn row(&self, row: usize) -> &[Cell] {
+    let start = row * self.cols;
+    &self.cells[start..start + self.cols]
   }
 
   pub fn enter_alt_screen(&mut self) {
@@ -106,7 +122,7 @@ impl Grid {
       self.alt_cells = Some(self.cells.clone());
       self.alt_cursor = Some((self.cursor_x, self.cursor_y));
       self.alt_scrollback = Some(std::mem::take(&mut self.scrollback));
-      self.cells = vec![vec![Cell::default(); self.cols]; self.rows];
+      self.cells = vec![Cell::default(); self.cols * self.rows];
       self.cursor_x = 0;
       self.cursor_y = 0;
       self.scroll_top = 0;
@@ -140,18 +156,52 @@ impl Grid {
     self.wrap_next = false;
   }
 
-  pub fn newline(&mut self) {
-    if self.cursor_y == self.scroll_bottom {
-      let removed = self.cells.remove(self.scroll_top);
-      if self.scroll_top == 0 {
-        self.scrollback.push(removed);
+  pub fn scroll_up(&mut self, n: usize) {
+    let top = self.scroll_top;
+    let bottom = self.scroll_bottom;
+    let count = n.min(bottom.saturating_sub(top) + 1);
+
+    for _ in 0..count {
+      if top == 0 && bottom == self.rows.saturating_sub(1) {
+        let mut row_copy = Vec::with_capacity(self.cols);
+        row_copy.extend_from_slice(self.row(top));
+        self.scrollback.push_back(row_copy);
         if self.scrollback.len() > SCROLLBACK_LIMIT {
-          self.scrollback.remove(0);
+          self.scrollback.pop_front();
         }
       }
-      self
-        .cells
-        .insert(self.scroll_bottom, vec![Cell::default(); self.cols]);
+
+      let start_idx = top * self.cols;
+      let end_idx = (bottom + 1) * self.cols;
+      self.cells[start_idx..end_idx].rotate_left(self.cols);
+
+      let clear_start = bottom * self.cols;
+      for cell in &mut self.cells[clear_start..clear_start + self.cols] {
+        *cell = Cell::default();
+      }
+    }
+  }
+
+  pub fn scroll_down(&mut self, n: usize) {
+    let top = self.scroll_top;
+    let bottom = self.scroll_bottom;
+    let count = n.min(bottom.saturating_sub(top) + 1);
+
+    for _ in 0..count {
+      let start_idx = top * self.cols;
+      let end_idx = (bottom + 1) * self.cols;
+      self.cells[start_idx..end_idx].rotate_right(self.cols);
+
+      let clear_start = top * self.cols;
+      for cell in &mut self.cells[clear_start..clear_start + self.cols] {
+        *cell = Cell::default();
+      }
+    }
+  }
+
+  pub fn newline(&mut self) {
+    if self.cursor_y == self.scroll_bottom {
+      self.scroll_up(1);
     } else if self.cursor_y < self.rows.saturating_sub(1) {
       self.cursor_y += 1;
     }
@@ -159,14 +209,7 @@ impl Grid {
 
   pub fn reverse_index(&mut self) {
     if self.cursor_y == self.scroll_top {
-      self
-        .cells
-        .insert(self.scroll_top, vec![Cell::default(); self.cols]);
-      if self.scroll_bottom + 1 < self.cells.len() {
-        self.cells.remove(self.scroll_bottom + 1);
-      } else {
-        self.cells.pop();
-      }
+      self.scroll_down(1);
     } else if self.cursor_y > 0 {
       self.cursor_y -= 1;
     }
@@ -176,13 +219,18 @@ impl Grid {
     let new_cols = new_cols.max(1);
     let new_rows = new_rows.max(1);
 
-    self
-      .cells
-      .resize(new_rows, vec![Cell::default(); self.cols]);
-    for row in self.cells.iter_mut() {
-      row.resize(new_cols, Cell::default());
+    let mut new_cells = vec![Cell::default(); new_cols * new_rows];
+    let min_rows = self.rows.min(new_rows);
+    let min_cols = self.cols.min(new_cols);
+
+    for r in 0..min_rows {
+      let old_start = r * self.cols;
+      let new_start = r * new_cols;
+      new_cells[new_start..new_start + min_cols]
+        .clone_from_slice(&self.cells[old_start..old_start + min_cols]);
     }
 
+    self.cells = new_cells;
     self.cols = new_cols;
     self.rows = new_rows;
     self.scroll_top = 0;

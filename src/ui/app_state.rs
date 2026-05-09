@@ -1186,14 +1186,15 @@ impl Nova {
     subs.push(global_sub);
 
     for tab in &self.tabs {
-      let tab_id = tab.id;
-      let cols = tab.grid.cols as u16;
-      let rows = tab.grid.rows as u16;
-      let shell_cmd = tab.shell_cmd.clone();
-      let pty_sub = Subscription::run_with(
-        (tab_id, cols, rows, shell_cmd),
-        |(tab_id, cols, rows, shell)| pty_worker(*tab_id, *cols, *rows, shell.clone()),
-      );
+      let key = PtyKey {
+        tab_id: tab.id,
+        shell_cmd: tab.shell_cmd.clone(),
+        initial_cols: tab.grid.cols as u16,
+        initial_rows: tab.grid.rows as u16,
+      };
+      let pty_sub = Subscription::run_with(key, |k| {
+        pty_worker(k.tab_id, k.initial_cols, k.initial_rows, k.shell_cmd.clone())
+      });
       subs.push(pty_sub);
     }
 
@@ -1243,6 +1244,28 @@ fn resize_direction(pos: Point, size: Size) -> Option<window::Direction> {
     _ => None,
   }
 }
+
+struct PtyKey {
+  tab_id: usize,
+  shell_cmd: String,
+  initial_cols: u16,
+  initial_rows: u16,
+}
+
+impl std::hash::Hash for PtyKey {
+  fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+    self.tab_id.hash(state);
+    self.shell_cmd.hash(state);
+  }
+}
+
+impl PartialEq for PtyKey {
+  fn eq(&self, other: &Self) -> bool {
+    self.tab_id == other.tab_id && self.shell_cmd == other.shell_cmd
+  }
+}
+
+impl Eq for PtyKey {}
 
 fn pty_worker(
   tab_id: usize,

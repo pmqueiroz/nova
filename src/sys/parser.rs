@@ -471,9 +471,10 @@ impl<'a> Perform for AnsiExecutor<'a> {
 
         self.grid.pwd = pwd;
       } else if let Some(host) = raw_url.strip_prefix("ssh://")
-        && !host.is_empty() {
-          self.grid.pwd = format!("ssh:{}", host);
-        }
+        && !host.is_empty()
+      {
+        self.grid.pwd = format!("ssh:{}", host);
+      }
     }
   }
 }

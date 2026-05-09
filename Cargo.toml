@@ -63,6 +63,7 @@ depends = ["libxkbcommon0", "libwayland-client0", "libgl1"]
 desktop_template = "assets/nova.desktop"
 
 [package.metadata.generate-rpm]
+license = "MIT"
 release = "1"
 assets = [
   { source = "target/release/nova", dest = "/usr/bin/nova", mode = "755" },

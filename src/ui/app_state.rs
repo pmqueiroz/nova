@@ -16,6 +16,7 @@ use crate::ui::tab::Tab;
 pub static SETTINGS_OPEN: AtomicBool = AtomicBool::new(false);
 pub static KB_RECORDING: AtomicBool = AtomicBool::new(false);
 pub static PALETTE_OPEN: AtomicBool = AtomicBool::new(false);
+pub static AI_OPEN: AtomicBool = AtomicBool::new(false);
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SettingsTab {
@@ -860,6 +861,7 @@ impl Nova {
       }
       Message::OpenAskAi => {
         self.ai_overlay_open = true;
+        AI_OPEN.store(true, Ordering::SeqCst);
         self.ai_input = String::new();
         self.ai_response = None;
         self.ai_is_error = false;
@@ -868,6 +870,7 @@ impl Nova {
       }
       Message::CloseAiOverlay => {
         self.ai_overlay_open = false;
+        AI_OPEN.store(false, Ordering::SeqCst);
         self.ai_input = String::new();
         self.ai_response = None;
         self.ai_is_error = false;
@@ -905,6 +908,7 @@ impl Nova {
         self.ai_loading = true;
         self.ai_response = None;
         self.ai_overlay_open = true;
+        AI_OPEN.store(true, Ordering::SeqCst);
         return iced::Task::perform(crate::core::ai::query(q), Message::AiResponseReceived);
       }
       Message::AiResponseReceived(result) => {
@@ -945,6 +949,7 @@ impl Nova {
         self.ai_loading = true;
         self.ai_response = None;
         self.ai_overlay_open = true;
+        AI_OPEN.store(true, Ordering::SeqCst);
         self.ai_input = String::new();
         return iced::Task::perform(crate::core::ai::query(q), Message::AiResponseReceived);
       }
@@ -953,6 +958,7 @@ impl Nova {
       }
       Message::RunCodeInTerminal(code) => {
         self.ai_overlay_open = false;
+        AI_OPEN.store(false, Ordering::SeqCst);
         self.ai_response = None;
         self.ai_is_error = false;
         self.ai_loading = false;
@@ -1121,7 +1127,16 @@ impl Nova {
           };
         }
         if SETTINGS_OPEN.load(Ordering::SeqCst) {
-          return None;
+          return match &key {
+            Key::Named(Named::Escape) => Some(Message::CloseSettings),
+            _ => None,
+          };
+        }
+        if AI_OPEN.load(Ordering::SeqCst) {
+          return match &key {
+            Key::Named(Named::Escape) => Some(Message::CloseAiOverlay),
+            _ => None,
+          };
         }
         if PALETTE_OPEN.load(Ordering::SeqCst) {
           return match &key {

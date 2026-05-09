@@ -51,6 +51,9 @@ pub struct Nova {
   selection_end: Option<(usize, usize)>,
   is_selecting: bool,
   ctrl_held: bool,
+  shift_held: bool,
+  alt_held: bool,
+  last_mouse_button: Option<mouse::Button>,
   hovered_url: Option<String>,
   hovered_link_span: Option<(usize, usize, usize)>, // (start_display_row, start_col, end_display_row)
   shell_picker_open: bool,
@@ -101,8 +104,8 @@ pub enum Message {
   CloseShellPicker,
   NewTabWithShell(String),
   CursorMoved(Point),
-  MousePressed,
-  MouseReleased,
+  MousePressed(mouse::Button),
+  MouseReleased(mouse::Button),
   CopySelection,
   Tick,
   BellBlinkTick,
@@ -355,6 +358,9 @@ impl Default for Nova {
       selection_end: None,
       is_selecting: false,
       ctrl_held: false,
+      shift_held: false,
+      alt_held: false,
+      last_mouse_button: None,
       hovered_url: None,
       hovered_link_span: None,
       shell_picker_open: false,
@@ -403,6 +409,52 @@ impl Nova {
       Self::resolve_hovered_url(&tab.grid, tab.scroll_offset, col, row);
     self.hovered_url = result_url;
     self.hovered_link_span = result_span;
+  }
+
+  fn send_mouse_event(
+    &self,
+    tab: &Tab,
+    col: usize,
+    row: usize,
+    button: Option<mouse::Button>,
+    pressed: bool,
+    motion: bool,
+  ) {
+    let Some(tx) = &tab.pty_tx else { return };
+
+    let mut cb = match button {
+      Some(mouse::Button::Left) => 0,
+      Some(mouse::Button::Middle) => 1,
+      Some(mouse::Button::Right) => 2,
+      None => 3, // Release or hover without button
+      _ => return,
+    };
+
+    if motion {
+      cb += 32;
+    }
+
+    if self.shift_held {
+      cb |= 4;
+    }
+    if self.alt_held {
+      cb |= 8;
+    }
+    if self.ctrl_held {
+      cb |= 16;
+    }
+
+    if tab.grid.mouse_sgr {
+      let state = if pressed { 'M' } else { 'm' };
+      let cmd = format!("\x1b[<{};{};{}{}", cb, col + 1, row + 1, state);
+      let _ = tx.try_send(PtyCommand::Input(cmd.into_bytes()));
+    } else {
+      let cb_byte = (cb + 32).min(255) as u8;
+      let cx = (col + 1 + 32).min(255) as u8;
+      let cy = (row + 1 + 32).min(255) as u8;
+      let cmd = vec![b'\x1b', b'[', b'M', cb_byte, cx, cy];
+      let _ = tx.try_send(PtyCommand::Input(cmd));
+    }
   }
 
   fn resolve_hovered_url(
@@ -819,13 +871,34 @@ impl Nova {
       }
       Message::CursorMoved(position) => {
         self.cursor_position = position;
-        if self.is_selecting {
-          let font_size = self.settings.theme.font.size;
+        let font_size = self.settings.theme.font.size;
+
+        let mut bypass_selection = false;
+        if let Some(tab) = self.tabs.get(self.active_index)
+          && tab.grid.mouse_mode != crate::core::grid::MouseMode::None
+          && !self.shift_held
+        {
+          bypass_selection = true;
+          if (tab.grid.mouse_mode == crate::core::grid::MouseMode::AnyEvent
+            || (tab.grid.mouse_mode == crate::core::grid::MouseMode::Button
+              && self.last_mouse_button.is_some()))
+            && let Some(cell) = pixel_to_cell(position, font_size)
+          {
+            if let Some(button) = self.last_mouse_button {
+              self.send_mouse_event(tab, cell.0, cell.1, Some(button), true, true);
+            } else {
+              self.send_mouse_event(tab, cell.0, cell.1, None, false, true);
+            }
+          }
+        }
+
+        if self.is_selecting && !bypass_selection {
           self.selection_end = pixel_to_cell(position, font_size);
         }
         self.update_hovered_url();
       }
-      Message::MousePressed => {
+      Message::MousePressed(button) => {
+        self.last_mouse_button = Some(button);
         if self.settings_open
           || self.command_palette_open
           || self.ai_overlay_open
@@ -844,13 +917,31 @@ impl Nova {
         {
           return window::drag_resize(window_id, direction);
         }
+
         let font_size = self.settings.theme.font.size;
         let cell = pixel_to_cell(self.cursor_position, font_size);
-        self.selection_start = cell;
-        self.selection_end = cell;
-        self.is_selecting = cell.is_some();
+
+        if let Some(tab) = self.tabs.get(self.active_index)
+          && tab.grid.mouse_mode != crate::core::grid::MouseMode::None
+          && !self.shift_held
+        {
+          if let Some((col, row)) = cell {
+            self.send_mouse_event(tab, col, row, Some(button), true, false);
+          }
+          return iced::Task::none();
+        }
+
+        if button == mouse::Button::Left {
+          self.selection_start = cell;
+          self.selection_end = cell;
+          self.is_selecting = cell.is_some();
+        }
       }
-      Message::MouseReleased => {
+      Message::MouseReleased(button) => {
+        if self.last_mouse_button == Some(button) {
+          self.last_mouse_button = None;
+        }
+
         self.is_selecting = false;
         if self.settings_open
           || self.command_palette_open
@@ -859,6 +950,18 @@ impl Nova {
         {
           return iced::Task::none();
         }
+
+        if let Some(tab) = self.tabs.get(self.active_index)
+          && tab.grid.mouse_mode != crate::core::grid::MouseMode::None
+          && !self.shift_held
+        {
+          let font_size = self.settings.theme.font.size;
+          if let Some((col, row)) = pixel_to_cell(self.cursor_position, font_size) {
+            self.send_mouse_event(tab, col, row, Some(button), false, false);
+          }
+          return iced::Task::none();
+        }
+
         if let (Some(start), Some(end)) = (self.selection_start, self.selection_end) {
           if start == end {
             self.selection_start = None;
@@ -893,20 +996,54 @@ impl Nova {
         }
       }
       Message::Scroll(delta) => {
-        if !self.settings_open
-          && let Some(tab) = self.tabs.get_mut(self.active_index)
-        {
-          let rows = (delta.abs() * 3.0).round() as usize;
-          if delta > 0.0 {
-            let new_offset = tab.scroll_offset.saturating_add(rows);
-            tab.scroll_offset = new_offset.min(tab.grid.scrollback.len());
-          } else {
-            tab.scroll_offset = tab.scroll_offset.saturating_sub(rows);
+        if !self.settings_open {
+          let font_size = self.settings.theme.font.size;
+          if let Some(tab) = self.tabs.get_mut(self.active_index) {
+            if tab.grid.mouse_mode != crate::core::grid::MouseMode::None && !self.shift_held {
+              if let Some((col, row)) = pixel_to_cell(self.cursor_position, font_size) {
+                let is_down = delta < 0.0;
+                let btn = if is_down { 65 } else { 64 };
+                let mut cb = btn;
+                if self.shift_held {
+                  cb |= 4;
+                }
+                if self.alt_held {
+                  cb |= 8;
+                }
+                if self.ctrl_held {
+                  cb |= 16;
+                }
+
+                if let Some(tx) = &tab.pty_tx {
+                  if tab.grid.mouse_sgr {
+                    let cmd = format!("\x1b[<{};{};{}M", cb, col + 1, row + 1);
+                    let _ = tx.try_send(PtyCommand::Input(cmd.into_bytes()));
+                  } else {
+                    let cb_byte = (cb + 32).min(255) as u8;
+                    let cx = (col + 1 + 32).min(255) as u8;
+                    let cy = (row + 1 + 32).min(255) as u8;
+                    let cmd = vec![b'\x1b', b'[', b'M', cb_byte, cx, cy];
+                    let _ = tx.try_send(PtyCommand::Input(cmd));
+                  }
+                }
+              }
+              return iced::Task::none();
+            }
+
+            let rows = (delta.abs() * 3.0).round() as usize;
+            if delta > 0.0 {
+              let new_offset = tab.scroll_offset.saturating_add(rows);
+              tab.scroll_offset = new_offset.min(tab.grid.scrollback.len());
+            } else {
+              tab.scroll_offset = tab.scroll_offset.saturating_sub(rows);
+            }
           }
         }
       }
       Message::ModifiersChanged(mods) => {
         self.ctrl_held = mods.command();
+        self.shift_held = mods.shift();
+        self.alt_held = mods.alt();
         self.update_hovered_url();
       }
       Message::OpenCommandPalette => {
@@ -1354,10 +1491,8 @@ impl Nova {
         Some(Message::WindowResized(size.width, size.height))
       }
       Event::Mouse(mouse::Event::CursorMoved { position }) => Some(Message::CursorMoved(position)),
-      Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left)) => Some(Message::MousePressed),
-      Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left)) => {
-        Some(Message::MouseReleased)
-      }
+      Event::Mouse(mouse::Event::ButtonPressed(button)) => Some(Message::MousePressed(button)),
+      Event::Mouse(mouse::Event::ButtonReleased(button)) => Some(Message::MouseReleased(button)),
       Event::Mouse(mouse::Event::WheelScrolled { delta }) => {
         let lines = match delta {
           mouse::ScrollDelta::Lines { y, .. } => y,

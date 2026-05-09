@@ -497,6 +497,30 @@ impl<'a> Perform for AnsiExecutor<'a> {
               self.grid.leave_alt_screen();
             }
           }
+          1000 => {
+            self.grid.mouse_mode = if command == 'h' {
+              crate::core::grid::MouseMode::Normal
+            } else {
+              crate::core::grid::MouseMode::None
+            };
+          }
+          1002 => {
+            self.grid.mouse_mode = if command == 'h' {
+              crate::core::grid::MouseMode::Button
+            } else {
+              crate::core::grid::MouseMode::None
+            };
+          }
+          1003 => {
+            self.grid.mouse_mode = if command == 'h' {
+              crate::core::grid::MouseMode::AnyEvent
+            } else {
+              crate::core::grid::MouseMode::None
+            };
+          }
+          1006 => {
+            self.grid.mouse_sgr = command == 'h';
+          }
           _ => {}
         }
       }

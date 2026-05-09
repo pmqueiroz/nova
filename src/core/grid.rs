@@ -38,6 +38,15 @@ impl Default for Cell {
   }
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub enum MouseMode {
+  #[default]
+  None,
+  Normal,   // ?1000
+  Button,   // ?1002
+  AnyEvent, // ?1003
+}
+
 pub struct Grid {
   pub cells: Vec<Vec<Cell>>,
   pub cursor_x: usize,
@@ -46,6 +55,8 @@ pub struct Grid {
   pub current_bg: Option<Color>,
   pub current_uri: Option<Arc<str>>,
   pub current_attrs: CellAttrs,
+  pub mouse_mode: MouseMode,
+  pub mouse_sgr: bool,
   pub cols: usize,
   pub rows: usize,
   pub scroll_top: usize,
@@ -71,6 +82,8 @@ impl Grid {
       current_bg: None,
       current_uri: None,
       current_attrs: CellAttrs::empty(),
+      mouse_mode: MouseMode::None,
+      mouse_sgr: false,
       cols,
       rows,
       scroll_top: 0,

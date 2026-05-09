@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.11.0](https://github.com/pmqueiroz/nova/compare/v0.10.1...v0.11.0) (2026-05-09)
+
+
+### Features
+
+* bell ([5bc119c](https://github.com/pmqueiroz/nova/commit/5bc119ccabae34c1a5bc7066706ee585030e9a82))
+* exit on esc on modals ([f0a958c](https://github.com/pmqueiroz/nova/commit/f0a958c2120dc9dc543966da477ab712240a60e1))
+* standardizes the icons ([7191c54](https://github.com/pmqueiroz/nova/commit/7191c54b70265c0930a6eae487bf9481febd4a9f))
+
+
+### Bug Fixes
+
+* data entry alignments ([bc91e7a](https://github.com/pmqueiroz/nova/commit/bc91e7aa34f775141f24869381adb6001b0af184))
+
 ## [0.10.1](https://github.com/pmqueiroz/nova/compare/v0.10.0...v0.10.1) (2026-05-09)
 
 

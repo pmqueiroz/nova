@@ -16,7 +16,6 @@ pub struct AiQuery {
   pub os: String,
 }
 
-/// Scan visible rows bottom-up for the last λ prompt; return rows after it as text.
 pub fn extract_last_output(grid: &Grid) -> String {
   let rows = &grid.cells;
   let prompt_row = (0..rows.len())

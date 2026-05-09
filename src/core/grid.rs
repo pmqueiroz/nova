@@ -1,13 +1,15 @@
 use iced::Color;
+use std::sync::Arc;
 
 const SCROLLBACK_LIMIT: usize = 10_000;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct Cell {
   pub c: char,
   pub fg: Option<Color>,
   pub bg: Option<Color>,
   pub reverse: bool,
+  pub uri: Option<Arc<str>>,
 }
 
 impl Default for Cell {
@@ -17,6 +19,7 @@ impl Default for Cell {
       fg: None,
       bg: None,
       reverse: false,
+      uri: None,
     }
   }
 }
@@ -27,6 +30,7 @@ pub struct Grid {
   pub cursor_y: usize,
   pub current_fg: Option<Color>,
   pub current_bg: Option<Color>,
+  pub current_uri: Option<Arc<str>>,
   pub reverse_video: bool,
   pub cols: usize,
   pub rows: usize,
@@ -51,6 +55,7 @@ impl Grid {
       cursor_y: 0,
       current_fg: None,
       current_bg: None,
+      current_uri: None,
       reverse_video: false,
       cols,
       rows,
@@ -79,6 +84,7 @@ impl Grid {
       self.scroll_bottom = self.rows.saturating_sub(1);
       self.current_fg = None;
       self.current_bg = None;
+      self.current_uri = None;
       self.reverse_video = false;
       self.wrap_next = false;
     }
@@ -99,6 +105,7 @@ impl Grid {
     self.scroll_bottom = self.rows.saturating_sub(1);
     self.current_fg = None;
     self.current_bg = None;
+    self.current_uri = None;
     self.reverse_video = false;
     self.wrap_next = false;
   }

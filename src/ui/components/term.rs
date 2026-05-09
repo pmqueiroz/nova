@@ -23,6 +23,50 @@ fn in_selection(x: usize, y: usize, sel: Option<(usize, usize, usize, usize)>) -
   }
 }
 
+fn is_url_terminator(c: char) -> bool {
+  c.is_whitespace() || matches!(c, '"' | '\'' | '<' | '>' | ')' | ']')
+}
+
+fn compute_url_highlight(
+  row_cells: &[crate::core::grid::Cell],
+  display_y: usize,
+  hovered_url: Option<&str>,
+  hovered_link_span: Option<(usize, usize, usize)>,
+) -> Vec<bool> {
+  let Some(url) = hovered_url else {
+    return vec![];
+  };
+  match hovered_link_span {
+    Some((span_start, span_col, span_end)) => {
+      let mut v = vec![false; row_cells.len()];
+      let scan_from = if display_y == span_start {
+        span_col
+      } else if display_y > span_start && display_y <= span_end {
+        0
+      } else {
+        return v;
+      };
+      let mut i = scan_from;
+      while i < row_cells.len() && !is_url_terminator(row_cells[i].c) {
+        v[i] = true;
+        i += 1;
+      }
+      v
+    }
+    None => {
+      let mut v = vec![false; row_cells.len()];
+      for (start, end, u) in detect_urls(row_cells) {
+        if u == url {
+          for i in start..=end.min(v.len().saturating_sub(1)) {
+            v[i] = true;
+          }
+        }
+      }
+      v
+    }
+  }
+}
+
 fn row_spans(
   row_cells: &[crate::core::grid::Cell],
   cursor_col: Option<usize>,
@@ -30,21 +74,8 @@ fn row_spans(
   selection: Option<(usize, usize, usize, usize)>,
   font_size: f32,
   hovered_url: Option<&str>,
+  url_highlight: &[bool],
 ) -> Vec<Span<'static>> {
-  let url_highlight: Vec<bool> = if let Some(url) = hovered_url {
-    let mut v = vec![false; row_cells.len()];
-    for (start, end, u) in detect_urls(row_cells) {
-      if u == url {
-        for i in start..=end.min(v.len().saturating_sub(1)) {
-          v[i] = true;
-        }
-      }
-    }
-    v
-  } else {
-    vec![]
-  };
-
   let mut spans: Vec<Span<'static>> = Vec::new();
   let mut seg_text = String::new();
   let mut seg_fg: Option<Color> = None;
@@ -55,7 +86,11 @@ fn row_spans(
   for (x, cell) in row_cells.iter().enumerate() {
     let is_cursor = cursor_col == Some(x);
     let is_selected = in_selection(x, y, selection);
-    let is_url_hovered = url_highlight.get(x).copied().unwrap_or(false);
+    let is_url_hovered = if let Some(hover) = hovered_url {
+      cell.uri.as_deref() == Some(hover) || url_highlight.get(x).copied().unwrap_or(false)
+    } else {
+      false
+    };
 
     let (eff_fg, eff_bg, eff_reverse) = if is_selected {
       let rt = theme::color::runtime();
@@ -133,6 +168,7 @@ pub fn term<'a>(
   font_size: f32,
   scroll_offset: usize,
   hovered_url: Option<&str>,
+  hovered_link_span: Option<(usize, usize, usize)>,
 ) -> Element<'a, Message> {
   let mut grid_ui = column![].spacing(0);
 
@@ -142,10 +178,14 @@ pub fn term<'a>(
   let sb_len = scrollback.len();
   let clamped_offset = scroll_offset.min(sb_len);
 
+  let mut display_y = 0usize;
+
   let sb_start = sb_len.saturating_sub(clamped_offset);
   for row_cells in &scrollback[sb_start..] {
-    let spans = row_spans(row_cells, None, 0, None, font_size, hovered_url);
+    let hl = compute_url_highlight(row_cells, display_y, hovered_url, hovered_link_span);
+    let spans = row_spans(row_cells, None, 0, None, font_size, hovered_url, &hl);
     grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
+    display_y += 1;
   }
 
   let live_count = active_tab.grid.rows.saturating_sub(clamped_offset);
@@ -156,6 +196,7 @@ pub fn term<'a>(
     } else {
       None
     };
+    let hl = compute_url_highlight(row_cells, display_y, hovered_url, hovered_link_span);
     let spans = row_spans(
       row_cells,
       cursor_col,
@@ -163,8 +204,10 @@ pub fn term<'a>(
       eff_selection,
       font_size,
       hovered_url,
+      &hl,
     );
     grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
+    display_y += 1;
   }
 
   let (term_bg, term_border) = {

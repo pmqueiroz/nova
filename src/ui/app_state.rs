@@ -52,6 +52,7 @@ pub struct Nova {
   is_selecting: bool,
   ctrl_held: bool,
   hovered_url: Option<String>,
+  hovered_link_span: Option<(usize, usize, usize)>, // (start_display_row, start_col, end_display_row)
   shell_picker_open: bool,
   shell_picker_anchor: f32,
   available_shells: Vec<String>,
@@ -168,6 +169,33 @@ fn get_display_row(
   } else {
     grid.cells.get(y - clamped).map(|r| r.as_slice())
   }
+}
+
+fn stitch_continuation(
+  base: String,
+  grid: &crate::core::grid::Grid,
+  scroll_offset: usize,
+  start_row: usize,
+) -> (String, usize) {
+  let mut url = base;
+  let mut end_row = start_row.saturating_sub(1);
+  let mut r = start_row;
+  loop {
+    let Some(cells) = get_display_row(grid, scroll_offset, r) else {
+      break;
+    };
+    let cont = crate::core::url::url_continuation_len(cells);
+    if cont == 0 {
+      break;
+    }
+    url.extend(cells[..cont].iter().map(|c| c.c));
+    end_row = r;
+    if cont < cells.len() {
+      break;
+    }
+    r += 1;
+  }
+  (url, end_row)
 }
 
 fn pixel_to_cell(pos: Point, font_size: f32) -> Option<(usize, usize)> {
@@ -331,6 +359,7 @@ impl Default for Nova {
       is_selecting: false,
       ctrl_held: false,
       hovered_url: None,
+      hovered_link_span: None,
       shell_picker_open: false,
       shell_picker_anchor: 0.0,
       available_shells,
@@ -358,25 +387,72 @@ impl Nova {
   fn update_hovered_url(&mut self) {
     if !self.ctrl_held {
       self.hovered_url = None;
+      self.hovered_link_span = None;
       return;
     }
     let font_size = self.settings.theme.font.size;
     let Some((col, row)) = pixel_to_cell(self.cursor_position, font_size) else {
       self.hovered_url = None;
+      self.hovered_link_span = None;
       return;
     };
     let Some(tab) = self.tabs.get(self.active_index) else {
       self.hovered_url = None;
+      self.hovered_link_span = None;
       return;
     };
-    let Some(row_cells) = get_display_row(&tab.grid, tab.scroll_offset, row) else {
-      self.hovered_url = None;
-      return;
+
+    let (result_url, result_span) =
+      Self::resolve_hovered_url(&tab.grid, tab.scroll_offset, col, row);
+    self.hovered_url = result_url;
+    self.hovered_link_span = result_span;
+  }
+
+  fn resolve_hovered_url(
+    grid: &crate::core::grid::Grid,
+    scroll_offset: usize,
+    col: usize,
+    row: usize,
+  ) -> (Option<String>, Option<(usize, usize, usize)>) {
+    let Some(row_cells) = get_display_row(grid, scroll_offset, row) else {
+      return (None, None);
     };
-    self.hovered_url = crate::core::url::detect_urls(row_cells)
+
+    if let Some(uri) = row_cells.get(col).and_then(|c| c.uri.as_deref()) {
+      return (Some(uri.to_owned()), Some((row, col, row)));
+    }
+
+    let row_len = row_cells.len();
+    let plain = crate::core::url::detect_urls(row_cells)
       .into_iter()
-      .find(|(start, end, _)| col >= *start && col <= *end)
-      .map(|(_, _, url)| url);
+      .find(|(s, e, _)| col >= *s && col <= *e);
+
+    if let Some((start_col, end_col, partial)) = plain {
+      let (full_url, end_row) = if end_col == row_len.saturating_sub(1) {
+        stitch_continuation(partial, grid, scroll_offset, row + 1)
+      } else {
+        (partial, row)
+      };
+      return (Some(full_url), Some((row, start_col, end_row)));
+    }
+
+    if row > 0
+      && let Some(prev_cells) = get_display_row(grid, scroll_offset, row - 1)
+    {
+      let prev_len = prev_cells.len();
+      let prev_ending = crate::core::url::detect_urls(prev_cells)
+        .into_iter()
+        .find(|(_, e, _)| *e == prev_len.saturating_sub(1));
+      if let Some((start_col, _, partial)) = prev_ending {
+        let cont_len = crate::core::url::url_continuation_len(row_cells);
+        if cont_len > 0 && col < cont_len {
+          let (full_url, end_row) = stitch_continuation(partial, grid, scroll_offset, row);
+          return (Some(full_url), Some((row - 1, start_col, end_row)));
+        }
+      }
+    }
+
+    (None, None)
   }
 
   fn resize_all_grids(&mut self) {
@@ -1052,6 +1128,7 @@ impl Nova {
       font_size,
       active_tab.scroll_offset,
       self.hovered_url.as_deref(),
+      self.hovered_link_span,
     ))
     .interaction(term_interaction);
 

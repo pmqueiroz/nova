@@ -1,5 +1,6 @@
 use crate::core::grid::Grid;
 use iced::Color;
+use std::sync::Arc;
 use vte::{Params, Perform};
 
 fn rgb8(r: u8, g: u8, b: u8) -> Color {
@@ -77,6 +78,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
         fg: self.grid.current_fg,
         bg: self.grid.current_bg,
         reverse: self.grid.reverse_video,
+        uri: self.grid.current_uri.clone(),
       };
       if x + 1 >= self.grid.cols {
         self.grid.wrap_next = true;
@@ -458,23 +460,37 @@ impl<'a> Perform for AnsiExecutor<'a> {
   }
 
   fn osc_dispatch(&mut self, params: &[&[u8]], _bell_terminated: bool) {
-    if params.len() >= 2 && params[0] == b"7" {
-      let raw_url = String::from_utf8_lossy(params[1]).to_string();
-      if let Some(after_scheme) = raw_url.strip_prefix("file://")
-        && let Some((_, path)) = after_scheme.split_once('/')
-      {
-        #[cfg(target_os = "windows")]
-        let pwd = path.replace('/', "\\");
+    if params.is_empty() {
+      return;
+    }
+    match params[0] {
+      b"7" if params.len() >= 2 => {
+        let raw_url = String::from_utf8_lossy(params[1]).to_string();
+        if let Some(after_scheme) = raw_url.strip_prefix("file://")
+          && let Some((_, path)) = after_scheme.split_once('/')
+        {
+          #[cfg(target_os = "windows")]
+          let pwd = path.replace('/', "\\");
 
-        #[cfg(not(target_os = "windows"))]
-        let pwd = format!("/{}", path);
+          #[cfg(not(target_os = "windows"))]
+          let pwd = format!("/{}", path);
 
-        self.grid.pwd = pwd;
-      } else if let Some(host) = raw_url.strip_prefix("ssh://")
-        && !host.is_empty()
-      {
-        self.grid.pwd = format!("ssh:{}", host);
+          self.grid.pwd = pwd;
+        } else if let Some(host) = raw_url.strip_prefix("ssh://")
+          && !host.is_empty()
+        {
+          self.grid.pwd = format!("ssh:{}", host);
+        }
       }
+      b"8" if params.len() >= 3 => {
+        let uri = String::from_utf8_lossy(params[2]);
+        self.grid.current_uri = if uri.is_empty() {
+          None
+        } else {
+          Some(Arc::from(uri.as_ref()))
+        };
+      }
+      _ => {}
     }
   }
 }

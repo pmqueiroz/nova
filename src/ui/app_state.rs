@@ -157,7 +157,10 @@ fn get_display_row(
   let sb_len = grid.scrollback.len();
   let clamped = scroll_offset.min(sb_len);
   if y < clamped {
-    grid.scrollback.get(sb_len - clamped + y).map(|r| r.as_slice())
+    grid
+      .scrollback
+      .get(sb_len - clamped + y)
+      .map(|r| r.as_slice())
   } else {
     grid.cells.get(y - clamped).map(|r| r.as_slice())
   }
@@ -391,7 +394,11 @@ impl Nova {
   pub fn update(&mut self, message: Message) -> iced::Task<Message> {
     match message {
       Message::Type(bytes) => {
-        if self.settings_open || self.command_palette_open || self.ai_overlay_open || self.ai_loading {
+        if self.settings_open
+          || self.command_palette_open
+          || self.ai_overlay_open
+          || self.ai_loading
+        {
           return iced::Task::none();
         }
         self.selection_start = None;
@@ -664,6 +671,8 @@ impl Nova {
       }
       Message::WindowOpened(id) => {
         self.window_id = Some(id);
+        #[cfg(target_os = "windows")]
+        return window::set_mode(id, window::Mode::Windowed);
       }
       Message::MinimizeWindow => {
         if let Some(window_id) = self.window_id {
@@ -724,7 +733,11 @@ impl Nova {
         self.update_hovered_url();
       }
       Message::MousePressed => {
-        if self.settings_open || self.command_palette_open || self.ai_overlay_open || self.ai_loading {
+        if self.settings_open
+          || self.command_palette_open
+          || self.ai_overlay_open
+          || self.ai_loading
+        {
           return iced::Task::none();
         }
         if self.ctrl_held {
@@ -746,7 +759,11 @@ impl Nova {
       }
       Message::MouseReleased => {
         self.is_selecting = false;
-        if self.settings_open || self.command_palette_open || self.ai_overlay_open || self.ai_loading {
+        if self.settings_open
+          || self.command_palette_open
+          || self.ai_overlay_open
+          || self.ai_loading
+        {
           return iced::Task::none();
         }
         if let (Some(start), Some(end)) = (self.selection_start, self.selection_end) {
@@ -869,7 +886,12 @@ impl Nova {
         let (context, shell) = self
           .tabs
           .get(self.active_index)
-          .map(|tab| (crate::core::ai::extract_last_output(&tab.grid), tab.shell.clone()))
+          .map(|tab| {
+            (
+              crate::core::ai::extract_last_output(&tab.grid),
+              tab.shell.clone(),
+            )
+          })
           .unwrap_or_default();
         let ai_cfg = &self.settings.ai;
         let q = crate::core::ai::AiQuery {
@@ -904,7 +926,12 @@ impl Nova {
         let (context, shell) = self
           .tabs
           .get(self.active_index)
-          .map(|tab| (crate::core::ai::extract_last_output(&tab.grid), tab.shell.clone()))
+          .map(|tab| {
+            (
+              crate::core::ai::extract_last_output(&tab.grid),
+              tab.shell.clone(),
+            )
+          })
           .unwrap_or_default();
         let ai_cfg = &self.settings.ai;
         let q = crate::core::ai::AiQuery {
@@ -986,15 +1013,25 @@ impl Nova {
         mouse::Interaction::Text
       }
     });
-    let term = mouse_area(
-      components::term(active_tab, selection, font_size, active_tab.scroll_offset, self.hovered_url.as_deref()),
-    )
+    let term = mouse_area(components::term(
+      active_tab,
+      selection,
+      font_size,
+      active_tab.scroll_offset,
+      self.hovered_url.as_deref(),
+    ))
     .interaction(term_interaction);
 
     let tb_interaction = resize_cursor.unwrap_or(mouse::Interaction::Idle);
 
     let mut col = column![
-      components::title_bar(self.window_focused, &active_tab.pwd, self.window_maximized, tb_interaction, &self.settings.general.window_controls),
+      components::title_bar(
+        self.window_focused,
+        &active_tab.pwd,
+        self.window_maximized,
+        tb_interaction,
+        &self.settings.general.window_controls
+      ),
       components::tab_bar(&self.tabs, self.active_index),
       term,
     ];
@@ -1024,8 +1061,7 @@ impl Nova {
       );
       components::app(stack![col, modal])
     } else if self.command_palette_open {
-      let palette =
-        components::command_palette(&self.palette_query, self.palette_selected);
+      let palette = components::command_palette(&self.palette_query, self.palette_selected);
       components::app(stack![col, palette])
     } else if self.ai_overlay_open || self.ai_loading {
       let overlay = components::ai_overlay(
@@ -1223,7 +1259,12 @@ impl Nova {
         initial_rows: tab.grid.rows as u16,
       };
       let pty_sub = Subscription::run_with(key, |k| {
-        pty_worker(k.tab_id, k.initial_cols, k.initial_rows, k.shell_cmd.clone())
+        pty_worker(
+          k.tab_id,
+          k.initial_cols,
+          k.initial_rows,
+          k.shell_cmd.clone(),
+        )
       });
       subs.push(pty_sub);
     }

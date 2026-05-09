@@ -13,16 +13,13 @@ const FIRA_CODE_BYTES: &[u8] = include_bytes!("../../assets/fonts/FiraCodeNerdFo
 const FIRA_CODE_BOLD_BYTES: &[u8] = include_bytes!("../../assets/fonts/FiraCodeNerdFont-Bold.ttf");
 
 #[cfg(target_os = "windows")]
-const ICON_BYTES: &[u8] =
-  include_bytes!("../../assets/icons/windows/nova-win-256.png");
+const ICON_BYTES: &[u8] = include_bytes!("../../assets/icons/windows/nova-win-256.png");
 
 #[cfg(target_os = "macos")]
-const ICON_BYTES: &[u8] =
-  include_bytes!("../../assets/icons/macos/nova-mac-512.png");
+const ICON_BYTES: &[u8] = include_bytes!("../../assets/icons/macos/nova-mac-512.png");
 
 #[cfg(target_os = "linux")]
-const ICON_BYTES: &[u8] =
-  include_bytes!("../../assets/icons/linux/nova-linux-256.png");
+const ICON_BYTES: &[u8] = include_bytes!("../../assets/icons/linux/nova-linux-256.png");
 
 fn app_icon() -> Option<window::Icon> {
   let img = image::load_from_memory(ICON_BYTES).ok()?;
@@ -42,6 +39,8 @@ fn window_settings() -> window::Settings {
   };
   #[cfg(target_os = "windows")]
   {
+    settings.transparent = false;
+    settings.visible = false;
     settings.platform_specific.corner_preference =
       window::settings::platform::CornerPreference::Round;
   }

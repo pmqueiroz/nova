@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.3](https://github.com/pmqueiroz/nova/compare/v0.12.2...v0.12.3) (2026-05-09)
+
+
+### Bug Fixes
+
+* add missing package metadata fields for cargo-generate-rpm ([12a2fcd](https://github.com/pmqueiroz/nova/commit/12a2fcd34fd71b0adf2eaa3a925c4630475f7fd9))
+
 ## [0.12.2](https://github.com/pmqueiroz/nova/compare/v0.12.1...v0.12.2) (2026-05-09)
 
 

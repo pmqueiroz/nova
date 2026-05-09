@@ -81,25 +81,6 @@ pub fn theme_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
   )
   .font(theme::font::REGULAR)
   .text_size(12)
-  .style(|_t, status| {
-    let rt = theme::color::runtime();
-    let (border_c, fg, fg_muted, accent) = (rt.border, rt.foreground, rt.foreground_muted, rt.accent);
-    drop(rt);
-    pick_list::Style {
-      text_color: fg,
-      background: theme::color::BG_HIGH.as_color().into(),
-      border: Border {
-        color: match status {
-          pick_list::Status::Opened { .. } | pick_list::Status::Hovered => accent,
-          _ => border_c,
-        },
-        radius: Radius::new(4.0),
-        width: 1.0,
-      },
-      handle_color: fg_muted,
-      placeholder_color: fg_muted,
-    }
-  })
   .into();
 
   col = col.push(

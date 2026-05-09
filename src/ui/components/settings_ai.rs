@@ -1,8 +1,4 @@
-use iced::{
-  Border, Element, Padding, Shadow,
-  border::Radius,
-  widget::{column, container, overlay::menu, pick_list, text, text_input},
-};
+use iced::{Element, Padding, widget::{column, container, pick_list, text, text_input}};
 
 use crate::core::config::{self, AiProvider};
 use crate::ui::{app_state::Message, theme};
@@ -18,36 +14,6 @@ pub(super) fn ai_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
   )
   .font(theme::font::REGULAR)
   .text_size(12)
-  .style(|_t, status| {
-    let rt = theme::color::runtime();
-    let (border_c, fg, fg_muted) = (rt.border, rt.foreground, rt.foreground_muted);
-    let accent = rt.accent;
-    drop(rt);
-    let active_border = match status {
-      pick_list::Status::Opened { .. } | pick_list::Status::Hovered => accent,
-      _ => border_c,
-    };
-    pick_list::Style {
-      text_color: fg,
-      background: theme::color::BG_HIGH.as_color().into(),
-      border: Border { color: active_border, radius: Radius::new(4.0), width: 1.0 },
-      handle_color: fg_muted,
-      placeholder_color: fg_muted,
-    }
-  })
-  .menu_style(|_t| {
-    let rt = theme::color::runtime();
-    let (fg, accent, border_c) = (rt.foreground, rt.accent, rt.border);
-    drop(rt);
-    menu::Style {
-      background: theme::color::BG_DEEP.as_color().into(),
-      border: Border { color: border_c, radius: Radius::new(6.0), width: 1.0 },
-      text_color: fg,
-      selected_text_color: theme::color::BG_DEEP.as_color(),
-      selected_background: accent.into(),
-      shadow: Shadow::default(),
-    }
-  })
   .into();
 
   col = col.push(setting_row("Provider", "AI provider backend", provider_list));

@@ -388,7 +388,7 @@ jobs:
           }
           EOF
 
-      - uses: KSXGitHub/github-actions-deploy-aur@v4
+      - uses: KSXGitHub/github-actions-deploy-aur@v4.1.3
         with:
           pkgname: nova-bin
           pkgbuild: aur-pkg/PKGBUILD

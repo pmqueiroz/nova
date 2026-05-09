@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/pmqueiroz/nova/compare/v0.12.5...v0.13.0) (2026-05-09)
+
+
+### Features
+
+* implement OSC 8 hyperlinks ([b302dd6](https://github.com/pmqueiroz/nova/commit/b302dd64c3c7617b17fdcb60fc8f2d8a8372548e)), closes [#31](https://github.com/pmqueiroz/nova/issues/31)
+
 ## [0.12.5](https://github.com/pmqueiroz/nova/compare/v0.12.4...v0.12.5) (2026-05-09)
 
 

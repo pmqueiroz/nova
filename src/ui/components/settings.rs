@@ -225,7 +225,12 @@ fn modal_inner<'a>(
         }
       })
       .on_press(Message::CloseSettings)
-      .padding(Padding { top: 7.0, bottom: 5.0, left: 16.0, right: 16.0 }),
+      .padding(Padding {
+        top: 7.0,
+        bottom: 5.0,
+        left: 16.0,
+        right: 16.0
+      }),
     ]
     .align_y(iced::alignment::Vertical::Center),
   )

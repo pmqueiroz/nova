@@ -23,7 +23,12 @@ pub fn theme_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
       .font(theme::font::REGULAR)
       .size(12)
       .style(input_style)
-      .padding(Padding { top: 7.0, bottom: 5.0, left: 10.0, right: 10.0 }),
+      .padding(Padding {
+        top: 7.0,
+        bottom: 5.0,
+        left: 10.0,
+        right: 10.0
+      }),
     text("Requires restart to take effect")
       .font(theme::font::REGULAR)
       .size(10)
@@ -36,14 +41,24 @@ pub fn theme_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
     button(text("−").size(14).color(fg))
       .style(btn_subtle_style)
       .on_press(Message::SettingsFontSizeChanged(font_size - 1.0))
-      .padding(Padding { top: 5.0, bottom: 3.0, left: 10.0, right: 10.0 }),
+      .padding(Padding {
+        top: 5.0,
+        bottom: 3.0,
+        left: 10.0,
+        right: 10.0
+      }),
     container(
       text(format!("{}", font_size as u32))
         .font(theme::font::REGULAR)
         .size(12)
         .color(fg),
     )
-    .padding(Padding { top: 5.0, bottom: 3.0, left: 12.0, right: 12.0 })
+    .padding(Padding {
+      top: 5.0,
+      bottom: 3.0,
+      left: 12.0,
+      right: 12.0
+    })
     .style(|_| {
       let border_c = theme::color::runtime().border;
       container::Style {
@@ -59,7 +74,12 @@ pub fn theme_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
     button(text("+").size(14).color(fg))
       .style(btn_subtle_style)
       .on_press(Message::SettingsFontSizeChanged(font_size + 1.0))
-      .padding(Padding { top: 5.0, bottom: 3.0, left: 10.0, right: 10.0 }),
+      .padding(Padding {
+        top: 5.0,
+        bottom: 3.0,
+        left: 10.0,
+        right: 10.0
+      }),
   ]
   .spacing(4)
   .align_y(iced::alignment::Vertical::Center)
@@ -84,7 +104,12 @@ pub fn theme_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
   )
   .font(theme::font::REGULAR)
   .text_size(12)
-  .padding(Padding { top: 7.0, bottom: 5.0, left: 10.0, right: 10.0 })
+  .padding(Padding {
+    top: 7.0,
+    bottom: 5.0,
+    left: 10.0,
+    right: 10.0,
+  })
   .into();
 
   col = col.push(

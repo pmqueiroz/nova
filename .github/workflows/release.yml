@@ -265,6 +265,7 @@ jobs:
     name: Publish Winget
     needs: release
     runs-on: windows-latest
+    continue-on-error: true
     steps:
       - uses: vedantmgoyal2009/winget-releaser@v2
         with:
@@ -387,10 +388,14 @@ jobs:
           }
           EOF
 
-      - uses: nickelc/publish-aur-package@v2
+      - uses: KSXGitHub/github-actions-deploy-aur@v4
         with:
+          pkgname: nova-bin
           pkgbuild: aur-pkg/PKGBUILD
-          private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_username: pmqueiroz
+          commit_email: pedroqueiroz593@gmail.com
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: "Update to ${{ steps.meta.outputs.version }}"
 
   publish-apt:
     name: Publish APT repo
@@ -468,6 +473,6 @@ jobs:
           VERSION="${GITHUB_REF_NAME#v}"
           git config user.name "${GITHUB_USER}"
           git config user.email "${GITHUB_EMAIL}"
-          git add packages/ repodata/
+          git add packages/
           git diff --cached --quiet || git commit -m "nova $VERSION"
           git push

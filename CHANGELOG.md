@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.10.0](https://github.com/pmqueiroz/nova/compare/v0.9.0...v0.10.0) (2026-05-09)
+
+
+### Features
+
+* add ai agentic features ([87245d0](https://github.com/pmqueiroz/nova/commit/87245d02d125cabeca2807aa2e9a413e00214912))
+* resize cursor ([ce792f9](https://github.com/pmqueiroz/nova/commit/ce792f918fb18d064e30bc5c7a5ad07c5a7941ac))
+* select window control style ([45d4ed4](https://github.com/pmqueiroz/nova/commit/45d4ed4098d7a0f403cfdd84a2699c47f4a1d01b))
+
+
+### Bug Fixes
+
+* prevent relaunch shell on minimize on Windows ([6a03406](https://github.com/pmqueiroz/nova/commit/6a03406fb62c58a11375d616e4fb1ac6069e84fd))
+* prevent relaunch shell on resize ([b94a559](https://github.com/pmqueiroz/nova/commit/b94a5591f9ce39751832c7d040a7cb3ae47c9910))
+* roundend corners on linux ([754fcea](https://github.com/pmqueiroz/nova/commit/754fcea832616678eac48a0f04fbaf8f0b4294d9))
+
 ## [0.9.0](https://github.com/pmqueiroz/nova/compare/nova-v0.8.0...nova-v0.9.0) (2026-05-08)
 
 

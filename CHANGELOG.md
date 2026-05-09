@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/pmqueiroz/nova/compare/v0.12.0...v0.12.1) (2026-05-09)
+
+
+### Bug Fixes
+
+* rpm pckg ([ce0166b](https://github.com/pmqueiroz/nova/commit/ce0166b71e5ff7a6b8bb29a636eb5604a6796504))
+
 ## [0.12.0](https://github.com/pmqueiroz/nova/compare/v0.11.0...v0.12.0) (2026-05-09)
 
 

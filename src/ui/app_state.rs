@@ -1216,8 +1216,24 @@ impl Nova {
           Key::Named(Named::Escape) => return Some(Message::Type(b"\x1b".to_vec())),
           Key::Named(Named::ArrowUp) => return Some(Message::Type(b"\x1b[A".to_vec())),
           Key::Named(Named::ArrowDown) => return Some(Message::Type(b"\x1b[B".to_vec())),
-          Key::Named(Named::ArrowRight) => return Some(Message::Type(b"\x1b[C".to_vec())),
-          Key::Named(Named::ArrowLeft) => return Some(Message::Type(b"\x1b[D".to_vec())),
+          Key::Named(Named::ArrowRight) => {
+            return Some(Message::Type(if modifiers.alt() {
+              b"\x05".to_vec()
+            } else if modifiers.control() {
+              b"\x1bf".to_vec()
+            } else {
+              b"\x1b[C".to_vec()
+            }));
+          }
+          Key::Named(Named::ArrowLeft) => {
+            return Some(Message::Type(if modifiers.alt() {
+              b"\x01".to_vec()
+            } else if modifiers.control() {
+              b"\x1bb".to_vec()
+            } else {
+              b"\x1b[D".to_vec()
+            }));
+          }
           Key::Named(Named::Delete) => return Some(Message::Type(b"\x1b[3~".to_vec())),
           Key::Named(Named::Home) => return Some(Message::Type(b"\x1b[H".to_vec())),
           Key::Named(Named::End) => return Some(Message::Type(b"\x1b[F".to_vec())),

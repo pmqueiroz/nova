@@ -5,8 +5,12 @@ use iced::{
   widget::{button, container, image, mouse_area, row, text},
 };
 
+use crate::core::config::WindowControls;
 use crate::ui::{
-  app_state::Message, components::traffic_lights, helpers::til_home, theme,
+  app_state::Message,
+  components::traffic_lights::{system_controls, traffic_lights},
+  helpers::til_home,
+  theme,
   typography::{Typography, Weight},
 };
 
@@ -52,8 +56,12 @@ pub fn title_bar(
   pwd: &String,
   maximized: bool,
   cursor_interaction: iced::mouse::Interaction,
+  window_controls: &WindowControls,
 ) -> Element<'static, Message> {
-  let controls = traffic_lights(window_focused);
+  let controls = match window_controls {
+    WindowControls::TrafficLights => traffic_lights(window_focused),
+    WindowControls::System => system_controls(window_focused),
+  };
 
   let mark = image(MARK_HANDLE.clone()).width(13).height(13);
 
@@ -69,38 +77,38 @@ pub fn title_bar(
     .height(40)
     .align_y(Alignment::Center);
 
-  #[cfg(target_os = "windows")]
-  let title_row = row![
-    container(settings_button())
-      .width(Length::FillPortion(1))
-      .center_y(40)
-      .padding(Padding { left: 8.0, ..Default::default() }),
-    container(brand)
-      .center_x(Length::FillPortion(2))
-      .center_y(40),
-    container(controls)
-      .width(Length::FillPortion(1))
-      .height(Length::Fill)
-      .align_x(Horizontal::Right),
-  ]
-  .height(40);
-
-  #[cfg(not(target_os = "windows"))]
-  let title_row = row![
-    container(controls)
-      .width(Length::FillPortion(1))
-      .center_y(40)
-      .padding(Padding { left: 8.0, ..Default::default() }),
-    container(brand)
-      .center_x(Length::FillPortion(2))
-      .center_y(40),
-    container(settings_button())
-      .width(Length::FillPortion(1))
-      .height(40)
-      .align_x(Horizontal::Right)
-      .padding(Padding { right: 8.0, ..Default::default() }),
-  ]
-  .height(40);
+  let title_row = if *window_controls == WindowControls::System {
+    row![
+      container(settings_button())
+        .width(Length::FillPortion(1))
+        .center_y(40)
+        .padding(Padding { left: 8.0, ..Default::default() }),
+      container(brand)
+        .center_x(Length::FillPortion(2))
+        .center_y(40),
+      container(controls)
+        .width(Length::FillPortion(1))
+        .height(Length::Fill)
+        .align_x(Horizontal::Right),
+    ]
+    .height(40)
+  } else {
+    row![
+      container(controls)
+        .width(Length::FillPortion(1))
+        .center_y(40)
+        .padding(Padding { left: 8.0, ..Default::default() }),
+      container(brand)
+        .center_x(Length::FillPortion(2))
+        .center_y(40),
+      container(settings_button())
+        .width(Length::FillPortion(1))
+        .center_y(40)
+        .align_x(Horizontal::Right)
+        .padding(Padding { right: 8.0, ..Default::default() }),
+    ]
+    .height(40)
+  };
 
   let corner_radius = if maximized {
     Radius::default()

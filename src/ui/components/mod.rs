@@ -29,4 +29,3 @@ pub use status_bar::*;
 pub use tab_bar::*;
 pub use term::*;
 pub use title_bar::*;
-pub use traffic_lights::*;

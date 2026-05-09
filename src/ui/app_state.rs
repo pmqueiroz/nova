@@ -144,6 +144,7 @@ pub enum Message {
   SettingsAiModelChanged(String),
   SettingsAiApiKeyChanged(String),
   SettingsAiBaseUrlChanged(String),
+  SettingsWindowControlsChanged(config::WindowControls),
   NoOp,
 }
 
@@ -937,6 +938,10 @@ impl Nova {
         self.settings.ai.api_key = s;
         let _ = config::save(&self.settings);
       }
+      Message::SettingsWindowControlsChanged(style) => {
+        self.settings.general.window_controls = style;
+        let _ = config::save(&self.settings);
+      }
       Message::SettingsAiBaseUrlChanged(s) => {
         self.settings.ai.base_url = if s.trim().is_empty() { None } else { Some(s) };
         let _ = config::save(&self.settings);
@@ -978,7 +983,7 @@ impl Nova {
     let tb_interaction = resize_cursor.unwrap_or(mouse::Interaction::Idle);
 
     let mut col = column![
-      components::title_bar(self.window_focused, &active_tab.pwd, self.window_maximized, tb_interaction),
+      components::title_bar(self.window_focused, &active_tab.pwd, self.window_maximized, tb_interaction, &self.settings.general.window_controls),
       components::tab_bar(&self.tabs, self.active_index),
       term,
     ];
@@ -1034,7 +1039,18 @@ impl Nova {
   }
 
   pub fn theme(&self) -> Theme {
-    Theme::Dracula
+    let rt = crate::ui::theme::color::runtime();
+    Theme::custom(
+      "Nova",
+      iced::theme::Palette {
+        background: rt.background,
+        text: rt.foreground,
+        primary: rt.accent,
+        success: rt.accent,
+        warning: iced::Color::from_rgb(1.0, 0.75, 0.0),
+        danger: iced::Color::from_rgb(0.9, 0.3, 0.3),
+      },
+    )
   }
 
   pub fn subscription(&self) -> Subscription<Message> {

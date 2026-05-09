@@ -5,8 +5,46 @@ use iced::{
 
 use crate::ui::app_state::Message;
 
-#[cfg(target_os = "windows")]
-pub fn traffic_lights(_: bool) -> Element<'static, Message> {
+pub fn traffic_lights(window_focused: bool) -> Element<'static, Message> {
+  use crate::ui::theme;
+  use iced::border::radius;
+  use iced::widget::Space;
+
+  let circle_btn = |color: Color, msg: Message| {
+    button(
+      Space::new()
+        .width(Length::Fixed(12.0))
+        .height(Length::Fixed(12.0)),
+    )
+    .padding(0)
+    .on_press(msg)
+    .style(move |_t, _s| button::Style {
+      background: Some(
+        if window_focused {
+          color
+        } else {
+          theme::color::TRAFFIC_LIGHT_INACTIVE.as_color()
+        }
+        .into(),
+      ),
+      border: iced::Border {
+        radius: radius(120.0),
+        ..Default::default()
+      },
+      ..Default::default()
+    })
+  };
+
+  row![
+    circle_btn(theme::color::TRAFFIC_LIGHT_RED.as_color(), Message::CloseWindow),
+    circle_btn(theme::color::TRAFFIC_LIGHT_YELLOW.as_color(), Message::MinimizeWindow),
+    circle_btn(theme::color::TRAFFIC_LIGHT_GREEN.as_color(), Message::MaximizeWindow),
+  ]
+  .spacing(8)
+  .into()
+}
+
+pub fn system_controls(_window_focused: bool) -> Element<'static, Message> {
   let win_btn = |icon_unicode: &'static str, msg: Message, is_close: bool| {
     use iced::widget::{container, text};
 
@@ -38,59 +76,13 @@ pub fn traffic_lights(_: bool) -> Element<'static, Message> {
         }
       })
   };
-  let minimize_btn = win_btn("─", Message::MinimizeWindow, false);
-  let maximize_btn = win_btn("□", Message::MaximizeWindow, false);
-  let close_btn = win_btn("✕", Message::CloseWindow, true);
 
-  row![minimize_btn, maximize_btn, close_btn]
-    .spacing(8)
-    .height(Length::Fill)
-    .into()
-}
-
-#[cfg(not(target_os = "windows"))]
-pub fn traffic_lights(window_focused: bool) -> Element<'static, Message> {
-  use crate::ui::theme;
-  use iced::border::radius;
-  use iced::widget::Space;
-
-  let circle_btn = |color: Color, msg: Message| {
-    button(
-      Space::new()
-        .width(Length::Fixed(12.0))
-        .height(Length::Fixed(12.0)),
-    )
-    .padding(0)
-    .on_press(msg)
-    .style(move |_t, _s| button::Style {
-      background: Some(
-        if window_focused {
-          color
-        } else {
-          theme::color::TRAFFIC_LIGHT_INACTIVE.as_color()
-        }
-        .into(),
-      ),
-      border: iced::Border {
-        radius: radius(120.0),
-        ..Default::default()
-      },
-      ..Default::default()
-    })
-  };
-
-  let red_light = circle_btn(
-    theme::color::TRAFFIC_LIGHT_RED.as_color(),
-    Message::CloseWindow,
-  );
-  let yellow_light = circle_btn(
-    theme::color::TRAFFIC_LIGHT_YELLOW.as_color(),
-    Message::MinimizeWindow,
-  );
-  let green_light = circle_btn(
-    theme::color::TRAFFIC_LIGHT_GREEN.as_color(),
-    Message::MaximizeWindow,
-  );
-
-  row![red_light, yellow_light, green_light].spacing(8).into()
+  row![
+    win_btn("─", Message::MinimizeWindow, false),
+    win_btn("□", Message::MaximizeWindow, false),
+    win_btn("✕", Message::CloseWindow, true),
+  ]
+  .spacing(8)
+  .height(Length::Fill)
+  .into()
 }

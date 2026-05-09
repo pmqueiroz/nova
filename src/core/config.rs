@@ -57,12 +57,37 @@ impl Default for AiConfig {
   }
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+#[serde(rename_all = "kebab-case")]
+pub enum WindowControls {
+  TrafficLights,
+  System,
+}
+
+impl std::fmt::Display for WindowControls {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      WindowControls::TrafficLights => write!(f, "Traffic Lights"),
+      WindowControls::System => write!(f, "System"),
+    }
+  }
+}
+
+fn default_window_controls() -> WindowControls {
+  #[cfg(target_os = "macos")]
+  return WindowControls::TrafficLights;
+  #[cfg(not(target_os = "macos"))]
+  return WindowControls::System;
+}
+
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct GeneralConfig {
   pub editor: String,
   pub bell: BellType,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub shells: Option<Vec<String>>,
+  #[serde(rename = "window-controls", default = "default_window_controls")]
+  pub window_controls: WindowControls,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]

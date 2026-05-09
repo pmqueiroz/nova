@@ -243,7 +243,7 @@ fn modal_inner<'a>(
 fn sidebar_nav<'a>(active_tab: &'a SettingsTab) -> Element<'a, Message> {
   let tabs: &[(SettingsTab, &str)] = &[
     (SettingsTab::General, "General"),
-    (SettingsTab::Theme, "Theme"),
+    (SettingsTab::Theme, "Appearance"),
     (SettingsTab::Keybindings, "Keybindings"),
     (SettingsTab::StatusBar, "Status Bar"),
     (SettingsTab::Ai, "AI"),

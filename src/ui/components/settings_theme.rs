@@ -1,10 +1,10 @@
 use iced::{
   Border, Element, Padding,
   border::Radius,
-  widget::{button, column, container, row, text, text_input},
+  widget::{button, column, container, pick_list, row, text, text_input},
 };
 
-use crate::core::config;
+use crate::core::config::{self, WindowControls};
 use crate::ui::{app_state::{ColorField, Message}, theme};
 use super::{btn_subtle_style, color_row, input_style, section_label, setting_row};
 
@@ -70,6 +70,42 @@ pub fn theme_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
         setting_row("Size", "Font size in points", size_control),
       ]
       .spacing(16),
+    ]
+    .spacing(8),
+  );
+
+  let controls_list: Element<'a, Message> = pick_list(
+    [WindowControls::TrafficLights, WindowControls::System].as_slice(),
+    Some(settings.general.window_controls.clone()),
+    Message::SettingsWindowControlsChanged,
+  )
+  .font(theme::font::REGULAR)
+  .text_size(12)
+  .style(|_t, status| {
+    let rt = theme::color::runtime();
+    let (border_c, fg, fg_muted, accent) = (rt.border, rt.foreground, rt.foreground_muted, rt.accent);
+    drop(rt);
+    pick_list::Style {
+      text_color: fg,
+      background: theme::color::BG_HIGH.as_color().into(),
+      border: Border {
+        color: match status {
+          pick_list::Status::Opened { .. } | pick_list::Status::Hovered => accent,
+          _ => border_c,
+        },
+        radius: Radius::new(4.0),
+        width: 1.0,
+      },
+      handle_color: fg_muted,
+      placeholder_color: fg_muted,
+    }
+  })
+  .into();
+
+  col = col.push(
+    column![
+      section_label("WINDOW"),
+      setting_row("Controls", "Style of the window control buttons", controls_list),
     ]
     .spacing(8),
   );

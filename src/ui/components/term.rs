@@ -106,6 +106,15 @@ fn row_spans(
       eff_attrs.insert(crate::core::grid::CellAttrs::UNDERLINE);
     }
 
+    let mut render_c = cell.c;
+    let mut render_fg = eff_fg;
+    let mut render_bg = eff_bg;
+    if render_c == ' ' && eff_bg.is_some() && eff_fg.is_none() && !is_cursor {
+      render_c = '█';
+      render_fg = eff_bg;
+      render_bg = None;
+    }
+
     if is_cursor {
       if !seg_text.is_empty() {
         spans.push(cell_span(
@@ -125,11 +134,11 @@ fn row_spans(
           .font(theme::font::REGULAR)
           .size(font_size),
       );
-      seg_fg = eff_fg;
-      seg_bg = eff_bg;
+      seg_fg = render_fg;
+      seg_bg = render_bg;
       seg_attrs = eff_attrs;
     } else {
-      if eff_fg != seg_fg || eff_bg != seg_bg || eff_attrs != seg_attrs {
+      if render_fg != seg_fg || render_bg != seg_bg || eff_attrs != seg_attrs {
         if !seg_text.is_empty() {
           spans.push(cell_span(
             std::mem::take(&mut seg_text),
@@ -139,11 +148,13 @@ fn row_spans(
             font_size,
           ));
         }
-        seg_fg = eff_fg;
-        seg_bg = eff_bg;
+        seg_fg = render_fg;
+        seg_bg = render_bg;
         seg_attrs = eff_attrs;
       }
-      seg_text.push(cell.c);
+      if cell.c != '\0' {
+        seg_text.push(render_c);
+      }
     }
   }
 
@@ -176,7 +187,12 @@ pub fn term<'a>(
   for row_cells in scrollback.range(sb_start..) {
     let hl = compute_url_highlight(row_cells, display_y, hovered_url, hovered_link_span);
     let spans = row_spans(row_cells, None, 0, None, font_size, hovered_url, &hl);
-    grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
+    grid_ui = grid_ui.push(
+      rich_text(spans)
+        .size(font_size)
+        .font(theme::font::REGULAR)
+        .line_height(iced::widget::text::LineHeight::Relative(1.0)),
+    );
     display_y += 1;
   }
 
@@ -201,7 +217,12 @@ pub fn term<'a>(
       hovered_url,
       &hl,
     );
-    grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
+    grid_ui = grid_ui.push(
+      rich_text(spans)
+        .size(font_size)
+        .font(theme::font::REGULAR)
+        .line_height(iced::widget::text::LineHeight::Relative(1.0)),
+    );
     display_y += 1;
   }
 

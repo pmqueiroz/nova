@@ -62,7 +62,55 @@ pub struct AnsiExecutor<'a> {
 }
 
 impl<'a> Perform for AnsiExecutor<'a> {
-  fn print(&mut self, c: char) {
+  fn print(&mut self, mut c: char) {
+    if self.grid.dec_graphics {
+      c = match c {
+        '_' => ' ',
+        '`' => '◆',
+        'a' => '▒',
+        'b' => '\t',
+        'c' => '\x0C',
+        'd' => '\r',
+        'e' => '\n',
+        'f' => '°',
+        'g' => '±',
+        'h' => '\n',
+        'i' => '\x0B',
+        'j' => '┘',
+        'k' => '┐',
+        'l' => '┌',
+        'm' => '└',
+        'n' => '┼',
+        'o' => '⎺',
+        'p' => '⎻',
+        'q' => '─',
+        'r' => '⎼',
+        's' => '⎽',
+        't' => '├',
+        'u' => '┤',
+        'v' => '┴',
+        'w' => '┬',
+        'x' => '│',
+        'y' => '≤',
+        'z' => '≥',
+        '{' => 'π',
+        '|' => '≠',
+        '}' => '£',
+        '~' => '·',
+        _ => c,
+      };
+    }
+
+    use unicode_width::UnicodeWidthChar;
+    let width = c.width().unwrap_or(0);
+    if width == 0 {
+      return;
+    }
+
+    if self.grid.cursor_x + width > self.grid.cols {
+      self.grid.wrap_next = true;
+    }
+
     if self.grid.wrap_next {
       self.grid.cursor_x = 0;
       self.grid.newline();
@@ -80,16 +128,32 @@ impl<'a> Perform for AnsiExecutor<'a> {
         attrs: self.grid.current_attrs,
         uri: self.grid.current_uri.clone(),
       };
-      if x + 1 >= self.grid.cols {
+
+      for i in 1..width {
+        if x + i < self.grid.cols {
+          *self.grid.cell_mut(y, x + i) = crate::core::grid::Cell {
+            c: '\0',
+            fg: self.grid.current_fg,
+            bg: self.grid.current_bg,
+            attrs: self.grid.current_attrs,
+            uri: self.grid.current_uri.clone(),
+          };
+        }
+      }
+
+      if x + width >= self.grid.cols {
         self.grid.wrap_next = true;
+        self.grid.cursor_x = self.grid.cols.saturating_sub(1);
       } else {
-        self.grid.cursor_x += 1;
+        self.grid.cursor_x += width;
       }
     }
   }
 
-  fn esc_dispatch(&mut self, _intermediates: &[u8], _ignore: bool, byte: u8) {
+  fn esc_dispatch(&mut self, intermediates: &[u8], _ignore: bool, byte: u8) {
     match byte {
+      b'0' if intermediates == [b'('] => self.grid.dec_graphics = true,
+      b'B' if intermediates == [b'('] => self.grid.dec_graphics = false,
       b'7' => self.grid.saved_cursor = Some((self.grid.cursor_x, self.grid.cursor_y)),
       b'8' => {
         if let Some((x, y)) = self.grid.saved_cursor {
@@ -137,7 +201,11 @@ impl<'a> Perform for AnsiExecutor<'a> {
   }
 
   fn csi_dispatch(&mut self, params: &Params, intermediates: &[u8], _ignore: bool, command: char) {
-    let param_value = params.iter().next().map(|p| p[0] as usize).unwrap_or(0);
+    let param_value = params
+      .iter()
+      .next()
+      .map(|p| if p.is_empty() { 0 } else { p[0] as usize })
+      .unwrap_or(0);
     let n = if param_value == 0 { 1 } else { param_value };
 
     match command {
@@ -300,7 +368,10 @@ impl<'a> Perform for AnsiExecutor<'a> {
         }
       }
       'K' => {
-        let mode = params.iter().next().map_or(0, |p| p[0]);
+        let mode = params
+          .iter()
+          .next()
+          .map_or(0, |p| if p.is_empty() { 0 } else { p[0] });
         let x = self.grid.cursor_x;
         let y = self.grid.cursor_y;
 
@@ -326,7 +397,10 @@ impl<'a> Perform for AnsiExecutor<'a> {
         }
       }
       'A' => {
-        let param_value = params.iter().next().map_or(1, |p| p[0] as usize);
+        let param_value = params
+          .iter()
+          .next()
+          .map_or(1, |p| if p.is_empty() { 1 } else { p[0] as usize });
         let n = if param_value == 0 { 1 } else { param_value };
         let top = if self.grid.cursor_y >= self.grid.scroll_top {
           self.grid.scroll_top
@@ -337,7 +411,10 @@ impl<'a> Perform for AnsiExecutor<'a> {
         self.grid.wrap_next = false;
       }
       'B' => {
-        let param_value = params.iter().next().map_or(1, |p| p[0] as usize);
+        let param_value = params
+          .iter()
+          .next()
+          .map_or(1, |p| if p.is_empty() { 1 } else { p[0] as usize });
         let n = if param_value == 0 { 1 } else { param_value };
         let bottom = if self.grid.cursor_y <= self.grid.scroll_bottom {
           self.grid.scroll_bottom
@@ -355,18 +432,38 @@ impl<'a> Perform for AnsiExecutor<'a> {
         self.grid.cursor_x = self.grid.cursor_x.saturating_sub(n);
         self.grid.wrap_next = false;
       }
+      'E' => {
+        let bottom = self.grid.rows.saturating_sub(1);
+        self.grid.cursor_y = (self.grid.cursor_y + n).min(bottom);
+        self.grid.cursor_x = 0;
+        self.grid.wrap_next = false;
+      }
+      'F' => {
+        self.grid.cursor_y = self.grid.cursor_y.saturating_sub(n);
+        self.grid.cursor_x = 0;
+        self.grid.wrap_next = false;
+      }
       'G' => {
         let col = if param_value == 0 { 0 } else { param_value - 1 };
         self.grid.cursor_x = col.min(self.grid.cols.saturating_sub(1));
         self.grid.wrap_next = false;
       }
+      'd' => {
+        let row = if param_value == 0 { 0 } else { param_value - 1 };
+        self.grid.cursor_y = row.min(self.grid.rows.saturating_sub(1));
+        self.grid.wrap_next = false;
+      }
       'H' | 'f' => {
         let mut iter = params.iter();
 
-        let row_param = iter.next().map_or(1, |p| p[0] as usize);
+        let row_param = iter
+          .next()
+          .map_or(1, |p| if p.is_empty() { 1 } else { p[0] as usize });
         let row = if row_param == 0 { 1 } else { row_param };
 
-        let col_param = iter.next().map_or(1, |p| p[0] as usize);
+        let col_param = iter
+          .next()
+          .map_or(1, |p| if p.is_empty() { 1 } else { p[0] as usize });
         let col = if col_param == 0 { 1 } else { col_param };
 
         self.grid.cursor_y = (row - 1).min(self.grid.rows.saturating_sub(1));
@@ -374,7 +471,10 @@ impl<'a> Perform for AnsiExecutor<'a> {
         self.grid.wrap_next = false;
       }
       'J' => {
-        let mode = params.iter().next().map_or(0, |p| p[0]);
+        let mode = params
+          .iter()
+          .next()
+          .map_or(0, |p| if p.is_empty() { 0 } else { p[0] });
         let x = self.grid.cursor_x;
         let y = self.grid.cursor_y;
         match mode {
@@ -475,11 +575,15 @@ impl<'a> Perform for AnsiExecutor<'a> {
       }
       'r' if intermediates.is_empty() => {
         let mut iter = params.iter();
-        let top = iter
-          .next()
-          .map_or(1, |p| if p[0] == 0 { 1 } else { p[0] as usize });
+        let top = iter.next().map_or(1, |p| {
+          if p.is_empty() || p[0] == 0 {
+            1
+          } else {
+            p[0] as usize
+          }
+        });
         let bottom = iter.next().map_or(self.grid.rows, |p| {
-          if p[0] == 0 {
+          if p.is_empty() || p[0] == 0 {
             self.grid.rows
           } else {
             p[0] as usize
@@ -502,7 +606,10 @@ impl<'a> Perform for AnsiExecutor<'a> {
         }
       }
       'h' | 'l' if intermediates.contains(&b'?') => {
-        let mode = params.iter().next().map_or(0, |p| p[0]);
+        let mode = params
+          .iter()
+          .next()
+          .map_or(0, |p| if p.is_empty() { 0 } else { p[0] });
         match mode {
           47 | 1047 | 1049 => {
             if command == 'h' {

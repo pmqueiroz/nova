@@ -56,6 +56,7 @@ pub struct Grid {
   pub current_bg: Option<Color>,
   pub current_uri: Option<Arc<str>>,
   pub current_attrs: CellAttrs,
+  pub dec_graphics: bool,
   pub mouse_mode: MouseMode,
   pub mouse_sgr: bool,
   pub bracketed_paste: bool,
@@ -84,6 +85,7 @@ impl Grid {
       current_bg: None,
       current_uri: None,
       current_attrs: CellAttrs::empty(),
+      dec_graphics: false,
       mouse_mode: MouseMode::None,
       mouse_sgr: false,
       bracketed_paste: false,
@@ -126,6 +128,7 @@ impl Grid {
       self.current_bg = None;
       self.current_uri = None;
       self.current_attrs = CellAttrs::empty();
+      self.dec_graphics = false;
       self.bracketed_paste = false;
       self.wrap_next = false;
     }
@@ -148,6 +151,7 @@ impl Grid {
     self.current_bg = None;
     self.current_uri = None;
     self.current_attrs = CellAttrs::empty();
+    self.dec_graphics = false;
     self.wrap_next = false;
   }
 

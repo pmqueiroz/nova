@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: oven-sh/setup-bun@v2
       - run: |
-          bun install -g docmd
+          bun install -g @docmd/core
           docmd build
         working-directory: docs
       - uses: JamesIves/github-pages-deploy-action@v4

@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.14.0](https://github.com/pmqueiroz/nova/compare/v0.13.0...v0.14.0) (2026-05-10)
+
+
+### Features
+
+* implement bracketed paste mode (CSI ?2004h/l) ([746941a](https://github.com/pmqueiroz/nova/commit/746941a3b249efd34fa791f9a271bf0f1e5cb7b2)), closes [#27](https://github.com/pmqueiroz/nova/issues/27)
+* implement mouse reporting (CSI ?1000h / ?1006h SGR mode) ([3177935](https://github.com/pmqueiroz/nova/commit/31779357f867a7059b2baa9d329d141149b1662f)), closes [#28](https://github.com/pmqueiroz/nova/issues/28)
+* implement text attributes (bold, italic, underline, dim, blink, strikethrough) ([c86b1f4](https://github.com/pmqueiroz/nova/commit/c86b1f4bd2e20917ad18388da84c556a40121a2e)), closes [#26](https://github.com/pmqueiroz/nova/issues/26)
+
+
+### Bug Fixes
+
+* convert AUR SSH key to OPENSSH format to fix libcrypto PEM decoding error in Arch container ([10f41b9](https://github.com/pmqueiroz/nova/commit/10f41b9941de7abf25aa5e0ac8ccac8f7f277b55))
+* verify and harden scroll region enforcement (CSI r) ([44e2a22](https://github.com/pmqueiroz/nova/commit/44e2a228aab019f1b6281d6e163c512e8f0df51e)), closes [#30](https://github.com/pmqueiroz/nova/issues/30)
+
+
+### Performance Improvements
+
+* flatten grid allocator from Vec&lt;Vec&lt;Cell&gt;&gt; to Vec&lt;Cell&gt; with stride indexing ([af41848](https://github.com/pmqueiroz/nova/commit/af41848c591005970e494758418a949872d32ad0)), closes [#29](https://github.com/pmqueiroz/nova/issues/29)
+
 ## [0.13.0](https://github.com/pmqueiroz/nova/compare/v0.12.5...v0.13.0) (2026-05-09)
 
 

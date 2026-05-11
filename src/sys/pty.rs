@@ -223,7 +223,9 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
     match shell_name {
       "bash" => {
         c.args([
-          "-lc",
+          "-l",
+          "-i",
+          "-c",
           "export PS1=\"$NOVA_PS1\" PROMPT_COMMAND=\"$NOVA_PROMPT_COMMAND\"; exec \"$0\" --noprofile --norc -i",
         ]);
       }

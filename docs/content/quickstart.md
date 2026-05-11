@@ -9,7 +9,7 @@ On first launch, Nova creates a settings file if it doesn't exist.
 
 Config file path is:
 
-- Windows: `%APPDATA%\\nova\\settings.toml`
+- Windows: `%APPDATA%\nova\settings.toml`
 - macOS: `~/Library/Application Support/nova/settings.toml`
 - Linux: `~/.config/nova/settings.toml`
 

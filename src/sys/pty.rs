@@ -222,7 +222,7 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
 
     match shell_name {
       "bash" => {
-        c.args(["--login", "-i"]);
+        c.args(["-lc", "exec \"$0\" --noprofile --norc -i"]);
       }
       "zsh" => {
         c.args(["-l", "-i"]);

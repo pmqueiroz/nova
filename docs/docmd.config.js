@@ -52,9 +52,30 @@ export default defineConfig({
       collapsible: false,
       children: [
         { title: 'Installation', path: '/installation', icon: 'download' },
-        { title: 'Configuration', path: '/configuration', icon: 'cog' },
+        { title: 'Quickstart', path: '/quickstart', icon: 'sparkles' },
       ],
     },
+    {
+      title: 'Reference',
+      icon: 'book',
+      collapsible: false,
+      children: [
+        { title: 'Configuration', path: '/configuration', icon: 'cog' },
+        { title: 'Keybindings', path: '/keybindings', icon: 'keyboard' },
+        { title: 'AI', path: '/ai', icon: 'bot' },
+        { title: 'CLI', path: '/cli', icon: 'terminal' },
+      ],
+    },
+    {
+      title: 'Internals',
+      icon: 'code',
+      collapsible: false,
+      children: [
+        { title: 'OSC Integration', path: '/internals-osc', icon: 'link' },
+        { title: 'Development', path: '/development', icon: 'tool' },
+      ],
+    },
+    { title: 'Troubleshooting', path: '/troubleshooting', icon: 'life-buoy' },
     { title: 'GitHub', path: 'https://github.com/pmqueiroz/nova', icon: 'github', external: true },
   ],
   plugins: {

@@ -207,8 +207,8 @@ jobs:
           ARM_DMG="${{ steps.meta.outputs.arm_dmg }}"
           mkdir -p Casks
           cat > Casks/nova.rb << CASK
-           cask "nova" do
-             version "$VERSION"
+          cask "nova" do
+            version "$VERSION"
 
             on_intel do
               url "https://github.com/pmqueiroz/nova/releases/download/v#{version}/$INTEL_DMG"
@@ -222,13 +222,13 @@ jobs:
 
             name "Nova"
             desc "A GPU-accelerated terminal emulator"
-             homepage "https://github.com/pmqueiroz/nova"
+            homepage "https://github.com/pmqueiroz/nova"
 
-             app "Nova.app"
+            app "Nova.app"
 
-             binary "#{appdir}/Nova.app/Contents/MacOS/nova", target: "nova"
-           end
-           CASK
+            binary "#{appdir}/Nova.app/Contents/MacOS/nova", target: "nova"
+          end
+          CASK
 
       - name: Write Linux formula
         run: |

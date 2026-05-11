@@ -228,7 +228,7 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
         c.args(["-l", "-i"]);
       }
       "fish" => {
-        c.args(["-l"]);
+        c.args(["-l", "-i"]);
       }
       _ => {}
     }

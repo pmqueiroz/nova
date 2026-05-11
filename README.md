@@ -75,6 +75,13 @@ Each release includes a [`checksums.txt`](https://github.com/pmqueiroz/nova/rele
 > ```
 
 > [!TIP]
+> If you install on macOS via Homebrew cask, the `nova` CLI will be available in your `$PATH`.
+> If you install from the `.dmg`, you can expose the CLI manually:
+> ```sh
+> sudo ln -sf "/Applications/Nova.app/Contents/MacOS/nova" /usr/local/bin/nova
+> ```
+
+> [!TIP]
 > If you'd like to see Nova become a signed and notarized app, consider [sponsoring the project](https://github.com/sponsors/pmqueiroz). ❤️
 
 ### Build from source

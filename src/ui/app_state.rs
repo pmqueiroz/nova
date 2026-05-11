@@ -8,6 +8,7 @@ use std::io::Write;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::core::config::{self, KeyId, ParsedKeybinding};
+use crate::core::grid::ControlCommand;
 use crate::sys::parser::AnsiExecutor;
 use crate::sys::pty::{PtyBridge, PtyCommand};
 use crate::ui::components;
@@ -788,6 +789,18 @@ impl Nova {
           }
           let bell_fired = executor.bell_pending;
 
+          let mut open_ask_ai = false;
+          let mut ask_ai_preset: Option<std::sync::Arc<str>> = None;
+          for cmd in tab.grid.control_queue.drain(..) {
+            let ControlCommand::OpenAskAi { preset } = cmd;
+            open_ask_ai = true;
+            if let Some(p) = preset
+              && !p.trim().is_empty()
+            {
+              ask_ai_preset = Some(p);
+            }
+          }
+
           while !tab.grid.output_queue.is_empty() {
             let response = tab.grid.output_queue.remove(0);
             if let Some(tx) = &tab.pty_tx {
@@ -801,6 +814,16 @@ impl Nova {
           }
           tab.update_git_status();
           tab.scroll_offset = 0;
+
+          if open_ask_ai {
+            self.ai_overlay_open = true;
+            AI_OPEN.store(true, Ordering::SeqCst);
+            self.ai_input = ask_ai_preset.map(|s| s.to_string()).unwrap_or_default();
+            self.ai_response = None;
+            self.ai_is_error = false;
+            self.ai_loading = false;
+            return iced::widget::operation::focus(components::AI_INPUT_ID.clone());
+          }
 
           if bell_fired {
             match self.settings.general.bell {

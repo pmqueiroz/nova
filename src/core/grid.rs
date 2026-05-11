@@ -65,12 +65,18 @@ pub struct Grid {
   pub scroll_bottom: usize,
   pub pwd: String,
   pub output_queue: Vec<Vec<u8>>,
+  pub control_queue: Vec<ControlCommand>,
   pub saved_cursor: Option<(usize, usize)>,
   pub wrap_next: bool,
   pub scrollback: VecDeque<Vec<Cell>>,
   alt_cells: Option<Vec<Cell>>,
   alt_cursor: Option<(usize, usize)>,
   alt_scrollback: Option<VecDeque<Vec<Cell>>>,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ControlCommand {
+  OpenAskAi { preset: Option<std::sync::Arc<str>> },
 }
 
 impl Grid {
@@ -93,6 +99,7 @@ impl Grid {
       scroll_bottom: rows.saturating_sub(1),
       pwd: String::from("~"),
       output_queue: Vec::new(),
+      control_queue: Vec::new(),
       saved_cursor: None,
       wrap_next: false,
       scrollback: VecDeque::new(),

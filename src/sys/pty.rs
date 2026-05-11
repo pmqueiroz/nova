@@ -109,6 +109,8 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       }
       c.env("TERM", "xterm-256color");
       c.env("COLORTERM", "truecolor");
+      c.env("NOVA_TERMINAL", "1");
+      c.env("TERM_PROGRAM", "Nova");
       let (ar, ag, ab) = accent_rgb();
       let ps_prompt_script = format!(
         r#"
@@ -152,11 +154,15 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       if let Ok(profile) = std::env::var("USERPROFILE") {
         c.cwd(profile);
       }
+      c.env("NOVA_TERMINAL", "1");
+      c.env("TERM_PROGRAM", "Nova");
       c
     } else if is_wsl {
       let mut c = CommandBuilder::new("wsl.exe");
       c.env("TERM", "xterm-256color");
       c.env("COLORTERM", "truecolor");
+      c.env("NOVA_TERMINAL", "1");
+      c.env("TERM_PROGRAM", "Nova");
       let (ar, ag, ab) = accent_rgb();
       c.env(
         "PS1",
@@ -178,6 +184,8 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       }
       c.env("TERM", "xterm-256color");
       c.env("COLORTERM", "truecolor");
+      c.env("NOVA_TERMINAL", "1");
+      c.env("TERM_PROGRAM", "Nova");
       let (ar, ag, ab) = accent_rgb();
       c.env(
         "PS1",
@@ -196,6 +204,8 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       if let Ok(profile) = std::env::var("USERPROFILE") {
         c.cwd(profile);
       }
+      c.env("NOVA_TERMINAL", "1");
+      c.env("TERM_PROGRAM", "Nova");
       c
     }
   }
@@ -211,6 +221,8 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
     }
     c.env("TERM", "xterm-256color");
     c.env("COLORTERM", "truecolor");
+    c.env("NOVA_TERMINAL", "1");
+    c.env("TERM_PROGRAM", "Nova");
     if shell_name != "fish" {
       let (ar, ag, ab) = accent_rgb();
       c.env(

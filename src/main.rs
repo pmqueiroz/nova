@@ -1,5 +1,6 @@
 #![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 
+mod cli;
 mod core;
 mod sys;
 mod ui;
@@ -7,6 +8,10 @@ mod ui;
 use core::config;
 
 pub fn main() -> ui::Result {
+  if let Some(code) = cli::run_from_env() {
+    std::process::exit(code);
+  }
+
   config::init().expect("failed to load config");
 
   let c = &config::get().theme.colors;

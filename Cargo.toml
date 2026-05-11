@@ -25,6 +25,14 @@ serde = { version = "1", features = ["derive"] }
 toml = "0.8"
 vte = "0.15.0"
 bitflags = "2"
+base64 = "0.22.1"
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = [
+  "Win32_Foundation",
+  "Win32_System_Console",
+  "Win32_Storage_FileSystem",
+] }
 
 [build-dependencies]
 ico = "0.3"

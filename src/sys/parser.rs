@@ -1,4 +1,7 @@
+use crate::cli;
+use crate::core::grid::ControlCommand;
 use crate::core::grid::Grid;
+use base64::Engine;
 use iced::Color;
 use std::sync::Arc;
 use vte::{Params, Perform};
@@ -563,6 +566,22 @@ impl<'a> Perform for AnsiExecutor<'a> {
       return;
     }
     match params[0] {
+      cli::constants::PRIVATE_NOVA_OSC_CODE_BYTES
+        if params.len() >= 2 && params[1] == b"ask_ai" =>
+      {
+        let preset = if params.len() >= 3 && !params[2].is_empty() {
+          match base64::engine::general_purpose::STANDARD.decode(params[2]) {
+            Ok(bytes) => String::from_utf8(bytes).ok().map(Arc::<str>::from),
+            Err(_) => None,
+          }
+        } else {
+          None
+        };
+        self
+          .grid
+          .control_queue
+          .push(ControlCommand::OpenAskAi { preset });
+      }
       b"7" if params.len() >= 2 => {
         let raw_url = String::from_utf8_lossy(params[1]).to_string();
         if let Some(after_scheme) = raw_url.strip_prefix("file://")

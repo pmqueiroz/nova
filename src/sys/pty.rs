@@ -222,13 +222,16 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
 
     match shell_name {
       "bash" => {
-        c.args(["-lc", "exec \"$0\" --noprofile --norc -i"]);
+        c.args([
+          "-lc",
+          "export PS1=\"$NOVA_PS1\" PROMPT_COMMAND=\"$NOVA_PROMPT_COMMAND\"; exec \"$0\" --noprofile --norc -i",
+        ]);
       }
       "zsh" => {
         c.args(["-l", "-i"]);
       }
       "fish" => {
-        c.args(["-l", "-i"]);
+        c.args(["-l"]);
       }
       _ => {}
     }
@@ -247,6 +250,19 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       );
       c.env(
         "PROMPT_COMMAND",
+        r#"if ! declare -f ssh > /dev/null 2>&1; then ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }; fi; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
+      );
+
+      // For login shells we may need to re-apply these after startup.
+      // Keep a copy under NOVA_* for the bash -lc re-exec path.
+      c.env(
+        "NOVA_PS1",
+        format!(
+          "\\[\\e[38;2;128;128;128m\\]\\w\\[\\e[0m\\] \\[\\e[38;2;{ar};{ag};{ab}m\\]λ\\[\\e[0m\\] "
+        ),
+      );
+      c.env(
+        "NOVA_PROMPT_COMMAND",
         r#"if ! declare -f ssh > /dev/null 2>&1; then ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }; fi; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
       );
     }

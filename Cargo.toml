@@ -71,7 +71,7 @@ minimum_system_version = "11.0"
 
 [package.metadata.packager.nsis]
 template = "packaging/nsis/nova-installer.nsi"
-install_mode = "both"
+installer_mode = "both"
 
 [package.metadata.packager.deb]
 section = "utils"

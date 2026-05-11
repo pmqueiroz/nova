@@ -22,6 +22,10 @@
 
 ### Winget (Windows)
 
+> [!WARNING]  
+> waiting to winget maintainers to approve the request check https://github.com/pmqueiroz/nova/issues/25
+
+
 ```sh
 winget install pmqueiroz.Nova
 ```

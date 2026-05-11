@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.17.0](https://github.com/pmqueiroz/nova/compare/v0.16.0...v0.17.0) (2026-05-11)
+
+
+### Features
+
+* **cli:** auto-submit ask_ai when preset content is provided ([1b8a538](https://github.com/pmqueiroz/nova/commit/1b8a538f18a2f933c3db066556116b319e645458))
+
+
+### Bug Fixes
+
+* run bash startup with interactive flag ([abd31d6](https://github.com/pmqueiroz/nova/commit/abd31d648b9e17a558d939768530596011f14828))
+
 ## [0.16.0](https://github.com/pmqueiroz/nova/compare/v0.15.2...v0.16.0) (2026-05-11)
 
 

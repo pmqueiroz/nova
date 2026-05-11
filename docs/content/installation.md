@@ -4,7 +4,7 @@ description: ""
 ---
 
 
-## 🚀 Installation
+## Installation
 
 ### Homebrew
 

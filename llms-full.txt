@@ -4,7 +4,141 @@
 
 ---
 
-## [Untitled](https://nova.pmqueiroz.dev/configuration/)
+## [AI](https://nova.pmqueiroz.dev/ai/)
+
+---
+title: "AI"
+description: "Providers, configuration, and how Nova builds AI requests."
+---
+
+## Overview
+
+Nova's AI features live in the UI (Ask AI and Explain Error). They use:
+
+- Your question
+- Terminal context extracted from the last command output
+
+AI is optional. If `api_key` is empty, requests fail with a clear error.
+
+## Configuration
+
+Settings live under `[ai]` in `settings.toml`:
+
+```toml
+[ai]
+provider = "anthropic"  # or "openai"
+model = "claude-haiku-4-5-20251001"
+api_key = ""
+# base_url = "https://api.anthropic.com"  # optional
+```
+
+Fields:
+
+- `provider`: `anthropic` or `openai`
+- `model`: Provider-specific model name
+- `api_key`: Required
+- `base_url`: Optional override (useful for proxies)
+
+## Provider Behavior
+
+Anthropic:
+
+- Default `base_url` is `https://api.anthropic.com`.
+
+OpenAI:
+
+- Default `base_url` is `https://api.openai.com/v1/`.
+- If you set `base_url` without a trailing `/`, Nova adds it.
+
+## What Gets Sent
+
+Nova builds a system prompt including OS and shell, and includes terminal context from the last output.
+
+Terminal context is extracted by scanning for the prompt marker and collecting the lines after it, trimming empty lines.
+
+## Troubleshooting
+
+- "No API key configured": Set `[ai].api_key` in Settings or `settings.toml`.
+- Model errors: Confirm the model name exists for the selected provider.
+- Proxy/base URL issues: Ensure `base_url` includes scheme and is reachable.
+
+
+---
+
+## [CLI](https://nova.pmqueiroz.dev/cli/)
+
+---
+title: "CLI"
+description: "nova CLI commands and how they integrate with the Nova app."
+---
+
+## Commands
+
+Nova includes a small CLI surface:
+
+- `nova help`: Show usage
+- `nova ask [preset...]`: Open the Ask AI modal in the running Nova app
+
+## `nova ask`
+
+`nova ask` is not a standalone AI client.
+
+It must be run *inside* Nova. Nova sets `NOVA_TERMINAL=1` for its child shells; the CLI checks that environment variable.
+
+Examples:
+
+```bash
+nova ask
+```
+
+```bash
+nova ask explain this error
+```
+
+If you're not in Nova, you'll see:
+
+```text
+error: 'nova ask' must be run inside Nova terminal
+```
+
+## How It Works
+
+The CLI emits a private OSC sequence that Nova's terminal parser understands.
+
+Details are documented in [OSC Integration](/internals-osc).
+
+
+---
+
+## [Configuration](https://nova.pmqueiroz.dev/configuration/)
+
+---
+title: "Configuration"
+description: "Config file location, behavior, and full settings reference."
+---
+
+## Location
+
+Nova stores settings at `settings.toml` under your OS config directory:
+
+- Windows: `%APPDATA%\nova\settings.toml`
+- macOS: `~/Library/Application Support/nova/settings.toml`
+- Linux: `~/.config/nova/settings.toml`
+
+Internally, this is `dirs::config_dir().join("nova").join("settings.toml")`.
+
+## File Lifecycle
+
+- If `settings.toml` does not exist, Nova writes an embedded default config.
+- If `settings.toml` exists but TOML parsing fails, Nova overwrites it with defaults.
+
+This means a malformed edit can be "repaired" by reset-to-default (but you may lose changes).
+
+## Defaults
+
+Nova ships embedded defaults (slightly different on macOS).
+
+Non-macOS default excerpt:
 
 ```toml
 [general]
@@ -43,12 +177,215 @@ model = "claude-haiku-4-5-20251001"
 api_key = ""
 ```
 
+## Reference
+
+### `[general]`
+
+- `editor` (string): External editor command.
+- `bell` (string): One of `none`, `audio`, `blink`.
+- `shells` (array of strings, optional): If set and non-empty, Nova uses this list instead of auto-detect.
+- `window-controls` (string): One of `traffic-lights` or `system`.
+
+Example:
+
+```toml
+[general]
+editor = "code -w"
+bell = "none"
+shells = ["zsh", "bash"]
+window-controls = "system"
+```
+
+### `[status-bar]`
+
+- `visible` (bool)
+- `date-format` (string)
+- `time-format` (string)
+
+Example:
+
+```toml
+[status-bar]
+visible = true
+date-format = "%Y-%m-%d"
+time-format = "%H:%M"
+```
+
+### `[theme.font]`
+
+- `size` (number)
+- `family` (string)
+
+Example:
+
+```toml
+[theme.font]
+size = 15
+family = "FiraCode Nerd Font"
+```
+
+### `[theme.colors]`
+
+All values are hex strings.
+
+- `#RRGGBB` is supported.
+- `#RRGGBBAA` is supported (alpha channel).
+
+Keys:
+
+- `background`
+- `foreground`
+- `accent`
+- `foreground-muted`
+- `border`
+- `cursor`
+
+Example:
+
+```toml
+[theme.colors]
+background = "#0D0D0D"
+foreground = "#E5E5E5"
+accent = "#3ECF8E"
+foreground-muted = "#666666"
+border = "#FFFFFF12"
+cursor = "#3ECF8E"
+```
+
+### `[keybindings]`
+
+See [Keybindings](/keybindings) for syntax and examples.
+
+Keys:
+
+- `new-tab`
+- `close-tab`
+- `next-tab`
+- `prev-tab`
+- `paste`
+- `copy`
+- `open-palette`
+
+### `[ai]`
+
+See [AI](/ai) for behavior and troubleshooting.
+
+- `provider` (string): `anthropic` or `openai`
+- `model` (string)
+- `api_key` (string)
+- `base_url` (string, optional): Override API base URL (useful for proxies).
+
+Example:
+
+```toml
+[ai]
+provider = "openai"
+model = "gpt-4.1-mini"
+api_key = "..."
+base_url = "https://api.openai.com/v1/"
+```
+
 
 ---
 
-## [Untitled](https://nova.pmqueiroz.dev/)
+## [Development](https://nova.pmqueiroz.dev/development/)
 
-Hi
+---
+title: "Development"
+description: "Building Nova, working on the codebase, and building the docs site."
+---
+
+## Build Nova
+
+Nova uses Rust (stable, edition 2024).
+
+```bash
+git clone https://github.com/pmqueiroz/nova.git
+cd nova
+cargo build --release
+```
+
+Binary output:
+
+```text
+./target/release/nova
+```
+
+For local iteration:
+
+```bash
+cargo run
+```
+
+## Code Map
+
+High-level ownership:
+
+- `src/core/`: config, grid model, ANSI/VTE state, AI client
+- `src/sys/`: PTY bridge, platform I/O, terminal parser
+- `src/ui/`: iced application, components, theme
+
+## Build The Docs Site
+
+Docs live in `docs/` and are built with `@docmd/core`.
+
+From the repo root:
+
+```bash
+cd docs
+bun install
+bun run dev
+```
+
+Build output goes to `docs/dist`:
+
+```bash
+cd docs
+bun run build
+```
+
+## CI Notes
+
+The main CI enforces formatting and linting.
+
+Before opening a PR:
+
+```bash
+cargo fmt
+cargo clippy
+cargo build
+```
+
+
+---
+
+## [Nova Documentation](https://nova.pmqueiroz.dev/)
+
+---
+title: "Nova Documentation"
+description: "Deep-dive docs for Nova users and contributors."
+---
+
+## Start Here
+
+- [Installation](/installation)
+- [Quickstart](/quickstart)
+
+## Reference
+
+- [Configuration](/configuration)
+- [Keybindings](/keybindings)
+- [AI](/ai)
+- [CLI](/cli)
+
+## Internals
+
+- [OSC Integration](/internals-osc)
+- [Development](/development)
+
+## Help
+
+- [Troubleshooting](/troubleshooting)
 
 
 ---
@@ -61,7 +398,7 @@ description: ""
 ---
 
 
-## 🚀 Installation
+## Installation
 
 ### Homebrew
 
@@ -112,6 +449,253 @@ sudo curl -fsSL https://pmqueiroz.github.io/rpm-repo/nova.repo \
   -o /etc/yum.repos.d/nova.repo
 sudo dnf install nova
 ```
+
+
+---
+
+## [OSC Integration](https://nova.pmqueiroz.dev/internals-osc/)
+
+---
+title: "OSC Integration"
+description: "Private OSC sequences used for CLI-to-app integration."
+---
+
+Nova supports a small set of OSC (Operating System Command) sequences.
+
+Some are standard-ish (OSC 7, OSC 8), and one is a Nova-private channel used by `nova` CLI commands.
+
+## Private Nova OSC Channel
+
+Nova uses a private OSC code `777`.
+
+Format:
+
+```text
+ESC ] 777 ; <command> [ ; <arg> ... ] BEL
+```
+
+Where:
+
+- `ESC` is `\x1b`
+- Terminator is BEL (`\x07`)
+
+### Command: `ask_ai`
+
+`nova ask` sends:
+
+```text
+ESC ] 777 ; ask_ai [ ; <preset_b64> ] BEL
+```
+
+If a preset is provided, it is base64-encoded (standard base64, no newlines).
+
+Examples:
+
+No preset:
+
+```text
+\x1b]777;ask_ai\x07
+```
+
+With preset `"hello"` (base64: `aGVsbG8=`):
+
+```text
+\x1b]777;ask_ai;aGVsbG8=\x07
+```
+
+## OSC 7: Current Working Directory
+
+Nova parses OSC 7 to track a working directory string.
+
+It expects a `file://` URL or `ssh://` host-like value.
+
+This is used for display/state and may differ from your shell's own concept of PWD.
+
+## OSC 8: Hyperlinks
+
+Nova parses OSC 8 URIs and stores the "current" URI while rendering.
+
+This enables link hover behavior.
+
+
+---
+
+## [Keybindings](https://nova.pmqueiroz.dev/keybindings/)
+
+---
+title: "Keybindings"
+description: "Keybinding syntax, defaults, and action reference."
+---
+
+## Binding Syntax
+
+Bindings are strings like `ctrl+t` or `ctrl+shift+tab`.
+
+Supported modifiers:
+
+- `ctrl`
+- `shift`
+- `alt` (alias: `option`)
+- `cmd` (aliases: `command`, `meta`, `super`)
+
+Supported keys:
+
+- `tab`
+- Any single character (like `t`, `w`, `c`, `v`, `k`)
+
+Examples:
+
+```toml
+[keybindings]
+new-tab = "ctrl+t"
+close-tab = "ctrl+w"
+next-tab = "ctrl+tab"
+prev-tab = "ctrl+shift+tab"
+copy = "ctrl+shift+c"
+paste = "ctrl+v"
+open-palette = "ctrl+k"
+```
+
+## Actions
+
+These keys live under `[keybindings]` in `settings.toml`:
+
+- `new-tab`
+- `close-tab`
+- `next-tab`
+- `prev-tab`
+- `copy`
+- `paste`
+- `open-palette`
+
+## Defaults
+
+Defaults differ on macOS vs other platforms.
+
+Non-macOS (defaults):
+
+```toml
+[keybindings]
+new-tab = "ctrl+t"
+close-tab = "ctrl+w"
+next-tab = "ctrl+tab"
+prev-tab = "ctrl+shift+tab"
+paste = "ctrl+v"
+copy = "ctrl+shift+c"
+open-palette = "ctrl+k"
+```
+
+macOS (defaults):
+
+```toml
+[keybindings]
+new-tab = "cmd+t"
+close-tab = "cmd+w"
+next-tab = "ctrl+tab"
+prev-tab = "ctrl+shift+tab"
+paste = "cmd+v"
+copy = "cmd+c"
+open-palette = "cmd+k"
+```
+
+## Notes
+
+- If `open-palette` is invalid, Nova falls back to `ctrl+k`.
+
+
+---
+
+## [Quickstart](https://nova.pmqueiroz.dev/quickstart/)
+
+---
+title: "Quickstart"
+description: "First run, config location, and common workflows."
+---
+
+## First Run
+
+On first launch, Nova creates a settings file if it doesn't exist.
+
+Config file path is:
+
+- Windows: `%APPDATA%\nova\settings.toml`
+- macOS: `~/Library/Application Support/nova/settings.toml`
+- Linux: `~/.config/nova/settings.toml`
+
+## Editing Settings
+
+Nova reads `settings.toml` on startup.
+
+Important behavior:
+
+- If the file is missing, Nova writes an embedded default config.
+- If the file exists but fails to parse as TOML, Nova overwrites it with defaults.
+
+If you're experimenting, keep a backup of `settings.toml`.
+
+## Command Palette
+
+Nova includes a command palette with actions like:
+
+- Ask AI
+- Explain Error
+- New Tab
+- Settings
+
+See [Keybindings](/keybindings) for changing the palette shortcut.
+
+## AI Overlay
+
+If enabled, AI uses your question plus terminal context from the last command output.
+
+See [AI](/ai) for providers, privacy notes, and troubleshooting.
+
+
+---
+
+## [Troubleshooting](https://nova.pmqueiroz.dev/troubleshooting/)
+
+---
+title: "Troubleshooting"
+description: "Common problems and fixes."
+---
+
+## macOS: "Nova is damaged and can't be opened"
+
+Nova is not notarized. macOS Gatekeeper may block it.
+
+If you installed the app bundle, you can clear the quarantine attribute:
+
+```bash
+xattr -cr /Applications/Nova.app
+```
+
+## Settings Keep Resetting
+
+Nova overwrites `settings.toml` with defaults if it fails to parse as TOML.
+
+If your settings keep resetting:
+
+- Validate your TOML syntax (missing quotes, stray commas, etc.)
+- Keep a backup copy while editing
+
+## `nova ask` Must Be Run Inside Nova
+
+`nova ask` is an integration command that signals the running Nova app via OSC.
+
+If you run it in another terminal, you'll get:
+
+```text
+error: 'nova ask' must be run inside Nova terminal
+```
+
+Run it inside Nova, or use the in-app command palette action.
+
+## AI Errors
+
+- Missing key: set `[ai].api_key`.
+- Wrong model/provider: ensure model name matches the selected provider.
+- Proxy issues: verify `[ai].base_url` is correct and reachable.
 
 
 ---

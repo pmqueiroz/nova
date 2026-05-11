@@ -67,12 +67,12 @@
     </style>
     
     <script>
-      var root = "./";
+      var root = "../";
       if (root && !root.endsWith('/')) root += '/';
       if (root === '') root = './';
       window.DOCMD_ROOT = root;
 
-      var siteRoot = "./";
+      var siteRoot = "../";
       if (siteRoot && !siteRoot.endsWith('/')) siteRoot += '/';
       if (siteRoot === '') siteRoot = './';
       window.DOCMD_SITE_ROOT = siteRoot;
@@ -84,26 +84,26 @@
       window.DOCMD_DEFAULT_LOCALE = "";
     </script>
     <title>
-      Nova Documentation : A terminal that burns bright
+      CLI : A terminal that burns bright
     </title>
-    <link id="site-favicon" rel="icon" href="./assets/favicon.ico?v=mp0nj0zs">
-    <link rel="stylesheet" href="./assets/css/docmd-main.css?v=mp0nj0zs">
+    <link id="site-favicon" rel="icon" href="../assets/favicon.ico?v=mp0nj0zs">
+    <link rel="stylesheet" href="../assets/css/docmd-main.css?v=mp0nj0zs">
     
-    <link rel="stylesheet" href="./assets/css/docmd-git.css?v=mp0nj0zs">
+    <link rel="stylesheet" href="../assets/css/docmd-git.css?v=mp0nj0zs">
     
-    <link rel="stylesheet" href="./assets/css/docmd-highlight-light.css?v=mp0nj0zs" id="hljs-light" disabled>
-    <link rel="stylesheet" href="./assets/css/docmd-highlight-dark.css?v=mp0nj0zs" id="hljs-dark" >
+    <link rel="stylesheet" href="../assets/css/docmd-highlight-light.css?v=mp0nj0zs" id="hljs-light" disabled>
+    <link rel="stylesheet" href="../assets/css/docmd-highlight-dark.css?v=mp0nj0zs" id="hljs-dark" >
     
     
-<meta name="description" content="Deep-dive docs for Nova users and contributors.">
-<link rel="canonical" href="https://nova.pmqueiroz.dev/">
-<meta property="og:title" content="Nova Documentation - A terminal that burns bright">
-<meta property="og:description" content="Deep-dive docs for Nova users and contributors.">
-<meta property="og:url" content="https://nova.pmqueiroz.dev/">
+<meta name="description" content="nova CLI commands and how they integrate with the Nova app.">
+<link rel="canonical" href="https://nova.pmqueiroz.dev/cli/">
+<meta property="og:title" content="CLI - A terminal that burns bright">
+<meta property="og:description" content="nova CLI commands and how they integrate with the Nova app.">
+<meta property="og:url" content="https://nova.pmqueiroz.dev/cli/">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Nova Documentation - A terminal that burns bright">
-<meta name="twitter:description" content="Deep-dive docs for Nova users and contributors.">
+<meta name="twitter:title" content="CLI - A terminal that burns bright">
+<meta name="twitter:description" content="nova CLI commands and how they integrate with the Nova app.">
 
 
     <!-- GA4 -->
@@ -116,8 +116,8 @@
     </script>
 
 
-<link rel="stylesheet" href="./assets/css/docmd-git.css?v=mp0nj0zs" >
-<link rel="stylesheet" href="./assets/css/docmd-openapi.css?v=mp0nj0zs" >
+<link rel="stylesheet" href="../assets/css/docmd-git.css?v=mp0nj0zs" >
+<link rel="stylesheet" href="../assets/css/docmd-openapi.css?v=mp0nj0zs" >
 
     
     <script>/**
@@ -172,7 +172,7 @@
   <body
     class="sidebar-collapsible"
     data-default-collapsed="false"
-    data-copy-code-enabled="true" data-spa-enabled="true" data-source-file="content/index.md">
+    data-copy-code-enabled="true" data-spa-enabled="true" data-source-file="content/cli.md">
 
     <a href="#main-content" class="skip-link">skipToContent</a>
 
@@ -183,10 +183,10 @@
           
             <a href="/" class="logo-link">
               <img
-                src="./assets/images/nova-logo-dark.png"
+                src="../assets/images/nova-logo-dark.png"
                 alt="Nova Logo" class="logo-light" >
               <img
-                src="./assets/images/nova-logo-light.png"
+                src="../assets/images/nova-logo-light.png"
                 alt="Nova Logo" class="logo-dark" >
             </a>
           
@@ -301,9 +301,9 @@
 <nav class="sidebar-nav" aria-label="mainNavigation">
   <ul>
     
-      <li class="active" >
+      <li class="" >
       
-        <a href="./" class="active "
+        <a href="../" class=" "
           >
            
 <svg class="lucide-icon icon-home " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -369,7 +369,7 @@
             
       <li class="" >
       
-        <a href="./installation/" class=" "
+        <a href="../installation/" class=" "
           >
            
 <svg class="lucide-icon icon-download " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -403,7 +403,7 @@
     
       <li class="" >
       
-        <a href="./quickstart/" class=" "
+        <a href="../quickstart/" class=" "
           >
            
 <svg class="lucide-icon icon-sparkles " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -440,7 +440,7 @@
         
       </li>
     
-      <li class="expanded nav-group" >
+      <li class="active-parent expanded nav-group" >
       
         <span class="nav-label nav-group">
            
@@ -472,7 +472,7 @@
             
       <li class="" >
       
-        <a href="./configuration/" class=" "
+        <a href="../configuration/" class=" "
           >
            
 <svg class="lucide-icon icon-cog " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -517,7 +517,7 @@
     
       <li class="" >
       
-        <a href="./keybindings/" class=" "
+        <a href="../keybindings/" class=" "
           >
            
 <svg class="lucide-icon icon-keyboard " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -557,7 +557,7 @@
     
       <li class="" >
       
-        <a href="./ai/" class=" "
+        <a href="../ai/" class=" "
           >
            
 <svg class="lucide-icon icon-bot " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -592,9 +592,9 @@
         
       </li>
     
-      <li class="" >
+      <li class="active" >
       
-        <a href="./cli/" class=" "
+        <a href="../cli/" class="active "
           >
            
 <svg class="lucide-icon icon-terminal " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -662,7 +662,7 @@
             
       <li class="" >
       
-        <a href="./internals-osc/" class=" "
+        <a href="../internals-osc/" class=" "
           >
            
 <svg class="lucide-icon icon-link " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -695,7 +695,7 @@
     
       <li class="" >
       
-        <a href="./development/" class=" "
+        <a href="../development/" class=" "
           >
            
           
@@ -716,7 +716,7 @@
     
       <li class="" >
       
-        <a href="./troubleshooting/" class=" "
+        <a href="../troubleshooting/" class=" "
           >
            
 <svg class="lucide-icon icon-life-buoy " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -841,7 +841,7 @@
               
               <div class="header-titles-wrapper">
                 <span class="header-title">
-                  Nova Documentation
+                  CLI
                 </span>
               </div>
             </div>
@@ -859,9 +859,33 @@
                     <ol>
                       
                       
+                        <li class="breadcrumb-item " >
+                          
+                            <span>Reference</span>
+                          
+                          
+                            <span class="breadcrumb-separator">
+<svg class="lucide-icon icon-chevron-right " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
+  class="lucide lucide-chevron-right"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m9 18 6-6-6-6" />
+</svg>
+</span>
+                          
+                        </li>
+                      
                         <li class="breadcrumb-item active" aria-current=&quot;page&quot;>
                           
-                            <span>Introduction</span>
+                            <span>CLI</span>
                           
                           
                         </li>
@@ -870,39 +894,58 @@
                   </nav>
                 
                 
-                <h2 id="start-here" class="docmd-heading"><a href="#start-here" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Start Here</h2>
+                <h2 id="commands" class="docmd-heading"><a href="#commands" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Commands</h2>
+<p>Nova includes a small CLI surface:</p>
 <ul>
-<li><a href="/installation/">Installation</a></li>
-<li><a href="/quickstart/">Quickstart</a></li>
+<li><code>nova help</code>: Show usage</li>
+<li><code>nova ask [preset...]</code>: Open the Ask AI modal in the running Nova app</li>
 </ul>
-<h2 id="reference" class="docmd-heading"><a href="#reference" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Reference</h2>
-<ul>
-<li><a href="/configuration/">Configuration</a></li>
-<li><a href="/keybindings/">Keybindings</a></li>
-<li><a href="/ai/">AI</a></li>
-<li><a href="/cli/">CLI</a></li>
-</ul>
-<h2 id="internals" class="docmd-heading"><a href="#internals" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Internals</h2>
-<ul>
-<li><a href="/internals-osc/">OSC Integration</a></li>
-<li><a href="/development/">Development</a></li>
-</ul>
-<h2 id="help" class="docmd-heading"><a href="#help" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Help</h2>
-<ul>
-<li><a href="/troubleshooting/">Troubleshooting</a></li>
-</ul>
+<h2 id="nova-ask" class="docmd-heading"><a href="#nova-ask" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a><code>nova ask</code></h2>
+<p><code>nova ask</code> is not a standalone AI client.</p>
+<p>It must be run <em>inside</em> Nova. Nova sets <code>NOVA_TERMINAL=1</code> for its child shells; the CLI checks that environment variable.</p>
+<p>Examples:</p>
+<pre class="hljs"><code>nova ask
+</code></pre>
+<pre class="hljs"><code>nova ask explain <span class="hljs-keyword">this</span> error
+</code></pre>
+<p>If you’re not in Nova, you’ll see:</p>
+<pre class="hljs"><code>error<span class="hljs-punctuation">:</span> <span class="hljs-string">&#039;nova ask&#039;</span> must be run inside Nova terminal
+</code></pre>
+<h2 id="how-it-works" class="docmd-heading"><a href="#how-it-works" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>How It Works</h2>
+<p>The CLI emits a private OSC sequence that Nova’s terminal parser understands.</p>
+<p>Details are documented in <a href="/internals-osc/">OSC Integration</a>.</p>
 
                 
                   <div class="page-navigation">
                     
-                      <div class="prev-page-placeholder">
-                      </div>
+                      <a href="../ai/" class="prev-page">
+                        
+<svg class="lucide-icon icon-arrow-left page-nav-icon" width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
+  class="lucide lucide-arrow-left"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="m12 19-7-7 7-7" />
+  <path d="M19 12H5" />
+</svg>
+
+                        <span><small>previous</small><strong>
+                            AI
+                          </strong></span>
+                      </a>
                     
                     
-                      <a href="./installation/" class="next-page">
+                      <a href="../internals-osc/" class="next-page">
                         <span><small>next</small>
                           <strong>
-                            Installation
+                            OSC Integration
                           </strong></span>
                         
 <svg class="lucide-icon icon-arrow-right page-nav-icon" width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
@@ -951,19 +994,15 @@
     <ul class="toc-list">
       
         <li class="toc-item toc-level-2">
-          <a href="#start-here" class="toc-link">Start Here</a>
+          <a href="#commands" class="toc-link">Commands</a>
         </li>
       
         <li class="toc-item toc-level-2">
-          <a href="#reference" class="toc-link">Reference</a>
+          <a href="#nova-ask" class="toc-link">nova ask</a>
         </li>
       
         <li class="toc-item toc-level-2">
-          <a href="#internals" class="toc-link">Internals</a>
-        </li>
-      
-        <li class="toc-item toc-level-2">
-          <a href="#help" class="toc-link">Help</a>
+          <a href="#how-it-works" class="toc-link">How It Works</a>
         </li>
       
     </ul>
@@ -1027,14 +1066,14 @@
         </div>
       </div>
       
-      <script src="./assets/js/docmd-main.js?v=mp0nj0zs"></script>
+      <script src="../assets/js/docmd-main.js?v=mp0nj0zs"></script>
       
-      <script src="./assets/js/docmd-git.js?v=mp0nj0zs"></script>
-      <script src="./assets/js/docmd-image-lightbox.js?v=mp0nj0zs" ></script>
+      <script src="../assets/js/docmd-git.js?v=mp0nj0zs"></script>
+      <script src="../assets/js/docmd-image-lightbox.js?v=mp0nj0zs" ></script>
 <script src="https://cdn.jsdelivr.net/npm/minisearch@7.2.0/dist/umd/index.min.js" ></script>
-<script src="./assets/js/docmd-search.js?v=mp0nj0zs" ></script>
-<script src="./assets/js/init-mermaid.js?v=mp0nj0zs" type="module"></script>
-<script src="./assets/js/docmd-git.js?v=mp0nj0zs" type="module"></script>
+<script src="../assets/js/docmd-search.js?v=mp0nj0zs" ></script>
+<script src="../assets/js/init-mermaid.js?v=mp0nj0zs" type="module"></script>
+<script src="../assets/js/docmd-git.js?v=mp0nj0zs" type="module"></script>
 
   <!-- Search Modal (Injected by @docmd/plugin-search) -->
   <div id="docmd-search-modal" class="docmd-search-modal" style="display: none;"

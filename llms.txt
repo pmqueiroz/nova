@@ -4,6 +4,22 @@
 
 ## Documentation Files
 
-- [Untitled](https://nova.pmqueiroz.dev/configuration/)
-- [Untitled](https://nova.pmqueiroz.dev/)
+- [AI](https://nova.pmqueiroz.dev/ai/)
+  Providers, configuration, and how Nova builds AI requests.
+- [CLI](https://nova.pmqueiroz.dev/cli/)
+  nova CLI commands and how they integrate with the Nova app.
+- [Configuration](https://nova.pmqueiroz.dev/configuration/)
+  Config file location, behavior, and full settings reference.
+- [Development](https://nova.pmqueiroz.dev/development/)
+  Building Nova, working on the codebase, and building the docs site.
+- [Nova Documentation](https://nova.pmqueiroz.dev/)
+  Deep-dive docs for Nova users and contributors.
 - [Nova Docs](https://nova.pmqueiroz.dev/installation/)
+- [OSC Integration](https://nova.pmqueiroz.dev/internals-osc/)
+  Private OSC sequences used for CLI-to-app integration.
+- [Keybindings](https://nova.pmqueiroz.dev/keybindings/)
+  Keybinding syntax, defaults, and action reference.
+- [Quickstart](https://nova.pmqueiroz.dev/quickstart/)
+  First run, config location, and common workflows.
+- [Troubleshooting](https://nova.pmqueiroz.dev/troubleshooting/)
+  Common problems and fixes.

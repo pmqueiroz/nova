@@ -7,7 +7,7 @@ description: "Config file location, behavior, and full settings reference."
 
 Nova stores settings at `settings.toml` under your OS config directory:
 
-- Windows: `%APPDATA%\\nova\\settings.toml`
+- Windows: `%APPDATA%\nova\settings.toml`
 - macOS: `~/Library/Application Support/nova/settings.toml`
 - Linux: `~/.config/nova/settings.toml`
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.2](https://github.com/pmqueiroz/nova/compare/v0.15.1...v0.15.2) (2026-05-11)
+
+
+### Bug Fixes
+
+* nsis uninstall path removal ([5b7841e](https://github.com/pmqueiroz/nova/commit/5b7841efb45d7aa6d20ac10435ce7916b18441f4))
+
 ## [0.15.1](https://github.com/pmqueiroz/nova/compare/v0.15.0...v0.15.1) (2026-05-11)
 
 

@@ -396,7 +396,7 @@ jobs:
           echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" | tr -d '\r' > /tmp/aur_key
           echo "" >> /tmp/aur_key
           chmod 600 /tmp/aur_key
-          ssh-keygen -p -P "" -N "" -m openssh -f /tmp/aur_key || true
+          ssh-keygen -p -P "" -N "" -o -f /tmp/aur_key
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "key<<$EOF" >> $GITHUB_OUTPUT
           cat /tmp/aur_key >> $GITHUB_OUTPUT

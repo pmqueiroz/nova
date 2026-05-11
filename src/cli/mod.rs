@@ -1,12 +1,7 @@
-use std::io::Write;
-
-use base64::Engine;
-
+pub mod commands;
 pub mod constants;
 
-fn usage() -> &'static str {
-  "nova <command>\n\nCommands:\n  ask    Open Ask AI modal (Nova terminal only)\n  help   Show this help\n"
-}
+use crate::cli::commands::help;
 
 pub fn run_from_env() -> Option<i32> {
   let mut args: Vec<String> = std::env::args().collect();
@@ -21,31 +16,12 @@ pub fn run_from_env() -> Option<i32> {
 
   match args.first().map(|s| s.as_str()) {
     Some("help") | Some("--help") | Some("-h") => {
-      eprint!("{}", usage());
+      eprint!("{}", help::usage());
       Some(0)
     }
-    Some("ask") => {
-      if std::env::var(constants::ENV_IN_NOVA).ok().as_deref() != Some("1") {
-        eprintln!("error: 'nova ask' must be run inside Nova terminal");
-        return Some(1);
-      }
-
-      let preset = args.get(1..).unwrap_or_default().join(" ");
-
-      let mut out = std::io::stdout().lock();
-      let _ = out.write_all(constants::OSC_PREFIX);
-      let _ = out.write_all(b";ask_ai");
-      if !preset.trim().is_empty() {
-        let b64 = base64::engine::general_purpose::STANDARD.encode(preset.as_bytes());
-        let _ = out.write_all(b";");
-        let _ = out.write_all(b64.as_bytes());
-      }
-      let _ = out.write_all(constants::OSC_SUFFIX_BEL);
-      let _ = out.flush();
-      Some(0)
-    }
+    Some("ask") => Some(commands::ask::run(args.get(1..).unwrap_or_default())),
     Some(cmd) => {
-      eprintln!("error: unknown command '{cmd}'\n\n{}", usage());
+      eprintln!("error: unknown command '{cmd}'\n\n{}", help::usage());
       Some(2)
     }
     None => None,

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.1](https://github.com/pmqueiroz/nova/compare/v0.15.0...v0.15.1) (2026-05-11)
+
+
+### Bug Fixes
+
+* installer mode typo ([0d6f193](https://github.com/pmqueiroz/nova/commit/0d6f1937b1fcb324370172c2f80e270daaf4dfa3))
+
 ## [0.15.0](https://github.com/pmqueiroz/nova/compare/v0.14.0...v0.15.0) (2026-05-11)
 
 

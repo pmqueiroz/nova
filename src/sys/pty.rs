@@ -219,6 +219,20 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
     if let Ok(home) = std::env::var("HOME") {
       c.cwd(home);
     }
+
+    match shell_name {
+      "bash" => {
+        c.args(["--login", "-i"]);
+      }
+      "zsh" => {
+        c.args(["-l", "-i"]);
+      }
+      "fish" => {
+        c.args(["-l"]);
+      }
+      _ => {}
+    }
+
     c.env("TERM", "xterm-256color");
     c.env("COLORTERM", "truecolor");
     c.env("NOVA_TERMINAL", "1");

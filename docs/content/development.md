@@ -41,15 +41,15 @@ From the repo root:
 
 ```bash
 cd docs
-bun install -g @docmd/core
-docmd dev
+bun install
+bun run dev
 ```
 
 Build output goes to `docs/dist`:
 
 ```bash
 cd docs
-docmd build
+bun run build
 ```
 
 ## CI Notes

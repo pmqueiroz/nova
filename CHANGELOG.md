@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.16.0](https://github.com/pmqueiroz/nova/compare/v0.15.2...v0.16.0) (2026-05-11)
+
+
+### Features
+
+* start fish interactive ([06e0067](https://github.com/pmqueiroz/nova/commit/06e006725b9e13689e9512ef8eeb006450c33c65))
+* start unix common shells as login and interactive ([bb2f362](https://github.com/pmqueiroz/nova/commit/bb2f362c033e4f4fe91bd178db4d4afad63d47f0))
+
+
+### Bug Fixes
+
+* correct indentation of CASK EOF in release workflow ([b205ae7](https://github.com/pmqueiroz/nova/commit/b205ae76319a2557bcd2d5273d9a8f46d4b47962))
+* ensure PS1 work correctly ([b195488](https://github.com/pmqueiroz/nova/commit/b195488fb472734910f2381f6a09915cddda81b0))
+* prevent bash to lose PS1 on login ([223dc76](https://github.com/pmqueiroz/nova/commit/223dc76bfabf15b835d55f0fcca84bb486554d5e))
+
 ## [0.15.2](https://github.com/pmqueiroz/nova/compare/v0.15.1...v0.15.2) (2026-05-11)
 
 

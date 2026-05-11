@@ -822,7 +822,12 @@ impl Nova {
             self.ai_response = None;
             self.ai_is_error = false;
             self.ai_loading = false;
-            return iced::widget::operation::focus(components::AI_INPUT_ID.clone());
+
+            let focus_task = iced::widget::operation::focus(components::AI_INPUT_ID.clone());
+            if !self.ai_input.trim().is_empty() {
+              return iced::Task::batch(vec![focus_task, self.update(Message::AiSubmit)]);
+            }
+            return focus_task;
           }
 
           if bell_fired {

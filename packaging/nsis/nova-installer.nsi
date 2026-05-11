@@ -505,19 +505,67 @@ Function AddNovaToPath
   System::Call 'USER32::SendMessageTimeout(p 0xffff, i ${WM_SETTINGCHANGE}, i 0, t "Environment", i 0, i 5000, *i .r0)'
 FunctionEnd
 
+; Minimal string replace helper for uninstall context.
+; Stack (top -> bottom): <replace> <search> <haystack>
+; Returns: <result>
+Function un.StrReplaceAll
+  Exch $R2 ; replace
+  Exch 1
+  Exch $R1 ; search
+  Exch 2
+  Exch $R0 ; haystack
+
+  StrCmp $R1 "" 0 +2
+    Push $R0
+    Return
+
+  StrLen $R3 $R1 ; search len
+  StrLen $R4 $R0 ; hay len
+  StrCpy $R5 ""  ; result
+  StrCpy $R6 0   ; index
+
+  loop_un_strrep:
+    IntCmp $R6 $R4 done_un_strrep 0 0
+    StrCpy $R7 $R0 $R3 $R6
+    StrCmp $R7 $R1 0 notmatch_un_strrep
+      StrCpy $R5 "$R5$R2"
+      IntOp $R6 $R6 + $R3
+      Goto loop_un_strrep
+    notmatch_un_strrep:
+      StrCpy $R8 $R0 1 $R6
+      StrCpy $R5 "$R5$R8"
+      IntOp $R6 $R6 + 1
+      Goto loop_un_strrep
+  done_un_strrep:
+    Push $R5
+FunctionEnd
+
 ; Remove $INSTDIR from PATH (user or machine depending on shell context).
-Function RemoveNovaFromPath
+; NSIS requires functions called from the uninstall section to be prefixed with `un.`.
+Function un.RemoveNovaFromPath
   ReadRegStr $0 SHCTX "Environment" "Path"
   ${IfThen} $0 == "" ${|} Return ${|}
 
   ; Remove occurrences of "$INSTDIR" with optional surrounding semicolons.
   ; 1) ";$INSTDIR;" -> ";"
   StrCpy $1 $0
-  ${StrRep} $1 $1 ";$INSTDIR;" ";"
+  Push ";"
+  Push ";$INSTDIR;"
+  Push $1
+  Call un.StrReplaceAll
+  Pop $1
   ; 2) Leading "$INSTDIR;"
-  ${StrRep} $1 $1 "$INSTDIR;" ""
+  Push ""
+  Push "$INSTDIR;"
+  Push $1
+  Call un.StrReplaceAll
+  Pop $1
   ; 3) Trailing ";$INSTDIR"
-  ${StrRep} $1 $1 ";$INSTDIR" ""
+  Push ""
+  Push ";$INSTDIR"
+  Push $1
+  Call un.StrReplaceAll
+  Pop $1
   ; 4) Only "$INSTDIR"
   ${IfThen} $1 == "$INSTDIR" ${|} StrCpy $1 "" ${|}
 
@@ -638,7 +686,7 @@ Section Uninstall
   !insertmacro CheckIfAppIsRunning
 
   ; Remove Nova from PATH.
-  Call RemoveNovaFromPath
+  Call un.RemoveNovaFromPath
 
   ; Delete the app directory and its content from disk
   ; Copy main executable

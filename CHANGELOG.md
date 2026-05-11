@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.15.0](https://github.com/pmqueiroz/nova/compare/v0.14.0...v0.15.0) (2026-05-11)
+
+
+### Features
+
+* add nova to bin on install ([2c28be3](https://github.com/pmqueiroz/nova/commit/2c28be31b7524e295f911b72aba8ff70ff744fad))
+* open ask ai with cli command ([b32c549](https://github.com/pmqueiroz/nova/commit/b32c5497d4c139578ba09329f300e89ba0be07cd))
+
 ## [0.14.0](https://github.com/pmqueiroz/nova/compare/v0.13.0...v0.14.0) (2026-05-10)
 
 

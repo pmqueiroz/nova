@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.2](https://github.com/pmqueiroz/nova/compare/v0.18.1...v0.18.2) (2026-05-12)
+
+
+### Bug Fixes
+
+* **core:** reflow wrapped lines on terminal resize ([2888c98](https://github.com/pmqueiroz/nova/commit/2888c985a00876d04d818c065aa292fb5d91a6fd))
+
 ## [0.18.1](https://github.com/pmqueiroz/nova/compare/v0.18.0...v0.18.1) (2026-05-12)
 
 

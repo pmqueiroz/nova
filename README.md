@@ -64,12 +64,12 @@ sudo dnf install nova
 
 | Platform | Download |
 |----------|----------|
-| Windows x86_64 | [`.exe` installer](https://github.com/pmqueiroz/nova/releases/download/v0.18.1/nova_0.18.1_x64-setup.exe) · [portable `.zip`](https://github.com/pmqueiroz/nova/releases/download/v0.18.1/nova_0.18.1_x64_portable.zip) |
-| macOS x86_64 | [`.dmg` disk image](https://github.com/pmqueiroz/nova/releases/download/v0.18.1/nova_0.18.1_x64.dmg) |
-| macOS Apple Silicon | [`.dmg` disk image](https://github.com/pmqueiroz/nova/releases/download/v0.18.1/nova_0.18.1_aarch64.dmg) |
-| Linux x86_64 | [`.deb`](https://github.com/pmqueiroz/nova/releases/download/v0.18.1/nova_0.18.1_amd64.deb) · [`.AppImage`](https://github.com/pmqueiroz/nova/releases/download/v0.18.1/nova_0.18.1_x86_64.AppImage) · [`.rpm`](https://github.com/pmqueiroz/nova/releases/download/v0.18.1/nova_0.18.1_x86_64.rpm) |
+| Windows x86_64 | [`.exe` installer](https://github.com/pmqueiroz/nova/releases/download/v0.18.2/nova_0.18.2_x64-setup.exe) · [portable `.zip`](https://github.com/pmqueiroz/nova/releases/download/v0.18.2/nova_0.18.2_x64_portable.zip) |
+| macOS x86_64 | [`.dmg` disk image](https://github.com/pmqueiroz/nova/releases/download/v0.18.2/nova_0.18.2_x64.dmg) |
+| macOS Apple Silicon | [`.dmg` disk image](https://github.com/pmqueiroz/nova/releases/download/v0.18.2/nova_0.18.2_aarch64.dmg) |
+| Linux x86_64 | [`.deb`](https://github.com/pmqueiroz/nova/releases/download/v0.18.2/nova_0.18.2_amd64.deb) · [`.AppImage`](https://github.com/pmqueiroz/nova/releases/download/v0.18.2/nova_0.18.2_x86_64.AppImage) · [`.rpm`](https://github.com/pmqueiroz/nova/releases/download/v0.18.2/nova_0.18.2_x86_64.rpm) |
 
-Each release includes a [`checksums.txt`](https://github.com/pmqueiroz/nova/releases/download/v0.18.1/checksums.txt) for verifying the download.
+Each release includes a [`checksums.txt`](https://github.com/pmqueiroz/nova/releases/download/v0.18.2/checksums.txt) for verifying the download.
 
 > [!WARNING]
 > Nova is not notarized — macOS may block it with *"Nova is damaged and can't be opened."*

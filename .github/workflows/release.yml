@@ -390,26 +390,13 @@ jobs:
           }
           EOF
 
-      - name: Convert SSH key to OPENSSH format
-        id: convert_key
-        run: |
-          echo "${{ secrets.AUR_SSH_PRIVATE_KEY }}" | tr -d '\r' > /tmp/aur_key
-          echo "" >> /tmp/aur_key
-          chmod 600 /tmp/aur_key
-          ssh-keygen -p -P "" -N "" -o -f /tmp/aur_key
-          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          echo "key<<$EOF" >> $GITHUB_OUTPUT
-          cat /tmp/aur_key >> $GITHUB_OUTPUT
-          echo "$EOF" >> $GITHUB_OUTPUT
-          rm -f /tmp/aur_key
-
       - uses: KSXGitHub/github-actions-deploy-aur@v4.1.3
         with:
           pkgname: nova-bin
           pkgbuild: aur-pkg/PKGBUILD
           commit_username: pmqueiroz
           commit_email: pedroqueiroz593@gmail.com
-          ssh_private_key: ${{ steps.convert_key.outputs.key }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
           commit_message: "Update to ${{ steps.meta.outputs.version }}"
 
   publish-apt:

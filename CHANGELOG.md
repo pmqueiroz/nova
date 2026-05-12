@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.17.1](https://github.com/pmqueiroz/nova/compare/v0.17.0...v0.17.1) (2026-05-12)
+
+
+### Bug Fixes
+
+* **core:** use $SHELL as the primary default shell fallback on Unix ([f556a3d](https://github.com/pmqueiroz/nova/commit/f556a3d39c32157e76a7d7fff815a3b8a13dc4c1))
+* sync window maximized state with OS and fix border artifacts ([82035e4](https://github.com/pmqueiroz/nova/commit/82035e4297a19d93db319a7ab8bcdd2782d79c03))
+
 ## [0.17.0](https://github.com/pmqueiroz/nova/compare/v0.16.0...v0.17.0) (2026-05-11)
 
 

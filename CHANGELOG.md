@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.2](https://github.com/pmqueiroz/nova/compare/v0.17.1...v0.17.2) (2026-05-12)
+
+
+### Bug Fixes
+
+* **ui:** keep rounded corners on macos when maximized ([765821c](https://github.com/pmqueiroz/nova/commit/765821c13b9b09fdef1eb5d25210d4d6b93b553b))
+
 ## [0.17.1](https://github.com/pmqueiroz/nova/compare/v0.17.0...v0.17.1) (2026-05-12)
 
 

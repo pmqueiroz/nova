@@ -18,10 +18,11 @@ pub struct Tab {
   pub git_branch: Option<String>,
   pub pending_command: Option<Vec<u8>>,
   pub scroll_offset: usize,
+  pub initial_cwd: String,
 }
 
 impl Tab {
-  pub fn new(id: usize, cols: usize, rows: usize, shell_cmd: String) -> Self {
+  pub fn new(id: usize, cols: usize, rows: usize, shell_cmd: String, initial_cwd: String) -> Self {
     let shell = shell_display_name(&shell_cmd);
     Self {
       id,
@@ -35,6 +36,7 @@ impl Tab {
       git_branch: None,
       pending_command: None,
       scroll_offset: 0,
+      initial_cwd,
     }
   }
 }

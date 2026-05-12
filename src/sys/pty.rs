@@ -16,7 +16,13 @@ pub struct PtyBridge {
 }
 
 impl PtyBridge {
-  pub fn new(tx: Sender<Vec<u8>>, cols: u16, rows: u16, shell: &str) -> anyhow::Result<Self> {
+  pub fn new(
+    tx: Sender<Vec<u8>>,
+    cols: u16,
+    rows: u16,
+    shell: &str,
+    initial_cwd: Option<&str>,
+  ) -> anyhow::Result<Self> {
     let pty_system = NativePtySystem::default();
 
     let pair = pty_system.openpty(PtySize {
@@ -26,7 +32,7 @@ impl PtyBridge {
       pixel_height: 0,
     })?;
 
-    let cmd = build_shell_command(shell);
+    let cmd = build_shell_command(shell, initial_cwd);
 
     let child = pair.slave.spawn_command(cmd)?;
 
@@ -87,7 +93,7 @@ fn accent_rgb() -> (u8, u8, u8) {
   }
 }
 
-fn build_shell_command(shell: &str) -> CommandBuilder {
+fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder {
   #[cfg(target_os = "windows")]
   {
     let lower = shell.to_lowercase();
@@ -104,8 +110,8 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
         r"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe".to_string()
       };
       let mut c = CommandBuilder::new(exe);
-      if let Ok(profile) = std::env::var("USERPROFILE") {
-        c.cwd(profile);
+      if let Some(dir) = initial_cwd {
+        c.cwd(dir);
       }
       c.env("TERM", "xterm-256color");
       c.env("COLORTERM", "truecolor");
@@ -151,14 +157,17 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       c
     } else if is_cmd {
       let mut c = CommandBuilder::new(r"C:\Windows\System32\cmd.exe");
-      if let Ok(profile) = std::env::var("USERPROFILE") {
-        c.cwd(profile);
+      if let Some(dir) = initial_cwd {
+        c.cwd(dir);
       }
       c.env("NOVA_TERMINAL", "1");
       c.env("TERM_PROGRAM", "Nova");
       c
     } else if is_wsl {
       let mut c = CommandBuilder::new("wsl.exe");
+      if let Some(dir) = initial_cwd {
+        c.cwd(dir);
+      }
       c.env("TERM", "xterm-256color");
       c.env("COLORTERM", "truecolor");
       c.env("NOVA_TERMINAL", "1");
@@ -186,8 +195,8 @@ __nova_osc7"#,
       let exe =
         find_git_bash_exe().unwrap_or_else(|| r"C:\Program Files\Git\bin\bash.exe".to_string());
       let mut c = CommandBuilder::new(exe);
-      if let Ok(profile) = std::env::var("USERPROFILE") {
-        c.cwd(profile);
+      if let Some(dir) = initial_cwd {
+        c.cwd(dir);
       }
       c.env("TERM", "xterm-256color");
       c.env("COLORTERM", "truecolor");
@@ -215,8 +224,8 @@ __nova_osc7"#,
       c
     } else {
       let mut c = CommandBuilder::new(shell);
-      if let Ok(profile) = std::env::var("USERPROFILE") {
-        c.cwd(profile);
+      if let Some(dir) = initial_cwd {
+        c.cwd(dir);
       }
       c.env("NOVA_TERMINAL", "1");
       c.env("TERM_PROGRAM", "Nova");
@@ -230,8 +239,8 @@ __nova_osc7"#,
       .and_then(|n| n.to_str())
       .unwrap_or(shell);
     let mut c = CommandBuilder::new(shell);
-    if let Ok(home) = std::env::var("HOME") {
-      c.cwd(home);
+    if let Some(dir) = initial_cwd {
+      c.cwd(dir);
     }
 
     match shell_name {

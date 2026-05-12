@@ -98,6 +98,7 @@ pub enum Message {
   WindowFocused,
   WindowUnfocused,
   WindowResized(f32, f32),
+  WindowMaximizedState(bool),
   PasteRequested,
   ClipboardReceived(Option<String>),
   OpenSettings,
@@ -874,6 +875,9 @@ impl Nova {
       Message::WindowUnfocused => {
         self.window_focused = false;
       }
+      Message::WindowMaximizedState(maximized) => {
+        self.window_maximized = maximized;
+      }
       Message::WindowResized(width, height) => {
         if width < 100.0 || height < 100.0 {
           return iced::Task::none();
@@ -897,6 +901,10 @@ impl Nova {
               rows: rows as u16,
             });
           }
+        }
+
+        if let Some(id) = self.window_id {
+          return iced::window::is_maximized(id).map(Message::WindowMaximizedState);
         }
       }
       Message::CursorMoved(position) => {
@@ -1342,10 +1350,10 @@ impl Nova {
         &self.raw_config_content,
         config_path_str,
       );
-      components::app(stack![col, modal])
+      components::app(stack![col, modal], self.window_maximized)
     } else if self.command_palette_open {
       let palette = components::command_palette(&self.palette_query, self.palette_selected);
-      components::app(stack![col, palette])
+      components::app(stack![col, palette], self.window_maximized)
     } else if self.ai_overlay_open || self.ai_loading {
       let overlay = components::ai_overlay(
         &self.ai_input,
@@ -1353,16 +1361,16 @@ impl Nova {
         self.ai_loading,
         self.ai_is_error,
       );
-      components::app(stack![col, overlay])
+      components::app(stack![col, overlay], self.window_maximized)
     } else if self.shell_picker_open {
       let picker = components::shell_picker(
         &self.available_shells,
         self.shell_picker_anchor,
         self.window_size.width,
       );
-      components::app(stack![col, picker])
+      components::app(stack![col, picker], self.window_maximized)
     } else {
-      components::app(col)
+      components::app(col, self.window_maximized)
     };
 
     mouse_area(inner).interaction(outer_interaction).into()

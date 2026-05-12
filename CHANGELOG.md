@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0](https://github.com/pmqueiroz/nova/compare/v0.17.2...v0.18.0) (2026-05-12)
+
+
+### Features
+
+* **cli:** implement 'nova explain' command ([a8375ef](https://github.com/pmqueiroz/nova/commit/a8375ef4f82233520717eb01c3f87d5b3dce06fc))
+
 ## [0.17.2](https://github.com/pmqueiroz/nova/compare/v0.17.1...v0.17.2) (2026-05-12)
 
 

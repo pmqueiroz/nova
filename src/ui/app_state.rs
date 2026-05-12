@@ -1191,11 +1191,23 @@ impl Nova {
             }
 
             let rows = (delta.abs() * 3.0).round() as usize;
+            let old_offset = tab.scroll_offset;
             if delta > 0.0 {
               let new_offset = tab.scroll_offset.saturating_add(rows);
               tab.scroll_offset = new_offset.min(tab.grid.scrollback.len());
             } else {
               tab.scroll_offset = tab.scroll_offset.saturating_sub(rows);
+            }
+            let scroll_delta = tab.scroll_offset as isize - old_offset as isize;
+            if scroll_delta != 0 {
+              if let Some((col, row)) = self.selection_start {
+                let new_row = (row as isize + scroll_delta).max(0) as usize;
+                self.selection_start = Some((col, new_row));
+              }
+              if let Some((col, row)) = self.selection_end {
+                let new_row = (row as isize + scroll_delta).max(0) as usize;
+                self.selection_end = Some((col, new_row));
+              }
             }
           }
         }

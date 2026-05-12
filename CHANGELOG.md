@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.1](https://github.com/pmqueiroz/nova/compare/v0.18.0...v0.18.1) (2026-05-12)
+
+
+### Bug Fixes
+
+* remove open ssh conversion on aur publishing ([b2ebf0a](https://github.com/pmqueiroz/nova/commit/b2ebf0ae4c73348698b35f84cb0c53d45577328e))
+
 ## [0.18.0](https://github.com/pmqueiroz/nova/compare/v0.17.2...v0.18.0) (2026-05-12)
 
 

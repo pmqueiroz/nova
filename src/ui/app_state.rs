@@ -350,7 +350,7 @@ impl Default for Nova {
     let cfg = config::get();
     let (cols, rows) = calc_grid(1024.0, 768.0, cfg.theme.font.size, cfg.status_bar.visible);
     Self {
-      tabs: vec![Tab::new(0, cols, rows, default_shell)],
+      tabs: vec![Tab::new(0, cols, rows, default_shell, String::new())],
       active_index: 0,
       next_tab_id: 1,
       window_id: None,
@@ -570,7 +570,14 @@ impl Nova {
           self.settings.theme.font.size,
           self.settings.status_bar.visible,
         );
-        self.tabs.push(Tab::new(new_id, cols, rows, shell));
+        let parent_pwd = self
+          .tabs
+          .get(self.active_index)
+          .map(|t| t.pwd.clone())
+          .unwrap_or_default();
+        self
+          .tabs
+          .push(Tab::new(new_id, cols, rows, shell, parent_pwd));
         self.active_index = self.tabs.len() - 1;
       }
       Message::SwitchTab(index) => {
@@ -590,7 +597,7 @@ impl Nova {
           );
           self
             .tabs
-            .push(Tab::new(self.next_tab_id, cols, rows, shell));
+            .push(Tab::new(self.next_tab_id, cols, rows, shell, String::new()));
           self.next_tab_id += 1;
           self.active_index = 0;
         } else if self.active_index >= self.tabs.len() {
@@ -1586,6 +1593,7 @@ impl Nova {
         shell_cmd: tab.shell_cmd.clone(),
         initial_cols: tab.grid.cols as u16,
         initial_rows: tab.grid.rows as u16,
+        initial_cwd: tab.initial_cwd.clone(),
       };
       let pty_sub = Subscription::run_with(key, |k| {
         pty_worker(
@@ -1593,6 +1601,7 @@ impl Nova {
           k.initial_cols,
           k.initial_rows,
           k.shell_cmd.clone(),
+          k.initial_cwd.clone(),
         )
       });
       subs.push(pty_sub);
@@ -1650,6 +1659,7 @@ struct PtyKey {
   shell_cmd: String,
   initial_cols: u16,
   initial_rows: u16,
+  initial_cwd: String,
 }
 
 impl std::hash::Hash for PtyKey {
@@ -1672,6 +1682,7 @@ fn pty_worker(
   cols: u16,
   rows: u16,
   shell: String,
+  initial_cwd: String,
 ) -> impl iced::futures::Stream<Item = Message> {
   stream::channel(
     100,
@@ -1682,8 +1693,13 @@ fn pty_worker(
       let (tx_in, rx_in) = async_channel::unbounded::<PtyCommand>();
 
       std::thread::spawn(move || {
+        let cwd = if initial_cwd.is_empty() || initial_cwd == "~" {
+          None
+        } else {
+          Some(initial_cwd.as_str())
+        };
         let mut pty =
-          PtyBridge::new(tx_out, cols, rows, &shell).expect("failed to create PTY bridge");
+          PtyBridge::new(tx_out, cols, rows, &shell, cwd).expect("failed to create PTY bridge");
 
         while let Ok(command) = rx_in.recv_blocking() {
           match command {

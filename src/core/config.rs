@@ -355,18 +355,31 @@ pub fn detect_shells() -> Vec<String> {
   }
   #[cfg(not(target_os = "windows"))]
   {
+    let mut shells = Vec::new();
+    let env_shell = std::env::var("SHELL").unwrap_or_default();
+    if !env_shell.trim().is_empty() {
+      shells.push(env_shell.trim().to_string());
+    }
+
     if let Ok(content) = std::fs::read_to_string("/etc/shells") {
-      let shells: Vec<String> = content
+      let etc_shells: Vec<String> = content
         .lines()
         .map(str::trim)
         .filter(|l| !l.starts_with('#') && !l.is_empty())
         .map(String::from)
         .collect();
-      if !shells.is_empty() {
-        return shells;
+
+      for shell in etc_shells {
+        if !shells.contains(&shell) {
+          shells.push(shell);
+        }
       }
     }
-    vec![std::env::var("SHELL").unwrap_or_else(|_| "bash".to_string())]
+
+    if shells.is_empty() {
+      shells.push("bash".to_string());
+    }
+    shells
   }
 }
 

@@ -582,6 +582,22 @@ impl<'a> Perform for AnsiExecutor<'a> {
           .control_queue
           .push(ControlCommand::OpenAskAi { preset });
       }
+      cli::constants::PRIVATE_NOVA_OSC_CODE_BYTES
+        if params.len() >= 2 && params[1] == b"explain_ai" =>
+      {
+        let preset = if params.len() >= 3 && !params[2].is_empty() {
+          match base64::engine::general_purpose::STANDARD.decode(params[2]) {
+            Ok(bytes) => String::from_utf8(bytes).ok().map(Arc::<str>::from),
+            Err(_) => None,
+          }
+        } else {
+          None
+        };
+        self
+          .grid
+          .control_queue
+          .push(ControlCommand::OpenExplainAi { preset });
+      }
       b"7" if params.len() >= 2 => {
         let raw_url = String::from_utf8_lossy(params[1]).to_string();
         if let Some(after_scheme) = raw_url.strip_prefix("file://")

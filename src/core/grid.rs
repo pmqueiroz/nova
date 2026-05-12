@@ -77,6 +77,7 @@ pub struct Grid {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ControlCommand {
   OpenAskAi { preset: Option<std::sync::Arc<str>> },
+  OpenExplainAi { preset: Option<std::sync::Arc<str>> },
 }
 
 impl Grid {

@@ -1,7 +1,6 @@
 use iced::{
-  Alignment, Border, Element, Length, Padding,
+  Alignment, Element, Length, Padding,
   alignment::Horizontal,
-  border::Radius,
   widget::{button, container, image, mouse_area, row, text},
 };
 
@@ -54,7 +53,7 @@ fn settings_button() -> Element<'static, Message> {
 pub fn title_bar(
   window_focused: bool,
   pwd: &str,
-  maximized: bool,
+  _maximized: bool,
   cursor_interaction: iced::mouse::Interaction,
   window_controls: &WindowControls,
   icon_visible: bool,
@@ -124,27 +123,8 @@ pub fn title_bar(
     .height(40)
   };
 
-  let corner_radius = if maximized {
-    Radius::default()
-  } else {
-    Radius {
-      top_left: 12.0,
-      top_right: 12.0,
-      ..Default::default()
-    }
-  };
-
   mouse_area(
     container(title_row)
-      .style(move |_| container::Style {
-        background: Some(theme::color::BG_DEEP.as_color().into()),
-        border: Border {
-          color: theme::color::runtime().border,
-          radius: corner_radius,
-          width: 0.5,
-        },
-        ..container::Style::default()
-      })
       .padding(Padding::default())
       .width(Length::Fill)
       .height(40),

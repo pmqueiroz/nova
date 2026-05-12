@@ -250,7 +250,7 @@ fn extract_selection(
     for cell in row_cells.iter().take(col_end + 1).skip(col_start) {
       result.push(cell.c);
     }
-    if row < er {
+    if row < er && !grid.row_continuation[row + 1] {
       result.push('\n');
     }
   }

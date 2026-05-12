@@ -6,6 +6,7 @@ use iced::{Element, Point, Size, Subscription, Theme, time, window};
 use iced::{Event, event, keyboard, mouse, stream};
 use std::io::Write;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::Instant;
 
 use crate::core::config::{self, KeyId, ParsedKeybinding};
 use crate::core::grid::ControlCommand;
@@ -55,6 +56,9 @@ pub struct Nova {
   shift_held: bool,
   alt_held: bool,
   last_mouse_button: Option<mouse::Button>,
+  click_count: u8,
+  last_click_time: Instant,
+  last_click_cell: Option<(usize, usize)>,
   hovered_url: Option<String>,
   hovered_link_span: Option<(usize, usize, usize)>, // (start_display_row, start_col, end_display_row)
   shell_picker_open: bool,
@@ -223,6 +227,31 @@ fn normalize_sel(start: (usize, usize), end: (usize, usize)) -> ((usize, usize),
   }
 }
 
+fn find_word_boundaries(row_cells: &[crate::core::grid::Cell], col: usize) -> (usize, usize) {
+  let is_word = |c: char| c.is_alphanumeric() || c == '_';
+  let col = col.min(row_cells.len().saturating_sub(1));
+  let clicked_is_word = row_cells.get(col).map(|c| is_word(c.c)).unwrap_or(false);
+
+  let start = (0..=col)
+    .rev()
+    .find(|&i| {
+      let c = row_cells.get(i).map(|c| c.c).unwrap_or(' ');
+      is_word(c) != clicked_is_word
+    })
+    .map(|i| i + 1)
+    .unwrap_or(0);
+
+  let end = (col..row_cells.len())
+    .find(|&i| {
+      let c = row_cells.get(i).map(|c| c.c).unwrap_or(' ');
+      is_word(c) != clicked_is_word
+    })
+    .map(|i| i.saturating_sub(1))
+    .unwrap_or(row_cells.len().saturating_sub(1));
+
+  (start, end.max(start))
+}
+
 fn extract_selection(
   grid: &crate::core::grid::Grid,
   scroll_offset: usize,
@@ -370,6 +399,9 @@ impl Default for Nova {
       shift_held: false,
       alt_held: false,
       last_mouse_button: None,
+      click_count: 0,
+      last_click_time: Instant::now(),
+      last_click_cell: None,
       hovered_url: None,
       hovered_link_span: None,
       shell_picker_open: false,
@@ -543,6 +575,7 @@ impl Nova {
         }
         self.selection_start = None;
         self.selection_end = None;
+        self.click_count = 0;
         if let Some(active_tab) = self.tabs.get_mut(self.active_index) {
           active_tab.scroll_offset = 0;
           if let Some(tx) = &active_tab.pty_tx {
@@ -956,7 +989,27 @@ impl Nova {
         }
 
         if self.is_selecting && !bypass_selection {
-          self.selection_end = pixel_to_cell(position, font_size);
+          let end = pixel_to_cell(position, font_size);
+          self.selection_end = end;
+          if self.click_count >= 2
+            && let (Some((end_col, end_row)), Some(active_tab)) =
+              (end, self.tabs.get(self.active_index))
+          {
+            match self.click_count {
+              2 => {
+                if let Some(row_cells) =
+                  get_display_row(&active_tab.grid, active_tab.scroll_offset, end_row)
+                {
+                  let (_, we) = find_word_boundaries(row_cells, end_col);
+                  self.selection_end = Some((we, end_row));
+                }
+              }
+              3 => {
+                self.selection_end = Some((active_tab.grid.cols.saturating_sub(1), end_row));
+              }
+              _ => {}
+            }
+          }
         }
         self.update_hovered_url();
       }
@@ -991,13 +1044,49 @@ impl Nova {
           if let Some((col, row)) = cell {
             self.send_mouse_event(tab, col, row, Some(button), true, false);
           }
+          self.click_count = 0;
           return iced::Task::none();
         }
 
         if button == mouse::Button::Left {
+          let now = Instant::now();
+          let threshold = std::time::Duration::from_millis(500);
+          if cell.is_some()
+            && cell == self.last_click_cell
+            && now.duration_since(self.last_click_time) < threshold
+          {
+            self.click_count = (self.click_count + 1).min(3);
+          } else {
+            self.click_count = 1;
+          }
+          self.last_click_time = now;
+          self.last_click_cell = cell;
+
           self.selection_start = cell;
           self.selection_end = cell;
           self.is_selecting = cell.is_some();
+
+          if let Some((col, row)) = cell
+            && self.click_count >= 2
+            && let Some(active_tab) = self.tabs.get(self.active_index)
+          {
+            match self.click_count {
+              2 => {
+                if let Some(row_cells) =
+                  get_display_row(&active_tab.grid, active_tab.scroll_offset, row)
+                {
+                  let (ws, we) = find_word_boundaries(row_cells, col);
+                  self.selection_start = Some((ws, row));
+                  self.selection_end = Some((we, row));
+                }
+              }
+              3 => {
+                self.selection_start = Some((0, row));
+                self.selection_end = Some((active_tab.grid.cols.saturating_sub(1), row));
+              }
+              _ => {}
+            }
+          }
         }
       }
       Message::MouseReleased(button) => {

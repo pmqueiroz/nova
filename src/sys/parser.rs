@@ -70,6 +70,9 @@ impl<'a> Perform for AnsiExecutor<'a> {
       self.grid.cursor_x = 0;
       self.grid.newline();
       self.grid.wrap_next = false;
+      if self.grid.cursor_y < self.grid.rows {
+        self.grid.row_continuation[self.grid.cursor_y] = true;
+      }
     }
 
     let x = self.grid.cursor_x;

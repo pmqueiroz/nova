@@ -173,7 +173,7 @@ pub fn term<'a>(
   let mut display_y = 0usize;
 
   let sb_start = sb_len.saturating_sub(clamped_offset);
-  for row_cells in scrollback.range(sb_start..) {
+  for (row_cells, _) in scrollback.range(sb_start..) {
     let hl = compute_url_highlight(row_cells, display_y, hovered_url, hovered_link_span);
     let spans = row_spans(row_cells, None, 0, None, font_size, hovered_url, &hl);
     grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));

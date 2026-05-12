@@ -172,7 +172,14 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       );
       c.env(
         "PROMPT_COMMAND",
-        r#"if ! declare -f ssh > /dev/null 2>&1; then ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }; fi; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
+        r#"if ! declare -f __nova_ssh > /dev/null 2>&1; then
+  __nova_ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
+  ssh() { __nova_ssh "$@"; }
+fi
+if ! declare -f __nova_osc7 > /dev/null 2>&1; then
+  __nova_osc7() { printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
+fi
+__nova_osc7"#,
       );
       c
     } else if is_git_bash {
@@ -195,7 +202,14 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       );
       c.env(
         "PROMPT_COMMAND",
-        r#"if ! declare -f ssh > /dev/null 2>&1; then ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }; fi; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
+        r#"if ! declare -f __nova_ssh > /dev/null 2>&1; then
+  __nova_ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
+  ssh() { __nova_ssh "$@"; }
+fi
+if ! declare -f __nova_osc7 > /dev/null 2>&1; then
+  __nova_osc7() { printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
+fi
+__nova_osc7"#,
       );
       c.args(["--login", "-i"]);
       c
@@ -222,12 +236,7 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
 
     match shell_name {
       "bash" => {
-        c.args([
-          "-l",
-          "-i",
-          "-c",
-          "export PS1=\"$NOVA_PS1\" PROMPT_COMMAND=\"$NOVA_PROMPT_COMMAND\"; exec \"$0\" --noprofile --norc -i",
-        ]);
+        c.args(["-l", "-i", "-c", "export PS1=\"$NOVA_PS1\"; exec \"$0\" -i"]);
       }
       "zsh" => {
         c.args(["-l", "-i"]);
@@ -252,7 +261,14 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       );
       c.env(
         "PROMPT_COMMAND",
-        r#"if ! declare -f ssh > /dev/null 2>&1; then ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }; fi; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
+        r#"if ! declare -f __nova_ssh > /dev/null 2>&1; then
+  __nova_ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
+  ssh() { __nova_ssh "$@"; }
+fi
+if ! declare -f __nova_osc7 > /dev/null 2>&1; then
+  __nova_osc7() { printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
+fi
+__nova_osc7"#,
       );
 
       c.env(
@@ -263,7 +279,14 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
       );
       c.env(
         "NOVA_PROMPT_COMMAND",
-        r#"if ! declare -f ssh > /dev/null 2>&1; then ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }; fi; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
+        r#"if ! declare -f __nova_ssh > /dev/null 2>&1; then
+  __nova_ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
+  ssh() { __nova_ssh "$@"; }
+fi
+if ! declare -f __nova_osc7 > /dev/null 2>&1; then
+  __nova_osc7() { printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
+fi
+__nova_osc7"#,
       );
     }
     c

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.18.3](https://github.com/pmqueiroz/nova/compare/v0.18.2...v0.18.3) (2026-05-12)
+
+
+### Bug Fixes
+
+* chain PROMPT_COMMAND instead of overwriting, drop --norc for zoxide compat ([5da0801](https://github.com/pmqueiroz/nova/commit/5da080139bad095b50e41c57367453d5dcedda52))
+* **ui:** skip newlines for wrapped lines in selection copy ([a09ebed](https://github.com/pmqueiroz/nova/commit/a09ebed819fdf0740bd6128782c038eb12421339))
+
 ## [0.18.2](https://github.com/pmqueiroz/nova/compare/v0.18.1...v0.18.2) (2026-05-12)
 
 

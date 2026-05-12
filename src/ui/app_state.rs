@@ -170,7 +170,7 @@ fn get_display_row(
     grid
       .scrollback
       .get(sb_len - clamped + y)
-      .map(|r| r.as_slice())
+      .map(|(r, _)| r.as_slice())
   } else if y - clamped < grid.rows {
     Some(grid.row(y - clamped))
   } else {

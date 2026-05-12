@@ -255,8 +255,6 @@ fn build_shell_command(shell: &str) -> CommandBuilder {
         r#"if ! declare -f ssh > /dev/null 2>&1; then ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }; fi; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD""#,
       );
 
-      // For login shells we may need to re-apply these after startup.
-      // Keep a copy under NOVA_* for the bash -lc re-exec path.
       c.env(
         "NOVA_PS1",
         format!(

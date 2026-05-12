@@ -68,10 +68,12 @@ pub struct Grid {
   pub control_queue: Vec<ControlCommand>,
   pub saved_cursor: Option<(usize, usize)>,
   pub wrap_next: bool,
-  pub scrollback: VecDeque<Vec<Cell>>,
+  pub row_continuation: Vec<bool>,
+  pub scrollback: VecDeque<(Vec<Cell>, bool)>,
   alt_cells: Option<Vec<Cell>>,
   alt_cursor: Option<(usize, usize)>,
-  alt_scrollback: Option<VecDeque<Vec<Cell>>>,
+  alt_scrollback: Option<VecDeque<(Vec<Cell>, bool)>>,
+  alt_row_continuation: Option<Vec<bool>>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -103,10 +105,12 @@ impl Grid {
       control_queue: Vec::new(),
       saved_cursor: None,
       wrap_next: false,
+      row_continuation: vec![false; rows],
       scrollback: VecDeque::new(),
       alt_cells: None,
       alt_cursor: None,
       alt_scrollback: None,
+      alt_row_continuation: None,
     }
   }
 
@@ -125,7 +129,9 @@ impl Grid {
       self.alt_cells = Some(self.cells.clone());
       self.alt_cursor = Some((self.cursor_x, self.cursor_y));
       self.alt_scrollback = Some(std::mem::take(&mut self.scrollback));
+      self.alt_row_continuation = Some(std::mem::take(&mut self.row_continuation));
       self.cells = vec![Cell::default(); self.cols * self.rows];
+      self.row_continuation = vec![false; self.rows];
       self.cursor_x = 0;
       self.cursor_y = 0;
       self.scroll_top = 0;
@@ -150,6 +156,9 @@ impl Grid {
     if let Some(sb) = self.alt_scrollback.take() {
       self.scrollback = sb;
     }
+    if let Some(rc) = self.alt_row_continuation.take() {
+      self.row_continuation = rc;
+    }
     self.scroll_top = 0;
     self.scroll_bottom = self.rows.saturating_sub(1);
     self.current_fg = None;
@@ -168,7 +177,8 @@ impl Grid {
       if top == 0 && bottom == self.rows.saturating_sub(1) {
         let mut row_copy = Vec::with_capacity(self.cols);
         row_copy.extend_from_slice(self.row(top));
-        self.scrollback.push_back(row_copy);
+        let is_cont = self.row_continuation[top];
+        self.scrollback.push_back((row_copy, is_cont));
         if self.scrollback.len() > SCROLLBACK_LIMIT {
           self.scrollback.pop_front();
         }
@@ -177,11 +187,13 @@ impl Grid {
       let start_idx = top * self.cols;
       let end_idx = (bottom + 1) * self.cols;
       self.cells[start_idx..end_idx].rotate_left(self.cols);
+      self.row_continuation[top..=bottom].rotate_left(1);
 
       let clear_start = bottom * self.cols;
       for cell in &mut self.cells[clear_start..clear_start + self.cols] {
         *cell = Cell::default();
       }
+      self.row_continuation[bottom] = false;
     }
   }
 
@@ -194,11 +206,13 @@ impl Grid {
       let start_idx = top * self.cols;
       let end_idx = (bottom + 1) * self.cols;
       self.cells[start_idx..end_idx].rotate_right(self.cols);
+      self.row_continuation[top..=bottom].rotate_right(1);
 
       let clear_start = top * self.cols;
       for cell in &mut self.cells[clear_start..clear_start + self.cols] {
         *cell = Cell::default();
       }
+      self.row_continuation[top] = false;
     }
   }
 
@@ -222,23 +236,74 @@ impl Grid {
     let new_cols = new_cols.max(1);
     let new_rows = new_rows.max(1);
 
-    let mut new_cells = vec![Cell::default(); new_cols * new_rows];
-    let min_rows = self.rows.min(new_rows);
-    let min_cols = self.cols.min(new_cols);
-
-    for r in 0..min_rows {
-      let old_start = r * self.cols;
-      let new_start = r * new_cols;
-      new_cells[new_start..new_start + min_cols]
-        .clone_from_slice(&self.cells[old_start..old_start + min_cols]);
+    if new_cols == self.cols && new_rows == self.rows {
+      return;
     }
 
-    self.cells = new_cells;
+    let mut logical_lines: Vec<Vec<Cell>> = Vec::new();
+    for (cells, is_cont) in self.scrollback.iter() {
+      if *is_cont {
+        if let Some(last) = logical_lines.last_mut() {
+          last.extend_from_slice(cells);
+        } else {
+          logical_lines.push(cells.clone());
+        }
+      } else {
+        logical_lines.push(cells.clone());
+      }
+    }
+
+    for r in 0..self.rows {
+      let row_start = r * self.cols;
+      let row_end = row_start + self.cols;
+      let is_cont = self.row_continuation[r];
+      if is_cont {
+        if let Some(last) = logical_lines.last_mut() {
+          last.extend_from_slice(&self.cells[row_start..row_end]);
+        } else {
+          logical_lines.push(self.cells[row_start..row_end].to_vec());
+        }
+      } else {
+        logical_lines.push(self.cells[row_start..row_end].to_vec());
+      }
+    }
+
+    self.cells = vec![Cell::default(); new_cols * new_rows];
     self.cols = new_cols;
     self.rows = new_rows;
     self.scroll_top = 0;
     self.scroll_bottom = new_rows.saturating_sub(1);
-    self.cursor_x = self.cursor_x.min(self.cols.saturating_sub(1));
-    self.cursor_y = self.cursor_y.min(self.rows.saturating_sub(1));
+    self.cursor_x = 0;
+    self.cursor_y = 0;
+    self.wrap_next = false;
+    self.scrollback.clear();
+    self.row_continuation = vec![false; new_rows];
+
+    for line in &logical_lines {
+      self.write_line(line);
+    }
+  }
+
+  fn write_line(&mut self, line: &[Cell]) {
+    let mut idx = 0;
+    while idx < line.len() {
+      let available = self.cols - self.cursor_x;
+      let end = (idx + available).min(line.len());
+      let count = end - idx;
+      let dst = self.cursor_y * self.cols + self.cursor_x;
+      self.cells[dst..dst + count].clone_from_slice(&line[idx..end]);
+      self.cursor_x += count;
+      idx = end;
+
+      if idx < line.len() {
+        self.cursor_x = 0;
+        self.newline();
+        if self.cursor_y < self.rows {
+          self.row_continuation[self.cursor_y] = true;
+        }
+      }
+    }
+    self.cursor_x = 0;
+    self.newline();
   }
 }

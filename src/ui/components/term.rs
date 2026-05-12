@@ -170,18 +170,27 @@ pub fn term<'a>(
   let sb_len = scrollback.len();
   let clamped_offset = scroll_offset.min(sb_len);
 
+  let mut viewport_y = 0usize;
   let mut display_y = 0usize;
 
   let sb_start = sb_len.saturating_sub(clamped_offset);
   for (row_cells, _) in scrollback.range(sb_start..) {
     let hl = compute_url_highlight(row_cells, display_y, hovered_url, hovered_link_span);
-    let spans = row_spans(row_cells, None, 0, None, font_size, hovered_url, &hl);
+    let spans = row_spans(
+      row_cells,
+      None,
+      viewport_y,
+      selection,
+      font_size,
+      hovered_url,
+      &hl,
+    );
     grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
     display_y += 1;
+    viewport_y += 1;
   }
 
   let live_count = active_tab.grid.rows.saturating_sub(clamped_offset);
-  let eff_selection = if clamped_offset == 0 { selection } else { None };
   for (y, row_cells) in active_tab.grid.cells[..live_count * active_tab.grid.cols]
     .chunks_exact(active_tab.grid.cols)
     .enumerate()
@@ -195,14 +204,15 @@ pub fn term<'a>(
     let spans = row_spans(
       row_cells,
       cursor_col,
-      y,
-      eff_selection,
+      viewport_y,
+      selection,
       font_size,
       hovered_url,
       &hl,
     );
     grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
     display_y += 1;
+    viewport_y += 1;
   }
 
   let (term_bg, term_border) = {

@@ -225,6 +225,7 @@ fn normalize_sel(start: (usize, usize), end: (usize, usize)) -> ((usize, usize),
 
 fn extract_selection(
   grid: &crate::core::grid::Grid,
+  scroll_offset: usize,
   start: (usize, usize),
   end: (usize, usize),
 ) -> String {
@@ -232,11 +233,15 @@ fn extract_selection(
   if sr == er && sc == ec {
     return String::new();
   }
-  let sr = sr.min(grid.rows.saturating_sub(1));
-  let er = er.min(grid.rows.saturating_sub(1));
+  let clamped = scroll_offset.min(grid.scrollback.len());
+  let max_display = clamped.saturating_add(grid.rows).saturating_sub(1);
+  let sr = sr.min(max_display);
+  let er = er.min(max_display);
   let mut result = String::new();
   for row in sr..=er {
-    let row_cells = grid.row(row);
+    let Some(row_cells) = get_display_row(grid, scroll_offset, row) else {
+      continue;
+    };
     let col_start = if row == sr {
       sc.min(grid.cols.saturating_sub(1))
     } else {
@@ -1025,7 +1030,7 @@ impl Nova {
             self.selection_start = None;
             self.selection_end = None;
           } else if let Some(active_tab) = self.tabs.get(self.active_index) {
-            let text = extract_selection(&active_tab.grid, start, end);
+            let text = extract_selection(&active_tab.grid, active_tab.scroll_offset, start, end);
             if !text.is_empty() {
               return iced::clipboard::write(text);
             }
@@ -1036,7 +1041,7 @@ impl Nova {
         if let (Some(start), Some(end)) = (self.selection_start, self.selection_end)
           && let Some(active_tab) = self.tabs.get(self.active_index)
         {
-          let text = extract_selection(&active_tab.grid, start, end);
+          let text = extract_selection(&active_tab.grid, active_tab.scroll_offset, start, end);
           if !text.is_empty() {
             return iced::clipboard::write(text);
           }

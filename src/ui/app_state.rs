@@ -643,12 +643,10 @@ impl Nova {
             }
           } else if bytes == b"\x7F" || bytes == b"\x08" {
             active_tab.current_input.pop();
-          } else if bytes == b"\x03" || bytes == b"\x15" {
-            active_tab.current_input.clear();
-            active_tab.grid.suggestion = None;
-            active_tab.grid.input_start_col = None;
-            active_tab.grid.input_start_row = None;
-          } else if bytes.len() >= 2 && bytes[0] == 0x1b && (bytes[1] == b'A' || bytes[1] == b'B') {
+          } else if bytes == b"\x03"
+            || bytes == b"\x15"
+            || (bytes.len() >= 2 && bytes[0] == 0x1b && (bytes[1] == b'A' || bytes[1] == b'B'))
+          {
             active_tab.current_input.clear();
             active_tab.grid.suggestion = None;
             active_tab.grid.input_start_col = None;

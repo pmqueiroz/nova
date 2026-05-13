@@ -67,6 +67,7 @@ fn compute_url_highlight(
   }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn row_spans(
   row_cells: &[crate::core::grid::Cell],
   cursor_col: Option<usize>,

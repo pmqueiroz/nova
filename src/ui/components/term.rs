@@ -289,6 +289,7 @@ fn cell_span(
   let rt = theme::color::runtime();
   let term_fg = rt.foreground;
   let term_bg = rt.background;
+  let accent = rt.accent;
   drop(rt);
 
   let reverse = attrs.contains(crate::core::grid::CellAttrs::REVERSE);
@@ -297,6 +298,9 @@ fn cell_span(
   let underline = attrs.contains(crate::core::grid::CellAttrs::UNDERLINE);
   let strikethrough = attrs.contains(crate::core::grid::CellAttrs::STRIKETHROUGH);
   let dim = attrs.contains(crate::core::grid::CellAttrs::DIM);
+
+  let original_fg = fg;
+  let original_bg = bg;
 
   if dim {
     if let Some(c) = fg.as_mut() {
@@ -327,7 +331,11 @@ fn cell_span(
 
   if reverse {
     let rev_fg = bg.unwrap_or(term_bg);
-    let rev_bg = fg.unwrap_or(term_fg);
+    let rev_bg = if original_fg.is_none() && original_bg.is_none() {
+      accent
+    } else {
+      fg.unwrap_or(term_fg)
+    };
     Span::new(text)
       .color(rev_fg)
       .background(Background::Color(rev_bg))
@@ -344,7 +352,17 @@ fn cell_span(
       .font(font)
       .size(font_size);
     if let Some(bg_color) = bg {
-      span = span.background(Background::Color(bg_color));
+      let is_selection_like = bg_color.r > 0.85
+        && bg_color.g > 0.85
+        && bg_color.b > 0.85
+        && color.r < 0.3
+        && color.g < 0.3
+        && color.b < 0.3;
+      if is_selection_like {
+        span = span.background(Background::Color(accent));
+      } else {
+        span = span.background(Background::Color(bg_color));
+      }
     }
     span
   }

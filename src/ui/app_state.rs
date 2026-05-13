@@ -660,6 +660,11 @@ impl Nova {
                 active_tab.grid.input_start_col = Some(col);
                 active_tab.grid.input_start_row = Some(active_tab.grid.cursor_y);
               }
+            } else {
+              active_tab.current_input.clear();
+              active_tab.grid.suggestion = None;
+              active_tab.grid.input_start_col = None;
+              active_tab.grid.input_start_row = None;
             }
           }
 

@@ -5,6 +5,7 @@ use iced::widget::{column, mouse_area, stack};
 use iced::{Element, Point, Size, Subscription, Theme, time, window};
 use iced::{Event, event, keyboard, mouse, stream};
 use std::io::Write;
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
 
@@ -368,6 +369,13 @@ fn rebuild_runtime_theme(colors: &config::ThemeColorsConfig) {
   });
 }
 
+fn command_history_path() -> Option<PathBuf> {
+  let data_dir = dirs::data_dir()?;
+  let dir = data_dir.join("nova");
+  let _ = std::fs::create_dir_all(&dir);
+  Some(dir.join("command_history.bin"))
+}
+
 impl Default for Nova {
   fn default() -> Self {
     let available_shells = config::available_shells();
@@ -383,7 +391,7 @@ impl Default for Nova {
     });
     let cfg = config::get();
     let (cols, rows) = calc_grid(1024.0, 768.0, cfg.theme.font.size, cfg.status_bar.visible);
-    Self {
+    let mut nova = Self {
       tabs: vec![Tab::new(0, cols, rows, default_shell, String::new())],
       active_index: 0,
       next_tab_id: 1,
@@ -423,11 +431,41 @@ impl Default for Nova {
       ai_is_error: false,
       bell_blink_visible: true,
       bell_blink_remaining: 0,
-    }
+    };
+    nova.load_command_history();
+    nova
   }
 }
 
 impl Nova {
+  fn load_command_history(&mut self) {
+    let Some(path) = command_history_path() else {
+      return;
+    };
+    let Ok(data) = std::fs::read(&path) else {
+      return;
+    };
+    let Ok(history) =
+      bincode::deserialize::<std::collections::VecDeque<crate::core::grid::CommandEntry>>(&data)
+    else {
+      return;
+    };
+    for tab in self.tabs.iter_mut() {
+      tab.grid.command_history = history.clone();
+    }
+  }
+
+  fn save_command_history(&self) {
+    let Some(path) = command_history_path() else {
+      return;
+    };
+    if let Some(tab) = self.tabs.get(self.active_index)
+      && let Ok(data) = bincode::serialize(&tab.grid.command_history)
+    {
+      let _ = std::fs::write(&path, &data);
+    }
+  }
+
   fn update_hovered_url(&mut self) {
     if !self.ctrl_held {
       self.hovered_url = None;
@@ -573,14 +611,66 @@ impl Nova {
         {
           return iced::Task::none();
         }
+
+        if bytes == b"\t"
+          && let Some(active_tab) = self.tabs.get_mut(self.active_index)
+          && let Some(suggestion) = active_tab.grid.suggestion.take()
+          && !suggestion.is_empty()
+        {
+          if let Some(tx) = &active_tab.pty_tx {
+            let _ = tx.send_blocking(PtyCommand::Input(suggestion.into_bytes()));
+          }
+          active_tab.current_input.clear();
+          active_tab.grid.input_start_col = None;
+          active_tab.grid.input_start_row = None;
+          return iced::Task::none();
+        }
+
         self.selection_start = None;
         self.selection_end = None;
         self.click_count = 0;
+        let entered = bytes == b"\r";
         if let Some(active_tab) = self.tabs.get_mut(self.active_index) {
           active_tab.scroll_offset = 0;
+
+          if bytes == b"\r" {
+            if !active_tab.current_input.is_empty() {
+              let input = std::mem::take(&mut active_tab.current_input);
+              active_tab.grid.push_command(&input);
+              active_tab.grid.suggestion = None;
+              active_tab.grid.input_start_col = None;
+              active_tab.grid.input_start_row = None;
+            }
+          } else if bytes == b"\x7F" || bytes == b"\x08" {
+            active_tab.current_input.pop();
+          } else if bytes == b"\x03" || bytes == b"\x15" {
+            active_tab.current_input.clear();
+            active_tab.grid.suggestion = None;
+            active_tab.grid.input_start_col = None;
+            active_tab.grid.input_start_row = None;
+          } else if bytes.len() >= 2 && bytes[0] == 0x1b && (bytes[1] == b'A' || bytes[1] == b'B') {
+            active_tab.current_input.clear();
+            active_tab.grid.suggestion = None;
+            active_tab.grid.input_start_col = None;
+            active_tab.grid.input_start_row = None;
+          } else if bytes.len() == 1 {
+            let b = bytes[0];
+            if b.is_ascii_graphic() || b == b' ' {
+              active_tab.current_input.push(b as char);
+              if active_tab.grid.input_start_col.is_none() {
+                let col = active_tab.grid.cursor_x.saturating_sub(1);
+                active_tab.grid.input_start_col = Some(col);
+                active_tab.grid.input_start_row = Some(active_tab.grid.cursor_y);
+              }
+            }
+          }
+
           if let Some(tx) = &active_tab.pty_tx {
             let _ = tx.send_blocking(PtyCommand::Input(bytes));
           }
+        }
+        if entered {
+          self.save_command_history();
         }
       }
       Message::NewTab => {
@@ -872,6 +962,12 @@ impl Nova {
           }
           tab.update_git_status();
           tab.scroll_offset = 0;
+
+          if let Some(partial) = tab.grid.extract_current_input() {
+            tab.grid.suggestion = tab.grid.find_best_suggestion(&partial);
+          } else {
+            tab.grid.suggestion = None;
+          }
 
           if open_ask_ai || open_explain_ai {
             self.ai_overlay_open = true;
@@ -1442,6 +1538,7 @@ impl Nova {
       active_tab.scroll_offset,
       self.hovered_url.as_deref(),
       self.hovered_link_span,
+      active_tab.grid.suggestion.as_deref(),
     ))
     .interaction(term_interaction);
 

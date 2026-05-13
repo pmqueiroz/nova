@@ -75,6 +75,7 @@ fn row_spans(
   font_size: f32,
   hovered_url: Option<&str>,
   url_highlight: &[bool],
+  suggestion: Option<&str>,
 ) -> Vec<Span<'static>> {
   let mut spans: Vec<Span<'static>> = Vec::new();
   let mut seg_text = String::new();
@@ -151,6 +152,24 @@ fn row_spans(
     spans.push(cell_span(seg_text, seg_fg, seg_bg, seg_attrs, font_size));
   }
 
+  if let Some(sugg) = suggestion
+    && !sugg.is_empty()
+  {
+    let chars_remaining = row_cells.len().saturating_sub(cursor_col.unwrap_or(0) + 1);
+    let display: String = sugg.chars().take(chars_remaining).collect();
+    if !display.is_empty() {
+      let rt = crate::ui::theme::color::runtime();
+      let mut dim_color = rt.foreground;
+      dim_color.a = 0.35;
+      spans.push(
+        Span::new(display)
+          .color(dim_color)
+          .font(theme::font::REGULAR)
+          .size(font_size),
+      );
+    }
+  }
+
   spans
 }
 
@@ -161,6 +180,7 @@ pub fn term<'a>(
   scroll_offset: usize,
   hovered_url: Option<&str>,
   hovered_link_span: Option<(usize, usize, usize)>,
+  suggestion: Option<&str>,
 ) -> Element<'a, Message> {
   let mut grid_ui = column![].spacing(0);
 
@@ -184,6 +204,7 @@ pub fn term<'a>(
       font_size,
       hovered_url,
       &hl,
+      None,
     );
     grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
     display_y += 1;
@@ -200,6 +221,11 @@ pub fn term<'a>(
     } else {
       None
     };
+    let row_suggestion = if clamped_offset == 0 && y == cursor_y {
+      suggestion
+    } else {
+      None
+    };
     let hl = compute_url_highlight(row_cells, display_y, hovered_url, hovered_link_span);
     let spans = row_spans(
       row_cells,
@@ -209,6 +235,7 @@ pub fn term<'a>(
       font_size,
       hovered_url,
       &hl,
+      row_suggestion,
     );
     grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
     display_y += 1;

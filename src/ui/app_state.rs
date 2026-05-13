@@ -1606,6 +1606,17 @@ impl Nova {
           Key::Named(Named::Escape) => return Some(Message::Type(b"\x1b".to_vec())),
           Key::Named(Named::ArrowUp) => return Some(Message::Type(b"\x1b[A".to_vec())),
           Key::Named(Named::ArrowDown) => return Some(Message::Type(b"\x1b[B".to_vec())),
+          #[cfg(target_os = "macos")]
+          Key::Named(Named::ArrowRight) => {
+            return Some(Message::Type(if modifiers.logo() {
+              b"\x05".to_vec()
+            } else if modifiers.alt() || modifiers.control() {
+              b"\x1bf".to_vec()
+            } else {
+              b"\x1b[C".to_vec()
+            }));
+          }
+          #[cfg(not(target_os = "macos"))]
           Key::Named(Named::ArrowRight) => {
             return Some(Message::Type(if modifiers.alt() {
               b"\x05".to_vec()
@@ -1615,6 +1626,17 @@ impl Nova {
               b"\x1b[C".to_vec()
             }));
           }
+          #[cfg(target_os = "macos")]
+          Key::Named(Named::ArrowLeft) => {
+            return Some(Message::Type(if modifiers.logo() {
+              b"\x01".to_vec()
+            } else if modifiers.alt() || modifiers.control() {
+              b"\x1bb".to_vec()
+            } else {
+              b"\x1b[D".to_vec()
+            }));
+          }
+          #[cfg(not(target_os = "macos"))]
           Key::Named(Named::ArrowLeft) => {
             return Some(Message::Type(if modifiers.alt() {
               b"\x01".to_vec()

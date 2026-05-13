@@ -118,8 +118,34 @@ fn row_spans(
           font_size,
         ));
       }
-      let ch = if cell.c == ' ' { '_' } else { cell.c };
       let cursor_color = theme::color::runtime().cursor;
+      if let Some(sugg) = suggestion {
+        let max_chars = row_cells.len().saturating_sub(x);
+        let display: String = sugg.chars().take(max_chars).collect();
+        if let Some(first) = display.chars().next() {
+          spans.push(
+            Span::new(first.to_string())
+              .color(cursor_color)
+              .underline(true)
+              .font(theme::font::REGULAR)
+              .size(font_size),
+          );
+          let rest: String = display.chars().skip(1).collect();
+          if !rest.is_empty() {
+            let rt = theme::color::runtime();
+            let mut dim_color = rt.foreground;
+            dim_color.a = 0.35;
+            spans.push(
+              Span::new(rest)
+                .color(dim_color)
+                .font(theme::font::REGULAR)
+                .size(font_size),
+            );
+          }
+        }
+        break;
+      }
+      let ch = if cell.c == ' ' { '_' } else { cell.c };
       spans.push(
         Span::new(ch.to_string())
           .color(cursor_color)
@@ -151,24 +177,6 @@ fn row_spans(
 
   if !seg_text.is_empty() {
     spans.push(cell_span(seg_text, seg_fg, seg_bg, seg_attrs, font_size));
-  }
-
-  if let Some(sugg) = suggestion
-    && !sugg.is_empty()
-  {
-    let chars_remaining = row_cells.len().saturating_sub(cursor_col.unwrap_or(0) + 1);
-    let display: String = sugg.chars().take(chars_remaining).collect();
-    if !display.is_empty() {
-      let rt = crate::ui::theme::color::runtime();
-      let mut dim_color = rt.foreground;
-      dim_color.a = 0.35;
-      spans.push(
-        Span::new(display)
-          .color(dim_color)
-          .font(theme::font::REGULAR)
-          .size(font_size),
-      );
-    }
   }
 
   spans

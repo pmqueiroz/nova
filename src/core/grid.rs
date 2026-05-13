@@ -1,6 +1,7 @@
 use bitflags::bitflags;
 use iced::Color;
-use std::collections::VecDeque;
+use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, VecDeque};
 use std::sync::Arc;
 
 const SCROLLBACK_LIMIT: usize = 10_000;
@@ -39,6 +40,12 @@ impl Default for Cell {
   }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommandEntry {
+  pub text: String,
+  pub count: u32,
+}
+
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub enum MouseMode {
   #[default]
@@ -70,6 +77,10 @@ pub struct Grid {
   pub wrap_next: bool,
   pub row_continuation: Vec<bool>,
   pub scrollback: VecDeque<(Vec<Cell>, bool)>,
+  pub command_history: VecDeque<CommandEntry>,
+  pub suggestion: Option<String>,
+  pub input_start_col: Option<usize>,
+  pub input_start_row: Option<usize>,
   alt_cells: Option<Vec<Cell>>,
   alt_cursor: Option<(usize, usize)>,
   alt_scrollback: Option<VecDeque<(Vec<Cell>, bool)>>,
@@ -107,6 +118,10 @@ impl Grid {
       wrap_next: false,
       row_continuation: vec![false; rows],
       scrollback: VecDeque::new(),
+      command_history: VecDeque::new(),
+      suggestion: None,
+      input_start_col: None,
+      input_start_row: None,
       alt_cells: None,
       alt_cursor: None,
       alt_scrollback: None,
@@ -282,6 +297,78 @@ impl Grid {
     for line in &logical_lines {
       self.write_line(line);
     }
+  }
+
+  pub fn push_command(&mut self, text: &str) {
+    let text = text.trim().to_string();
+    if text.is_empty() {
+      return;
+    }
+    if let Some(entry) = self.command_history.iter_mut().find(|e| e.text == text) {
+      entry.count += 1;
+    } else {
+      self
+        .command_history
+        .push_back(CommandEntry { text, count: 1 });
+    }
+    if self.command_history.len() > 2000 {
+      self.command_history.pop_front();
+    }
+  }
+
+  pub fn find_best_suggestion(&self, partial: &str) -> Option<String> {
+    if partial.is_empty() {
+      return None;
+    }
+    let mut candidates: HashMap<&str, u64> = HashMap::new();
+    for entry in self.command_history.iter().rev() {
+      if entry.text.starts_with(partial) && entry.text.len() > partial.len() {
+        let score = candidates.entry(entry.text.as_str()).or_insert(0);
+        *score += entry.count as u64;
+      }
+    }
+    candidates
+      .into_iter()
+      .max_by_key(|(_, score)| *score)
+      .map(|(cmd, _)| cmd[partial.len()..].to_string())
+  }
+
+  pub fn extract_current_input(&self) -> Option<String> {
+    let (start_col, start_row) = (self.input_start_col?, self.input_start_row?);
+    if start_row > self.cursor_y {
+      return None;
+    }
+    let mut input = String::new();
+    if start_row == self.cursor_y {
+      for col in start_col..self.cursor_x.min(self.cols) {
+        let c = self.cells[start_row * self.cols + col].c;
+        if c != ' ' {
+          input.push(c);
+        }
+      }
+    } else {
+      for col in start_col..self.cols {
+        let c = self.cells[start_row * self.cols + col].c;
+        if c != ' ' {
+          input.push(c);
+        }
+      }
+      for row in (start_row + 1)..self.cursor_y {
+        for col in 0..self.cols {
+          let c = self.cells[row * self.cols + col].c;
+          if c != ' ' {
+            input.push(c);
+          }
+        }
+      }
+      for col in 0..self.cursor_x.min(self.cols) {
+        let c = self.cells[self.cursor_y * self.cols + col].c;
+        if c != ' ' {
+          input.push(c);
+        }
+      }
+    }
+    if input.is_empty() { None } else { Some(input) }
   }
 
   fn write_line(&mut self, line: &[Cell]) {

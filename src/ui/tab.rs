@@ -19,6 +19,7 @@ pub struct Tab {
   pub pending_command: Option<Vec<u8>>,
   pub scroll_offset: usize,
   pub initial_cwd: String,
+  pub current_input: String,
 }
 
 impl Tab {
@@ -37,6 +38,7 @@ impl Tab {
       pending_command: None,
       scroll_offset: 0,
       initial_cwd,
+      current_input: String::new(),
     }
   }
 }

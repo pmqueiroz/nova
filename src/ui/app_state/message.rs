@@ -84,5 +84,8 @@ pub enum Message {
   DiagnosticBannerResponse(Result<String, String>),
   DiagnosticBannerCommand(String),
   SettingsDiagnosticBannerToggled(bool),
+  SplitPane,
+  CloseSplitPane,
+  CloseLeftPane,
   NoOp,
 }

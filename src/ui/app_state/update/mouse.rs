@@ -115,6 +115,12 @@ impl Nova {
     }
 
     if button == mouse::Button::Left {
+      if let Some(tab) = self.tabs.get_mut(self.active_index)
+        && tab.split.is_some()
+      {
+        tab.active_pane_is_split = self.cursor_position.x > self.window_size.width / 2.0;
+      }
+
       let now = std::time::Instant::now();
       let threshold = std::time::Duration::from_millis(500);
       if cell.is_some()

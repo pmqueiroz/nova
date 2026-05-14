@@ -3,8 +3,9 @@ use iced::{
   widget::{column, container, rich_text, text::Span},
 };
 
+use crate::core::grid::Grid;
 use crate::core::url::detect_urls;
-use crate::ui::{app_state::Message, tab::Tab, theme};
+use crate::ui::{app_state::Message, theme};
 
 fn in_selection(x: usize, y: usize, sel: Option<(usize, usize, usize, usize)>) -> bool {
   let (sc, sr, ec, er) = match sel {
@@ -181,20 +182,20 @@ fn row_spans(
   spans
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn term<'a>(
-  active_tab: &Tab,
+  grid: &Grid,
   selection: Option<(usize, usize, usize, usize)>,
   font_size: f32,
   scroll_offset: usize,
   hovered_url: Option<&str>,
   hovered_link_span: Option<(usize, usize, usize)>,
-  suggestion: Option<&str>,
 ) -> Element<'a, Message> {
   let mut grid_ui = column![].spacing(0);
 
-  let cursor_x = active_tab.grid.cursor_x;
-  let cursor_y = active_tab.grid.cursor_y;
-  let scrollback = &active_tab.grid.scrollback;
+  let cursor_x = grid.cursor_x;
+  let cursor_y = grid.cursor_y;
+  let scrollback = &grid.scrollback;
   let sb_len = scrollback.len();
   let clamped_offset = scroll_offset.min(sb_len);
 
@@ -219,9 +220,9 @@ pub fn term<'a>(
     viewport_y += 1;
   }
 
-  let live_count = active_tab.grid.rows.saturating_sub(clamped_offset);
-  for (y, row_cells) in active_tab.grid.cells[..live_count * active_tab.grid.cols]
-    .chunks_exact(active_tab.grid.cols)
+  let live_count = grid.rows.saturating_sub(clamped_offset);
+  for (y, row_cells) in grid.cells[..live_count * grid.cols]
+    .chunks_exact(grid.cols)
     .enumerate()
   {
     let cursor_col = if clamped_offset == 0 && y == cursor_y {
@@ -230,7 +231,7 @@ pub fn term<'a>(
       None
     };
     let row_suggestion = if clamped_offset == 0 && y == cursor_y {
-      suggestion
+      grid.suggestion.as_deref()
     } else {
       None
     };
@@ -250,10 +251,7 @@ pub fn term<'a>(
     viewport_y += 1;
   }
 
-  let (term_bg, _term_border) = {
-    let rt = theme::color::runtime();
-    (rt.background, rt.border)
-  };
+  let term_bg = theme::color::runtime().background;
 
   container(grid_ui)
     .style(move |_| container::Style {

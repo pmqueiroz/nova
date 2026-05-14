@@ -2,8 +2,9 @@ use super::helpers::{dir_to_cursor, normalize_sel, resize_direction, strip_markd
 use super::message::Message;
 use super::nova::Nova;
 
+use iced::alignment::{Horizontal, Vertical};
 use iced::mouse;
-use iced::widget::{button, column, container, mouse_area, stack, text};
+use iced::widget::{button, column, container, mouse_area, row, stack, text};
 use iced::{Border, Color, Element, Length, Padding, Theme, border::Radius};
 
 use crate::ui::components;
@@ -31,16 +32,163 @@ impl Nova {
         mouse::Interaction::Text
       }
     });
-    let term = mouse_area(components::term(
-      active_tab,
-      selection,
-      font_size,
-      active_tab.scroll_offset,
-      self.hovered_url.as_deref(),
-      self.hovered_link_span,
-      active_tab.grid.suggestion.as_deref(),
-    ))
-    .interaction(term_interaction);
+
+    let term_area: Element<'_, Message> = if let Some(split) = &active_tab.split {
+      let rt = theme::color::runtime();
+      let border_color = rt.border;
+      let accent = rt.accent;
+      let fg_muted = rt.foreground_muted;
+      drop(rt);
+
+      let primary_selection = if !active_tab.active_pane_is_split {
+        selection
+      } else {
+        None
+      };
+      let primary_url = if !active_tab.active_pane_is_split {
+        self.hovered_url.as_deref()
+      } else {
+        None
+      };
+      let primary_span = if !active_tab.active_pane_is_split {
+        self.hovered_link_span
+      } else {
+        None
+      };
+
+      let make_close_btn = move |msg: Message| {
+        container(
+          button(text("\u{2715}").size(10).color(fg_muted))
+            .on_press(msg)
+            .padding(Padding::from([2, 6]))
+            .style(move |_t, status| button::Style {
+              text_color: match status {
+                button::Status::Hovered | button::Status::Pressed => theme::color::RED.as_color(),
+                _ => fg_muted,
+              },
+              background: None,
+              ..Default::default()
+            }),
+        )
+        .align_x(Horizontal::Right)
+        .align_y(Vertical::Top)
+        .padding(Padding::from([4, 4]))
+        .width(Length::Fill)
+        .height(Length::Fill)
+      };
+
+      let make_active_triangle = move |is_active: bool| {
+        const SIZE: u32 = 16;
+        let fill = if is_active {
+          format!(
+            "#{:02x}{:02x}{:02x}",
+            (accent.r * 255.0) as u8,
+            (accent.g * 255.0) as u8,
+            (accent.b * 255.0) as u8,
+          )
+        } else {
+          "none".to_string()
+        };
+        let svg_data = format!(
+          r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {s} {s}"><polygon points="0,0 {s},0 0,{s}" fill="{fill}"/></svg>"#,
+          s = SIZE,
+          fill = fill,
+        );
+        let handle = iced::widget::svg::Handle::from_memory(svg_data.into_bytes());
+        container(iced::widget::svg(handle).width(SIZE).height(SIZE))
+          .align_x(Horizontal::Left)
+          .align_y(Vertical::Top)
+          .width(Length::Fill)
+          .height(Length::Fill)
+      };
+
+      let left = mouse_area(
+        container(stack![
+          components::term(
+            &active_tab.grid,
+            primary_selection,
+            font_size,
+            active_tab.scroll_offset,
+            primary_url,
+            primary_span,
+          ),
+          make_active_triangle(!active_tab.active_pane_is_split),
+          make_close_btn(Message::CloseLeftPane),
+        ])
+        .style(move |_| {
+          let border_width = if !active_tab.active_pane_is_split {
+            1.0
+          } else {
+            0.0
+          };
+          container::Style {
+            border: Border {
+              color: accent,
+              width: border_width,
+              radius: Radius::new(0.0),
+            },
+            ..Default::default()
+          }
+        })
+        .width(Length::Fill)
+        .height(Length::Fill),
+      )
+      .interaction(term_interaction);
+
+      let divider = container(iced::widget::Space::new())
+        .width(1)
+        .height(Length::Fill)
+        .style(move |_| container::Style {
+          background: Some(border_color.into()),
+          ..Default::default()
+        });
+
+      let right = mouse_area(
+        container(stack![
+          components::term(
+            &split.grid,
+            None,
+            font_size,
+            split.scroll_offset,
+            None,
+            None,
+          ),
+          make_active_triangle(active_tab.active_pane_is_split),
+          make_close_btn(Message::CloseSplitPane),
+        ])
+        .style(move |_| {
+          let border_width = if active_tab.active_pane_is_split {
+            1.0
+          } else {
+            0.0
+          };
+          container::Style {
+            border: Border {
+              color: accent,
+              width: border_width,
+              radius: Radius::new(0.0),
+            },
+            ..Default::default()
+          }
+        })
+        .width(Length::Fill)
+        .height(Length::Fill),
+      )
+      .interaction(term_interaction);
+
+      row![left, divider, right].height(Length::Fill).into()
+    } else {
+      mouse_area(components::term(
+        &active_tab.grid,
+        selection,
+        font_size,
+        active_tab.scroll_offset,
+        self.hovered_url.as_deref(),
+        self.hovered_link_span,
+      ))
+      .interaction(term_interaction)
+      .into()
+    };
 
     let tb_interaction = resize_cursor.unwrap_or(mouse::Interaction::Idle);
 
@@ -54,7 +202,7 @@ impl Nova {
         self.bell_blink_visible,
       ),
       components::tab_bar(&self.tabs, self.active_index),
-      term,
+      term_area,
     ];
 
     if let Some((_code, ref message, ref command)) = self.diagnostic_banner {

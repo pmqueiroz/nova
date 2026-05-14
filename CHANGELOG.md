@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.19.0](https://github.com/pmqueiroz/nova/compare/v0.18.3...v0.19.0) (2026-05-14)
+
+
+### Features
+
+* **ai:** implement diagnostic banner ([a1cd8b5](https://github.com/pmqueiroz/nova/commit/a1cd8b5cf92bdd97a185066b12293f7585648ed3))
+* double-click word and triple-click line selection ([09219b7](https://github.com/pmqueiroz/nova/commit/09219b7786a86690db2aa8bf07a2f94a35d43b00))
+* implement command completion suggestions with Tab accept ([a1711c6](https://github.com/pmqueiroz/nova/commit/a1711c66b422d6ec479bbac4e6c08143e5819cd2))
+* implement diagnostic banner ui ([4612264](https://github.com/pmqueiroz/nova/commit/4612264ac3ac6673a73cfea3cd5c87c588ef27f9))
+* show exit code banner with AI explain suggestion for failed commands ([a8eb44e](https://github.com/pmqueiroz/nova/commit/a8eb44e58661b3ec4e186e2748d21acc0b623b91))
+
+
+### Bug Fixes
+
+* **macos:** swap arrow key modifier mapping for Option/Cmd ([150ae6e](https://github.com/pmqueiroz/nova/commit/150ae6e11598573822a7ce502ea1b82eb59d41dd))
+* remove forced home cwd, open new tabs in focused tab pwd ([43816d5](https://github.com/pmqueiroz/nova/commit/43816d594ca3fdd64e6871452d4b1c6125213841))
+* selection now scrolls with scrollback content ([3951a5d](https://github.com/pmqueiroz/nova/commit/3951a5d47852fe0b4891184421741d2d1b51221b))
+* selection render and extraction broken during scrollback ([13a30fc](https://github.com/pmqueiroz/nova/commit/13a30fc4840d9f4c876f081c10db08315b2fdc0d))
+* suggestion rendering at cursor position with green underline ([d878f1a](https://github.com/pmqueiroz/nova/commit/d878f1aab43f2cca72adb4c39388d6e626e9f097))
+* use accent color for shell selection highlights (reverse video + explicit) ([a8408cc](https://github.com/pmqueiroz/nova/commit/a8408ccdfbe07db8a044f2b0b371e68b1f14c94b))
+
 ## [0.18.3](https://github.com/pmqueiroz/nova/compare/v0.18.2...v0.18.3) (2026-05-12)
 
 

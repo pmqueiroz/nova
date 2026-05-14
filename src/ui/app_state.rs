@@ -1,7 +1,7 @@
 use async_channel::Sender;
 use iced::keyboard::Key;
 use iced::keyboard::key::Named;
-use iced::widget::{column, container, mouse_area, row, stack, text};
+use iced::widget::{button, column, container, mouse_area, stack, text};
 use iced::{
   Border, Color, Element, Length, Padding, Point, Size, Subscription, Theme, border::Radius, time,
   window,
@@ -83,7 +83,7 @@ pub struct Nova {
   ai_loading: bool,
   ai_response: Option<String>,
   ai_is_error: bool,
-  diagnostic_banner: Option<(u8, String)>,
+  diagnostic_banner: Option<(u8, String, Option<String>)>,
   ai_pending_diagnostic: Option<u8>,
   bell_blink_visible: bool,
   bell_blink_remaining: u8,
@@ -168,6 +168,7 @@ pub enum Message {
   SettingsAiBaseUrlChanged(String),
   SettingsWindowControlsChanged(config::WindowControls),
   DiagnosticBannerResponse(Result<String, String>),
+  DiagnosticBannerCommand(String),
   SettingsDiagnosticBannerToggled(bool),
   NoOp,
 }
@@ -982,7 +983,7 @@ impl Nova {
                   && code != 0
                   && !self.settings.ai.api_key.is_empty()
                 {
-                  self.diagnostic_banner = Some((code, "Loading...".into()));
+                  self.diagnostic_banner = Some((code, "Loading...".into(), None));
                   self.ai_pending_diagnostic = Some(code);
                 }
               }
@@ -1036,7 +1037,7 @@ impl Nova {
             let context = crate::core::ai::extract_last_output(&tab.grid);
             let ai_cfg = self.settings.ai.clone();
             let question = format!(
-              "The last command exited with code {}. Output:\n{}\n\nExplain in one short sentence what went wrong and how to fix it. Use no formatting, keep it under 80 characters.",
+              "The last command exited with code {}. Output:\n{}\n\nRespond in EXACTLY this JSON format (no markdown, no code fences): {{\"message\": \"short explanation\", \"command_to_solve\": \"command to fix it\" or null}}",
               code, context,
             );
             let q = crate::core::ai::AiQuery {
@@ -1494,12 +1495,39 @@ impl Nova {
         }
       }
       Message::DiagnosticBannerResponse(result) => {
-        let (code, text) = match (&result, &self.diagnostic_banner) {
-          (Ok(text), Some((code, _))) => (*code, text.clone()),
-          (Err(e), Some((code, _))) => (*code, format!("AI error: {}", e)),
-          _ => (0, String::new()),
-        };
-        self.diagnostic_banner = Some((code, text));
+        let code = self
+          .diagnostic_banner
+          .as_ref()
+          .map(|(c, _, _)| *c)
+          .unwrap_or(0);
+        match result {
+          Ok(text) => {
+            let (msg, cmd) = if let Ok(val) = serde_json::from_str::<serde_json::Value>(&text) {
+              let message = val
+                .get("message")
+                .and_then(|m| m.as_str())
+                .unwrap_or(&text)
+                .to_string();
+              let command = val
+                .get("command_to_solve")
+                .and_then(|c| c.as_str().map(|s| s.to_string()));
+              (message, command)
+            } else {
+              (text.clone(), None)
+            };
+            self.diagnostic_banner = Some((code, msg, cmd));
+          }
+          Err(e) => {
+            self.diagnostic_banner = Some((code, format!("AI error: {}", e), None));
+          }
+        }
+      }
+      Message::DiagnosticBannerCommand(cmd) => {
+        if let Some(tab) = self.tabs.get(self.active_index)
+          && let Some(tx) = &tab.pty_tx
+        {
+          let _ = tx.try_send(crate::sys::pty::PtyCommand::Input(cmd.into_bytes()));
+        }
       }
       Message::SettingsDiagnosticBannerToggled(enabled) => {
         if !enabled {
@@ -1636,53 +1664,62 @@ impl Nova {
       term,
     ];
 
-    if let Some((code, ref explanation)) = self.diagnostic_banner {
+    if let Some((_code, ref message, ref command)) = self.diagnostic_banner {
       let rt = theme::color::runtime();
       let bg = rt.background;
       let accent = rt.accent;
       let fg = rt.foreground;
       drop(rt);
-      let clean = strip_markdown(explanation);
-      col = col.push(
-        container(
-          container(
-            row![
-              container(
-                text(format!(" Exit {} ", code))
-                  .font(theme::font::BOLD)
-                  .size(12)
-                  .color(accent),
-              )
-              .align_y(iced::alignment::Vertical::Center)
-              .padding(Padding::from([3, 8]))
-              .style(move |_| container::Style {
-                background: Some(Color { a: 0.08, ..accent }.into()),
-                border: Border {
-                  color: accent,
-                  radius: Radius::new(4.0),
-                  width: 0.0,
-                },
-                ..Default::default()
-              }),
-              text(format!(" {}", clean))
-                .font(theme::font::REGULAR)
-                .size(12)
-                .color(fg),
-            ]
-            .spacing(10)
-            .align_y(iced::alignment::Vertical::Center),
+      let mut inner = column![].spacing(6);
+      inner = inner.push(
+        text(" \u{2726} NOVA \u{00B7} AI ")
+          .font(theme::font::BOLD)
+          .size(12)
+          .color(accent),
+      );
+      inner = inner.push(
+        text(format!(" {}", strip_markdown(message)))
+          .font(theme::font::REGULAR)
+          .size(12)
+          .color(fg),
+      );
+      if let Some(cmd) = command {
+        let cmd_text = cmd.clone();
+        inner = inner.push(
+          button(
+            text(format!(" {} ", cmd_text))
+              .font(theme::font::REGULAR)
+              .size(12)
+              .color(accent),
           )
-          .padding(Padding::from([8, 16]))
-          .style(move |_| container::Style {
+          .on_press(Message::DiagnosticBannerCommand(cmd_text))
+          .padding(Padding::from([4, 10]))
+          .style(move |_t, _s| button::Style {
             background: Some(Color { a: 0.08, ..accent }.into()),
             border: Border {
               color: accent,
-              radius: Radius::new(8.0),
-              width: 1.0,
+              radius: Radius::new(4.0),
+              width: 0.0,
             },
+            text_color: accent,
             ..Default::default()
-          })
-          .width(Length::Fill),
+          }),
+        );
+      }
+      col = col.push(
+        container(
+          container(inner)
+            .padding(Padding::from([8, 12]))
+            .style(move |_| container::Style {
+              background: Some(Color { a: 0.08, ..accent }.into()),
+              border: Border {
+                color: accent,
+                radius: Radius::new(8.0),
+                width: 1.0,
+              },
+              ..Default::default()
+            })
+            .width(Length::Fill),
         )
         .padding(Padding::from([8, 8]))
         .style(move |_| container::Style {

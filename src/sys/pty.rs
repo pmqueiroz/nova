@@ -121,15 +121,15 @@ fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder
       let ps_prompt_script = format!(
         r#"
           Set-Item function:prompt {{
-              $exitCode = $global:LASTEXITCODE
+              if (-not $global:__nova_prompt_count) {{ $global:__nova_prompt_count = $true; $global:LASTEXITCODE = 0; $exitCode = 0 }} else {{ $exitCode = $global:LASTEXITCODE; $global:LASTEXITCODE = 0 }}
               $p = $PWD.ProviderPath;
               $h = [regex]::Escape($env:USERPROFILE);
               $d = $p -replace ('^' + $h), '~';
               $uri = 'file://localhost/' + ($p -replace '\\', '/');
               $ESC = [char]27;
               Write-Host -NoNewline ('{{0}}]7;{{1}}{{0}}{{2}}' -f [char]27, $uri, [char]92);
-              $banner = if ($exitCode -ne 0) {{ "`r`n$ESC[38;2;{ar};{ag};{ab}m[!] Command failed (exit code $exitCode)$ESC[0m`r`n$ESC[38;2;{ar};{ag};{ab}m[>] Press Ctrl+T, search 'Explain Error'$ESC[0m`r`n" }} else {{ "" }}
-              return ($banner + $ESC + '[38;2;128;128;128m' + $d + $ESC + '[0m ' + $ESC + '[38;2;{ar};{ag};{ab}mλ' + $ESC + '[0m ')
+              $diag = if ($exitCode -ne 0) {{ "$ESC]777;command_failure;$exitCode$([char]7)" }} else {{ "" }}
+              return ($diag + $ESC + '[38;2;128;128;128m' + $d + $ESC + '[0m ' + $ESC + '[38;2;{ar};{ag};{ab}mλ' + $ESC + '[0m ')
           }}
           if (-not (Get-Command ssh -CommandType Function -ErrorAction SilentlyContinue)) {{
               function global:ssh {{
@@ -183,24 +183,18 @@ fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder
       );
       c.env(
         "PROMPT_COMMAND",
-        format!(
-          r#"__nova_exit_code=$?
+        r#"__nova_exit_code=$?
 if ! declare -f __nova_ssh > /dev/null 2>&1; then
-  __nova_ssh() {{ local h="" s=false; for a in "$@"; do $s && {{ s=false; continue; }}; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }}
-  ssh() {{ __nova_ssh "$@"; }}
+  __nova_ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
+  ssh() { __nova_ssh "$@"; }
 fi
 if ! declare -f __nova_osc7 > /dev/null 2>&1; then
-  __nova_osc7() {{ printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }}
+  __nova_osc7() { printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
 fi
 __nova_osc7
 if [ "$__nova_exit_code" -ne 0 ]; then
-  printf "\r\n\033[38;2;{ar};{ag};{ab}m[!] Command failed (exit code $__nova_exit_code)\033[0m\n"
-  printf "\033[38;2;{ar};{ag};{ab}m[>] Open palette Ctrl+T, search 'Explain Error'\033[0m\n"
+  printf "\033]777;command_failure;$__nova_exit_code\a"
 fi"#,
-          ar = ar,
-          ag = ag,
-          ab = ab,
-        ),
       );
       c
     } else if is_git_bash {
@@ -223,24 +217,18 @@ fi"#,
       );
       c.env(
         "PROMPT_COMMAND",
-        format!(
-          r#"__nova_exit_code=$?
+        r#"__nova_exit_code=$?`
 if ! declare -f __nova_ssh > /dev/null 2>&1; then
-  __nova_ssh() {{ local h="" s=false; for a in "$@"; do $s && {{ s=false; continue; }}; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }}
-  ssh() {{ __nova_ssh "$@"; }}
+  __nova_ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
+  ssh() { __nova_ssh "$@"; }
 fi
 if ! declare -f __nova_osc7 > /dev/null 2>&1; then
-  __nova_osc7() {{ printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }}
+  __nova_osc7() { printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
 fi
 __nova_osc7
 if [ "$__nova_exit_code" -ne 0 ]; then
-  printf "\r\n\033[38;2;{ar};{ag};{ab}m[!] Command failed (exit code $__nova_exit_code)\033[0m\n"
-  printf "\033[38;2;{ar};{ag};{ab}m[>] Open palette Ctrl+T, search 'Explain Error'\033[0m\n"
+  printf "\033]777;command_failure;$__nova_exit_code\a"
 fi"#,
-          ar = ar,
-          ag = ag,
-          ab = ab,
-        ),
       );
       c.args(["--login", "-i"]);
       c
@@ -290,32 +278,20 @@ fi"#,
           "\\[\\e[38;2;128;128;128m\\]\\w\\[\\e[0m\\] \\[\\e[38;2;{ar};{ag};{ab}m\\]λ\\[\\e[0m\\] "
         ),
       );
-      let palette_key = if cfg!(target_os = "macos") {
-        "⌘T"
-      } else {
-        "Ctrl+T"
-      };
       c.env(
         "PROMPT_COMMAND",
-        format!(
-          r#"__nova_exit_code=$?
+        r#"__nova_exit_code=$?
 if ! declare -f __nova_ssh > /dev/null 2>&1; then
-  __nova_ssh() {{ local h="" s=false; for a in "$@"; do $s && {{ s=false; continue; }}; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }}
-  ssh() {{ __nova_ssh "$@"; }}
+  __nova_ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
+  ssh() { __nova_ssh "$@"; }
 fi
 if ! declare -f __nova_osc7 > /dev/null 2>&1; then
-  __nova_osc7() {{ printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }}
+  __nova_osc7() { printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
 fi
 __nova_osc7
 if [ "$__nova_exit_code" -ne 0 ]; then
-  printf "\r\n\033[38;2;{ar};{ag};{ab}m[!] Command failed (exit code $__nova_exit_code)\033[0m\n"
-  printf "\033[38;2;{ar};{ag};{ab}m[>] Open palette {palette_key}, search 'Explain Error'\033[0m\n"
+  printf "\033]777;command_failure;$__nova_exit_code\a"
 fi"#,
-          ar = ar,
-          ag = ag,
-          ab = ab,
-          palette_key = palette_key,
-        ),
       );
 
       c.env(
@@ -326,25 +302,18 @@ fi"#,
       );
       c.env(
         "NOVA_PROMPT_COMMAND",
-        format!(
-          r#"__nova_exit_code=$?
+        r#"__nova_exit_code=$?
 if ! declare -f __nova_ssh > /dev/null 2>&1; then
-  __nova_ssh() {{ local h="" s=false; for a in "$@"; do $s && {{ s=false; continue; }}; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }}
-  ssh() {{ __nova_ssh "$@"; }}
+  __nova_ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
+  ssh() { __nova_ssh "$@"; }
 fi
 if ! declare -f __nova_osc7 > /dev/null 2>&1; then
-  __nova_osc7() {{ printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }}
+  __nova_osc7() { printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
 fi
 __nova_osc7
 if [ "$__nova_exit_code" -ne 0 ]; then
-  printf "\r\n\033[38;2;{ar};{ag};{ab}m[!] Command failed (exit code $__nova_exit_code)\033[0m\n"
-  printf "\033[38;2;{ar};{ag};{ab}m[>] Open palette {palette_key}, search 'Explain Error'\033[0m\n"
+  printf "\033]777;command_failure;$__nova_exit_code\a"
 fi"#,
-          ar = ar,
-          ag = ag,
-          ab = ab,
-          palette_key = palette_key,
-        ),
       );
     }
     c

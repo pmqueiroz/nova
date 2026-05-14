@@ -1,6 +1,6 @@
 use iced::{
-  Element, Padding,
-  widget::{column, container, pick_list, text, text_input},
+  Color, Element, Padding,
+  widget::{column, container, pick_list, row, space::horizontal, text, text_input, toggler},
 };
 
 use super::{input_style, setting_row};
@@ -76,6 +76,54 @@ pub(super) fn ai_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
   } else {
     ("AI features enabled.", theme::color::runtime().accent)
   };
+
+  col = col.push({
+    let rt = theme::color::runtime();
+    row![
+      column![
+        text("Error diagnostics")
+          .font(theme::font::BOLD)
+          .size(12)
+          .color(rt.foreground),
+        text("Show a banner with AI explanation when a command fails")
+          .font(theme::font::REGULAR)
+          .size(11)
+          .color(rt.foreground_muted),
+      ]
+      .spacing(2),
+      horizontal(),
+      toggler(settings.ai.diagnostic_banner)
+        .on_toggle(Message::SettingsDiagnosticBannerToggled)
+        .size(20)
+        .style(|_t, status| {
+          let is_toggled = match status {
+            toggler::Status::Active { is_toggled }
+            | toggler::Status::Hovered { is_toggled }
+            | toggler::Status::Disabled { is_toggled } => is_toggled,
+          };
+          let rt = theme::color::runtime();
+          let (accent, border_c) = (rt.accent, rt.border);
+          drop(rt);
+          toggler::Style {
+            background: if is_toggled {
+              accent.into()
+            } else {
+              theme::color::BG_HIGH.as_color().into()
+            },
+            background_border_width: 1.0,
+            background_border_color: if is_toggled { accent } else { border_c },
+            foreground: Color::WHITE.into(),
+            foreground_border_width: 0.0,
+            foreground_border_color: Color::TRANSPARENT,
+            text_color: None,
+            border_radius: None,
+            padding_ratio: 0.15,
+          }
+        }),
+    ]
+    .spacing(12)
+    .align_y(iced::alignment::Vertical::Center)
+  });
 
   col = col.push(
     container(

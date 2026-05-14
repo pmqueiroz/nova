@@ -91,6 +91,7 @@ pub struct Grid {
 pub enum ControlCommand {
   OpenAskAi { preset: Option<std::sync::Arc<str>> },
   OpenExplainAi { preset: Option<std::sync::Arc<str>> },
+  CommandFailure(u8),
 }
 
 impl Grid {

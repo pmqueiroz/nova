@@ -112,6 +112,19 @@ fn handle_key_pressed(
     };
   }
 
+  #[cfg(target_os = "macos")]
+  let split_mod = modifiers.logo() && modifiers.shift();
+  #[cfg(not(target_os = "macos"))]
+  let split_mod = modifiers.control() && modifiers.shift();
+
+  if split_mod && let Key::Character(c) = &key {
+    match c.as_str() {
+      "t" | "T" => return Some(Message::SplitPane),
+      "w" | "W" => return Some(Message::CloseSplitPane),
+      _ => {}
+    }
+  }
+
   let kb = config::keybindings();
   if matches_kb(&kb.prev_tab, &key, modifiers) {
     return Some(Message::PrevTab);
@@ -287,6 +300,27 @@ impl Nova {
           k.initial_cwd.clone(),
         )
       }));
+
+      if let Some(split) = &tab.split
+        && split.pty_alive
+      {
+        let split_key = PtyKey {
+          tab_id: split.id,
+          shell_cmd: split.shell_cmd.clone(),
+          initial_cols: split.grid.cols as u16,
+          initial_rows: split.grid.rows as u16,
+          initial_cwd: split.initial_cwd.clone(),
+        };
+        subs.push(Subscription::run_with(split_key, |k| {
+          pty_worker(
+            k.tab_id,
+            k.initial_cols,
+            k.initial_rows,
+            k.shell_cmd.clone(),
+            k.initial_cwd.clone(),
+          )
+        }));
+      }
     }
 
     Subscription::batch(subs)

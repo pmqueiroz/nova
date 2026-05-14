@@ -6,6 +6,18 @@ use vte::Parser;
 use crate::core::grid::Grid;
 use crate::sys::pty::PtyCommand;
 
+pub struct SplitPane {
+  pub id: usize,
+  pub grid: Grid,
+  pub pty_tx: Option<Sender<PtyCommand>>,
+  pub pty_alive: bool,
+  pub ansi_parser: Parser,
+  pub shell_cmd: String,
+  pub pwd: String,
+  pub scroll_offset: usize,
+  pub initial_cwd: String,
+}
+
 pub struct Tab {
   pub id: usize,
   pub grid: Grid,
@@ -20,6 +32,8 @@ pub struct Tab {
   pub scroll_offset: usize,
   pub initial_cwd: String,
   pub current_input: String,
+  pub split: Option<SplitPane>,
+  pub active_pane_is_split: bool,
 }
 
 impl Tab {
@@ -39,6 +53,8 @@ impl Tab {
       scroll_offset: 0,
       initial_cwd,
       current_input: String::new(),
+      split: None,
+      active_pane_is_split: false,
     }
   }
 }

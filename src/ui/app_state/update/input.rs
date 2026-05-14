@@ -16,6 +16,28 @@ impl Nova {
       return iced::Task::none();
     }
 
+    let Some(active_tab) = self.tabs.get(self.active_index) else {
+      return iced::Task::none();
+    };
+    let active_pane_is_split = active_tab.active_pane_is_split;
+
+    if active_pane_is_split {
+      self.selection_start = None;
+      self.selection_end = None;
+      self.click_count = 0;
+      self.diagnostic_banner = None;
+      self.ai_pending_diagnostic = None;
+      if let Some(active_tab) = self.tabs.get_mut(self.active_index)
+        && let Some(split) = &mut active_tab.split
+      {
+        split.scroll_offset = 0;
+        if let Some(tx) = &split.pty_tx {
+          let _ = tx.send_blocking(PtyCommand::Input(bytes));
+        }
+      }
+      return iced::Task::none();
+    }
+
     if bytes == b"\t"
       && let Some(active_tab) = self.tabs.get_mut(self.active_index)
       && let Some(suggestion) = active_tab.grid.suggestion.take()
@@ -85,6 +107,43 @@ impl Nova {
   }
 
   pub(super) fn handle_pty_output(&mut self, tab_id: usize, bytes: Vec<u8>) -> iced::Task<Message> {
+    if let Some(tab_idx) = self
+      .tabs
+      .iter()
+      .position(|t| t.split.as_ref().map(|s| s.id) == Some(tab_id))
+    {
+      let tab = &mut self.tabs[tab_idx];
+      let split = tab.split.as_mut().unwrap();
+      if std::env::var("NOVA_DEBUG_PTY").is_ok()
+        && let Ok(mut f) = std::fs::OpenOptions::new()
+          .create(true)
+          .append(true)
+          .open("C:\\Users\\Public\\nova_pty_debug.bin")
+      {
+        let _ = f.write_all(&bytes);
+      }
+      let mut executor = AnsiExecutor {
+        grid: &mut split.grid,
+        bell_pending: false,
+      };
+      for byte in bytes {
+        split.ansi_parser.advance(&mut executor, &[byte]);
+      }
+      while !split.grid.output_queue.is_empty() {
+        let response = split.grid.output_queue.remove(0);
+        if let Some(tx) = &split.pty_tx {
+          let _ = tx.send_blocking(PtyCommand::Input(response));
+        }
+      }
+      split.grid.control_queue.clear();
+      let new_pwd = split.grid.pwd.clone();
+      if new_pwd != split.pwd {
+        split.pwd = new_pwd;
+      }
+      split.scroll_offset = 0;
+      return iced::Task::none();
+    }
+
     if let Some(tab) = self.tabs.iter_mut().find(|t| t.id == tab_id) {
       if std::env::var("NOVA_DEBUG_PTY").is_ok()
         && let Ok(mut f) = std::fs::OpenOptions::new()

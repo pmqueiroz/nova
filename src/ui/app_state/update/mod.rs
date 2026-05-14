@@ -171,6 +171,15 @@ impl Nova {
         self.active_index = self.tabs.len() - 1;
         iced::Task::none()
       }
+      Message::SplitPane => self.handle_split_pane(),
+      Message::CloseSplitPane => {
+        self.handle_close_split_pane();
+        iced::Task::none()
+      }
+      Message::CloseLeftPane => {
+        self.handle_close_left_pane();
+        iced::Task::none()
+      }
       Message::SwitchTab(index) => {
         if index < self.tabs.len() {
           self.active_index = index;
@@ -201,6 +210,16 @@ impl Nova {
           }
           tab.pty_tx = Some(tx);
           tab.pty_alive = true;
+          return iced::Task::none();
+        }
+        for tab in &mut self.tabs {
+          if let Some(split) = &mut tab.split
+            && split.id == tab_id
+          {
+            split.pty_tx = Some(tx);
+            split.pty_alive = true;
+            return iced::Task::none();
+          }
         }
         iced::Task::none()
       }
@@ -208,6 +227,16 @@ impl Nova {
         if let Some(tab) = self.tabs.iter_mut().find(|t| t.id == tab_id) {
           tab.pty_alive = false;
           tab.pty_tx = None;
+          return iced::Task::none();
+        }
+        for tab in &mut self.tabs {
+          if let Some(split) = &mut tab.split
+            && split.id == tab_id
+          {
+            split.pty_alive = false;
+            split.pty_tx = None;
+            return iced::Task::none();
+          }
         }
         iced::Task::none()
       }

@@ -1,6 +1,5 @@
 use iced::{
-  Background, Border, Color, Element, Length, Padding,
-  border::Radius,
+  Background, Color, Element, Length, Padding,
   widget::{column, container, rich_text, text::Span},
 };
 
@@ -251,7 +250,7 @@ pub fn term<'a>(
     viewport_y += 1;
   }
 
-  let (term_bg, term_border) = {
+  let (term_bg, _term_border) = {
     let rt = theme::color::runtime();
     (rt.background, rt.border)
   };
@@ -259,14 +258,7 @@ pub fn term<'a>(
   container(grid_ui)
     .style(move |_| container::Style {
       background: Some(term_bg.into()),
-      border: Border {
-        color: term_border,
-        radius: Radius {
-          ..Default::default()
-        },
-        width: 0.5,
-      },
-      ..container::Style::default()
+      ..Default::default()
     })
     .padding(Padding {
       top: 12.0,

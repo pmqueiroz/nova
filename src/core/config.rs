@@ -44,6 +44,12 @@ pub struct AiConfig {
   pub api_key: String,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub base_url: Option<String>,
+  #[serde(default = "default_true")]
+  pub diagnostic_banner: bool,
+}
+
+fn default_true() -> bool {
+  true
 }
 
 impl Default for AiConfig {
@@ -53,6 +59,7 @@ impl Default for AiConfig {
       model: "claude-haiku-4-5-20251001".into(),
       api_key: String::new(),
       base_url: None,
+      diagnostic_banner: true,
     }
   }
 }

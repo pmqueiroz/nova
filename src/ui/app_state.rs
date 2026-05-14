@@ -1,8 +1,11 @@
 use async_channel::Sender;
 use iced::keyboard::Key;
 use iced::keyboard::key::Named;
-use iced::widget::{column, mouse_area, stack};
-use iced::{Element, Point, Size, Subscription, Theme, time, window};
+use iced::widget::{column, container, mouse_area, row, stack, text};
+use iced::{
+  Border, Color, Element, Length, Padding, Point, Size, Subscription, Theme, border::Radius, time,
+  window,
+};
 use iced::{Event, event, keyboard, mouse, stream};
 use std::io::Write;
 use std::path::PathBuf;
@@ -15,6 +18,7 @@ use crate::sys::parser::AnsiExecutor;
 use crate::sys::pty::{PtyBridge, PtyCommand};
 use crate::ui::components;
 use crate::ui::tab::Tab;
+use crate::ui::theme;
 
 pub static SETTINGS_OPEN: AtomicBool = AtomicBool::new(false);
 pub static KB_RECORDING: AtomicBool = AtomicBool::new(false);
@@ -79,6 +83,8 @@ pub struct Nova {
   ai_loading: bool,
   ai_response: Option<String>,
   ai_is_error: bool,
+  diagnostic_banner: Option<(u8, String)>,
+  ai_pending_diagnostic: Option<u8>,
   bell_blink_visible: bool,
   bell_blink_remaining: u8,
 }
@@ -161,6 +167,8 @@ pub enum Message {
   SettingsAiApiKeyChanged(String),
   SettingsAiBaseUrlChanged(String),
   SettingsWindowControlsChanged(config::WindowControls),
+  DiagnosticBannerResponse(Result<String, String>),
+  SettingsDiagnosticBannerToggled(bool),
   NoOp,
 }
 
@@ -292,10 +300,17 @@ fn extract_selection(
   result.trim_end().to_string()
 }
 
-fn calc_grid(width: f32, height: f32, font_size: f32, status_bar_visible: bool) -> (usize, usize) {
+fn calc_grid(
+  width: f32,
+  height: f32,
+  font_size: f32,
+  status_bar_visible: bool,
+  banner_visible: bool,
+) -> (usize, usize) {
   let char_width = font_size * 0.62;
   let char_height = font_size * 1.29;
-  let padding_y = if status_bar_visible { 118.0 } else { 96.0 };
+  let banner_extra = if banner_visible { font_size * 2.5 } else { 0.0 };
+  let padding_y = if status_bar_visible { 118.0 } else { 96.0 } + banner_extra;
   let cols = ((width - 40.0) / char_width).floor() as usize;
   let rows = ((height - padding_y) / char_height).floor() as usize;
   (cols.max(10), rows.max(5))
@@ -390,7 +405,13 @@ impl Default for Nova {
       }
     });
     let cfg = config::get();
-    let (cols, rows) = calc_grid(1024.0, 768.0, cfg.theme.font.size, cfg.status_bar.visible);
+    let (cols, rows) = calc_grid(
+      1024.0,
+      768.0,
+      cfg.theme.font.size,
+      cfg.status_bar.visible,
+      false,
+    );
     let mut nova = Self {
       tabs: vec![Tab::new(0, cols, rows, default_shell, String::new())],
       active_index: 0,
@@ -429,6 +450,8 @@ impl Default for Nova {
       ai_loading: false,
       ai_response: None,
       ai_is_error: false,
+      diagnostic_banner: None,
+      ai_pending_diagnostic: None,
       bell_blink_visible: true,
       bell_blink_remaining: 0,
     };
@@ -589,6 +612,7 @@ impl Nova {
       self.window_size.height,
       self.settings.theme.font.size,
       self.settings.status_bar.visible,
+      self.diagnostic_banner.is_some(),
     );
     for tab in self.tabs.iter_mut() {
       tab.grid.resize(cols, rows);
@@ -629,6 +653,8 @@ impl Nova {
         self.selection_start = None;
         self.selection_end = None;
         self.click_count = 0;
+        self.diagnostic_banner = None;
+        self.ai_pending_diagnostic = None;
         let entered = bytes == b"\r";
         if let Some(active_tab) = self.tabs.get_mut(self.active_index) {
           active_tab.scroll_offset = 0;
@@ -700,6 +726,7 @@ impl Nova {
           self.window_size.height,
           self.settings.theme.font.size,
           self.settings.status_bar.visible,
+          self.diagnostic_banner.is_some(),
         );
         let parent_pwd = self
           .tabs
@@ -725,6 +752,7 @@ impl Nova {
             self.window_size.height,
             self.settings.theme.font.size,
             self.settings.status_bar.visible,
+            self.diagnostic_banner.is_some(),
           );
           self
             .tabs
@@ -949,6 +977,15 @@ impl Nova {
                   ai_preset = Some(p);
                 }
               }
+              ControlCommand::CommandFailure(code) => {
+                if self.settings.ai.diagnostic_banner
+                  && code != 0
+                  && !self.settings.ai.api_key.is_empty()
+                {
+                  self.diagnostic_banner = Some((code, "Loading...".into()));
+                  self.ai_pending_diagnostic = Some(code);
+                }
+              }
             }
           }
 
@@ -993,6 +1030,29 @@ impl Nova {
               return iced::Task::batch(vec![focus_task, self.update(Message::AiSubmit)]);
             }
             return focus_task;
+          }
+
+          if let Some(code) = self.ai_pending_diagnostic.take() {
+            let context = crate::core::ai::extract_last_output(&tab.grid);
+            let ai_cfg = self.settings.ai.clone();
+            let question = format!(
+              "The last command exited with code {}. Output:\n{}\n\nExplain in one short sentence what went wrong and how to fix it. Use no formatting, keep it under 80 characters.",
+              code, context,
+            );
+            let q = crate::core::ai::AiQuery {
+              question,
+              context,
+              provider: ai_cfg.provider,
+              model: ai_cfg.model,
+              api_key: ai_cfg.api_key,
+              base_url: ai_cfg.base_url,
+              shell: tab.shell.clone(),
+              os: os_name(),
+            };
+            return iced::Task::perform(
+              crate::core::ai::query(q),
+              Message::DiagnosticBannerResponse,
+            );
           }
 
           if bell_fired {
@@ -1052,6 +1112,7 @@ impl Nova {
           height,
           self.settings.theme.font.size,
           self.settings.status_bar.visible,
+          self.diagnostic_banner.is_some(),
         );
 
         for tab in self.tabs.iter_mut() {
@@ -1432,6 +1493,21 @@ impl Nova {
           }
         }
       }
+      Message::DiagnosticBannerResponse(result) => {
+        let (code, text) = match (&result, &self.diagnostic_banner) {
+          (Ok(text), Some((code, _))) => (*code, text.clone()),
+          (Err(e), Some((code, _))) => (*code, format!("AI error: {}", e)),
+          _ => (0, String::new()),
+        };
+        self.diagnostic_banner = Some((code, text));
+      }
+      Message::SettingsDiagnosticBannerToggled(enabled) => {
+        if !enabled {
+          self.diagnostic_banner = None;
+        }
+        self.settings.ai.diagnostic_banner = enabled;
+        let _ = config::save(&self.settings);
+      }
       Message::ExplainError => {
         let (context, shell) = self
           .tabs
@@ -1560,6 +1636,62 @@ impl Nova {
       term,
     ];
 
+    if let Some((code, ref explanation)) = self.diagnostic_banner {
+      let rt = theme::color::runtime();
+      let bg = rt.background;
+      let accent = rt.accent;
+      let fg = rt.foreground;
+      drop(rt);
+      let clean = strip_markdown(explanation);
+      col = col.push(
+        container(
+          container(
+            row![
+              container(
+                text(format!(" Exit {} ", code))
+                  .font(theme::font::BOLD)
+                  .size(12)
+                  .color(accent),
+              )
+              .align_y(iced::alignment::Vertical::Center)
+              .padding(Padding::from([3, 8]))
+              .style(move |_| container::Style {
+                background: Some(Color { a: 0.08, ..accent }.into()),
+                border: Border {
+                  color: accent,
+                  radius: Radius::new(4.0),
+                  width: 0.0,
+                },
+                ..Default::default()
+              }),
+              text(format!(" {}", clean))
+                .font(theme::font::REGULAR)
+                .size(12)
+                .color(fg),
+            ]
+            .spacing(10)
+            .align_y(iced::alignment::Vertical::Center),
+          )
+          .padding(Padding::from([8, 16]))
+          .style(move |_| container::Style {
+            background: Some(Color { a: 0.08, ..accent }.into()),
+            border: Border {
+              color: accent,
+              radius: Radius::new(8.0),
+              width: 1.0,
+            },
+            ..Default::default()
+          })
+          .width(Length::Fill),
+        )
+        .padding(Padding::from([8, 8]))
+        .style(move |_| container::Style {
+          background: Some(bg.into()),
+          ..Default::default()
+        })
+        .width(Length::Fill),
+      );
+    }
     if self.settings.status_bar.visible {
       col = col.push(components::status_bar(
         active_tab,
@@ -1837,6 +1969,21 @@ impl Nova {
 
     Subscription::batch(subs)
   }
+}
+
+fn strip_markdown(text: &str) -> String {
+  text
+    .replace("**", "")
+    .replace("__", "")
+    .replace("```", "")
+    .replace("`", "")
+    .lines()
+    .map(|l| l.trim().to_string())
+    .collect::<Vec<_>>()
+    .join(" ")
+    .replace("  ", " ")
+    .trim()
+    .to_string()
 }
 
 fn os_name() -> String {

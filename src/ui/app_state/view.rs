@@ -1,0 +1,198 @@
+use super::helpers::{dir_to_cursor, normalize_sel, resize_direction, strip_markdown};
+use super::message::Message;
+use super::nova::Nova;
+
+use iced::mouse;
+use iced::widget::{button, column, container, mouse_area, stack, text};
+use iced::{Border, Color, Element, Length, Padding, Theme, border::Radius};
+
+use crate::ui::components;
+use crate::ui::theme;
+
+impl Nova {
+  pub fn view(&self) -> Element<'_, Message> {
+    let active_tab = &self.tabs[self.active_index];
+
+    let selection = match (self.selection_start, self.selection_end) {
+      (Some(start), Some(end)) if start != end => {
+        let ((sc, sr), (ec, er)) = normalize_sel(start, end);
+        Some((sc, sr, ec, er))
+      }
+      _ => None,
+    };
+
+    let font_size = self.settings.theme.font.size;
+    let resize_cursor = resize_direction(self.cursor_position, self.window_size).map(dir_to_cursor);
+
+    let term_interaction = resize_cursor.unwrap_or_else(|| {
+      if self.hovered_url.is_some() {
+        mouse::Interaction::Pointer
+      } else {
+        mouse::Interaction::Text
+      }
+    });
+    let term = mouse_area(components::term(
+      active_tab,
+      selection,
+      font_size,
+      active_tab.scroll_offset,
+      self.hovered_url.as_deref(),
+      self.hovered_link_span,
+      active_tab.grid.suggestion.as_deref(),
+    ))
+    .interaction(term_interaction);
+
+    let tb_interaction = resize_cursor.unwrap_or(mouse::Interaction::Idle);
+
+    let mut col = column![
+      components::title_bar(
+        self.window_focused,
+        &active_tab.pwd,
+        self.window_maximized,
+        tb_interaction,
+        &self.settings.general.window_controls,
+        self.bell_blink_visible,
+      ),
+      components::tab_bar(&self.tabs, self.active_index),
+      term,
+    ];
+
+    if let Some((_code, ref message, ref command)) = self.diagnostic_banner {
+      col = col.push(self.diagnostic_banner_widget(message, command.as_deref()));
+    }
+
+    if self.settings.status_bar.visible {
+      col = col.push(components::status_bar(
+        active_tab,
+        &self.settings.status_bar.date_format,
+        &self.settings.status_bar.time_format,
+        self.window_maximized,
+      ));
+    }
+
+    let outer_interaction = resize_cursor.unwrap_or(mouse::Interaction::Idle);
+
+    let inner = if self.settings_open {
+      let config_path_str = crate::core::config::config_path()
+        .map(|p| p.display().to_string())
+        .unwrap_or_default();
+      let modal = components::settings_modal(
+        &self.settings,
+        &self.settings_tab,
+        &self.settings_shell_input,
+        self.settings_recording_index,
+        &self.raw_config_content,
+        config_path_str,
+      );
+      components::app(stack![col, modal], self.window_maximized)
+    } else if self.command_palette_open {
+      let palette = components::command_palette(&self.palette_query, self.palette_selected);
+      components::app(stack![col, palette], self.window_maximized)
+    } else if self.ai_overlay_open || self.ai_loading {
+      let overlay = components::ai_overlay(
+        &self.ai_input,
+        self.ai_response.as_deref(),
+        self.ai_loading,
+        self.ai_is_error,
+      );
+      components::app(stack![col, overlay], self.window_maximized)
+    } else if self.shell_picker_open {
+      let picker = components::shell_picker(
+        &self.available_shells,
+        self.shell_picker_anchor,
+        self.window_size.width,
+      );
+      components::app(stack![col, picker], self.window_maximized)
+    } else {
+      components::app(col, self.window_maximized)
+    };
+
+    mouse_area(inner).interaction(outer_interaction).into()
+  }
+
+  pub fn theme(&self) -> Theme {
+    let rt = crate::ui::theme::color::runtime();
+    Theme::custom(
+      "Nova",
+      iced::theme::Palette {
+        background: rt.background,
+        text: rt.foreground,
+        primary: rt.accent,
+        success: rt.accent,
+        warning: iced::Color::from_rgb(1.0, 0.75, 0.0),
+        danger: iced::Color::from_rgb(0.9, 0.3, 0.3),
+      },
+    )
+  }
+
+  fn diagnostic_banner_widget<'a>(
+    &self,
+    message: &'a str,
+    command: Option<&'a str>,
+  ) -> iced::Element<'a, Message> {
+    let rt = theme::color::runtime();
+    let bg = rt.background;
+    let accent = rt.accent;
+    let fg = rt.foreground;
+    drop(rt);
+
+    let mut inner = column![].spacing(6);
+    inner = inner.push(
+      text(" \u{2726} NOVA \u{00B7} AI ")
+        .font(theme::font::BOLD)
+        .size(12)
+        .color(accent),
+    );
+    inner = inner.push(
+      text(format!(" {}", strip_markdown(message)))
+        .font(theme::font::REGULAR)
+        .size(12)
+        .color(fg),
+    );
+    if let Some(cmd) = command {
+      let cmd_text = cmd.to_string();
+      inner = inner.push(
+        button(
+          text(format!(" {} ", cmd_text))
+            .font(theme::font::REGULAR)
+            .size(12)
+            .color(accent),
+        )
+        .on_press(Message::DiagnosticBannerCommand(cmd_text))
+        .padding(Padding::from([4, 10]))
+        .style(move |_t, _s| button::Style {
+          background: Some(Color { a: 0.08, ..accent }.into()),
+          border: Border {
+            color: accent,
+            radius: Radius::new(4.0),
+            width: 0.0,
+          },
+          text_color: accent,
+          ..Default::default()
+        }),
+      );
+    }
+
+    container(
+      container(inner)
+        .padding(Padding::from([8, 12]))
+        .style(move |_| container::Style {
+          background: Some(Color { a: 0.08, ..accent }.into()),
+          border: Border {
+            color: accent,
+            radius: Radius::new(8.0),
+            width: 1.0,
+          },
+          ..Default::default()
+        })
+        .width(Length::Fill),
+    )
+    .padding(Padding::from([8, 8]))
+    .style(move |_| container::Style {
+      background: Some(bg.into()),
+      ..Default::default()
+    })
+    .width(Length::Fill)
+    .into()
+  }
+}

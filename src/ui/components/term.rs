@@ -1,6 +1,9 @@
 use iced::{
   Background, Color, Element, Length, Padding,
-  widget::{column, container, rich_text, text::Span},
+  widget::{
+    column, container, rich_text, row,
+    text::{self, Span},
+  },
 };
 
 use crate::core::url::detect_urls;
@@ -78,10 +81,6 @@ fn row_spans(
   suggestion: Option<&str>,
 ) -> Vec<Span<'static>> {
   let mut spans: Vec<Span<'static>> = Vec::new();
-  let mut seg_text = String::new();
-  let mut seg_fg: Option<Color> = None;
-  let mut seg_bg: Option<Color> = None;
-  let mut seg_attrs = crate::core::grid::CellAttrs::empty();
 
   for (x, cell) in row_cells.iter().enumerate() {
     let is_cursor = cursor_col == Some(x);
@@ -108,20 +107,11 @@ fn row_spans(
     }
 
     if is_cursor {
-      if !seg_text.is_empty() {
-        spans.push(cell_span(
-          std::mem::take(&mut seg_text),
-          seg_fg,
-          seg_bg,
-          seg_attrs,
-          font_size,
-        ));
-      }
       let cursor_color = theme::color::runtime().cursor;
       if let Some(sugg) = suggestion {
         let max_chars = row_cells.len().saturating_sub(x);
-        let display: String = sugg.chars().take(max_chars).collect();
-        if let Some(first) = display.chars().next() {
+        let mut chars = sugg.chars().take(max_chars);
+        if let Some(first) = chars.next() {
           spans.push(
             Span::new(first.to_string())
               .color(cursor_color)
@@ -129,13 +119,12 @@ fn row_spans(
               .font(theme::font::REGULAR)
               .size(font_size),
           );
-          let rest: String = display.chars().skip(1).collect();
-          if !rest.is_empty() {
-            let rt = theme::color::runtime();
-            let mut dim_color = rt.foreground;
-            dim_color.a = 0.35;
+          let rt = theme::color::runtime();
+          let mut dim_color = rt.foreground;
+          dim_color.a = 0.35;
+          for c in chars {
             spans.push(
-              Span::new(rest)
+              Span::new(c.to_string())
                 .color(dim_color)
                 .font(theme::font::REGULAR)
                 .size(font_size),
@@ -152,30 +141,15 @@ fn row_spans(
           .font(theme::font::REGULAR)
           .size(font_size),
       );
-      seg_fg = eff_fg;
-      seg_bg = eff_bg;
-      seg_attrs = eff_attrs;
     } else {
-      if eff_fg != seg_fg || eff_bg != seg_bg || eff_attrs != seg_attrs {
-        if !seg_text.is_empty() {
-          spans.push(cell_span(
-            std::mem::take(&mut seg_text),
-            seg_fg,
-            seg_bg,
-            seg_attrs,
-            font_size,
-          ));
-        }
-        seg_fg = eff_fg;
-        seg_bg = eff_bg;
-        seg_attrs = eff_attrs;
-      }
-      seg_text.push(cell.c);
+      spans.push(cell_span(
+        cell.c.to_string(),
+        eff_fg,
+        eff_bg,
+        eff_attrs,
+        font_size,
+      ));
     }
-  }
-
-  if !seg_text.is_empty() {
-    spans.push(cell_span(seg_text, seg_fg, seg_bg, seg_attrs, font_size));
   }
 
   spans
@@ -191,6 +165,7 @@ pub fn term<'a>(
   suggestion: Option<&str>,
 ) -> Element<'a, Message> {
   let mut grid_ui = column![].spacing(0);
+  let char_width = font_size * 0.62;
 
   let cursor_x = active_tab.grid.cursor_x;
   let cursor_y = active_tab.grid.cursor_y;
@@ -201,10 +176,28 @@ pub fn term<'a>(
   let mut viewport_y = 0usize;
   let mut display_y = 0usize;
 
+  let line_height = font_size * 1.29;
+  let render_row = |spans: Vec<Span<'static>>| {
+    let mut r = row![].spacing(0);
+    for span in spans {
+      r = r.push(
+        container(
+          rich_text([span])
+            .size(font_size)
+            .font(theme::font::REGULAR)
+            .wrapping(text::Wrapping::None),
+        )
+        .width(char_width)
+        .height(line_height),
+      );
+    }
+    r
+  };
+
   let sb_start = sb_len.saturating_sub(clamped_offset);
   for (row_cells, _) in scrollback.range(sb_start..) {
     let hl = compute_url_highlight(row_cells, display_y, hovered_url, hovered_link_span);
-    let spans = row_spans(
+    let segments = row_spans(
       row_cells,
       None,
       viewport_y,
@@ -214,7 +207,7 @@ pub fn term<'a>(
       &hl,
       None,
     );
-    grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
+    grid_ui = grid_ui.push(render_row(segments));
     display_y += 1;
     viewport_y += 1;
   }
@@ -235,7 +228,7 @@ pub fn term<'a>(
       None
     };
     let hl = compute_url_highlight(row_cells, display_y, hovered_url, hovered_link_span);
-    let spans = row_spans(
+    let segments = row_spans(
       row_cells,
       cursor_col,
       viewport_y,
@@ -245,7 +238,7 @@ pub fn term<'a>(
       &hl,
       row_suggestion,
     );
-    grid_ui = grid_ui.push(rich_text(spans).size(font_size).font(theme::font::REGULAR));
+    grid_ui = grid_ui.push(render_row(segments));
     display_y += 1;
     viewport_y += 1;
   }
@@ -268,6 +261,7 @@ pub fn term<'a>(
     })
     .height(Length::Fill)
     .width(Length::Fill)
+    .clip(true)
     .into()
 }
 

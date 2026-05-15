@@ -186,7 +186,19 @@ impl Nova {
         }
         iced::Task::none()
       }
-      Message::CloseActiveTab => self.update(Message::CloseTab(self.active_index)),
+      Message::CloseActiveTab => {
+        if let Some(tab) = self.tabs.get(self.active_index)
+          && tab.split.is_some()
+        {
+          let msg = if tab.active_pane_is_split {
+            Message::CloseSplitPane
+          } else {
+            Message::CloseLeftPane
+          };
+          return self.update(msg);
+        }
+        self.update(Message::CloseTab(self.active_index))
+      }
       Message::NextTab => {
         if !self.tabs.is_empty() {
           self.active_index = (self.active_index + 1) % self.tabs.len();

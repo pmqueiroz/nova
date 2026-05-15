@@ -1,3 +1,4 @@
+#[cfg(target_os = "windows")]
 use std::io::Write;
 use std::sync::atomic::Ordering;
 

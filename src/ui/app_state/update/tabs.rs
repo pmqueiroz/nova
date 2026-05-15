@@ -2,7 +2,7 @@ use vte::Parser;
 
 use crate::core::grid::Grid;
 use crate::sys::pty::PtyCommand;
-use crate::ui::tab::{SplitPane, Tab};
+use crate::ui::tab::{SplitPane, Tab, shell_display_name};
 
 use super::super::helpers::{calc_grid, calc_grid_split, command_history_path};
 use super::super::message::Message;
@@ -186,12 +186,14 @@ impl Nova {
     tab.pty_tx = split.pty_tx;
     tab.pty_alive = split.pty_alive;
     tab.ansi_parser = split.ansi_parser;
-    tab.shell_cmd = split.shell_cmd;
+    tab.shell_cmd = split.shell_cmd.clone();
+    tab.shell = shell_display_name(&split.shell_cmd);
     tab.pwd = split.pwd;
     tab.scroll_offset = split.scroll_offset;
     tab.initial_cwd = split.initial_cwd;
     tab.current_input = String::new();
     tab.active_pane_is_split = false;
+    tab.update_git_status();
 
     let (cols, rows) = calc_grid(
       self.window_size.width,

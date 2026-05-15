@@ -59,7 +59,7 @@ impl Tab {
   }
 }
 
-fn shell_display_name(cmd: &str) -> String {
+pub fn shell_display_name(cmd: &str) -> String {
   #[cfg(target_os = "windows")]
   {
     let lower = cmd.to_lowercase();

@@ -281,25 +281,24 @@ impl Nova {
     }));
 
     for tab in &self.tabs {
-      if !tab.pty_alive {
-        continue;
+      if tab.pty_alive {
+        let key = PtyKey {
+          tab_id: tab.id,
+          shell_cmd: tab.shell_cmd.clone(),
+          initial_cols: tab.grid.cols as u16,
+          initial_rows: tab.grid.rows as u16,
+          initial_cwd: tab.initial_cwd.clone(),
+        };
+        subs.push(Subscription::run_with(key, |k| {
+          pty_worker(
+            k.tab_id,
+            k.initial_cols,
+            k.initial_rows,
+            k.shell_cmd.clone(),
+            k.initial_cwd.clone(),
+          )
+        }));
       }
-      let key = PtyKey {
-        tab_id: tab.id,
-        shell_cmd: tab.shell_cmd.clone(),
-        initial_cols: tab.grid.cols as u16,
-        initial_rows: tab.grid.rows as u16,
-        initial_cwd: tab.initial_cwd.clone(),
-      };
-      subs.push(Subscription::run_with(key, |k| {
-        pty_worker(
-          k.tab_id,
-          k.initial_cols,
-          k.initial_rows,
-          k.shell_cmd.clone(),
-          k.initial_cwd.clone(),
-        )
-      }));
 
       if let Some(split) = &tab.split
         && split.pty_alive

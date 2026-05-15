@@ -18,14 +18,18 @@ impl Nova {
       if tab.split.is_some() {
         let (cols, rows) =
           calc_grid_split(width, height, font_size, status_bar_visible, banner_visible);
-        tab.grid.resize(cols, rows);
-        if let Some(tx) = &tab.pty_tx {
-          let _ = tx.send_blocking(PtyCommand::Resize {
-            cols: cols as u16,
-            rows: rows as u16,
-          });
+        if tab.grid.cols != cols || tab.grid.rows != rows {
+          tab.grid.resize(cols, rows);
+          if let Some(tx) = &tab.pty_tx {
+            let _ = tx.send_blocking(PtyCommand::Resize {
+              cols: cols as u16,
+              rows: rows as u16,
+            });
+          }
         }
-        if let Some(split) = &mut tab.split {
+        if let Some(split) = &mut tab.split
+          && (split.grid.cols != cols || split.grid.rows != rows)
+        {
           split.grid.resize(cols, rows);
           if let Some(tx) = &split.pty_tx {
             let _ = tx.send_blocking(PtyCommand::Resize {

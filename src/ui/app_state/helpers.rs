@@ -197,9 +197,9 @@ pub fn calc_grid_split(
   let char_height = font_size * 1.29;
   let banner_extra = if banner_visible { font_size * 2.5 } else { 0.0 };
   let padding_y = if status_bar_visible { 118.0 } else { 96.0 } + banner_extra;
-  let pane_content_width = (total_width - 41.0) / 2.0;
+  let pane_content_width = ((total_width - 41.0) / 2.0).max(0.0);
   let cols = (pane_content_width / char_width).floor() as usize;
-  let rows = ((height - padding_y) / char_height).floor() as usize;
+  let rows = ((height - padding_y) / char_height).max(0.0).floor() as usize;
   (cols.max(10), rows.max(5))
 }
 

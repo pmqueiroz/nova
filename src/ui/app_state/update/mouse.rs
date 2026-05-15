@@ -239,6 +239,17 @@ impl Nova {
       }
 
       let rows = (delta.abs() * 3.0).round() as usize;
+      if tab.active_pane_is_split {
+        if let Some(split) = &mut tab.split {
+          if delta > 0.0 {
+            let new_offset = split.scroll_offset.saturating_add(rows);
+            split.scroll_offset = new_offset.min(split.grid.scrollback.len());
+          } else {
+            split.scroll_offset = split.scroll_offset.saturating_sub(rows);
+          }
+        }
+        return;
+      }
       let old_offset = tab.scroll_offset;
       if delta > 0.0 {
         let new_offset = tab.scroll_offset.saturating_add(rows);

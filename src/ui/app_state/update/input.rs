@@ -30,6 +30,17 @@ impl Nova {
       if let Some(active_tab) = self.tabs.get_mut(self.active_index)
         && let Some(split) = &mut active_tab.split
       {
+        if bytes == b"\t"
+          && let Some(suggestion) = split.grid.suggestion.take()
+          && !suggestion.is_empty()
+        {
+          if let Some(tx) = &split.pty_tx {
+            let _ = tx.send_blocking(PtyCommand::Input(suggestion.into_bytes()));
+          }
+          split.grid.input_start_col = None;
+          split.grid.input_start_row = None;
+          return iced::Task::none();
+        }
         split.scroll_offset = 0;
         if let Some(tx) = &split.pty_tx {
           let _ = tx.send_blocking(PtyCommand::Input(bytes));
@@ -114,11 +125,12 @@ impl Nova {
     {
       let tab = &mut self.tabs[tab_idx];
       let split = tab.split.as_mut().unwrap();
+      #[cfg(target_os = "windows")]
       if std::env::var("NOVA_DEBUG_PTY").is_ok()
         && let Ok(mut f) = std::fs::OpenOptions::new()
           .create(true)
           .append(true)
-          .open("C:\\Users\\Public\\nova_pty_debug.bin")
+          .open(std::env::temp_dir().join("nova_pty_debug.bin"))
       {
         let _ = f.write_all(&bytes);
       }
@@ -141,15 +153,21 @@ impl Nova {
         split.pwd = new_pwd;
       }
       split.scroll_offset = 0;
+      if let Some(partial) = split.grid.extract_current_input() {
+        split.grid.suggestion = split.grid.find_best_suggestion(&partial);
+      } else {
+        split.grid.suggestion = None;
+      }
       return iced::Task::none();
     }
 
     if let Some(tab) = self.tabs.iter_mut().find(|t| t.id == tab_id) {
+      #[cfg(target_os = "windows")]
       if std::env::var("NOVA_DEBUG_PTY").is_ok()
         && let Ok(mut f) = std::fs::OpenOptions::new()
           .create(true)
           .append(true)
-          .open("C:\\Users\\Public\\nova_pty_debug.bin")
+          .open(std::env::temp_dir().join("nova_pty_debug.bin"))
       {
         let _ = f.write_all(&bytes);
       }

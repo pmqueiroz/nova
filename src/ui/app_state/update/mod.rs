@@ -84,6 +84,7 @@ impl Default for Nova {
       ai_pending_diagnostic: None,
       bell_blink_visible: true,
       bell_blink_remaining: 0,
+      resize_generation: 0,
     };
     nova.load_command_history();
     nova
@@ -105,7 +106,27 @@ impl Nova {
         self.handle_scroll(delta);
         iced::Task::none()
       }
-      Message::WindowResized(width, height) => self.handle_window_resized(width, height),
+      Message::WindowResized(width, height) => {
+        self.window_size = iced::Size::new(width, height);
+        self.resize_generation = self.resize_generation.wrapping_add(1);
+        let epoch = self.resize_generation;
+        iced::Task::perform(
+          async move {
+            tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+            epoch
+          },
+          Message::ResizeSettled,
+        )
+      }
+      Message::ResizeSettled(epoch) => {
+        if epoch == self.resize_generation {
+          let w = self.window_size.width;
+          let h = self.window_size.height;
+          self.handle_window_resized(w, h)
+        } else {
+          iced::Task::none()
+        }
+      }
       Message::AiSubmit => self.handle_ai_submit(),
       Message::ExplainError => self.handle_explain_error(),
       Message::DiagnosticBannerResponse(result) => {

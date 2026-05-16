@@ -9,7 +9,6 @@ impl Nova {
     if width < 100.0 || height < 100.0 {
       return iced::Task::none();
     }
-    self.window_size = iced::Size::new(width, height);
     let banner_visible = self.diagnostic_banner.is_some();
     let font_size = self.settings.theme.font.size;
     let status_bar_visible = self.settings.status_bar.visible;

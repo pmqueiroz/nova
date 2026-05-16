@@ -205,6 +205,7 @@ impl Nova {
           ControlCommand::CommandFailure(code) => {
             if self.settings.ai.diagnostic_banner
               && code != 0
+              && code < 128
               && !self.settings.ai.api_key.is_empty()
             {
               self.diagnostic_banner = Some((code, "Loading...".into(), None));

@@ -215,6 +215,7 @@ impl Nova {
       Message::SwitchTab(index) => {
         if index < self.tabs.len() {
           self.active_index = index;
+          self.tabs[index].command_done = false;
           if self.search_active {
             self.search_active = false;
             self.search_query.clear();

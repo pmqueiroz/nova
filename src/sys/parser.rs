@@ -598,6 +598,18 @@ impl<'a> Perform for AnsiExecutor<'a> {
           .push(ControlCommand::CommandFailure(code));
       }
       cli::constants::PRIVATE_NOVA_OSC_CODE_BYTES
+        if params.len() >= 2 && params[1] == b"command_complete" =>
+      {
+        let code = params
+          .get(2)
+          .and_then(|c| std::str::from_utf8(c).ok()?.parse().ok())
+          .unwrap_or(0);
+        self
+          .grid
+          .control_queue
+          .push(ControlCommand::CommandComplete(code));
+      }
+      cli::constants::PRIVATE_NOVA_OSC_CODE_BYTES
         if params.len() >= 2 && params[1] == b"explain_ai" =>
       {
         let preset = if params.len() >= 3 && !params[2].is_empty() {

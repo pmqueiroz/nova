@@ -41,6 +41,7 @@ pub fn tab_bar(
           editing_tab_index == Some(i),
           editing_tab_title.to_string(),
         ))
+        .on_press(Message::SwitchTab(i))
         .on_middle_press(Message::CloseTab(i))
       ]
       .spacing(2),

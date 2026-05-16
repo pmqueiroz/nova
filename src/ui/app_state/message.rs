@@ -90,6 +90,7 @@ pub enum Message {
   ResizeSettled(u64),
   FontSizeUp,
   FontSizeDown,
+  FontSizeReset,
   FontResizeSettled(u64),
   NoOp,
 }

@@ -86,6 +86,7 @@ impl Default for Nova {
       bell_blink_remaining: 0,
       resize_generation: 0,
       font_resize_generation: 0,
+      default_font_size: cfg.theme.font.size,
     };
     nova.load_command_history();
     nova
@@ -353,15 +354,21 @@ impl Nova {
         self.settings.theme.font.size = (next as f32).clamp(8.0, 72.0);
         self.debounce_font_resize()
       }
+      Message::FontSizeReset => {
+        self.settings.theme.font.size = self.default_font_size;
+        self.debounce_font_resize()
+      }
       Message::FontResizeSettled(epoch) => {
         if epoch == self.font_resize_generation {
-          let _ = config::save(&self.settings);
           self.resize_all_grids();
         }
         iced::Task::none()
       }
       Message::SettingsFontSizeChanged(size) => {
-        self.settings.theme.font.size = size.clamp(8.0, 72.0);
+        let size = size.clamp(8.0, 72.0);
+        self.settings.theme.font.size = size;
+        self.default_font_size = size;
+        let _ = config::save(&self.settings);
         self.debounce_font_resize()
       }
       Message::SettingsStatusBarToggled(visible) => {

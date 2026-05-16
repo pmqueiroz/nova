@@ -3,7 +3,8 @@ use std::{fs, path::Path};
 use async_channel::Sender;
 use vte::Parser;
 
-use crate::core::grid::Grid;
+use crate::core::config;
+use crate::core::grid::{DEFAULT_SCROLLBACK_LIMIT, Grid};
 use crate::sys::pty::PtyCommand;
 
 pub struct SplitPane {
@@ -39,9 +40,15 @@ pub struct Tab {
 impl Tab {
   pub fn new(id: usize, cols: usize, rows: usize, shell_cmd: String, initial_cwd: String) -> Self {
     let shell = shell_display_name(&shell_cmd);
+    let scrollback_limit = config::get()
+      .general
+      .scrollback
+      .unwrap_or(DEFAULT_SCROLLBACK_LIMIT);
+    let mut grid = Grid::new(cols, rows);
+    grid.scrollback_limit = scrollback_limit;
     Self {
       id,
-      grid: Grid::new(cols, rows),
+      grid,
       pty_tx: None,
       pty_alive: true,
       ansi_parser: Parser::new(),

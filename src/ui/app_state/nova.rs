@@ -81,4 +81,5 @@ pub struct Nova {
   pub(in crate::ui::app_state) search_query: String,
   pub(in crate::ui::app_state) search_matches: Vec<(bool, usize, usize, usize)>,
   pub(in crate::ui::app_state) search_match_index: usize,
+  pub(in crate::ui::app_state) search_generation: u64,
 }

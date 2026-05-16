@@ -95,6 +95,7 @@ impl Default for Nova {
       search_query: String::new(),
       search_matches: Vec::new(),
       search_match_index: 0,
+      search_generation: 0,
     };
     nova.load_command_history();
     nova
@@ -613,7 +614,20 @@ impl Nova {
       }
       Message::SearchQueryChanged(q) => {
         self.search_query = q;
-        self.recompute_search();
+        self.search_generation = self.search_generation.wrapping_add(1);
+        let search_gen = self.search_generation;
+        iced::Task::perform(
+          async move {
+            tokio::time::sleep(std::time::Duration::from_millis(150)).await;
+            search_gen
+          },
+          Message::SearchDebounced,
+        )
+      }
+      Message::SearchDebounced(search_gen) => {
+        if search_gen == self.search_generation {
+          self.recompute_search();
+        }
         iced::Task::none()
       }
       Message::SearchNext => {

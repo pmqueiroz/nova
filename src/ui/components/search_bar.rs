@@ -19,7 +19,7 @@ pub fn search_bar(
   let rt = theme::color::runtime();
   let bg = rt.background;
   let fg_muted = rt.foreground_muted;
-  let border_color = rt.border;
+  let accent = rt.accent;
   drop(rt);
 
   let count_str = if match_count == 0 {
@@ -60,7 +60,9 @@ pub fn search_bar(
           value: input_text_color,
           selection: theme::color::runtime().accent,
         }),
-      text(count_str).size(11).color(fg_muted),
+      container(text(count_str).size(11).color(fg_muted))
+        .width(60)
+        .align_x(Horizontal::Center),
       button(text("↑").size(11).color(fg_muted))
         .on_press(Message::SearchPrev)
         .padding(Padding::from([2, 5]))
@@ -93,7 +95,7 @@ pub fn search_bar(
   .style(move |_| container::Style {
     background: Some(bg.into()),
     border: Border {
-      color: border_color,
+      color: accent,
       radius: Radius::new(6.0),
       width: 1.0,
     },
@@ -103,13 +105,13 @@ pub fn search_bar(
 
   container(bar)
     .align_x(Horizontal::Right)
-    .align_y(Vertical::Bottom)
+    .align_y(Vertical::Top)
     .width(Length::Fill)
     .height(Length::Fill)
     .padding(Padding {
-      top: 0.0,
+      top: 8.0,
       right: 16.0,
-      bottom: 12.0,
+      bottom: 0.0,
       left: 0.0,
     })
     .into()

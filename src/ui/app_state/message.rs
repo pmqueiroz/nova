@@ -95,6 +95,7 @@ pub enum Message {
   SearchOpen,
   SearchClose,
   SearchQueryChanged(String),
+  SearchDebounced(u64),
   SearchNext,
   SearchPrev,
   NoOp,

@@ -624,6 +624,17 @@ The divider between panes is draggable. Hover over it to see a resize cursor, th
 
 Font size steps snap to even numbers (e.g. 15 → 16 → 18 → 20). Range: 8–72. Reset returns to the size that was configured at app start.
 
+### Search
+
+| Action | macOS | Other |
+|---|---|---|
+| Open search bar | `Cmd+F` | `Ctrl+F` |
+| Next match | `Enter` | `Enter` |
+| Previous match | `Shift+Enter` | `Shift+Enter` |
+| Close search | `Escape` | `Escape` |
+
+Search is case-insensitive and covers both the scrollback buffer and the visible terminal rows. The current match is highlighted in yellow; other matches are dimly highlighted. The match count is shown in the search bar (e.g. `3 / 15`). Searching closes automatically when switching tabs.
+
 ## Notes
 
 - If `open-palette` is invalid, Nova falls back to `ctrl+k`.

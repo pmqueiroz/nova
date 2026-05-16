@@ -86,13 +86,13 @@
     <title>
       Keybindings : A terminal that burns bright
     </title>
-    <link id="site-favicon" rel="icon" href="../assets/favicon.ico?v=mp8sekmj">
-    <link rel="stylesheet" href="../assets/css/docmd-main.css?v=mp8sekmj">
+    <link id="site-favicon" rel="icon" href="../assets/favicon.ico?v=mp8speqv">
+    <link rel="stylesheet" href="../assets/css/docmd-main.css?v=mp8speqv">
     
-    <link rel="stylesheet" href="../assets/css/docmd-git.css?v=mp8sekmj">
+    <link rel="stylesheet" href="../assets/css/docmd-git.css?v=mp8speqv">
     
-    <link rel="stylesheet" href="../assets/css/docmd-highlight-light.css?v=mp8sekmj" id="hljs-light" disabled>
-    <link rel="stylesheet" href="../assets/css/docmd-highlight-dark.css?v=mp8sekmj" id="hljs-dark" >
+    <link rel="stylesheet" href="../assets/css/docmd-highlight-light.css?v=mp8speqv" id="hljs-light" disabled>
+    <link rel="stylesheet" href="../assets/css/docmd-highlight-dark.css?v=mp8speqv" id="hljs-dark" >
     
     
 <meta name="description" content="Keybinding syntax, defaults, and action reference.">
@@ -116,8 +116,8 @@
     </script>
 
 
-<link rel="stylesheet" href="../assets/css/docmd-git.css?v=mp8sekmj" >
-<link rel="stylesheet" href="../assets/css/docmd-openapi.css?v=mp8sekmj" >
+<link rel="stylesheet" href="../assets/css/docmd-git.css?v=mp8speqv" >
+<link rel="stylesheet" href="../assets/css/docmd-openapi.css?v=mp8speqv" >
 
     
     <script>/**
@@ -1005,6 +1005,39 @@ open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation
 </tbody>
 </table>
 </div><p>Font size steps snap to even numbers (e.g. 15 → 16 → 18 → 20). Range: 8–72. Reset returns to the size that was configured at app start.</p>
+<h3 id="fixed-shortcuts-search" class="docmd-heading"><a href="#fixed-shortcuts-search" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Search</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>macOS</th>
+<th>Other</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Open search bar</td>
+<td><code>Cmd+F</code></td>
+<td><code>Ctrl+F</code></td>
+</tr>
+<tr>
+<td>Next match</td>
+<td><code>Enter</code></td>
+<td><code>Enter</code></td>
+</tr>
+<tr>
+<td>Previous match</td>
+<td><code>Shift+Enter</code></td>
+<td><code>Shift+Enter</code></td>
+</tr>
+<tr>
+<td>Close search</td>
+<td><code>Escape</code></td>
+<td><code>Escape</code></td>
+</tr>
+</tbody>
+</table>
+</div><p>Search is case-insensitive and covers both the scrollback buffer and the visible terminal rows. The current match is highlighted in yellow; other matches are dimly highlighted. The match count is shown in the search bar (e.g. <code>3 / 15</code>). Searching closes automatically when switching tabs.</p>
 <h2 id="notes" class="docmd-heading"><a href="#notes" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Notes</h2>
 <ul>
 <li>If <code>open-palette</code> is invalid, Nova falls back to <code>ctrl+k</code>.</li>
@@ -1112,6 +1145,10 @@ open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation
           <a href="#fixed-shortcuts-font-size" class="toc-link">Font Size</a>
         </li>
       
+        <li class="toc-item toc-level-3">
+          <a href="#fixed-shortcuts-search" class="toc-link">Search</a>
+        </li>
+      
         <li class="toc-item toc-level-2">
           <a href="#notes" class="toc-link">Notes</a>
         </li>
@@ -1124,13 +1161,13 @@ open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation
             <div class="page-footer-actions">
               
               
-                <span class="git-last-updated" data-timestamp="1778960901000">
+                <span class="git-last-updated" data-timestamp="1778962969000">
                   <svg class="git-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                   </svg>
                   <span class="git-label">Last updated:</span>
-                  <span class="git-time" data-timestamp="1778960901000"></span>
+                  <span class="git-time" data-timestamp="1778962969000"></span>
                   
                   <div class="git-commit-tooltip" role="tooltip">
                     <div class="git-tooltip-title">Recent commits</div>
@@ -1143,10 +1180,10 @@ open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation
                             
                           </div>
                           <div class="git-commit-details">
-                            <div class="git-commit-message" title="feat: resize handle between split panes">feat: resize handle between split panes</div>
+                            <div class="git-commit-message" title="fix: replace &#039;No results&#039; with em-dash to prevent height shift">fix: replace &#039;No results&#039; with em-das...</div>
                             <div class="git-commit-meta">
                               <span class="git-commit-author">pmqueiroz</span>
-                              <span class="git-commit-date" data-timestamp="1778960901000"></span>
+                              <span class="git-commit-date" data-timestamp="1778962969000"></span>
                             </div>
                           </div>
                         </li>
@@ -1177,14 +1214,14 @@ open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation
         </div>
       </div>
       
-      <script src="../assets/js/docmd-main.js?v=mp8sekmj"></script>
+      <script src="../assets/js/docmd-main.js?v=mp8speqv"></script>
       
-      <script src="../assets/js/docmd-git.js?v=mp8sekmj"></script>
-      <script src="../assets/js/docmd-image-lightbox.js?v=mp8sekmj" ></script>
+      <script src="../assets/js/docmd-git.js?v=mp8speqv"></script>
+      <script src="../assets/js/docmd-image-lightbox.js?v=mp8speqv" ></script>
 <script src="https://cdn.jsdelivr.net/npm/minisearch@7.2.0/dist/umd/index.min.js" ></script>
-<script src="../assets/js/docmd-search.js?v=mp8sekmj" ></script>
-<script src="../assets/js/init-mermaid.js?v=mp8sekmj" type="module"></script>
-<script src="../assets/js/docmd-git.js?v=mp8sekmj" type="module"></script>
+<script src="../assets/js/docmd-search.js?v=mp8speqv" ></script>
+<script src="../assets/js/init-mermaid.js?v=mp8speqv" type="module"></script>
+<script src="../assets/js/docmd-git.js?v=mp8speqv" type="module"></script>
 
   <!-- Search Modal (Injected by @docmd/plugin-search) -->
   <div id="docmd-search-modal" class="docmd-search-modal" style="display: none;"

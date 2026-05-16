@@ -87,5 +87,6 @@ pub enum Message {
   SplitPane,
   CloseSplitPane,
   CloseLeftPane,
+  ResizeSettled(u64),
   NoOp,
 }

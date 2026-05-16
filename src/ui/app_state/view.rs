@@ -201,7 +201,12 @@ impl Nova {
         &self.settings.general.window_controls,
         self.bell_blink_visible,
       ),
-      components::tab_bar(&self.tabs, self.active_index),
+      components::tab_bar(
+        &self.tabs,
+        self.active_index,
+        self.editing_tab_index,
+        &self.editing_tab_title,
+      ),
       term_area,
     ];
 

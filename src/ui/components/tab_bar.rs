@@ -1,7 +1,9 @@
+use std::sync::LazyLock;
+
 use iced::{
   Border, Element, Length, Padding, alignment,
   border::Radius,
-  widget::{button, container, mouse_area, row, space::horizontal, text},
+  widget::{Id, button, container, mouse_area, row, space::horizontal, text, text_input},
 };
 
 use crate::ui::{
@@ -12,18 +14,32 @@ use crate::ui::{
   typography::Typography,
 };
 
-pub fn tab_bar(tabs: &[Tab], active_index: usize) -> Element<'static, Message> {
+pub static TAB_TITLE_INPUT_ID: LazyLock<Id> = LazyLock::new(Id::unique);
+
+pub fn tab_bar(
+  tabs: &[Tab],
+  active_index: usize,
+  editing_tab_index: Option<usize>,
+  editing_tab_title: &str,
+) -> Element<'static, Message> {
   let mut tab_bar = row![];
 
   for (i, tab) in tabs.iter().enumerate() {
     let is_active = i == active_index;
+    let label = tab
+      .title_override
+      .as_deref()
+      .map(|t| truncate(t, 12))
+      .unwrap_or_else(|| truncate(&basename(&til_home(&tab.pwd)), 12));
 
     tab_bar = tab_bar.push(
       row![
         mouse_area(tab_item(
-          truncate(&basename(&til_home(&tab.pwd)), 12),
+          label,
           i,
-          is_active
+          is_active,
+          editing_tab_index == Some(i),
+          editing_tab_title.to_string(),
         ))
         .on_middle_press(Message::CloseTab(i))
       ]
@@ -68,28 +84,59 @@ pub fn tab_bar(tabs: &[Tab], active_index: usize) -> Element<'static, Message> {
     .into()
 }
 
-fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Message> {
+fn tab_item(
+  title: String,
+  index: usize,
+  active: bool,
+  editing: bool,
+  editing_value: String,
+) -> Element<'static, Message> {
+  let title_widget: Element<'static, Message> = if editing {
+    text_input("", &editing_value)
+      .id(TAB_TITLE_INPUT_ID.clone())
+      .on_input(Message::TabTitleInput)
+      .on_submit(Message::TabTitleCommit)
+      .size(11)
+      .style(move |_t, _s| text_input::Style {
+        background: theme::color::TRANSPARENT.as_color().into(),
+        border: Border::default(),
+        icon: theme::color::runtime().foreground_muted,
+        placeholder: theme::color::runtime().foreground_muted,
+        value: theme::color::runtime().foreground,
+        selection: theme::color::runtime().accent,
+      })
+      .padding(Padding::from([4, 0]))
+      .into()
+  } else {
+    button(
+      Typography {
+        color: if active {
+          theme::color::runtime().foreground
+        } else {
+          theme::color::runtime().foreground_muted
+        },
+        size: 11.into(),
+        ..Default::default()
+      }
+      .as_text(title),
+    )
+    .style(move |_t, _s| button::Style {
+      background: Some(theme::color::TRANSPARENT.as_color().into()),
+      ..Default::default()
+    })
+    .padding(Padding::from([4, 0]))
+    .on_press(if active {
+      Message::TabTitleEdit(index)
+    } else {
+      Message::SwitchTab(index)
+    })
+    .into()
+  };
+
   button(
     container(
       row![
-        button(
-          Typography {
-            color: if active {
-              theme::color::runtime().foreground
-            } else {
-              theme::color::runtime().foreground_muted
-            },
-            size: 11.into(),
-            ..Default::default()
-          }
-          .as_text(title),
-        )
-        .style(move |_t, _s| button::Style {
-          background: Some(theme::color::TRANSPARENT.as_color().into()),
-          ..Default::default()
-        })
-        .padding(Padding::from([4, 0]))
-        .on_press(Message::SwitchTab(index)),
+        title_widget,
         horizontal(),
         button(text("󰅖").size(11))
           .style(move |_t, status| button::Style {

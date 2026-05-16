@@ -86,6 +86,8 @@ impl Default for Nova {
       bell_blink_remaining: 0,
       resize_generation: 0,
       font_resize_generation: 0,
+      editing_tab_index: None,
+      editing_tab_title: String::new(),
     };
     nova.load_command_history();
     nova
@@ -191,6 +193,39 @@ impl Nova {
           .tabs
           .push(Tab::new(new_id, cols, rows, shell, parent_pwd));
         self.active_index = self.tabs.len() - 1;
+        iced::Task::none()
+      }
+      Message::TabTitleEdit(i) => {
+        let current = self
+          .tabs
+          .get(i)
+          .and_then(|t| t.title_override.clone())
+          .unwrap_or_else(|| {
+            self
+              .tabs
+              .get(i)
+              .map(|t| t.shell.clone())
+              .unwrap_or_default()
+          });
+        self.editing_tab_index = Some(i);
+        self.editing_tab_title = current;
+        iced::widget::operation::focus(components::TAB_TITLE_INPUT_ID.clone())
+      }
+      Message::TabTitleInput(s) => {
+        self.editing_tab_title = s;
+        iced::Task::none()
+      }
+      Message::TabTitleCommit => {
+        if let Some(i) = self.editing_tab_index.take() {
+          let title = std::mem::take(&mut self.editing_tab_title);
+          if let Some(tab) = self.tabs.get_mut(i) {
+            tab.title_override = if title.trim().is_empty() {
+              None
+            } else {
+              Some(title)
+            };
+          }
+        }
         iced::Task::none()
       }
       Message::SplitPane => self.handle_split_pane(),

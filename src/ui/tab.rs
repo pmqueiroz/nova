@@ -34,6 +34,7 @@ pub struct Tab {
   pub current_input: String,
   pub split: Option<SplitPane>,
   pub active_pane_is_split: bool,
+  pub title_override: Option<String>,
 }
 
 impl Tab {
@@ -55,6 +56,7 @@ impl Tab {
       current_input: String::new(),
       split: None,
       active_pane_is_split: false,
+      title_override: None,
     }
   }
 }

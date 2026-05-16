@@ -110,6 +110,17 @@ impl Nova {
       let left_portion = (ratio * 100.0).round() as u16;
       let right_portion = 100u16.saturating_sub(left_portion);
 
+      let search_matches_ref = if self.search_active {
+        self.search_matches.as_slice()
+      } else {
+        &[]
+      };
+      let search_current = if self.search_active {
+        Some(self.search_match_index)
+      } else {
+        None
+      };
+
       let left = mouse_area(
         container(stack![
           components::term(
@@ -119,6 +130,8 @@ impl Nova {
             active_tab.scroll_offset,
             primary_url,
             primary_span,
+            search_matches_ref,
+            search_current,
           ),
           make_active_triangle(!active_tab.active_pane_is_split),
           make_close_btn(Message::CloseLeftPane),
@@ -168,6 +181,8 @@ impl Nova {
             split.scroll_offset,
             None,
             None,
+            &[],
+            None,
           ),
           make_active_triangle(active_tab.active_pane_is_split),
           make_close_btn(Message::CloseSplitPane),
@@ -192,18 +207,57 @@ impl Nova {
       )
       .interaction(term_interaction);
 
-      row![left, divider, right].height(Length::Fill).into()
+      let pane_row: Element<'_, Message> = row![left, divider, right].height(Length::Fill).into();
+      if self.search_active {
+        use iced::widget::stack;
+        stack![
+          pane_row,
+          components::search_bar(
+            &self.search_query,
+            self.search_match_index,
+            self.search_matches.len(),
+          ),
+        ]
+        .into()
+      } else {
+        pane_row
+      }
     } else {
-      mouse_area(components::term(
+      let search_matches_ref = if self.search_active {
+        self.search_matches.as_slice()
+      } else {
+        &[]
+      };
+      let search_current = if self.search_active {
+        Some(self.search_match_index)
+      } else {
+        None
+      };
+      let term_el = mouse_area(components::term(
         &active_tab.grid,
         selection,
         font_size,
         active_tab.scroll_offset,
         self.hovered_url.as_deref(),
         self.hovered_link_span,
+        search_matches_ref,
+        search_current,
       ))
-      .interaction(term_interaction)
-      .into()
+      .interaction(term_interaction);
+      if self.search_active {
+        use iced::widget::stack;
+        stack![
+          term_el,
+          components::search_bar(
+            &self.search_query,
+            self.search_match_index,
+            self.search_matches.len(),
+          ),
+        ]
+        .into()
+      } else {
+        term_el.into()
+      }
     };
 
     let tb_interaction = resize_cursor.unwrap_or(mouse::Interaction::Idle);

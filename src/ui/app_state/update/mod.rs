@@ -2,6 +2,7 @@ mod ai;
 mod input;
 mod mouse;
 mod palette;
+mod search;
 mod settings;
 mod tabs;
 mod window;
@@ -19,7 +20,9 @@ use super::helpers::{
   calc_grid, derive_available_shells, extract_selection, rebuild_runtime_theme,
 };
 use super::message::Message;
-use super::nova::{AI_OPEN, KB_RECORDING, Nova, PALETTE_OPEN, SETTINGS_OPEN, SettingsTab};
+use super::nova::{
+  AI_OPEN, KB_RECORDING, Nova, PALETTE_OPEN, SEARCH_OPEN, SETTINGS_OPEN, SettingsTab,
+};
 
 impl Default for Nova {
   fn default() -> Self {
@@ -88,6 +91,10 @@ impl Default for Nova {
       font_resize_generation: 0,
       default_font_size: cfg.theme.font.size,
       dragging_split: false,
+      search_active: false,
+      search_query: String::new(),
+      search_matches: Vec::new(),
+      search_match_index: 0,
     };
     nova.load_command_history();
     nova
@@ -207,6 +214,13 @@ impl Nova {
       Message::SwitchTab(index) => {
         if index < self.tabs.len() {
           self.active_index = index;
+          if self.search_active {
+            self.search_active = false;
+            self.search_query.clear();
+            self.search_matches.clear();
+            self.search_match_index = 0;
+            SEARCH_OPEN.store(false, Ordering::SeqCst);
+          }
         }
         iced::Task::none()
       }
@@ -576,6 +590,46 @@ impl Nova {
           if self.bell_blink_remaining == 0 {
             self.bell_blink_visible = true;
           }
+        }
+        iced::Task::none()
+      }
+      Message::SearchOpen => {
+        if !self.search_active {
+          self.search_active = true;
+          self.search_query.clear();
+          self.search_matches.clear();
+          self.search_match_index = 0;
+          SEARCH_OPEN.store(true, std::sync::atomic::Ordering::SeqCst);
+        }
+        iced::widget::operation::focus(components::SEARCH_INPUT_ID.clone())
+      }
+      Message::SearchClose => {
+        self.search_active = false;
+        self.search_query.clear();
+        self.search_matches.clear();
+        self.search_match_index = 0;
+        SEARCH_OPEN.store(false, std::sync::atomic::Ordering::SeqCst);
+        iced::Task::none()
+      }
+      Message::SearchQueryChanged(q) => {
+        self.search_query = q;
+        self.recompute_search();
+        iced::Task::none()
+      }
+      Message::SearchNext => {
+        if !self.search_matches.is_empty() {
+          self.search_match_index = (self.search_match_index + 1) % self.search_matches.len();
+          self.scroll_to_search_match();
+        }
+        iced::Task::none()
+      }
+      Message::SearchPrev => {
+        if !self.search_matches.is_empty() {
+          self.search_match_index = self
+            .search_match_index
+            .checked_sub(1)
+            .unwrap_or(self.search_matches.len() - 1);
+          self.scroll_to_search_match();
         }
         iced::Task::none()
       }

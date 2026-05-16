@@ -1,6 +1,6 @@
 use super::helpers::matches_kb;
 use super::message::Message;
-use super::nova::{AI_OPEN, KB_RECORDING, Nova, PALETTE_OPEN, SETTINGS_OPEN};
+use super::nova::{AI_OPEN, KB_RECORDING, Nova, PALETTE_OPEN, SEARCH_OPEN, SETTINGS_OPEN};
 
 use iced::keyboard::Key;
 use iced::keyboard::key::Named;
@@ -111,6 +111,19 @@ fn handle_key_pressed(
       _ => None,
     };
   }
+  if SEARCH_OPEN.load(Ordering::SeqCst) {
+    return match &key {
+      Key::Named(Named::Escape) => Some(Message::SearchClose),
+      Key::Named(Named::Enter) => {
+        if modifiers.shift() {
+          Some(Message::SearchPrev)
+        } else {
+          Some(Message::SearchNext)
+        }
+      }
+      _ => None,
+    };
+  }
 
   #[cfg(target_os = "macos")]
   let split_mod = modifiers.logo() && modifiers.shift();
@@ -135,6 +148,7 @@ fn handle_key_pressed(
       "=" | "+" => return Some(Message::FontSizeUp),
       "-" => return Some(Message::FontSizeDown),
       "0" => return Some(Message::FontSizeReset),
+      "f" | "F" => return Some(Message::SearchOpen),
       _ => {}
     }
   }

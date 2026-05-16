@@ -96,6 +96,9 @@ impl Default for Nova {
       search_matches: Vec::new(),
       search_match_index: 0,
       search_generation: 0,
+      dragging_tab_index: None,
+      drag_pending_tab: None,
+      drag_pending_pos: None,
     };
     nova.load_command_history();
     nova
@@ -210,20 +213,6 @@ impl Nova {
       }
       Message::CloseLeftPane => {
         self.handle_close_left_pane();
-        iced::Task::none()
-      }
-      Message::SwitchTab(index) => {
-        if index < self.tabs.len() {
-          self.active_index = index;
-          self.tabs[index].command_done = false;
-          if self.search_active {
-            self.search_active = false;
-            self.search_query.clear();
-            self.search_matches.clear();
-            self.search_match_index = 0;
-            SEARCH_OPEN.store(false, Ordering::SeqCst);
-          }
-        }
         iced::Task::none()
       }
       Message::CloseActiveTab => {

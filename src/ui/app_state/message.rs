@@ -10,7 +10,6 @@ use super::nova::{ColorField, SettingsTab};
 pub enum Message {
   Type(Vec<u8>),
   NewTab,
-  SwitchTab(usize),
   CloseTab(usize),
   PtyReady(usize, Sender<PtyCommand>),
   PtyOutputReceived(usize, Vec<u8>),

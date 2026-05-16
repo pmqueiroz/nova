@@ -1,6 +1,7 @@
 use iced::{
   Border, Element, Length, Padding, alignment,
   border::Radius,
+  mouse,
   widget::{button, container, mouse_area, row, space::horizontal, text},
 };
 
@@ -12,24 +13,32 @@ use crate::ui::{
   typography::Typography,
 };
 
-pub fn tab_bar(tabs: &[Tab], active_index: usize) -> Element<'static, Message> {
+pub fn tab_bar(
+  tabs: &[Tab],
+  active_index: usize,
+  dragging_tab_index: Option<usize>,
+) -> Element<'static, Message> {
   let mut tab_bar = row![];
 
   for (i, tab) in tabs.iter().enumerate() {
     let is_active = i == active_index;
+    let is_dragging = dragging_tab_index == Some(i);
 
-    tab_bar = tab_bar.push(
-      row![
-        mouse_area(tab_item(
-          truncate(&basename(&til_home(&tab.pwd)), 12),
-          i,
-          is_active,
-          tab.command_done,
-        ))
-        .on_middle_press(Message::CloseTab(i))
-      ]
-      .spacing(2),
-    );
+    let item = mouse_area(tab_item(
+      truncate(&basename(&til_home(&tab.pwd)), 12),
+      i,
+      is_active,
+      tab.command_done,
+      is_dragging,
+    ))
+    .on_middle_press(Message::CloseTab(i))
+    .interaction(if is_dragging {
+      mouse::Interaction::Grabbing
+    } else {
+      mouse::Interaction::default()
+    });
+
+    tab_bar = tab_bar.push(row![item].spacing(2));
   }
 
   tab_bar = tab_bar.push(
@@ -74,26 +83,37 @@ fn tab_item(
   index: usize,
   active: bool,
   command_done: bool,
+  dragging: bool,
 ) -> Element<'static, Message> {
-  let mut content = row![
-    button(
-      Typography {
-        color: if active {
-          theme::color::runtime().foreground
-        } else {
-          theme::color::runtime().foreground_muted
-        },
-        size: 11.into(),
-        ..Default::default()
-      }
-      .as_text(title),
-    )
-    .style(move |_t, _s| button::Style {
+  let close_btn = button(text("󰅖").size(11))
+    .style(move |_t, status| button::Style {
+      text_color: if status == button::Status::Hovered {
+        theme::color::RED.as_color()
+      } else {
+        theme::color::runtime().foreground_muted
+      },
       background: Some(theme::color::TRANSPARENT.as_color().into()),
       ..Default::default()
     })
-    .padding(Padding::from([4, 0]))
-    .on_press(Message::SwitchTab(index)),
+    .on_press(Message::CloseTab(index))
+    .padding(Padding {
+      top: 2.0,
+      bottom: 2.0,
+      left: 8.0,
+      right: 2.0,
+    });
+
+  let mut content = row![
+    Typography {
+      color: if active {
+        theme::color::runtime().foreground
+      } else {
+        theme::color::runtime().foreground_muted
+      },
+      size: 11.into(),
+      ..Default::default()
+    }
+    .as_text(title),
     horizontal(),
   ]
   .spacing(0)
@@ -113,60 +133,35 @@ fn tab_item(
     );
   }
 
-  content = content.push(
-    button(text("󰅖").size(11))
-      .style(move |_t, status| button::Style {
-        text_color: if status == button::Status::Hovered {
-          theme::color::RED.as_color()
-        } else {
-          theme::color::runtime().foreground_muted
-        },
-        background: Some(theme::color::TRANSPARENT.as_color().into()),
-        ..Default::default()
-      })
-      .on_press(Message::CloseTab(index))
-      .padding(Padding {
-        top: 2.0,
-        bottom: 2.0,
-        left: 8.0,
-        right: 2.0,
-      }),
-  );
+  content = content.push(close_btn);
 
-  button(
-    container(content)
-      .style(move |_t| container::Style {
-        background: Some(
-          if active {
-            theme::color::BG_HIGH
-          } else {
-            theme::color::TRANSPARENT
+  container(content)
+    .style(move |_| container::Style {
+      background: Some(
+        if dragging {
+          theme::color::runtime().accent
+        } else if active {
+          theme::color::BG_HIGH.as_color()
+        } else {
+          theme::color::TRANSPARENT.as_color()
+        }
+        .into(),
+      ),
+      border: Border {
+        color: {
+          let b = theme::color::runtime().border;
+          iced::Color {
+            a: if active || dragging { 0.15 } else { 0.0 },
+            ..b
           }
-          .as_color()
-          .into(),
-        ),
-        border: Border {
-          color: {
-            let b = theme::color::runtime().border;
-            iced::Color {
-              a: if active { 0.15 } else { 0.0 },
-              ..b
-            }
-          },
-          radius: Radius::new(4.0),
-          width: 1.0,
         },
-        ..Default::default()
-      })
-      .center_y(30)
-      .padding(Padding::from([0, 12])),
-  )
-  .padding(0)
-  .style(move |_t, _s| button::Style {
-    background: Some(theme::color::TRANSPARENT.as_color().into()),
-    ..Default::default()
-  })
-  .width(120)
-  .on_press(Message::SwitchTab(index))
-  .into()
+        radius: Radius::new(4.0),
+        width: 1.0,
+      },
+      ..Default::default()
+    })
+    .center_y(30)
+    .padding(Padding::from([0, 12]))
+    .width(120)
+    .into()
 }

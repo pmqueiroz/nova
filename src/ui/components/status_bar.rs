@@ -4,6 +4,7 @@ use iced::{
   border::Radius,
   widget::{container, row, space::horizontal},
 };
+use std::time::Duration;
 
 use crate::ui::{
   app_state::Message,
@@ -34,7 +35,16 @@ pub fn status_bar<'a>(
 
   content = content
     .push(status_bar_text(&active_tab.shell, false))
-    .push(status_bar_text("utf-8", false))
+    .push(status_bar_text("utf-8", false));
+
+  if let Some(start) = active_tab.command_start {
+    let elapsed = start.elapsed();
+    content = content.push(status_bar_text(format_elapsed(elapsed), false));
+  } else if let Some(elapsed) = active_tab.last_command_elapsed {
+    content = content.push(status_bar_text(format_elapsed(elapsed), false));
+  }
+
+  content = content
     .push(horizontal())
     .push(status_bar_text(
       local_now.format(date_format).to_string(),
@@ -73,6 +83,20 @@ pub fn status_bar<'a>(
     })
     .width(Length::Fill)
     .into()
+}
+
+fn format_elapsed(d: Duration) -> String {
+  let secs = d.as_secs();
+  let ms = d.subsec_millis();
+  if secs == 0 {
+    format!("{}ms", ms)
+  } else if secs < 60 {
+    format!("{}s", secs)
+  } else if secs < 3600 {
+    format!("{}m {}s", secs / 60, secs % 60)
+  } else {
+    format!("{}h {}m", secs / 3600, (secs % 3600) / 60)
+  }
 }
 
 pub fn status_bar_text(content: impl Into<String>, accent: bool) -> iced::widget::Text<'static> {

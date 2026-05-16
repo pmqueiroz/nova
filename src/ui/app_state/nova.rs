@@ -72,4 +72,5 @@ pub struct Nova {
   pub(in crate::ui::app_state) ai_pending_diagnostic: Option<u8>,
   pub(in crate::ui::app_state) bell_blink_visible: bool,
   pub(in crate::ui::app_state) bell_blink_remaining: u8,
+  pub(in crate::ui::app_state) resize_generation: u64,
 }

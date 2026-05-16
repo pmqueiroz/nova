@@ -1,4 +1,8 @@
-use std::{fs, path::Path, time::Instant};
+use std::{
+  fs,
+  path::Path,
+  time::{Duration, Instant},
+};
 
 use async_channel::Sender;
 use vte::Parser;
@@ -38,6 +42,8 @@ pub struct Tab {
   pub split_ratio: f32,
   pub command_start: Option<Instant>,
   pub command_done: bool,
+  pub last_command_elapsed: Option<Duration>,
+  pub last_pty_output: Option<Instant>,
 }
 
 impl Tab {
@@ -68,6 +74,8 @@ impl Tab {
       split_ratio: 0.5,
       command_start: None,
       command_done: false,
+      last_command_elapsed: None,
+      last_pty_output: None,
     }
   }
 }

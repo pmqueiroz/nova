@@ -74,13 +74,14 @@ impl Nova {
       active_tab.scroll_offset = 0;
 
       if bytes == b"\r" {
-        active_tab.command_start = Some(std::time::Instant::now());
         if !active_tab.current_input.is_empty() {
           let input = std::mem::take(&mut active_tab.current_input);
           active_tab.grid.push_command(&input);
           active_tab.grid.suggestion = None;
           active_tab.grid.input_start_col = None;
           active_tab.grid.input_start_row = None;
+          active_tab.command_start = Some(std::time::Instant::now());
+          active_tab.last_pty_output = None;
         }
       } else if bytes == b"\x7F" || bytes == b"\x08" {
         active_tab.current_input.pop();
@@ -89,6 +90,8 @@ impl Nova {
         || (bytes.len() >= 2 && bytes[0] == 0x1b && (bytes[1] == b'A' || bytes[1] == b'B'))
       {
         active_tab.current_input.clear();
+        active_tab.command_start = None;
+        active_tab.last_pty_output = None;
         active_tab.grid.suggestion = None;
         active_tab.grid.input_start_col = None;
         active_tab.grid.input_start_row = None;
@@ -100,6 +103,14 @@ impl Nova {
             let col = active_tab.grid.cursor_x.saturating_sub(1);
             active_tab.grid.input_start_col = Some(col);
             active_tab.grid.input_start_row = Some(active_tab.grid.cursor_y);
+            if let Some(start) = active_tab.command_start.take() {
+              let elapsed = active_tab
+                .last_pty_output
+                .map(|last| last.duration_since(start))
+                .unwrap_or_else(|| start.elapsed());
+              active_tab.last_command_elapsed = Some(elapsed);
+              active_tab.last_pty_output = None;
+            }
           }
         } else {
           active_tab.current_input.clear();
@@ -217,7 +228,12 @@ impl Nova {
           ControlCommand::CommandComplete(_code) => {
             const NOTIFY_THRESHOLD_SECS: u64 = 10;
             if let Some(start) = tab.command_start.take() {
-              let elapsed = start.elapsed();
+              let elapsed = tab
+                .last_pty_output
+                .map(|last| last.duration_since(start))
+                .unwrap_or_else(|| start.elapsed());
+              tab.last_command_elapsed = Some(elapsed);
+              tab.last_pty_output = None;
               if elapsed.as_secs() >= NOTIFY_THRESHOLD_SECS
                 && (!self.window_focused || Some(tab_id) != active_tab_id)
               {
@@ -248,6 +264,10 @@ impl Nova {
       }
       tab.update_git_status();
       tab.scroll_offset = 0;
+
+      if tab.command_start.is_some() {
+        tab.last_pty_output = Some(std::time::Instant::now());
+      }
 
       if let Some(partial) = tab.grid.extract_current_input() {
         tab.grid.suggestion = tab.grid.find_best_suggestion(&partial);

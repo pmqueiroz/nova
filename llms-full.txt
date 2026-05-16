@@ -617,8 +617,9 @@ When a split pane is open, `close-tab` (`Cmd+W` / `Ctrl+W`) closes the **active 
 |---|---|---|
 | Increase font size | `Cmd+=` or `Cmd++` | `Ctrl+=` or `Ctrl++` |
 | Decrease font size | `Cmd+-` | `Ctrl+-` |
+| Reset font size | `Cmd+0` | `Ctrl+0` |
 
-Font size steps snap to even numbers (e.g. 15 → 16 → 18 → 20). Range: 8–72.
+Font size steps snap to even numbers (e.g. 15 → 16 → 18 → 20). Range: 8–72. Reset returns to the size that was configured at app start.
 
 ## Notes
 

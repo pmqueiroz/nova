@@ -203,6 +203,25 @@ pub fn calc_grid_split(
   (cols.max(10), rows.max(5))
 }
 
+pub fn calc_grid_split_ratio(
+  total_width: f32,
+  height: f32,
+  font_size: f32,
+  status_bar_visible: bool,
+  banner_visible: bool,
+  ratio: f32,
+) -> (usize, usize, usize) {
+  let char_width = font_size * 0.62;
+  let char_height = font_size * 1.29;
+  let banner_extra = if banner_visible { font_size * 2.5 } else { 0.0 };
+  let padding_y = if status_bar_visible { 118.0 } else { 96.0 } + banner_extra;
+  let content_width = (total_width - 41.0).max(0.0);
+  let left_cols = ((content_width * ratio) / char_width).floor() as usize;
+  let right_cols = ((content_width * (1.0 - ratio)) / char_width).floor() as usize;
+  let rows = ((height - padding_y) / char_height).max(0.0).floor() as usize;
+  (left_cols.max(5), right_cols.max(5), rows.max(5))
+}
+
 pub fn pixel_to_cell(pos: Point, font_size: f32) -> Option<(usize, usize)> {
   const X_ORIGIN: f32 = 20.0;
   const Y_ORIGIN: f32 = 88.0;

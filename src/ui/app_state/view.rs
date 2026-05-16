@@ -25,13 +25,17 @@ impl Nova {
     let font_size = self.settings.theme.font.size;
     let resize_cursor = resize_direction(self.cursor_position, self.window_size).map(dir_to_cursor);
 
-    let term_interaction = resize_cursor.unwrap_or_else(|| {
-      if self.hovered_url.is_some() {
-        mouse::Interaction::Pointer
-      } else {
-        mouse::Interaction::Text
-      }
-    });
+    let term_interaction = if self.dragging_split {
+      mouse::Interaction::ResizingColumn
+    } else {
+      resize_cursor.unwrap_or_else(|| {
+        if self.hovered_url.is_some() {
+          mouse::Interaction::Pointer
+        } else {
+          mouse::Interaction::Text
+        }
+      })
+    };
 
     let term_area: Element<'_, Message> = if let Some(split) = &active_tab.split {
       let rt = theme::color::runtime();
@@ -102,6 +106,10 @@ impl Nova {
           .height(Length::Fill)
       };
 
+      let ratio = active_tab.split_ratio;
+      let left_portion = (ratio * 100.0).round() as u16;
+      let right_portion = 100u16.saturating_sub(left_portion);
+
       let left = mouse_area(
         container(stack![
           components::term(
@@ -130,18 +138,26 @@ impl Nova {
             ..Default::default()
           }
         })
-        .width(Length::Fill)
+        .width(Length::FillPortion(left_portion))
         .height(Length::Fill),
       )
       .interaction(term_interaction);
 
-      let divider = container(iced::widget::Space::new())
+      let vis_bar = container(iced::widget::Space::new())
         .width(1)
         .height(Length::Fill)
         .style(move |_| container::Style {
           background: Some(border_color.into()),
           ..Default::default()
         });
+
+      let divider = mouse_area(
+        container(vis_bar)
+          .width(8)
+          .height(Length::Fill)
+          .align_x(Horizontal::Center),
+      )
+      .interaction(mouse::Interaction::ResizingColumn);
 
       let right = mouse_area(
         container(stack![
@@ -171,7 +187,7 @@ impl Nova {
             ..Default::default()
           }
         })
-        .width(Length::Fill)
+        .width(Length::FillPortion(right_portion))
         .height(Length::Fill),
       )
       .interaction(term_interaction);
@@ -218,7 +234,11 @@ impl Nova {
       ));
     }
 
-    let outer_interaction = resize_cursor.unwrap_or(mouse::Interaction::Idle);
+    let outer_interaction = if self.dragging_split {
+      mouse::Interaction::ResizingColumn
+    } else {
+      resize_cursor.unwrap_or(mouse::Interaction::Idle)
+    };
 
     let inner = if self.settings_open {
       let config_path_str = crate::core::config::config_path()

@@ -1,6 +1,6 @@
 use crate::sys::pty::PtyCommand;
 
-use super::super::helpers::{calc_grid, calc_grid_split};
+use super::super::helpers::{calc_grid, calc_grid_split_ratio};
 use super::super::message::Message;
 use super::super::nova::Nova;
 
@@ -29,24 +29,30 @@ impl Nova {
 
     for tab in self.tabs.iter_mut() {
       if tab.split.is_some() {
-        let (cols, rows) =
-          calc_grid_split(width, height, font_size, status_bar_visible, banner_visible);
-        if tab.grid.cols != cols || tab.grid.rows != rows {
-          tab.grid.resize(cols, rows);
+        let (left_cols, right_cols, rows) = calc_grid_split_ratio(
+          width,
+          height,
+          font_size,
+          status_bar_visible,
+          banner_visible,
+          tab.split_ratio,
+        );
+        if tab.grid.cols != left_cols || tab.grid.rows != rows {
+          tab.grid.resize(left_cols, rows);
           if let Some(tx) = &tab.pty_tx {
             let _ = tx.send_blocking(PtyCommand::Resize {
-              cols: cols as u16,
+              cols: left_cols as u16,
               rows: rows as u16,
             });
           }
         }
         if let Some(split) = &mut tab.split
-          && (split.grid.cols != cols || split.grid.rows != rows)
+          && (split.grid.cols != right_cols || split.grid.rows != rows)
         {
-          split.grid.resize(cols, rows);
+          split.grid.resize(right_cols, rows);
           if let Some(tx) = &split.pty_tx {
             let _ = tx.send_blocking(PtyCommand::Resize {
-              cols: cols as u16,
+              cols: right_cols as u16,
               rows: rows as u16,
             });
           }

@@ -35,6 +35,7 @@ pub struct Tab {
   pub current_input: String,
   pub split: Option<SplitPane>,
   pub active_pane_is_split: bool,
+  pub split_ratio: f32,
 }
 
 impl Tab {
@@ -62,6 +63,7 @@ impl Tab {
       current_input: String::new(),
       split: None,
       active_pane_is_split: false,
+      split_ratio: 0.5,
     }
   }
 }

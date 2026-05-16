@@ -5,7 +5,9 @@ use crate::core::grid::{DEFAULT_SCROLLBACK_LIMIT, Grid};
 use crate::sys::pty::PtyCommand;
 use crate::ui::tab::{SplitPane, Tab, shell_display_name};
 
-use super::super::helpers::{calc_grid, calc_grid_split, command_history_path};
+use super::super::helpers::{
+  calc_grid, calc_grid_split, calc_grid_split_ratio, command_history_path,
+};
 use super::super::message::Message;
 use super::super::nova::Nova;
 
@@ -32,25 +34,26 @@ impl Nova {
     for tab in self.tabs.iter_mut() {
       let has_split = tab.split.is_some();
       if has_split {
-        let (cols, rows) = calc_grid_split(
+        let (left_cols, right_cols, rows) = calc_grid_split_ratio(
           self.window_size.width,
           self.window_size.height,
           self.settings.theme.font.size,
           self.settings.status_bar.visible,
           banner_visible,
+          tab.split_ratio,
         );
-        tab.grid.resize(cols, rows);
+        tab.grid.resize(left_cols, rows);
         if let Some(tx) = &tab.pty_tx {
           let _ = tx.send_blocking(PtyCommand::Resize {
-            cols: cols as u16,
+            cols: left_cols as u16,
             rows: rows as u16,
           });
         }
         if let Some(split) = &mut tab.split {
-          split.grid.resize(cols, rows);
+          split.grid.resize(right_cols, rows);
           if let Some(tx) = &split.pty_tx {
             let _ = tx.send_blocking(PtyCommand::Resize {
-              cols: cols as u16,
+              cols: right_cols as u16,
               rows: rows as u16,
             });
           }
@@ -214,6 +217,43 @@ impl Nova {
     if let Some(tx) = &tab.pty_tx {
       let _ = tx.send_blocking(PtyCommand::Resize {
         cols: cols as u16,
+        rows: rows as u16,
+      });
+    }
+  }
+
+  pub(super) fn resize_split_grids_for_ratio(&mut self) {
+    let banner_visible = self.diagnostic_banner.is_some();
+    let Some(tab) = self.tabs.get_mut(self.active_index) else {
+      return;
+    };
+    if tab.split.is_none() {
+      return;
+    }
+    let ratio = tab.split_ratio;
+    let (left_cols, right_cols, rows) = calc_grid_split_ratio(
+      self.window_size.width,
+      self.window_size.height,
+      self.settings.theme.font.size,
+      self.settings.status_bar.visible,
+      banner_visible,
+      ratio,
+    );
+    let left_tx = tab.pty_tx.clone();
+    let right_tx = tab.split.as_ref().and_then(|s| s.pty_tx.clone());
+    tab.grid.resize(left_cols, rows);
+    if let Some(split) = &mut tab.split {
+      split.grid.resize(right_cols, rows);
+    }
+    if let Some(tx) = left_tx {
+      let _ = tx.try_send(PtyCommand::Resize {
+        cols: left_cols as u16,
+        rows: rows as u16,
+      });
+    }
+    if let Some(tx) = right_tx {
+      let _ = tx.try_send(PtyCommand::Resize {
+        cols: right_cols as u16,
         rows: rows as u16,
       });
     }

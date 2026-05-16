@@ -125,6 +125,19 @@ fn handle_key_pressed(
     }
   }
 
+  #[cfg(target_os = "macos")]
+  let font_mod = modifiers.logo() && !modifiers.shift();
+  #[cfg(not(target_os = "macos"))]
+  let font_mod = modifiers.control() && !modifiers.shift();
+
+  if font_mod && let Key::Character(c) = &key {
+    match c.as_str() {
+      "=" | "+" => return Some(Message::FontSizeUp),
+      "-" => return Some(Message::FontSizeDown),
+      _ => {}
+    }
+  }
+
   let kb = config::keybindings();
   if matches_kb(&kb.prev_tab, &key, modifiers) {
     return Some(Message::PrevTab);

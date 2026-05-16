@@ -88,5 +88,8 @@ pub enum Message {
   CloseSplitPane,
   CloseLeftPane,
   ResizeSettled(u64),
+  FontSizeUp,
+  FontSizeDown,
+  FontResizeSettled(u64),
   NoOp,
 }

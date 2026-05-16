@@ -26,7 +26,7 @@ pub fn search_bar(
     if query.is_empty() {
       String::new()
     } else {
-      "No results".to_string()
+      "—".to_string()
     }
   } else {
     format!("{} / {}", match_index + 1, match_count)

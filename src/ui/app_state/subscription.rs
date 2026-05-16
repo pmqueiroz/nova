@@ -134,6 +134,7 @@ fn handle_key_pressed(
     match c.as_str() {
       "=" | "+" => return Some(Message::FontSizeUp),
       "-" => return Some(Message::FontSizeDown),
+      "0" => return Some(Message::FontSizeReset),
       _ => {}
     }
   }

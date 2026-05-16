@@ -9,6 +9,7 @@ pub static SETTINGS_OPEN: AtomicBool = AtomicBool::new(false);
 pub static KB_RECORDING: AtomicBool = AtomicBool::new(false);
 pub static PALETTE_OPEN: AtomicBool = AtomicBool::new(false);
 pub static AI_OPEN: AtomicBool = AtomicBool::new(false);
+pub static SEARCH_OPEN: AtomicBool = AtomicBool::new(false);
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SettingsTab {
@@ -76,4 +77,8 @@ pub struct Nova {
   pub(in crate::ui::app_state) font_resize_generation: u64,
   pub(in crate::ui::app_state) default_font_size: f32,
   pub(in crate::ui::app_state) dragging_split: bool,
+  pub(in crate::ui::app_state) search_active: bool,
+  pub(in crate::ui::app_state) search_query: String,
+  pub(in crate::ui::app_state) search_matches: Vec<(bool, usize, usize, usize)>,
+  pub(in crate::ui::app_state) search_match_index: usize,
 }

@@ -70,6 +70,25 @@ fn compute_url_highlight(
   }
 }
 
+const SEARCH_MATCH_BG: Color = Color {
+  r: 0.98,
+  g: 0.76,
+  b: 0.0,
+  a: 0.35,
+};
+const SEARCH_CURRENT_BG: Color = Color {
+  r: 0.98,
+  g: 0.76,
+  b: 0.0,
+  a: 1.0,
+};
+const SEARCH_CURRENT_FG: Color = Color {
+  r: 0.1,
+  g: 0.1,
+  b: 0.1,
+  a: 1.0,
+};
+
 #[allow(clippy::too_many_arguments)]
 fn row_spans(
   row_cells: &[crate::core::grid::Cell],
@@ -80,6 +99,7 @@ fn row_spans(
   hovered_url: Option<&str>,
   url_highlight: &[bool],
   suggestion: Option<&str>,
+  search_hl: Option<(&[bool], &[bool])>,
 ) -> Vec<Span<'static>> {
   let mut spans: Vec<Span<'static>> = Vec::new();
 
@@ -91,6 +111,13 @@ fn row_spans(
     } else {
       false
     };
+    let is_search_current = search_hl
+      .map(|(_, cur)| cur.get(x).copied().unwrap_or(false))
+      .unwrap_or(false);
+    let is_search_match = !is_search_current
+      && search_hl
+        .map(|(m, _)| m.get(x).copied().unwrap_or(false))
+        .unwrap_or(false);
 
     let (eff_fg, eff_bg, mut eff_attrs) = if is_selected {
       let rt = theme::color::runtime();
@@ -99,6 +126,14 @@ fn row_spans(
         Some(rt.accent),
         crate::core::grid::CellAttrs::empty(),
       )
+    } else if is_search_current {
+      (
+        Some(SEARCH_CURRENT_FG),
+        Some(SEARCH_CURRENT_BG),
+        crate::core::grid::CellAttrs::empty(),
+      )
+    } else if is_search_match {
+      (cell.fg, Some(SEARCH_MATCH_BG), cell.attrs)
     } else {
       (cell.fg, cell.bg, cell.attrs)
     };
@@ -164,6 +199,8 @@ pub fn term<'a>(
   scroll_offset: usize,
   hovered_url: Option<&str>,
   hovered_link_span: Option<(usize, usize, usize)>,
+  search_matches: &[(bool, usize, usize, usize)],
+  search_current: Option<usize>,
 ) -> Element<'a, Message> {
   let mut grid_ui = column![].spacing(0);
   let char_width = font_size * 0.62;
@@ -195,9 +232,33 @@ pub fn term<'a>(
     r
   };
 
+  let search_hl_for = |is_sb: bool, row: usize, cols: usize| -> Option<(Vec<bool>, Vec<bool>)> {
+    let relevant: Vec<_> = search_matches
+      .iter()
+      .enumerate()
+      .filter(|(_, m)| m.0 == is_sb && m.1 == row)
+      .collect();
+    if relevant.is_empty() {
+      return None;
+    }
+    let mut is_match = vec![false; cols];
+    let mut is_current = vec![false; cols];
+    for (idx, m) in &relevant {
+      for col in m.2..m.3.min(cols) {
+        is_match[col] = true;
+        if search_current == Some(*idx) {
+          is_current[col] = true;
+        }
+      }
+    }
+    Some((is_match, is_current))
+  };
+
   let sb_start = sb_len.saturating_sub(clamped_offset);
-  for (row_cells, _) in scrollback.range(sb_start..) {
+  for (sb_row_idx, (row_cells, _)) in scrollback.range(sb_start..).enumerate() {
+    let abs_sb_idx = sb_start + sb_row_idx;
     let hl = compute_url_highlight(row_cells, display_y, hovered_url, hovered_link_span);
+    let sh = search_hl_for(true, abs_sb_idx, row_cells.len());
     let segments = row_spans(
       row_cells,
       None,
@@ -207,6 +268,7 @@ pub fn term<'a>(
       hovered_url,
       &hl,
       None,
+      sh.as_ref().map(|(m, c)| (m.as_slice(), c.as_slice())),
     );
     grid_ui = grid_ui.push(render_row(segments));
     display_y += 1;
@@ -229,6 +291,7 @@ pub fn term<'a>(
       None
     };
     let hl = compute_url_highlight(row_cells, display_y, hovered_url, hovered_link_span);
+    let sh = search_hl_for(false, y, row_cells.len());
     let segments = row_spans(
       row_cells,
       cursor_col,
@@ -238,6 +301,7 @@ pub fn term<'a>(
       hovered_url,
       &hl,
       row_suggestion,
+      sh.as_ref().map(|(m, c)| (m.as_slice(), c.as_slice())),
     );
     grid_ui = grid_ui.push(render_row(segments));
     display_y += 1;

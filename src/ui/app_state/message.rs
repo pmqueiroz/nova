@@ -92,5 +92,10 @@ pub enum Message {
   FontSizeDown,
   FontSizeReset,
   FontResizeSettled(u64),
+  SearchOpen,
+  SearchClose,
+  SearchQueryChanged(String),
+  SearchNext,
+  SearchPrev,
   NoOp,
 }

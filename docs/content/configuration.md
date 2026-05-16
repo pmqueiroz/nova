@@ -71,6 +71,7 @@ api_key = ""
 - `bell` (string): One of `none`, `audio`, `blink`.
 - `shells` (array of strings, optional): If set and non-empty, Nova uses this list instead of auto-detect.
 - `window-controls` (string): One of `traffic-lights` or `system`.
+- `scrollback` (integer, optional): Maximum scrollback lines per pane. Defaults to `10000`.
 
 Example:
 

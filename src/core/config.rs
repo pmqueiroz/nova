@@ -95,6 +95,8 @@ pub struct GeneralConfig {
   pub shells: Option<Vec<String>>,
   #[serde(rename = "window-controls", default = "default_window_controls")]
   pub window_controls: WindowControls,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub scrollback: Option<usize>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]

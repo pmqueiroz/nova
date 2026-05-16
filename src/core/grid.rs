@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, VecDeque};
 use std::sync::Arc;
 
-const SCROLLBACK_LIMIT: usize = 10_000;
+pub const DEFAULT_SCROLLBACK_LIMIT: usize = 10_000;
 
 bitflags! {
     #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -81,6 +81,7 @@ pub struct Grid {
   pub suggestion: Option<String>,
   pub input_start_col: Option<usize>,
   pub input_start_row: Option<usize>,
+  pub scrollback_limit: usize,
   alt_cells: Option<Vec<Cell>>,
   alt_cursor: Option<(usize, usize)>,
   alt_scrollback: Option<VecDeque<(Vec<Cell>, bool)>>,
@@ -123,6 +124,7 @@ impl Grid {
       suggestion: None,
       input_start_col: None,
       input_start_row: None,
+      scrollback_limit: DEFAULT_SCROLLBACK_LIMIT,
       alt_cells: None,
       alt_cursor: None,
       alt_scrollback: None,
@@ -195,7 +197,7 @@ impl Grid {
         row_copy.extend_from_slice(self.row(top));
         let is_cont = self.row_continuation[top];
         self.scrollback.push_back((row_copy, is_cont));
-        if self.scrollback.len() > SCROLLBACK_LIMIT {
+        if self.scrollback.len() > self.scrollback_limit {
           self.scrollback.pop_front();
         }
       }

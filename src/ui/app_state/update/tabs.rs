@@ -1,6 +1,7 @@
 use vte::Parser;
 
-use crate::core::grid::Grid;
+use crate::core::config;
+use crate::core::grid::{DEFAULT_SCROLLBACK_LIMIT, Grid};
 use crate::sys::pty::PtyCommand;
 use crate::ui::tab::{SplitPane, Tab, shell_display_name};
 
@@ -114,10 +115,16 @@ impl Nova {
       self.diagnostic_banner.is_some(),
     );
 
+    let scrollback_limit = config::get()
+      .general
+      .scrollback
+      .unwrap_or(DEFAULT_SCROLLBACK_LIMIT);
+    let mut split_grid = Grid::new(cols, rows);
+    split_grid.scrollback_limit = scrollback_limit;
     let tab = &mut self.tabs[self.active_index];
     tab.split = Some(SplitPane {
       id: split_id,
-      grid: Grid::new(cols, rows),
+      grid: split_grid,
       pty_tx: None,
       pty_alive: true,
       ansi_parser: Parser::new(),

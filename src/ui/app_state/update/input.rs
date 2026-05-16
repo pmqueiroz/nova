@@ -74,10 +74,10 @@ impl Nova {
       active_tab.scroll_offset = 0;
 
       if bytes == b"\r" {
+        active_tab.command_start = Some(std::time::Instant::now());
         if !active_tab.current_input.is_empty() {
           let input = std::mem::take(&mut active_tab.current_input);
           active_tab.grid.push_command(&input);
-          active_tab.command_start = Some(std::time::Instant::now());
           active_tab.grid.suggestion = None;
           active_tab.grid.input_start_col = None;
           active_tab.grid.input_start_row = None;

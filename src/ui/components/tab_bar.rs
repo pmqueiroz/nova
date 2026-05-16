@@ -84,6 +84,32 @@ pub fn tab_bar(
     .into()
 }
 
+fn tab_inner_style(active: bool) -> container::Style {
+  container::Style {
+    background: Some(
+      if active {
+        theme::color::BG_HIGH
+      } else {
+        theme::color::TRANSPARENT
+      }
+      .as_color()
+      .into(),
+    ),
+    border: Border {
+      color: {
+        let b = theme::color::runtime().border;
+        iced::Color {
+          a: if active { 0.15 } else { 0.0 },
+          ..b
+        }
+      },
+      radius: Radius::new(4.0),
+      width: 1.0,
+    },
+    ..Default::default()
+  }
+}
+
 fn tab_item(
   title: String,
   index: usize,
@@ -91,24 +117,54 @@ fn tab_item(
   editing: bool,
   editing_value: String,
 ) -> Element<'static, Message> {
-  let title_widget: Element<'static, Message> = if editing {
-    text_input("", &editing_value)
-      .id(TAB_TITLE_INPUT_ID.clone())
-      .on_input(Message::TabTitleInput)
-      .on_submit(Message::TabTitleCommit)
-      .size(11)
-      .style(move |_t, _s| text_input::Style {
-        background: theme::color::TRANSPARENT.as_color().into(),
-        border: Border::default(),
-        icon: theme::color::runtime().foreground_muted,
-        placeholder: theme::color::runtime().foreground_muted,
-        value: theme::color::runtime().foreground,
-        selection: theme::color::runtime().accent,
-      })
-      .padding(Padding::from([4, 0]))
-      .into()
+  let close_btn = button(text("󰅖").size(11))
+    .style(move |_t, status| button::Style {
+      text_color: if status == button::Status::Hovered {
+        theme::color::RED.as_color()
+      } else {
+        theme::color::runtime().foreground_muted
+      },
+      background: Some(theme::color::TRANSPARENT.as_color().into()),
+      ..Default::default()
+    })
+    .on_press(Message::CloseTab(index))
+    .padding(Padding {
+      top: 2.0,
+      bottom: 2.0,
+      left: 8.0,
+      right: 2.0,
+    });
+
+  if editing {
+    container(
+      row![
+        text_input("", &editing_value)
+          .id(TAB_TITLE_INPUT_ID.clone())
+          .on_input(Message::TabTitleInput)
+          .on_submit(Message::TabTitleCommit)
+          .size(11)
+          .style(move |_t, _s| text_input::Style {
+            background: theme::color::TRANSPARENT.as_color().into(),
+            border: Border::default(),
+            icon: theme::color::runtime().foreground_muted,
+            placeholder: theme::color::runtime().foreground_muted,
+            value: theme::color::runtime().foreground,
+            selection: theme::color::runtime().accent,
+          })
+          .padding(Padding::from([4, 0])),
+        horizontal(),
+        close_btn,
+      ]
+      .spacing(0)
+      .align_y(alignment::Vertical::Center),
+    )
+    .style(move |_| tab_inner_style(active))
+    .center_y(30)
+    .padding(Padding::from([0, 12]))
+    .width(120)
+    .into()
   } else {
-    button(
+    let title_btn = button(
       Typography {
         color: if active {
           theme::color::runtime().foreground
@@ -129,68 +185,25 @@ fn tab_item(
       Message::TabTitleEdit(index)
     } else {
       Message::SwitchTab(index)
-    })
-    .into()
-  };
+    });
 
-  button(
-    container(
-      row![
-        title_widget,
-        horizontal(),
-        button(text("󰅖").size(11))
-          .style(move |_t, status| button::Style {
-            text_color: if status == button::Status::Hovered {
-              theme::color::RED.as_color()
-            } else {
-              theme::color::runtime().foreground_muted
-            },
-            background: Some(theme::color::TRANSPARENT.as_color().into()),
-            ..Default::default()
-          })
-          .on_press(Message::CloseTab(index))
-          .padding(Padding {
-            top: 2.0,
-            bottom: 2.0,
-            left: 8.0,
-            right: 2.0,
-          }),
-      ]
-      .spacing(0)
-      .align_y(alignment::Vertical::Center),
+    button(
+      container(
+        row![title_btn, horizontal(), close_btn,]
+          .spacing(0)
+          .align_y(alignment::Vertical::Center),
+      )
+      .style(move |_| tab_inner_style(active))
+      .center_y(30)
+      .padding(Padding::from([0, 12])),
     )
-    .style(move |_t| container::Style {
-      background: Some(
-        if active {
-          theme::color::BG_HIGH
-        } else {
-          theme::color::TRANSPARENT
-        }
-        .as_color()
-        .into(),
-      ),
-      border: Border {
-        color: {
-          let b = theme::color::runtime().border;
-          iced::Color {
-            a: if active { 0.15 } else { 0.0 },
-            ..b
-          }
-        },
-        radius: Radius::new(4.0),
-        width: 1.0,
-      },
+    .padding(0)
+    .style(move |_t, _s| button::Style {
+      background: Some(theme::color::TRANSPARENT.as_color().into()),
       ..Default::default()
     })
-    .center_y(30)
-    .padding(Padding::from([0, 12])),
-  )
-  .padding(0)
-  .style(move |_t, _s| button::Style {
-    background: Some(theme::color::TRANSPARENT.as_color().into()),
-    ..Default::default()
-  })
-  .width(120)
-  .on_press(Message::SwitchTab(index))
-  .into()
+    .width(120)
+    .on_press(Message::SwitchTab(index))
+    .into()
+  }
 }

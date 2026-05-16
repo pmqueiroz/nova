@@ -148,13 +148,7 @@ impl Nova {
           let _ = tx.send_blocking(PtyCommand::Input(response));
         }
       }
-      let title_changed: Option<String> = split.grid.control_queue.drain(..).find_map(|cmd| {
-        if let ControlCommand::TitleChanged(t) = cmd {
-          Some(t)
-        } else {
-          None
-        }
-      });
+      split.grid.control_queue.drain(..);
       let new_pwd = split.grid.pwd.clone();
       if new_pwd != split.pwd {
         split.pwd = new_pwd;
@@ -164,9 +158,6 @@ impl Nova {
         split.grid.suggestion = split.grid.find_best_suggestion(&partial);
       } else {
         split.grid.suggestion = None;
-      }
-      if let Some(title) = title_changed {
-        self.tabs[tab_idx].title_override = Some(title);
       }
       return iced::Task::none();
     }
@@ -193,7 +184,6 @@ impl Nova {
       let mut open_ask_ai = false;
       let mut open_explain_ai = false;
       let mut ai_preset: Option<std::sync::Arc<str>> = None;
-      let mut title_changed: Option<String> = None;
       for cmd in tab.grid.control_queue.drain(..) {
         match cmd {
           ControlCommand::OpenAskAi { preset } => {
@@ -222,9 +212,6 @@ impl Nova {
               self.ai_pending_diagnostic = Some(code);
             }
           }
-          ControlCommand::TitleChanged(title) => {
-            title_changed = Some(title);
-          }
         }
       }
 
@@ -241,9 +228,6 @@ impl Nova {
       }
       tab.update_git_status();
       tab.scroll_offset = 0;
-      if let Some(title) = title_changed {
-        tab.title_override = Some(title);
-      }
 
       if let Some(partial) = tab.grid.extract_current_input() {
         tab.grid.suggestion = tab.grid.find_best_suggestion(&partial);

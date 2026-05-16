@@ -613,15 +613,6 @@ impl<'a> Perform for AnsiExecutor<'a> {
           .control_queue
           .push(ControlCommand::OpenExplainAi { preset });
       }
-      b"0" | b"2" if params.len() >= 2 => {
-        let title = String::from_utf8_lossy(params[1]).trim().to_string();
-        if !title.is_empty() {
-          self
-            .grid
-            .control_queue
-            .push(ControlCommand::TitleChanged(title));
-        }
-      }
       b"7" if params.len() >= 2 => {
         let raw_url = String::from_utf8_lossy(params[1]).to_string();
         if let Some(after_scheme) = raw_url.strip_prefix("file://")

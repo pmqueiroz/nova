@@ -5,6 +5,20 @@ use super::super::message::Message;
 use super::super::nova::Nova;
 
 impl Nova {
+  pub(super) fn debounce_font_resize(&mut self) -> iced::Task<Message> {
+    self.font_resize_generation = self.font_resize_generation.wrapping_add(1);
+    let epoch = self.font_resize_generation;
+    iced::Task::perform(
+      async move {
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+        epoch
+      },
+      Message::FontResizeSettled,
+    )
+  }
+}
+
+impl Nova {
   pub(super) fn handle_window_resized(&mut self, width: f32, height: f32) -> iced::Task<Message> {
     if width < 100.0 || height < 100.0 {
       return iced::Task::none();

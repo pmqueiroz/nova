@@ -33,6 +33,15 @@ impl Nova {
 
   pub(super) fn handle_cursor_moved(&mut self, position: Point) {
     self.cursor_position = position;
+
+    if self.dragging_split {
+      let ratio = (position.x / self.window_size.width).clamp(0.1, 0.9);
+      if let Some(tab) = self.tabs.get_mut(self.active_index) {
+        tab.split_ratio = ratio;
+      }
+      return;
+    }
+
     let font_size = self.settings.theme.font.size;
 
     let mut bypass_selection = false;
@@ -118,7 +127,12 @@ impl Nova {
       if let Some(tab) = self.tabs.get_mut(self.active_index)
         && tab.split.is_some()
       {
-        tab.active_pane_is_split = self.cursor_position.x > self.window_size.width / 2.0;
+        let divider_x = self.window_size.width * tab.split_ratio;
+        if (self.cursor_position.x - divider_x).abs() < 6.0 {
+          self.dragging_split = true;
+          return iced::Task::none();
+        }
+        tab.active_pane_is_split = self.cursor_position.x > divider_x;
       }
 
       let now = std::time::Instant::now();
@@ -169,6 +183,12 @@ impl Nova {
   ) -> iced::Task<super::super::message::Message> {
     if self.last_mouse_button == Some(button) {
       self.last_mouse_button = None;
+    }
+
+    if self.dragging_split && button == mouse::Button::Left {
+      self.dragging_split = false;
+      self.resize_split_grids_for_ratio();
+      return iced::Task::none();
     }
 
     self.is_selecting = false;

@@ -87,6 +87,7 @@ impl Default for Nova {
       resize_generation: 0,
       font_resize_generation: 0,
       default_font_size: cfg.theme.font.size,
+      dragging_split: false,
     };
     nova.load_command_history();
     nova

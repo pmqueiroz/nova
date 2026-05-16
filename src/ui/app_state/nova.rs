@@ -75,4 +75,5 @@ pub struct Nova {
   pub(in crate::ui::app_state) resize_generation: u64,
   pub(in crate::ui::app_state) font_resize_generation: u64,
   pub(in crate::ui::app_state) default_font_size: f32,
+  pub(in crate::ui::app_state) dragging_split: bool,
 }

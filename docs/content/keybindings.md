@@ -87,6 +87,8 @@ These shortcuts are hardcoded and cannot be changed via `settings.toml`.
 
 When a split pane is open, `close-tab` (`Cmd+W` / `Ctrl+W`) closes the **active pane** instead of the entire tab.
 
+The divider between panes is draggable. Hover over it to see a resize cursor, then click and drag to adjust the split ratio. Grids resize when you release the mouse. The ratio is clamped to 10%–90%.
+
 ### Font Size
 
 | Action | macOS | Other |

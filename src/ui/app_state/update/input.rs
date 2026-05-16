@@ -77,6 +77,7 @@ impl Nova {
         if !active_tab.current_input.is_empty() {
           let input = std::mem::take(&mut active_tab.current_input);
           active_tab.grid.push_command(&input);
+          active_tab.command_start = Some(std::time::Instant::now());
           active_tab.grid.suggestion = None;
           active_tab.grid.input_start_col = None;
           active_tab.grid.input_start_row = None;
@@ -162,6 +163,7 @@ impl Nova {
       return iced::Task::none();
     }
 
+    let active_tab_id = self.tabs.get(self.active_index).map(|t| t.id);
     if let Some(tab) = self.tabs.iter_mut().find(|t| t.id == tab_id) {
       #[cfg(target_os = "windows")]
       if std::env::var("NOVA_DEBUG_PTY").is_ok()
@@ -210,6 +212,24 @@ impl Nova {
             {
               self.diagnostic_banner = Some((code, "Loading...".into(), None));
               self.ai_pending_diagnostic = Some(code);
+            }
+          }
+          ControlCommand::CommandComplete(_code) => {
+            const NOTIFY_THRESHOLD_SECS: u64 = 10;
+            if let Some(start) = tab.command_start.take() {
+              let elapsed = start.elapsed();
+              if elapsed.as_secs() >= NOTIFY_THRESHOLD_SECS
+                && (!self.window_focused || Some(tab_id) != active_tab_id)
+              {
+                let secs = elapsed.as_secs();
+                let body = if secs < 60 {
+                  format!("Finished in {}s", secs)
+                } else {
+                  format!("Finished in {}m {}s", secs / 60, secs % 60)
+                };
+                crate::sys::notification::send("Nova", &body);
+                tab.command_done = true;
+              }
             }
           }
         }

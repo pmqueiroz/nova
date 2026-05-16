@@ -1,4 +1,4 @@
-use std::{fs, path::Path};
+use std::{fs, path::Path, time::Instant};
 
 use async_channel::Sender;
 use vte::Parser;
@@ -36,6 +36,8 @@ pub struct Tab {
   pub split: Option<SplitPane>,
   pub active_pane_is_split: bool,
   pub split_ratio: f32,
+  pub command_start: Option<Instant>,
+  pub command_done: bool,
 }
 
 impl Tab {
@@ -64,6 +66,8 @@ impl Tab {
       split: None,
       active_pane_is_split: false,
       split_ratio: 0.5,
+      command_start: None,
+      command_done: false,
     }
   }
 }

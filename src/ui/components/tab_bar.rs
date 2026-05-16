@@ -23,7 +23,8 @@ pub fn tab_bar(tabs: &[Tab], active_index: usize) -> Element<'static, Message> {
         mouse_area(tab_item(
           truncate(&basename(&til_home(&tab.pwd)), 12),
           i,
-          is_active
+          is_active,
+          tab.command_done,
         ))
         .on_middle_press(Message::CloseTab(i))
       ]
@@ -68,75 +69,97 @@ pub fn tab_bar(tabs: &[Tab], active_index: usize) -> Element<'static, Message> {
     .into()
 }
 
-fn tab_item(title: String, index: usize, active: bool) -> Element<'static, Message> {
-  button(
-    container(
-      row![
-        button(
-          Typography {
-            color: if active {
-              theme::color::runtime().foreground
-            } else {
-              theme::color::runtime().foreground_muted
-            },
-            size: 11.into(),
-            ..Default::default()
-          }
-          .as_text(title),
-        )
-        .style(move |_t, _s| button::Style {
-          background: Some(theme::color::TRANSPARENT.as_color().into()),
-          ..Default::default()
-        })
-        .padding(Padding::from([4, 0]))
-        .on_press(Message::SwitchTab(index)),
-        horizontal(),
-        button(text("󰅖").size(11))
-          .style(move |_t, status| button::Style {
-            text_color: if status == button::Status::Hovered {
-              theme::color::RED.as_color()
-            } else {
-              theme::color::runtime().foreground_muted
-            },
-            background: Some(theme::color::TRANSPARENT.as_color().into()),
-            ..Default::default()
-          })
-          .on_press(Message::CloseTab(index))
-          .padding(Padding {
-            top: 2.0,
-            bottom: 2.0,
-            left: 8.0,
-            right: 2.0,
-          }),
-      ]
-      .spacing(0)
-      .align_y(alignment::Vertical::Center),
-    )
-    .style(move |_t| container::Style {
-      background: Some(
-        if active {
-          theme::color::BG_HIGH
+fn tab_item(
+  title: String,
+  index: usize,
+  active: bool,
+  command_done: bool,
+) -> Element<'static, Message> {
+  let mut content = row![
+    button(
+      Typography {
+        color: if active {
+          theme::color::runtime().foreground
         } else {
-          theme::color::TRANSPARENT
-        }
-        .as_color()
-        .into(),
-      ),
-      border: Border {
-        color: {
-          let b = theme::color::runtime().border;
-          iced::Color {
-            a: if active { 0.15 } else { 0.0 },
-            ..b
-          }
+          theme::color::runtime().foreground_muted
         },
-        radius: Radius::new(4.0),
-        width: 1.0,
-      },
+        size: 11.into(),
+        ..Default::default()
+      }
+      .as_text(title),
+    )
+    .style(move |_t, _s| button::Style {
+      background: Some(theme::color::TRANSPARENT.as_color().into()),
       ..Default::default()
     })
-    .center_y(30)
-    .padding(Padding::from([0, 12])),
+    .padding(Padding::from([4, 0]))
+    .on_press(Message::SwitchTab(index)),
+    horizontal(),
+  ]
+  .spacing(0)
+  .align_y(alignment::Vertical::Center);
+
+  if command_done {
+    content = content.push(
+      container(
+        Typography {
+          color: theme::color::runtime().accent,
+          size: 8.into(),
+          ..Default::default()
+        }
+        .as_text("●".to_string()),
+      )
+      .padding(Padding::from([0, 4])),
+    );
+  }
+
+  content = content.push(
+    button(text("󰅖").size(11))
+      .style(move |_t, status| button::Style {
+        text_color: if status == button::Status::Hovered {
+          theme::color::RED.as_color()
+        } else {
+          theme::color::runtime().foreground_muted
+        },
+        background: Some(theme::color::TRANSPARENT.as_color().into()),
+        ..Default::default()
+      })
+      .on_press(Message::CloseTab(index))
+      .padding(Padding {
+        top: 2.0,
+        bottom: 2.0,
+        left: 8.0,
+        right: 2.0,
+      }),
+  );
+
+  button(
+    container(content)
+      .style(move |_t| container::Style {
+        background: Some(
+          if active {
+            theme::color::BG_HIGH
+          } else {
+            theme::color::TRANSPARENT
+          }
+          .as_color()
+          .into(),
+        ),
+        border: Border {
+          color: {
+            let b = theme::color::runtime().border;
+            iced::Color {
+              a: if active { 0.15 } else { 0.0 },
+              ..b
+            }
+          },
+          radius: Radius::new(4.0),
+          width: 1.0,
+        },
+        ..Default::default()
+      })
+      .center_y(30)
+      .padding(Padding::from([0, 12])),
   )
   .padding(0)
   .style(move |_t, _s| button::Style {

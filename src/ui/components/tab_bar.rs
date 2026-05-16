@@ -187,23 +187,15 @@ fn tab_item(
       Message::SwitchTab(index)
     });
 
-    button(
-      container(
-        row![title_btn, horizontal(), close_btn,]
-          .spacing(0)
-          .align_y(alignment::Vertical::Center),
-      )
-      .style(move |_| tab_inner_style(active))
-      .center_y(30)
-      .padding(Padding::from([0, 12])),
+    container(
+      row![title_btn, horizontal(), close_btn,]
+        .spacing(0)
+        .align_y(alignment::Vertical::Center),
     )
-    .padding(0)
-    .style(move |_t, _s| button::Style {
-      background: Some(theme::color::TRANSPARENT.as_color().into()),
-      ..Default::default()
-    })
+    .style(move |_| tab_inner_style(active))
+    .center_y(30)
+    .padding(Padding::from([0, 12]))
     .width(120)
-    .on_press(Message::SwitchTab(index))
     .into()
   }
 }

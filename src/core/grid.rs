@@ -77,6 +77,8 @@ pub struct Grid {
   pub wrap_next: bool,
   pub row_continuation: Vec<bool>,
   pub scrollback: VecDeque<(Vec<Cell>, bool)>,
+  pub scrollback_base: usize,
+  pub zone_markers: Vec<usize>,
   pub command_history: VecDeque<CommandEntry>,
   pub suggestion: Option<String>,
   pub input_start_col: Option<usize>,
@@ -119,6 +121,8 @@ impl Grid {
       wrap_next: false,
       row_continuation: vec![false; rows],
       scrollback: VecDeque::new(),
+      scrollback_base: 0,
+      zone_markers: Vec::new(),
       command_history: VecDeque::new(),
       suggestion: None,
       input_start_col: None,
@@ -197,6 +201,8 @@ impl Grid {
         self.scrollback.push_back((row_copy, is_cont));
         if self.scrollback.len() > SCROLLBACK_LIMIT {
           self.scrollback.pop_front();
+          self.scrollback_base += 1;
+          self.zone_markers.retain(|&m| m >= self.scrollback_base);
         }
       }
 
@@ -314,6 +320,13 @@ impl Grid {
     }
     if self.command_history.len() > 2000 {
       self.command_history.pop_front();
+    }
+  }
+
+  pub fn record_zone_marker(&mut self) {
+    let abs = self.scrollback_base + self.scrollback.len();
+    if self.zone_markers.last() != Some(&abs) {
+      self.zone_markers.push(abs);
     }
   }
 

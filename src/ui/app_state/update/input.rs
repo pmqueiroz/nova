@@ -77,6 +77,7 @@ impl Nova {
         if !active_tab.current_input.is_empty() {
           let input = std::mem::take(&mut active_tab.current_input);
           active_tab.grid.push_command(&input);
+          active_tab.grid.record_zone_marker();
           active_tab.grid.suggestion = None;
           active_tab.grid.input_start_col = None;
           active_tab.grid.input_start_row = None;

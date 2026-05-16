@@ -196,7 +196,24 @@ pub fn term<'a>(
   };
 
   let sb_start = sb_len.saturating_sub(clamped_offset);
-  for (row_cells, _) in scrollback.range(sb_start..) {
+  let zone_color = theme::color::runtime().foreground_muted;
+  let separator = || {
+    container(iced::widget::Space::new())
+      .style(move |_| container::Style {
+        background: Some(Background::Color(Color {
+          a: 0.15,
+          ..zone_color
+        })),
+        ..container::Style::default()
+      })
+      .width(Length::Fill)
+  };
+
+  for (i, (row_cells, _)) in scrollback.range(sb_start..).enumerate() {
+    let abs_idx = grid.scrollback_base + sb_start + i;
+    if grid.zone_markers.binary_search(&abs_idx).is_ok() {
+      grid_ui = grid_ui.push(separator());
+    }
     let hl = compute_url_highlight(row_cells, display_y, hovered_url, hovered_link_span);
     let segments = row_spans(
       row_cells,

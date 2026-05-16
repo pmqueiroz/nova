@@ -598,6 +598,28 @@ copy = "cmd+c"
 open-palette = "cmd+k"
 ```
 
+## Fixed Shortcuts
+
+These shortcuts are hardcoded and cannot be changed via `settings.toml`.
+
+### Split Pane
+
+| Action | macOS | Other |
+|---|---|---|
+| Open split pane | `Cmd+Shift+T` | `Ctrl+Shift+T` |
+| Close split pane | `Cmd+Shift+W` | `Ctrl+Shift+W` |
+
+When a split pane is open, `close-tab` (`Cmd+W` / `Ctrl+W`) closes the **active pane** instead of the entire tab.
+
+### Font Size
+
+| Action | macOS | Other |
+|---|---|---|
+| Increase font size | `Cmd+=` or `Cmd++` | `Ctrl+=` or `Ctrl++` |
+| Decrease font size | `Cmd+-` | `Ctrl+-` |
+
+Font size steps snap to even numbers (e.g. 15 → 16 → 18 → 20). Range: 8–72.
+
 ## Notes
 
 - If `open-palette` is invalid, Nova falls back to `ctrl+k`.

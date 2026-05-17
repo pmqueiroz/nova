@@ -239,15 +239,17 @@ pub fn resize_direction(pos: Point, size: Size) -> Option<window::Direction> {
   let top = pos.y < RESIZE_EDGE;
   let bottom = pos.y > size.height - RESIZE_EDGE;
 
-  match (top, bottom, left, right) {
-    (true, _, true, _) => Some(window::Direction::NorthWest),
-    (true, _, _, true) => Some(window::Direction::NorthEast),
-    (_, true, true, _) => Some(window::Direction::SouthWest),
-    (_, true, _, true) => Some(window::Direction::SouthEast),
-    (true, _, false, false) => Some(window::Direction::North),
-    (_, true, false, false) => Some(window::Direction::South),
-    (false, false, true, _) => Some(window::Direction::West),
-    (false, false, _, true) => Some(window::Direction::East),
+  // top edge belongs to the title bar (drag-to-move), never resize from there
+  if top {
+    return None;
+  }
+
+  match (bottom, left, right) {
+    (true, true, _) => Some(window::Direction::SouthWest),
+    (true, _, true) => Some(window::Direction::SouthEast),
+    (true, false, false) => Some(window::Direction::South),
+    (false, true, _) => Some(window::Direction::West),
+    (false, _, true) => Some(window::Direction::East),
     _ => None,
   }
 }

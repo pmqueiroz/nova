@@ -75,7 +75,8 @@ pub fn settings_modal<'a>(
     .width(Length::Fill)
     .height(Length::Fill),
   )
-  .on_press(Message::NoOp);
+  .on_press(Message::NoOp)
+  .interaction(iced::mouse::Interaction::Idle);
 
   stack![backdrop, modal].into()
 }

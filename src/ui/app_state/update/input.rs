@@ -43,6 +43,36 @@ impl Nova {
           return iced::Task::none();
         }
         split.scroll_offset = 0;
+        if bytes == b"\r" {
+          if !split.current_input.is_empty() {
+            split.current_input.clear();
+            split.command_start = Some(std::time::Instant::now());
+            split.last_pty_output = None;
+          }
+        } else if bytes == b"\x7F" || bytes == b"\x08" {
+          split.current_input.pop();
+        } else if bytes == b"\x03" || bytes == b"\x15" {
+          split.current_input.clear();
+          split.command_start = None;
+          split.last_pty_output = None;
+        } else if bytes.len() == 1 {
+          let b = bytes[0];
+          if b.is_ascii_graphic() || b == b' ' {
+            split.current_input.push(b as char);
+            if split.grid.input_start_col.is_none()
+              && let Some(start) = split.command_start.take()
+            {
+              let elapsed = split
+                .last_pty_output
+                .map(|last| last.duration_since(start))
+                .unwrap_or_else(|| start.elapsed());
+              split.last_command_elapsed = Some(elapsed);
+              split.last_pty_output = None;
+            }
+          } else {
+            split.current_input.clear();
+          }
+        }
         if let Some(tx) = &split.pty_tx {
           let _ = tx.send_blocking(PtyCommand::Input(bytes));
         }
@@ -160,10 +190,25 @@ impl Nova {
           let _ = tx.send_blocking(PtyCommand::Input(response));
         }
       }
-      split.grid.control_queue.clear();
+      for cmd in split.grid.control_queue.drain(..) {
+        if let ControlCommand::CommandComplete(_) = cmd
+          && let Some(start) = split.command_start.take()
+        {
+          let elapsed = split
+            .last_pty_output
+            .map(|last| last.duration_since(start))
+            .unwrap_or_else(|| start.elapsed());
+          split.last_command_elapsed = Some(elapsed);
+          split.last_pty_output = None;
+        }
+      }
+      if split.command_start.is_some() {
+        split.last_pty_output = Some(std::time::Instant::now());
+      }
       let new_pwd = split.grid.pwd.clone();
       if new_pwd != split.pwd {
         split.pwd = new_pwd;
+        split.update_git_status();
       }
       split.scroll_offset = 0;
       if let Some(partial) = split.grid.extract_current_input() {

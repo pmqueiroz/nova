@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.21.0](https://github.com/pmqueiroz/nova/compare/v0.20.0...v0.21.0) (2026-05-17)
+
+
+### Features
+
+* **notification:** replace shell-spawned with native OS notifications ([ffeee83](https://github.com/pmqueiroz/nova/commit/ffeee83f38f1ac8f00e11580d21063511b59c807))
+* **status-bar:** reflect focused split pane state ([698d336](https://github.com/pmqueiroz/nova/commit/698d336e0e6de2596c7e02966d8f5606a10dcd8d))
+
+
+### Bug Fixes
+
+* **cursor:** hide cursor in TUI ([1611aec](https://github.com/pmqueiroz/nova/commit/1611aec308e225b7a69771be5f8073fdf38bec41))
+* **cursor:** remove top-edge resize and fix settings panel passthrough ([70f2965](https://github.com/pmqueiroz/nova/commit/70f29651deadaa279f8f7f2448c60b6bc1eaac49))
+* **history:** skip saving input when shell is not at prompt ([c52fb4b](https://github.com/pmqueiroz/nova/commit/c52fb4b24f91f27361a1135b4520fb19f41ca4a7))
+* **notification:** gate APP_ID behind windows cfg to silence dead_code on Linux ([f1b337c](https://github.com/pmqueiroz/nova/commit/f1b337c3e2d9feb4abb28409ed213ae91ea0d07f))
+* **split-pane:** subtract per-pane padding from each pane's col count ([7277eaa](https://github.com/pmqueiroz/nova/commit/7277eaa8ff32751e1afd61faa887b04057bec434))
+* **term:** move cell background to container to eliminate selection gap lines ([945e203](https://github.com/pmqueiroz/nova/commit/945e203e283f3ff308ca8344170ae58e2f6cbbcc))
+* **windows:** suppress console flash on startup by adding CREATE_NO_WINDOW to shell detection ([8df3e6a](https://github.com/pmqueiroz/nova/commit/8df3e6a838ba36fb8b1b045fb2b0bbe2bb23f20b))
+
 ## [0.20.0](https://github.com/pmqueiroz/nova/compare/v0.19.0...v0.20.0) (2026-05-17)
 
 

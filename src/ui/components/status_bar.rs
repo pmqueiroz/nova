@@ -4,43 +4,39 @@ use iced::{
   border::Radius,
   widget::{container, row, space::horizontal},
 };
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use crate::ui::{
   app_state::Message,
-  tab::Tab,
   theme,
   typography::{self, Typography},
 };
 
 pub fn status_bar<'a>(
-  active_tab: &Tab,
+  shell: &str,
+  git_branch: Option<&str>,
+  command_start: Option<Instant>,
+  last_command_elapsed: Option<Duration>,
   date_format: &str,
   time_format: &str,
   maximized: bool,
 ) -> Element<'a, Message> {
   let local_now = Local::now();
 
-  let resolved_branch = if let Some(b) = &active_tab.git_branch {
-    b.clone()
-  } else {
-    "".to_string()
-  };
-
   let mut content = row![].spacing(16);
 
-  if !resolved_branch.is_empty() {
-    content = content.push(status_bar_text(format!(" {}", resolved_branch), true));
+  if let Some(branch) = git_branch.filter(|b| !b.is_empty()) {
+    content = content.push(status_bar_text(format!(" {}", branch), true));
   }
 
   content = content
-    .push(status_bar_text(&active_tab.shell, false))
+    .push(status_bar_text(shell, false))
     .push(status_bar_text("utf-8", false));
 
-  if let Some(start) = active_tab.command_start {
+  if let Some(start) = command_start {
     let elapsed = start.elapsed();
     content = content.push(status_bar_text(format_elapsed(elapsed), false));
-  } else if let Some(elapsed) = active_tab.last_command_elapsed {
+  } else if let Some(elapsed) = last_command_elapsed {
     content = content.push(status_bar_text(format_elapsed(elapsed), false));
   }
 

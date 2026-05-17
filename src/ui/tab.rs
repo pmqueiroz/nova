@@ -17,10 +17,22 @@ pub struct SplitPane {
   pub pty_tx: Option<Sender<PtyCommand>>,
   pub pty_alive: bool,
   pub ansi_parser: Parser,
+  pub shell: String,
   pub shell_cmd: String,
   pub pwd: String,
+  pub git_branch: Option<String>,
+  pub current_input: String,
+  pub command_start: Option<Instant>,
+  pub last_command_elapsed: Option<Duration>,
+  pub last_pty_output: Option<Instant>,
   pub scroll_offset: usize,
   pub initial_cwd: String,
+}
+
+impl SplitPane {
+  pub fn update_git_status(&mut self) {
+    self.git_branch = read_git_branch(&self.pwd);
+  }
 }
 
 pub struct Tab {
@@ -109,19 +121,19 @@ pub fn shell_display_name(cmd: &str) -> String {
   }
 }
 
+fn read_git_branch(pwd: &str) -> Option<String> {
+  let head_path = Path::new(pwd).join(".git").join("HEAD");
+  let content = fs::read_to_string(head_path).ok()?;
+  let content = content.trim();
+  if let Some(branch) = content.strip_prefix("ref: refs/heads/") {
+    Some(branch.trim().to_string())
+  } else {
+    Some(content.chars().take(7).collect())
+  }
+}
+
 impl Tab {
   pub fn update_git_status(&mut self) {
-    let head_path = Path::new(&self.pwd).join(".git").join("HEAD");
-
-    if let Ok(content) = fs::read_to_string(head_path) {
-      let content = content.trim();
-
-      if let Some(branch) = content.strip_prefix("ref: refs/heads/") {
-        return self.git_branch = Some(branch.trim().to_string());
-      } else {
-        return self.git_branch = Some(content.chars().take(7).collect());
-      }
-    }
-    self.git_branch = None;
+    self.git_branch = read_git_branch(&self.pwd);
   }
 }

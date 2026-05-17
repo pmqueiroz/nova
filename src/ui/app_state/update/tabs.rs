@@ -124,6 +124,7 @@ impl Nova {
       .unwrap_or(DEFAULT_SCROLLBACK_LIMIT);
     let mut split_grid = Grid::new(cols, rows);
     split_grid.scrollback_limit = scrollback_limit;
+    let shell = shell_display_name(&shell_cmd);
     let tab = &mut self.tabs[self.active_index];
     tab.split = Some(SplitPane {
       id: split_id,
@@ -131,8 +132,14 @@ impl Nova {
       pty_tx: None,
       pty_alive: true,
       ansi_parser: Parser::new(),
+      shell,
       shell_cmd,
       pwd: initial_cwd.clone(),
+      git_branch: None,
+      current_input: String::new(),
+      command_start: None,
+      last_command_elapsed: None,
+      last_pty_output: None,
       scroll_offset: 0,
       initial_cwd,
     });

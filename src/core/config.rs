@@ -326,10 +326,14 @@ pub fn available_shells() -> Vec<String> {
 pub fn detect_shells() -> Vec<String> {
   #[cfg(target_os = "windows")]
   {
+    use std::os::windows::process::CommandExt;
+    const CREATE_NO_WINDOW: u32 = 0x08000000;
+
     let mut shells = vec!["powershell".to_string()];
 
     let has_pwsh = std::process::Command::new("where")
       .arg("pwsh")
+      .creation_flags(CREATE_NO_WINDOW)
       .output()
       .map(|o| o.status.success())
       .unwrap_or(false);
@@ -341,6 +345,7 @@ pub fn detect_shells() -> Vec<String> {
 
     let has_wsl = std::process::Command::new("wsl")
       .args(["--list", "--quiet"])
+      .creation_flags(CREATE_NO_WINDOW)
       .output()
       .map(|o| o.status.success())
       .unwrap_or(false);

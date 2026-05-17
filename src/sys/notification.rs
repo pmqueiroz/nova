@@ -66,6 +66,7 @@ pub fn send(title: &str, body: &str) {
       .body(&body)
       .show()
     {
+      #[cfg(target_os = "linux")]
       handle.wait_for_action(|_| {
         let _ = tx.send_blocking(());
       });

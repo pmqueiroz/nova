@@ -27,6 +27,7 @@ vte = "0.15.0"
 bitflags = "2"
 base64 = "0.22.1"
 bincode = "1"
+notify-rust = "4"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.59", features = [
@@ -34,6 +35,8 @@ windows-sys = { version = "0.59", features = [
   "Win32_System_Console",
   "Win32_Storage_FileSystem",
 ] }
+winreg = "0.52"
+tauri-winrt-notification = "0.7"
 
 [build-dependencies]
 ico = "0.3"

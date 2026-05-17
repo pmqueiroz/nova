@@ -13,6 +13,7 @@ pub fn main() -> ui::Result {
   }
 
   config::init().expect("failed to load config");
+  sys::notification::register();
 
   let c = &config::get().theme.colors;
   ui::theme::color::init_runtime(ui::theme::color::RuntimeTheme {

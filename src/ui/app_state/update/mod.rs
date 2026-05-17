@@ -637,6 +637,12 @@ impl Nova {
         }
         iced::Task::none()
       }
+      Message::NotificationActivated => {
+        if let Some(id) = self.window_id {
+          return iced::window::gain_focus(id);
+        }
+        iced::Task::none()
+      }
       Message::Tick => iced::Task::none(),
       Message::NoOp => iced::Task::none(),
       Message::ClipboardReceived(text) => {

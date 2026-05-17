@@ -98,4 +98,5 @@ pub enum Message {
   SearchNext,
   SearchPrev,
   NoOp,
+  NotificationActivated,
 }

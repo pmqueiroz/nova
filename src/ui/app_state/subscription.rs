@@ -33,6 +33,19 @@ impl PartialEq for PtyKey {
 
 impl Eq for PtyKey {}
 
+fn notification_click_stream() -> impl iced::futures::Stream<Item = Message> {
+  stream::channel(
+    1,
+    |mut output: iced::futures::channel::mpsc::Sender<Message>| async move {
+      use iced::futures::SinkExt;
+      let rx = crate::sys::notification::click_receiver();
+      while rx.recv().await.is_ok() {
+        let _ = output.send(Message::NotificationActivated).await;
+      }
+    },
+  )
+}
+
 fn pty_worker(
   tab_id: usize,
   cols: u16,
@@ -270,6 +283,7 @@ impl Nova {
     let mut subs = Vec::new();
 
     subs.push(time::every(std::time::Duration::from_secs(1)).map(|_| Message::Tick));
+    subs.push(Subscription::run(notification_click_stream));
 
     if self.bell_blink_remaining > 0 {
       subs.push(time::every(std::time::Duration::from_millis(200)).map(|_| Message::BellBlinkTick));

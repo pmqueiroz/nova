@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.20.0](https://github.com/pmqueiroz/nova/compare/v0.19.0...v0.20.0) (2026-05-17)
+
+
+### Features
+
+* add font size keybinds and debounce font resize for performance ([94967ce](https://github.com/pmqueiroz/nova/commit/94967cee6edd979e2dacdc9f58891cf5e825aaf4))
+* close active split pane on Ctrl/Cmd+W instead of entire tab ([24fb272](https://github.com/pmqueiroz/nova/commit/24fb27220cb384c50857e217cd7fb2cd6bd3cb8b))
+* command timing ([ae562b5](https://github.com/pmqueiroz/nova/commit/ae562b5bd99eda3ee3bd894c4d4ab47407389086))
+* configurable scrollback limit ([a6e6a1c](https://github.com/pmqueiroz/nova/commit/a6e6a1c4dc7ad01fd64db6e42e3e551436bbfce6))
+* ctrl-0 reset font size ([878096a](https://github.com/pmqueiroz/nova/commit/878096a9ae8a8744fe4601a02db8d53f98494b55))
+* implement split pane with active indicator and pane management ([8bad7d7](https://github.com/pmqueiroz/nova/commit/8bad7d71f9482ec72c8d6a8998a690618321f28c))
+* notification on completion ([95820f3](https://github.com/pmqueiroz/nova/commit/95820f3621d3fd88763f37be4eaddfbb035e5fd1))
+* resize handle between split panes ([7c8460f](https://github.com/pmqueiroz/nova/commit/7c8460f866393c9d406162024b45b604814edf37))
+* search in scrollback ([309e0ed](https://github.com/pmqueiroz/nova/commit/309e0edb210e8b6a365c46dfe2501ac9d28fc4c8))
+* tab reordering ([91a9973](https://github.com/pmqueiroz/nova/commit/91a99734b80bd55d53bbfd075d2d25f9ab7071f8))
+
+
+### Bug Fixes
+
+* address split pane review feedback ([236ef18](https://github.com/pmqueiroz/nova/commit/236ef18ff19d6b8ad8e648beb75c113c11eb8532))
+* gate Write import behind windows cfg to fix CI clippy ([038ad34](https://github.com/pmqueiroz/nova/commit/038ad346c0cec860dd34ba82831a37d2afade174))
+* prevent evoking diagnostic banner on ctrl c ([c46ab38](https://github.com/pmqueiroz/nova/commit/c46ab3848796ca899a75ed6c295cdd60b2957203))
+* search bar layout shift, debounce, accent border, top-right position ([b042831](https://github.com/pmqueiroz/nova/commit/b04283167fb9d7b496fc18052cb0c25bbcc92005))
+* use per-cell containers with terminal-level clipping for monospace rendering ([440aa01](https://github.com/pmqueiroz/nova/commit/440aa01e87f5824826c7c1464f9afe87d22a29b2))
+
+
+### Performance Improvements
+
+* debounce window resize to reduce grid alloc and PTY thrash ([e27f3bc](https://github.com/pmqueiroz/nova/commit/e27f3bca513f1b785879cea65c3f08465afd24cd))
+
 ## [0.19.0](https://github.com/pmqueiroz/nova/compare/v0.18.3...v0.19.0) (2026-05-14)
 
 

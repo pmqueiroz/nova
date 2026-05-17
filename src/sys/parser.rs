@@ -544,6 +544,9 @@ impl<'a> Perform for AnsiExecutor<'a> {
           2004 => {
             self.grid.bracketed_paste = command == 'h';
           }
+          25 => {
+            self.grid.cursor_visible = command == 'h';
+          }
           _ => {}
         }
       }

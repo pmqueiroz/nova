@@ -93,6 +93,7 @@ const SEARCH_CURRENT_FG: Color = Color {
 fn row_spans(
   row_cells: &[crate::core::grid::Cell],
   cursor_col: Option<usize>,
+  cursor_color: Color,
   y: usize,
   selection: Option<(usize, usize, usize, usize)>,
   font_size: f32,
@@ -119,7 +120,7 @@ fn row_spans(
         .map(|(m, _)| m.get(x).copied().unwrap_or(false))
         .unwrap_or(false);
 
-    let (eff_fg, eff_bg, mut eff_attrs) = if is_selected {
+    let (mut eff_fg, eff_bg, mut eff_attrs) = if is_selected {
       let rt = theme::color::runtime();
       (
         Some(rt.background),
@@ -143,7 +144,6 @@ fn row_spans(
     }
 
     if is_cursor {
-      let cursor_color = theme::color::runtime().cursor;
       if let Some(sugg) = suggestion {
         let max_chars = row_cells.len().saturating_sub(x);
         let mut chars = sugg.chars().take(max_chars);
@@ -168,24 +168,18 @@ fn row_spans(
           }
         }
         break;
+      } else {
+        eff_fg = Some(cursor_color);
+        eff_attrs.insert(crate::core::grid::CellAttrs::UNDERLINE);
       }
-      let ch = if cell.c == ' ' { '_' } else { cell.c };
-      spans.push(
-        Span::new(ch.to_string())
-          .color(cursor_color)
-          .underline(true)
-          .font(theme::font::REGULAR)
-          .size(font_size),
-      );
-    } else {
-      spans.push(cell_span(
-        cell.c.to_string(),
-        eff_fg,
-        eff_bg,
-        eff_attrs,
-        font_size,
-      ));
     }
+    spans.push(cell_span(
+      cell.c.to_string(),
+      eff_fg,
+      eff_bg,
+      eff_attrs,
+      font_size,
+    ));
   }
 
   spans
@@ -207,6 +201,7 @@ pub fn term<'a>(
 
   let cursor_x = grid.cursor_x;
   let cursor_y = grid.cursor_y;
+  let cursor_visible = grid.cursor_visible;
   let scrollback = &grid.scrollback;
   let sb_len = scrollback.len();
   let clamped_offset = scroll_offset.min(sb_len);
@@ -215,6 +210,7 @@ pub fn term<'a>(
   let mut display_y = 0usize;
 
   let line_height = font_size * 1.29;
+  let cursor_color = theme::color::runtime().cursor;
   let render_row = |spans: Vec<Span<'static>>| {
     let mut r = row![].spacing(0);
     for span in spans {
@@ -262,6 +258,7 @@ pub fn term<'a>(
     let segments = row_spans(
       row_cells,
       None,
+      cursor_color,
       viewport_y,
       selection,
       font_size,
@@ -280,7 +277,7 @@ pub fn term<'a>(
     .chunks_exact(grid.cols)
     .enumerate()
   {
-    let cursor_col = if clamped_offset == 0 && y == cursor_y {
+    let cursor_col = if cursor_visible && clamped_offset == 0 && y == cursor_y {
       Some(cursor_x)
     } else {
       None
@@ -295,6 +292,7 @@ pub fn term<'a>(
     let segments = row_spans(
       row_cells,
       cursor_col,
+      cursor_color,
       viewport_y,
       selection,
       font_size,

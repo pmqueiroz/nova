@@ -106,7 +106,10 @@ impl Nova {
       if bytes == b"\r" {
         if !active_tab.current_input.is_empty() {
           let input = std::mem::take(&mut active_tab.current_input);
-          active_tab.grid.push_command(&input);
+          if active_tab.shell_at_prompt {
+            active_tab.grid.push_command(&input);
+            active_tab.shell_at_prompt = false;
+          }
           active_tab.grid.suggestion = None;
           active_tab.grid.input_start_col = None;
           active_tab.grid.input_start_row = None;
@@ -271,6 +274,7 @@ impl Nova {
             }
           }
           ControlCommand::CommandComplete(_code) => {
+            tab.shell_at_prompt = true;
             const NOTIFY_THRESHOLD_SECS: u64 = 10;
             if let Some(start) = tab.command_start.take() {
               let elapsed = tab

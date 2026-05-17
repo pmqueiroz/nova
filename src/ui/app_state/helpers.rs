@@ -197,8 +197,8 @@ pub fn calc_grid_split(
   let char_height = font_size * 1.29;
   let banner_extra = if banner_visible { font_size * 2.5 } else { 0.0 };
   let padding_y = if status_bar_visible { 118.0 } else { 96.0 } + banner_extra;
-  let pane_content_width = ((total_width - 41.0) / 2.0).max(0.0);
-  let cols = (pane_content_width / char_width).floor() as usize;
+  let pane_width = ((total_width - 8.0) / 2.0).max(0.0);
+  let cols = ((pane_width - 40.0).max(0.0) / char_width).floor() as usize;
   let rows = ((height - padding_y) / char_height).max(0.0).floor() as usize;
   (cols.max(10), rows.max(5))
 }
@@ -215,9 +215,9 @@ pub fn calc_grid_split_ratio(
   let char_height = font_size * 1.29;
   let banner_extra = if banner_visible { font_size * 2.5 } else { 0.0 };
   let padding_y = if status_bar_visible { 118.0 } else { 96.0 } + banner_extra;
-  let content_width = (total_width - 41.0).max(0.0);
-  let left_cols = ((content_width * ratio) / char_width).floor() as usize;
-  let right_cols = ((content_width * (1.0 - ratio)) / char_width).floor() as usize;
+  let avail_width = (total_width - 8.0).max(0.0);
+  let left_cols = (((avail_width * ratio) - 40.0).max(0.0) / char_width).floor() as usize;
+  let right_cols = (((avail_width * (1.0 - ratio)) - 40.0).max(0.0) / char_width).floor() as usize;
   let rows = ((height - padding_y) / char_height).max(0.0).floor() as usize;
   (left_cols.max(5), right_cols.max(5), rows.max(5))
 }

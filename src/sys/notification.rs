@@ -1,5 +1,6 @@
 use std::sync::OnceLock;
 
+#[cfg(target_os = "windows")]
 const APP_ID: &str = "com.pmqueiroz.nova";
 
 static CLICK_CHANNEL: OnceLock<(async_channel::Sender<()>, async_channel::Receiver<()>)> =

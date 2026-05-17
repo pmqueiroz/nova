@@ -101,8 +101,8 @@ fn row_spans(
   url_highlight: &[bool],
   suggestion: Option<&str>,
   search_hl: Option<(&[bool], &[bool])>,
-) -> Vec<Span<'static>> {
-  let mut spans: Vec<Span<'static>> = Vec::new();
+) -> Vec<(Span<'static>, Option<Background>)> {
+  let mut cells: Vec<(Span<'static>, Option<Background>)> = Vec::new();
 
   for (x, cell) in row_cells.iter().enumerate() {
     let is_cursor = cursor_col == Some(x);
@@ -148,23 +148,25 @@ fn row_spans(
         let max_chars = row_cells.len().saturating_sub(x);
         let mut chars = sugg.chars().take(max_chars);
         if let Some(first) = chars.next() {
-          spans.push(
+          cells.push((
             Span::new(first.to_string())
               .color(cursor_color)
               .underline(true)
               .font(theme::font::REGULAR)
               .size(font_size),
-          );
+            None,
+          ));
           let rt = theme::color::runtime();
           let mut dim_color = rt.foreground;
           dim_color.a = 0.35;
           for c in chars {
-            spans.push(
+            cells.push((
               Span::new(c.to_string())
                 .color(dim_color)
                 .font(theme::font::REGULAR)
                 .size(font_size),
-            );
+              None,
+            ));
           }
         }
         break;
@@ -173,7 +175,7 @@ fn row_spans(
         eff_attrs.insert(crate::core::grid::CellAttrs::UNDERLINE);
       }
     }
-    spans.push(cell_span(
+    cells.push(cell_span(
       cell.c.to_string(),
       eff_fg,
       eff_bg,
@@ -182,7 +184,7 @@ fn row_spans(
     ));
   }
 
-  spans
+  cells
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -211,19 +213,25 @@ pub fn term<'a>(
 
   let line_height = font_size * 1.29;
   let cursor_color = theme::color::runtime().cursor;
-  let render_row = |spans: Vec<Span<'static>>| {
+  let render_row = |cells: Vec<(Span<'static>, Option<Background>)>| {
     let mut r = row![].spacing(0);
-    for span in spans {
-      r = r.push(
-        container(
-          rich_text([span])
-            .size(font_size)
-            .font(theme::font::REGULAR)
-            .wrapping(text::Wrapping::None),
-        )
-        .width(char_width)
-        .height(line_height),
-      );
+    for (span, bg) in cells {
+      let cell = container(
+        rich_text([span])
+          .size(font_size)
+          .font(theme::font::REGULAR)
+          .wrapping(text::Wrapping::None),
+      )
+      .width(char_width)
+      .height(line_height);
+      r = r.push(if let Some(background) = bg {
+        cell.style(move |_| container::Style {
+          background: Some(background),
+          ..Default::default()
+        })
+      } else {
+        cell
+      });
     }
     r
   };
@@ -331,7 +339,7 @@ fn cell_span(
   bg: Option<Color>,
   attrs: crate::core::grid::CellAttrs,
   font_size: f32,
-) -> Span<'static> {
+) -> (Span<'static>, Option<Background>) {
   let rt = theme::color::runtime();
   let term_fg = rt.foreground;
   let term_bg = rt.background;
@@ -382,34 +390,32 @@ fn cell_span(
     } else {
       fg.unwrap_or(term_fg)
     };
-    Span::new(text)
-      .color(rev_fg)
-      .background(Background::Color(rev_bg))
-      .underline(underline)
-      .strikethrough(strikethrough)
-      .font(font)
-      .size(font_size)
+    (
+      Span::new(text)
+        .color(rev_fg)
+        .underline(underline)
+        .strikethrough(strikethrough)
+        .font(font)
+        .size(font_size),
+      Some(Background::Color(rev_bg)),
+    )
   } else {
     let color = fg.unwrap_or(term_fg);
-    let mut span = Span::new(text)
+    let span = Span::new(text)
       .color(color)
       .underline(underline)
       .strikethrough(strikethrough)
       .font(font)
       .size(font_size);
-    if let Some(bg_color) = bg {
+    let cell_bg = bg.map(|bg_color| {
       let is_selection_like = bg_color.r > 0.85
         && bg_color.g > 0.85
         && bg_color.b > 0.85
         && color.r < 0.3
         && color.g < 0.3
         && color.b < 0.3;
-      if is_selection_like {
-        span = span.background(Background::Color(accent));
-      } else {
-        span = span.background(Background::Color(bg_color));
-      }
-    }
-    span
+      Background::Color(if is_selection_like { accent } else { bg_color })
+    });
+    (span, cell_bg)
   }
 }

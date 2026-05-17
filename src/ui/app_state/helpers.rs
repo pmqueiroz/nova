@@ -6,6 +6,17 @@ use crate::core::config::{self, KeyId, ParsedKeybinding};
 use crate::core::grid;
 
 pub const RESIZE_EDGE: f32 = 8.0;
+pub const SPLIT_DIVIDER_WIDTH: f32 = 8.0;
+
+const CHAR_WIDTH_RATIO: f32 = 0.62;
+const CHAR_HEIGHT_RATIO: f32 = 1.29;
+const BANNER_HEIGHT_RATIO: f32 = 2.5;
+const TERM_PADDING_X: f32 = 40.0;
+const PADDING_Y_WITH_STATUSBAR: f32 = 118.0;
+const PADDING_Y_NO_STATUSBAR: f32 = 96.0;
+const MIN_COLS: usize = 10;
+const MIN_SPLIT_COLS: usize = 5;
+const MIN_ROWS: usize = 5;
 
 pub fn get_display_row(grid: &grid::Grid, scroll_offset: usize, y: usize) -> Option<&[grid::Cell]> {
   let sb_len = grid.scrollback.len();
@@ -177,13 +188,21 @@ pub fn calc_grid(
   status_bar_visible: bool,
   banner_visible: bool,
 ) -> (usize, usize) {
-  let char_width = font_size * 0.62;
-  let char_height = font_size * 1.29;
-  let banner_extra = if banner_visible { font_size * 2.5 } else { 0.0 };
-  let padding_y = if status_bar_visible { 118.0 } else { 96.0 } + banner_extra;
-  let cols = ((width - 40.0) / char_width).floor() as usize;
+  let char_width = font_size * CHAR_WIDTH_RATIO;
+  let char_height = font_size * CHAR_HEIGHT_RATIO;
+  let banner_extra = if banner_visible {
+    font_size * BANNER_HEIGHT_RATIO
+  } else {
+    0.0
+  };
+  let padding_y = if status_bar_visible {
+    PADDING_Y_WITH_STATUSBAR
+  } else {
+    PADDING_Y_NO_STATUSBAR
+  } + banner_extra;
+  let cols = ((width - TERM_PADDING_X) / char_width).floor() as usize;
   let rows = ((height - padding_y) / char_height).floor() as usize;
-  (cols.max(10), rows.max(5))
+  (cols.max(MIN_COLS), rows.max(MIN_ROWS))
 }
 
 pub fn calc_grid_split(
@@ -193,14 +212,22 @@ pub fn calc_grid_split(
   status_bar_visible: bool,
   banner_visible: bool,
 ) -> (usize, usize) {
-  let char_width = font_size * 0.62;
-  let char_height = font_size * 1.29;
-  let banner_extra = if banner_visible { font_size * 2.5 } else { 0.0 };
-  let padding_y = if status_bar_visible { 118.0 } else { 96.0 } + banner_extra;
-  let pane_width = ((total_width - 8.0) / 2.0).max(0.0);
-  let cols = ((pane_width - 40.0).max(0.0) / char_width).floor() as usize;
+  let char_width = font_size * CHAR_WIDTH_RATIO;
+  let char_height = font_size * CHAR_HEIGHT_RATIO;
+  let banner_extra = if banner_visible {
+    font_size * BANNER_HEIGHT_RATIO
+  } else {
+    0.0
+  };
+  let padding_y = if status_bar_visible {
+    PADDING_Y_WITH_STATUSBAR
+  } else {
+    PADDING_Y_NO_STATUSBAR
+  } + banner_extra;
+  let pane_width = ((total_width - SPLIT_DIVIDER_WIDTH) / 2.0).max(0.0);
+  let cols = ((pane_width - TERM_PADDING_X).max(0.0) / char_width).floor() as usize;
   let rows = ((height - padding_y) / char_height).max(0.0).floor() as usize;
-  (cols.max(10), rows.max(5))
+  (cols.max(MIN_COLS), rows.max(MIN_ROWS))
 }
 
 pub fn calc_grid_split_ratio(
@@ -211,15 +238,28 @@ pub fn calc_grid_split_ratio(
   banner_visible: bool,
   ratio: f32,
 ) -> (usize, usize, usize) {
-  let char_width = font_size * 0.62;
-  let char_height = font_size * 1.29;
-  let banner_extra = if banner_visible { font_size * 2.5 } else { 0.0 };
-  let padding_y = if status_bar_visible { 118.0 } else { 96.0 } + banner_extra;
-  let avail_width = (total_width - 8.0).max(0.0);
-  let left_cols = (((avail_width * ratio) - 40.0).max(0.0) / char_width).floor() as usize;
-  let right_cols = (((avail_width * (1.0 - ratio)) - 40.0).max(0.0) / char_width).floor() as usize;
+  let char_width = font_size * CHAR_WIDTH_RATIO;
+  let char_height = font_size * CHAR_HEIGHT_RATIO;
+  let banner_extra = if banner_visible {
+    font_size * BANNER_HEIGHT_RATIO
+  } else {
+    0.0
+  };
+  let padding_y = if status_bar_visible {
+    PADDING_Y_WITH_STATUSBAR
+  } else {
+    PADDING_Y_NO_STATUSBAR
+  } + banner_extra;
+  let avail_width = (total_width - SPLIT_DIVIDER_WIDTH).max(0.0);
+  let left_cols = (((avail_width * ratio) - TERM_PADDING_X).max(0.0) / char_width).floor() as usize;
+  let right_cols =
+    (((avail_width * (1.0 - ratio)) - TERM_PADDING_X).max(0.0) / char_width).floor() as usize;
   let rows = ((height - padding_y) / char_height).max(0.0).floor() as usize;
-  (left_cols.max(5), right_cols.max(5), rows.max(5))
+  (
+    left_cols.max(MIN_SPLIT_COLS),
+    right_cols.max(MIN_SPLIT_COLS),
+    rows.max(MIN_ROWS),
+  )
 }
 
 pub fn pixel_to_cell(pos: Point, font_size: f32) -> Option<(usize, usize)> {
@@ -228,8 +268,8 @@ pub fn pixel_to_cell(pos: Point, font_size: f32) -> Option<(usize, usize)> {
   if pos.y < Y_ORIGIN || pos.x < X_ORIGIN {
     return None;
   }
-  let col = ((pos.x - X_ORIGIN) / (font_size * 0.62)).floor() as usize;
-  let row = ((pos.y - Y_ORIGIN) / (font_size * 1.29)).floor() as usize;
+  let col = ((pos.x - X_ORIGIN) / (font_size * CHAR_WIDTH_RATIO)).floor() as usize;
+  let row = ((pos.y - Y_ORIGIN) / (font_size * CHAR_HEIGHT_RATIO)).floor() as usize;
   Some((col, row))
 }
 

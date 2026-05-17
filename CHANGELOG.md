@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.1](https://github.com/pmqueiroz/nova/compare/v0.21.0...v0.21.1) (2026-05-17)
+
+
+### Bug Fixes
+
+* **notification:** guard wait_for_action behind linux-only cfg ([d85bf35](https://github.com/pmqueiroz/nova/commit/d85bf35a25de2a7107ba348ddf4aafa34ed47c81))
+
 ## [0.21.0](https://github.com/pmqueiroz/nova/compare/v0.20.0...v0.21.0) (2026-05-17)
 
 

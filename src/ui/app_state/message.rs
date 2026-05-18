@@ -83,6 +83,8 @@ pub enum Message {
   SettingsWindowControlsChanged(config::WindowControls),
   SettingsCursorStyleChanged(config::CursorStyle),
   SettingsCursorBlinkToggled(bool),
+  SettingsInitialCommandChanged(String),
+  SettingsWaitAfterCommandToggled(bool),
   DiagnosticBannerResponse(Result<String, String>),
   DiagnosticBannerCommand(String),
   SettingsDiagnosticBannerToggled(bool),

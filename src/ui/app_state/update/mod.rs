@@ -632,6 +632,16 @@ impl Nova {
         let _ = config::save(&self.settings);
         iced::Task::none()
       }
+      Message::SettingsInitialCommandChanged(s) => {
+        self.settings.general.initial_command = if s.trim().is_empty() { None } else { Some(s) };
+        let _ = config::save(&self.settings);
+        iced::Task::none()
+      }
+      Message::SettingsWaitAfterCommandToggled(enabled) => {
+        self.settings.general.wait_after_command = enabled;
+        let _ = config::save(&self.settings);
+        iced::Task::none()
+      }
       Message::SettingsAiBaseUrlChanged(s) => {
         self.settings.ai.base_url = if s.trim().is_empty() { None } else { Some(s) };
         let _ = config::save(&self.settings);

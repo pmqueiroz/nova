@@ -124,6 +124,7 @@ impl Nova {
       .unwrap_or(DEFAULT_SCROLLBACK_LIMIT);
     let mut split_grid = Grid::new(cols, rows);
     split_grid.scrollback_limit = scrollback_limit;
+    split_grid.pwd = initial_cwd.clone();
     let shell = shell_display_name(&shell_cmd);
     let tab = &mut self.tabs[self.active_index];
     tab.split = Some(SplitPane {
@@ -144,6 +145,9 @@ impl Nova {
       initial_cwd,
     });
     tab.active_pane_is_split = true;
+    if let Some(split) = &mut tab.split {
+      split.update_git_status();
+    }
 
     let (primary_cols, primary_rows) = calc_grid_split(
       self.window_size.width,

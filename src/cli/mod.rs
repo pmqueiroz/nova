@@ -19,6 +19,10 @@ pub fn run_from_env() -> Option<i32> {
       eprint!("{}", help::usage());
       Some(0)
     }
+    Some("--version") | Some("-v") => {
+      eprintln!("nova {}", env!("CARGO_PKG_VERSION"));
+      Some(0)
+    }
     Some("ask") => Some(commands::ask::run(args.get(1..).unwrap_or_default())),
     Some("explain") => Some(commands::explain::run(args.get(1..).unwrap_or_default())),
     Some(cmd) => {

@@ -47,32 +47,26 @@ impl Default for Nova {
       false,
     );
     let mut nova = Self {
-      tabs: vec![Tab::new(
-        0,
-        cols,
-        rows,
-        default_shell,
-        {
-          let cur = std::env::current_dir().ok();
-          let exe_dir = std::env::current_exe()
-            .ok()
-            .and_then(|e| e.parent().map(|p| p.to_path_buf()));
-          let in_install_dir = cur
-            .as_ref()
-            .zip(exe_dir.as_ref())
-            .map(|(c, e)| c == e)
-            .unwrap_or(false);
-          if in_install_dir {
-            dirs::home_dir()
-              .and_then(|p| p.into_os_string().into_string().ok())
-              .unwrap_or_default()
-          } else {
-            cur
-              .and_then(|p| p.into_os_string().into_string().ok())
-              .unwrap_or_default()
-          }
-        },
-      )],
+      tabs: vec![Tab::new(0, cols, rows, default_shell, {
+        let cur = std::env::current_dir().ok();
+        let exe_dir = std::env::current_exe()
+          .ok()
+          .and_then(|e| e.parent().map(|p| p.to_path_buf()));
+        let in_install_dir = cur
+          .as_ref()
+          .zip(exe_dir.as_ref())
+          .map(|(c, e)| c == e)
+          .unwrap_or(false);
+        if in_install_dir {
+          dirs::home_dir()
+            .and_then(|p| p.into_os_string().into_string().ok())
+            .unwrap_or_default()
+        } else {
+          cur
+            .and_then(|p| p.into_os_string().into_string().ok())
+            .unwrap_or_default()
+        }
+      })],
       active_index: 0,
       next_tab_id: 1,
       window_id: None,

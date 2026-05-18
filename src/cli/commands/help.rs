@@ -1,3 +1,13 @@
 pub fn usage() -> &'static str {
-  "nova <command>\n\nCommands:\n  ask      Open Ask AI modal (Nova terminal only)\n  explain  Explain output using AI (Nova terminal only)\n  help     Show this help\n\nFlags:\n  --version, -v  Print version\n"
+  "nova <command>
+
+Commands:
+  ask      Open Ask AI modal (Nova terminal only)
+  config   View or set configuration values
+  explain  Explain output using AI (Nova terminal only)
+  help     Show this help
+
+Flags:
+  --version, -v  Print version
+"
 }

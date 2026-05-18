@@ -2,10 +2,13 @@ use iced::{
   Background, Color, Element, Length, Padding,
   widget::{
     column, container, rich_text, row,
+    space::Space,
+    stack,
     text::{self, Span},
   },
 };
 
+use crate::core::config::CursorStyle;
 use crate::core::grid::Grid;
 use crate::core::url::detect_urls;
 use crate::ui::{app_state::Message, theme};
@@ -95,6 +98,8 @@ fn row_spans(
   row_cells: &[crate::core::grid::Cell],
   cursor_col: Option<usize>,
   cursor_color: Color,
+  cursor_style: CursorStyle,
+  cursor_visible: bool,
   y: usize,
   selection: Option<(usize, usize, usize, usize)>,
   font_size: f32,
@@ -102,8 +107,8 @@ fn row_spans(
   url_highlight: &[bool],
   suggestion: Option<&str>,
   search_hl: Option<(&[bool], &[bool])>,
-) -> Vec<(Span<'static>, Option<Background>, u8)> {
-  let mut cells: Vec<(Span<'static>, Option<Background>, u8)> = Vec::new();
+) -> Vec<(Span<'static>, Option<Background>, u8, Option<Color>)> {
+  let mut cells: Vec<(Span<'static>, Option<Background>, u8, Option<Color>)> = Vec::new();
 
   for (x, cell) in row_cells.iter().enumerate() {
     if cell.width == 0 {
@@ -125,7 +130,7 @@ fn row_spans(
         .map(|(m, _)| m.get(x).copied().unwrap_or(false))
         .unwrap_or(false);
 
-    let (mut eff_fg, eff_bg, mut eff_attrs) = if is_selected {
+    let (mut eff_fg, mut eff_bg, mut eff_attrs) = if is_selected {
       let rt = theme::color::runtime();
       (
         Some(rt.background),
@@ -148,7 +153,7 @@ fn row_spans(
       eff_attrs.insert(crate::core::grid::CellAttrs::UNDERLINE);
     }
 
-    if is_cursor {
+    if is_cursor && cursor_visible {
       if let Some(sugg) = suggestion {
         let max_chars = row_cells.len().saturating_sub(x);
         let mut chars = sugg.chars().take(max_chars);
@@ -161,6 +166,7 @@ fn row_spans(
               .size(font_size),
             None,
             1u8,
+            None,
           ));
           let rt = theme::color::runtime();
           let mut dim_color = rt.foreground;
@@ -173,17 +179,30 @@ fn row_spans(
                 .size(font_size),
               None,
               1u8,
+              None,
             ));
           }
         }
         break;
       } else {
-        eff_fg = Some(cursor_color);
-        eff_attrs.insert(crate::core::grid::CellAttrs::UNDERLINE);
+        match cursor_style {
+          CursorStyle::Block => {
+            eff_bg = Some(cursor_color);
+          }
+          CursorStyle::Beam => {
+            let (span, bg) = cell_span(cell.c.to_string(), cell.fg, cell.bg, cell.attrs, font_size);
+            cells.push((span, bg, cell.width, Some(cursor_color)));
+            continue;
+          }
+          CursorStyle::Underline => {
+            eff_fg = Some(cursor_color);
+            eff_attrs.insert(crate::core::grid::CellAttrs::UNDERLINE);
+          }
+        }
       }
     }
     let (span, bg) = cell_span(cell.c.to_string(), eff_fg, eff_bg, eff_attrs, font_size);
-    cells.push((span, bg, cell.width));
+    cells.push((span, bg, cell.width, None));
   }
 
   cells
@@ -199,6 +218,8 @@ pub fn term<'a>(
   hovered_link_span: Option<(usize, usize, usize)>,
   search_matches: &[(bool, usize, usize, usize)],
   search_current: Option<usize>,
+  cursor_style: CursorStyle,
+  cursor_blink_visible: bool,
 ) -> Element<'a, Message> {
   let mut grid_ui = column![].spacing(0);
   let char_width = font_size * 0.62;
@@ -215,10 +236,10 @@ pub fn term<'a>(
 
   let line_height = font_size * 1.29;
   let cursor_color = theme::color::runtime().cursor;
-  let render_row = |cells: Vec<(Span<'static>, Option<Background>, u8)>| {
+  let render_row = |cells: Vec<(Span<'static>, Option<Background>, u8, Option<Color>)>| {
     let mut r = row![].spacing(0);
-    for (span, bg, col_width) in cells {
-      let cell = container(
+    for (span, bg, col_width, beam_color) in cells {
+      let content = container(
         rich_text([span])
           .size(font_size)
           .font(theme::font::REGULAR)
@@ -226,6 +247,20 @@ pub fn term<'a>(
       )
       .width(char_width * col_width as f32)
       .height(line_height);
+      let cell = if let Some(beam) = beam_color {
+        let bar = container(Space::new())
+          .width(2.0)
+          .height(line_height)
+          .style(move |_| container::Style {
+            background: Some(beam.into()),
+            ..Default::default()
+          });
+        container(stack![content, bar])
+          .width(char_width * col_width as f32)
+          .height(line_height)
+      } else {
+        content
+      };
       r = r.push(if let Some(background) = bg {
         cell.style(move |_| container::Style {
           background: Some(background),
@@ -269,6 +304,8 @@ pub fn term<'a>(
       row_cells,
       None,
       cursor_color,
+      cursor_style,
+      cursor_blink_visible,
       viewport_y,
       selection,
       font_size,
@@ -303,6 +340,8 @@ pub fn term<'a>(
       row_cells,
       cursor_col,
       cursor_color,
+      cursor_style,
+      cursor_blink_visible,
       viewport_y,
       selection,
       font_size,

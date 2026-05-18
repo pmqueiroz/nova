@@ -126,10 +126,45 @@ impl std::fmt::Display for BellType {
   }
 }
 
+#[derive(Deserialize, Serialize, Debug, Clone, Copy, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub enum CursorStyle {
+  Block,
+  Beam,
+  Underline,
+}
+
+impl std::fmt::Display for CursorStyle {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    match self {
+      CursorStyle::Block => write!(f, "Block"),
+      CursorStyle::Beam => write!(f, "Beam"),
+      CursorStyle::Underline => write!(f, "Underline"),
+    }
+  }
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct CursorConfig {
+  pub style: CursorStyle,
+  pub blink: bool,
+}
+
+impl Default for CursorConfig {
+  fn default() -> Self {
+    Self {
+      style: CursorStyle::Underline,
+      blink: true,
+    }
+  }
+}
+
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct ThemeConfig {
   pub font: FontConfig,
   pub colors: ThemeColorsConfig,
+  #[serde(default)]
+  pub cursor: CursorConfig,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]

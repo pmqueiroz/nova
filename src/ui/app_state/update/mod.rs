@@ -96,6 +96,7 @@ impl Default for Nova {
       ai_pending_diagnostic: None,
       bell_blink_visible: true,
       bell_blink_remaining: 0,
+      cursor_blink_visible: true,
       resize_generation: 0,
       font_resize_generation: 0,
       default_font_size: cfg.theme.font.size,
@@ -578,6 +579,19 @@ impl Nova {
         let _ = config::save(&self.settings);
         iced::Task::none()
       }
+      Message::SettingsCursorStyleChanged(style) => {
+        self.settings.theme.cursor.style = style;
+        let _ = config::save(&self.settings);
+        iced::Task::none()
+      }
+      Message::SettingsCursorBlinkToggled(enabled) => {
+        self.settings.theme.cursor.blink = enabled;
+        if !enabled {
+          self.cursor_blink_visible = true;
+        }
+        let _ = config::save(&self.settings);
+        iced::Task::none()
+      }
       Message::SettingsAiBaseUrlChanged(s) => {
         self.settings.ai.base_url = if s.trim().is_empty() { None } else { Some(s) };
         let _ = config::save(&self.settings);
@@ -590,6 +604,14 @@ impl Nova {
           if self.bell_blink_remaining == 0 {
             self.bell_blink_visible = true;
           }
+        }
+        iced::Task::none()
+      }
+      Message::CursorBlinkTick => {
+        if self.settings.theme.cursor.blink {
+          self.cursor_blink_visible = !self.cursor_blink_visible;
+        } else {
+          self.cursor_blink_visible = true;
         }
         iced::Task::none()
       }

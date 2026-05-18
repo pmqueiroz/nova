@@ -801,7 +801,6 @@ mod tests {
   #[test]
   fn combining_accent_appended_to_base() {
     let mut grid = make_grid(10, 5);
-    // 'e' followed by combining acute accent U+0301
     print_str(&mut grid, "e\u{0301}");
     assert_eq!(grid.cells[0].c.as_ref(), "e\u{0301}");
     assert_eq!(grid.cells[0].width, 1);
@@ -811,7 +810,6 @@ mod tests {
   #[test]
   fn zwj_emoji_sequence_in_single_cell() {
     let mut grid = make_grid(20, 5);
-    // man + ZWJ + woman (👨‍👩)
     print_str(&mut grid, "\u{1F468}\u{200D}\u{1F469}");
     assert_eq!(grid.cells[0].c.as_ref(), "\u{1F468}\u{200D}\u{1F469}");
     assert_eq!(grid.cells[0].width, 2);
@@ -822,9 +820,7 @@ mod tests {
   #[test]
   fn wide_char_at_line_end_wraps() {
     let mut grid = make_grid(3, 5);
-    // fill cols 0,1 with 'a','b', then wide char won't fit in col 2 alone
     print_str(&mut grid, "ab中");
-    // 'a' at (0,0), 'b' at (0,1), wide char wraps to row 1
     assert_eq!(grid.cells[0].c.as_ref(), "a");
     assert_eq!(grid.cells[1].c.as_ref(), "b");
     let row1_start = 3;
@@ -848,7 +844,6 @@ mod tests {
   #[test]
   fn family_emoji_zwj_sequence() {
     let mut grid = make_grid(20, 5);
-    // 👨‍👩‍👧‍👦 (man + ZWJ + woman + ZWJ + girl + ZWJ + boy)
     let family = "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}";
     print_str(&mut grid, family);
     assert_eq!(grid.cells[0].c.as_ref(), family);

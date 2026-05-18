@@ -19,6 +19,10 @@ foreground-muted = "#666666"
 border = "#FFFFFF12"
 cursor = "#3ECF8E"
 
+[theme.cursor]
+style = "underline"
+blink = true
+
 [keybindings]
 new-tab = "cmd+t"
 close-tab = "cmd+w"

@@ -2979,6 +2979,7 @@ dependencies = [
  "tauri-winrt-notification",
  "tokio",
  "toml 0.8.23",
+ "unicode-width",
  "vte",
  "windows-sys 0.59.0",
  "winreg 0.52.0",

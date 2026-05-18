@@ -50,7 +50,8 @@ fn compute_url_highlight(
         return v;
       };
       let mut i = scan_from;
-      while i < row_cells.len() && !is_url_terminator(row_cells[i].c) {
+      while i < row_cells.len() && !is_url_terminator(row_cells[i].c.chars().next().unwrap_or(' '))
+      {
         v[i] = true;
         i += 1;
       }
@@ -101,10 +102,14 @@ fn row_spans(
   url_highlight: &[bool],
   suggestion: Option<&str>,
   search_hl: Option<(&[bool], &[bool])>,
-) -> Vec<(Span<'static>, Option<Background>)> {
-  let mut cells: Vec<(Span<'static>, Option<Background>)> = Vec::new();
+) -> Vec<(Span<'static>, Option<Background>, u8)> {
+  let mut cells: Vec<(Span<'static>, Option<Background>, u8)> = Vec::new();
 
   for (x, cell) in row_cells.iter().enumerate() {
+    if cell.width == 0 {
+      continue;
+    }
+
     let is_cursor = cursor_col == Some(x);
     let is_selected = in_selection(x, y, selection);
     let is_url_hovered = if let Some(hover) = hovered_url {
@@ -155,6 +160,7 @@ fn row_spans(
               .font(theme::font::REGULAR)
               .size(font_size),
             None,
+            1u8,
           ));
           let rt = theme::color::runtime();
           let mut dim_color = rt.foreground;
@@ -166,6 +172,7 @@ fn row_spans(
                 .font(theme::font::REGULAR)
                 .size(font_size),
               None,
+              1u8,
             ));
           }
         }
@@ -175,13 +182,8 @@ fn row_spans(
         eff_attrs.insert(crate::core::grid::CellAttrs::UNDERLINE);
       }
     }
-    cells.push(cell_span(
-      cell.c.to_string(),
-      eff_fg,
-      eff_bg,
-      eff_attrs,
-      font_size,
-    ));
+    let (span, bg) = cell_span(cell.c.to_string(), eff_fg, eff_bg, eff_attrs, font_size);
+    cells.push((span, bg, cell.width));
   }
 
   cells
@@ -213,16 +215,16 @@ pub fn term<'a>(
 
   let line_height = font_size * 1.29;
   let cursor_color = theme::color::runtime().cursor;
-  let render_row = |cells: Vec<(Span<'static>, Option<Background>)>| {
+  let render_row = |cells: Vec<(Span<'static>, Option<Background>, u8)>| {
     let mut r = row![].spacing(0);
-    for (span, bg) in cells {
+    for (span, bg, col_width) in cells {
       let cell = container(
         rich_text([span])
           .size(font_size)
           .font(theme::font::REGULAR)
           .wrapping(text::Wrapping::None),
       )
-      .width(char_width)
+      .width(char_width * col_width as f32)
       .height(line_height);
       r = r.push(if let Some(background) = bg {
         cell.style(move |_| container::Style {

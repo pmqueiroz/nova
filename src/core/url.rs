@@ -6,7 +6,7 @@ fn is_url_terminator(c: char) -> bool {
 
 pub fn url_continuation_len(cells: &[Cell]) -> usize {
   let mut end = 0;
-  while end < cells.len() && !is_url_terminator(cells[end].c) {
+  while end < cells.len() && !is_url_terminator(cells[end].c.chars().next().unwrap_or(' ')) {
     end += 1;
   }
   end
@@ -28,10 +28,20 @@ pub fn detect_urls(cells: &[Cell]) -> Vec<(usize, usize, String)> {
       continue;
     }
 
-    let prefix_len = if cells[i].c == 'h' {
-      if i + 8 <= n && cells[i..i + 8].iter().map(|c| c.c).eq("https://".chars()) {
+    let prefix_len = if cells[i].c.starts_with('h') {
+      if i + 8 <= n
+        && cells[i..i + 8]
+          .iter()
+          .map(|c| c.c.chars().next().unwrap_or('\0'))
+          .eq("https://".chars())
+      {
         8
-      } else if i + 7 <= n && cells[i..i + 7].iter().map(|c| c.c).eq("http://".chars()) {
+      } else if i + 7 <= n
+        && cells[i..i + 7]
+          .iter()
+          .map(|c| c.c.chars().next().unwrap_or('\0'))
+          .eq("http://".chars())
+      {
         7
       } else {
         0
@@ -46,12 +56,12 @@ pub fn detect_urls(cells: &[Cell]) -> Vec<(usize, usize, String)> {
     }
 
     let mut end = i + prefix_len;
-    while end < n && !is_url_terminator(cells[end].c) {
+    while end < n && !is_url_terminator(cells[end].c.chars().next().unwrap_or(' ')) {
       end += 1;
     }
 
     if end > i + prefix_len {
-      let url: String = cells[i..end].iter().map(|c| c.c).collect();
+      let url: String = cells[i..end].iter().flat_map(|c| c.c.chars()).collect();
       results.push((i, end - 1, url));
       i = end;
     } else {

@@ -66,10 +66,96 @@ pub struct AnsiExecutor<'a> {
 
 impl<'a> Perform for AnsiExecutor<'a> {
   fn print(&mut self, c: char) {
+    use unicode_width::UnicodeWidthChar;
+
+    let char_width = c.width().unwrap_or(1) as u8;
+
+    if char_width == 0 {
+      let x = self.grid.cursor_x;
+      let y = self.grid.cursor_y;
+      let (bx, by) = if self.grid.wrap_next {
+        let w = self.grid.cells[y * self.grid.cols + x].width;
+        if w == 0 && x > 0 { (x - 1, y) } else { (x, y) }
+      } else if x > 0 {
+        let px = x - 1;
+        let pw = self.grid.cells[y * self.grid.cols + px].width;
+        if pw == 0 && px > 0 {
+          (px - 1, y)
+        } else {
+          (px, y)
+        }
+      } else if y > 0 {
+        let lx = self.grid.cols - 1;
+        let pw = self.grid.cells[(y - 1) * self.grid.cols + lx].width;
+        if pw == 0 && lx > 0 {
+          (lx - 1, y - 1)
+        } else {
+          (lx, y - 1)
+        }
+      } else {
+        return;
+      };
+      let base = self.grid.cell_mut(by, bx);
+      let mut s = base.c.to_string();
+      s.push(c);
+      base.c = s.into_boxed_str();
+      return;
+    }
+
+    {
+      let x = self.grid.cursor_x;
+      let y = self.grid.cursor_y;
+      let (bx, by) = if self.grid.wrap_next {
+        let w = self.grid.cells[y * self.grid.cols + x].width;
+        if w == 0 && x > 0 { (x - 1, y) } else { (x, y) }
+      } else if x > 0 {
+        let px = x - 1;
+        let pw = self.grid.cells[y * self.grid.cols + px].width;
+        if pw == 0 && px > 0 {
+          (px - 1, y)
+        } else {
+          (px, y)
+        }
+      } else {
+        (usize::MAX, 0)
+      };
+      if bx != usize::MAX
+        && self.grid.cells[by * self.grid.cols + bx]
+          .c
+          .ends_with('\u{200D}')
+      {
+        let base = self.grid.cell_mut(by, bx);
+        let mut s = base.c.to_string();
+        s.push(c);
+        base.c = s.into_boxed_str();
+        return;
+      }
+    }
+
     if self.grid.wrap_next {
       self.grid.cursor_x = 0;
       self.grid.newline();
       self.grid.wrap_next = false;
+      if self.grid.cursor_y < self.grid.rows {
+        self.grid.row_continuation[self.grid.cursor_y] = true;
+      }
+    }
+
+    if char_width == 2 && self.grid.cursor_x + 1 >= self.grid.cols {
+      let x = self.grid.cursor_x;
+      let y = self.grid.cursor_y;
+      if x < self.grid.cols && y < self.grid.rows {
+        *self.grid.cell_mut(y, x) = crate::core::grid::Cell {
+          c: Box::from(" "),
+          width: 1,
+          fg: self.grid.current_fg,
+          bg: self.grid.current_bg,
+          attrs: self.grid.current_attrs,
+          uri: self.grid.current_uri.clone(),
+        };
+      }
+      self.grid.cursor_x = 0;
+      self.grid.newline();
       if self.grid.cursor_y < self.grid.rows {
         self.grid.row_continuation[self.grid.cursor_y] = true;
       }
@@ -80,16 +166,30 @@ impl<'a> Perform for AnsiExecutor<'a> {
 
     if x < self.grid.cols && y < self.grid.rows {
       *self.grid.cell_mut(y, x) = crate::core::grid::Cell {
-        c,
+        c: c.to_string().into_boxed_str(),
+        width: char_width,
         fg: self.grid.current_fg,
         bg: self.grid.current_bg,
         attrs: self.grid.current_attrs,
         uri: self.grid.current_uri.clone(),
       };
-      if x + 1 >= self.grid.cols {
+
+      if char_width == 2 && x + 1 < self.grid.cols {
+        *self.grid.cell_mut(y, x + 1) = crate::core::grid::Cell {
+          c: Box::from(""),
+          width: 0,
+          fg: self.grid.current_fg,
+          bg: self.grid.current_bg,
+          attrs: self.grid.current_attrs,
+          uri: self.grid.current_uri.clone(),
+        };
+      }
+
+      let next_x = x + char_width as usize;
+      if next_x >= self.grid.cols {
         self.grid.wrap_next = true;
       } else {
-        self.grid.cursor_x += 1;
+        self.grid.cursor_x = next_x;
       }
     }
   }
@@ -656,5 +756,103 @@ impl<'a> Perform for AnsiExecutor<'a> {
       }
       _ => {}
     }
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use crate::core::grid::Grid;
+  use vte::Parser;
+
+  fn make_grid(cols: usize, rows: usize) -> Grid {
+    Grid::new(cols, rows)
+  }
+
+  fn print_str(grid: &mut Grid, s: &str) {
+    let mut parser = Parser::new();
+    let mut exec = AnsiExecutor {
+      grid,
+      bell_pending: false,
+    };
+    parser.advance(&mut exec, s.as_bytes());
+  }
+
+  #[test]
+  fn ascii_char_width_and_cursor() {
+    let mut grid = make_grid(10, 5);
+    print_str(&mut grid, "A");
+    assert_eq!(grid.cells[0].c.as_ref(), "A");
+    assert_eq!(grid.cells[0].width, 1);
+    assert_eq!(grid.cursor_x, 1);
+  }
+
+  #[test]
+  fn cjk_wide_char_occupies_two_columns() {
+    let mut grid = make_grid(10, 5);
+    print_str(&mut grid, "中");
+    assert_eq!(grid.cells[0].c.as_ref(), "中");
+    assert_eq!(grid.cells[0].width, 2);
+    assert_eq!(grid.cells[1].width, 0);
+    assert_eq!(grid.cells[1].c.as_ref(), "");
+    assert_eq!(grid.cursor_x, 2);
+  }
+
+  #[test]
+  fn combining_accent_appended_to_base() {
+    let mut grid = make_grid(10, 5);
+    // 'e' followed by combining acute accent U+0301
+    print_str(&mut grid, "e\u{0301}");
+    assert_eq!(grid.cells[0].c.as_ref(), "e\u{0301}");
+    assert_eq!(grid.cells[0].width, 1);
+    assert_eq!(grid.cursor_x, 1);
+  }
+
+  #[test]
+  fn zwj_emoji_sequence_in_single_cell() {
+    let mut grid = make_grid(20, 5);
+    // man + ZWJ + woman (👨‍👩)
+    print_str(&mut grid, "\u{1F468}\u{200D}\u{1F469}");
+    assert_eq!(grid.cells[0].c.as_ref(), "\u{1F468}\u{200D}\u{1F469}");
+    assert_eq!(grid.cells[0].width, 2);
+    assert_eq!(grid.cells[1].width, 0);
+    assert_eq!(grid.cursor_x, 2);
+  }
+
+  #[test]
+  fn wide_char_at_line_end_wraps() {
+    let mut grid = make_grid(3, 5);
+    // fill cols 0,1 with 'a','b', then wide char won't fit in col 2 alone
+    print_str(&mut grid, "ab中");
+    // 'a' at (0,0), 'b' at (0,1), wide char wraps to row 1
+    assert_eq!(grid.cells[0].c.as_ref(), "a");
+    assert_eq!(grid.cells[1].c.as_ref(), "b");
+    let row1_start = 3;
+    assert_eq!(grid.cells[row1_start].c.as_ref(), "中");
+    assert_eq!(grid.cells[row1_start].width, 2);
+    assert_eq!(grid.cursor_x, 2);
+    assert_eq!(grid.cursor_y, 1);
+  }
+
+  #[test]
+  fn multiple_wide_chars_cursor_tracking() {
+    let mut grid = make_grid(10, 5);
+    print_str(&mut grid, "你好");
+    assert_eq!(grid.cells[0].c.as_ref(), "你");
+    assert_eq!(grid.cells[0].width, 2);
+    assert_eq!(grid.cells[2].c.as_ref(), "好");
+    assert_eq!(grid.cells[2].width, 2);
+    assert_eq!(grid.cursor_x, 4);
+  }
+
+  #[test]
+  fn family_emoji_zwj_sequence() {
+    let mut grid = make_grid(20, 5);
+    // 👨‍👩‍👧‍👦 (man + ZWJ + woman + ZWJ + girl + ZWJ + boy)
+    let family = "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}";
+    print_str(&mut grid, family);
+    assert_eq!(grid.cells[0].c.as_ref(), family);
+    assert_eq!(grid.cells[0].width, 2);
+    assert_eq!(grid.cursor_x, 2);
   }
 }

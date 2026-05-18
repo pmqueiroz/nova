@@ -47,7 +47,7 @@ pub fn stitch_continuation(
     if cont == 0 {
       break;
     }
-    url.extend(cells[..cont].iter().map(|c| c.c));
+    url.extend(cells[..cont].iter().flat_map(|c| c.c.chars()));
     end_row = r;
     if cont < cells.len() {
       break;
@@ -120,12 +120,18 @@ pub fn normalize_sel(
 pub fn find_word_boundaries(row_cells: &[grid::Cell], col: usize) -> (usize, usize) {
   let is_word = |c: char| c.is_alphanumeric() || c == '_';
   let col = col.min(row_cells.len().saturating_sub(1));
-  let clicked_is_word = row_cells.get(col).map(|c| is_word(c.c)).unwrap_or(false);
+  let clicked_is_word = row_cells
+    .get(col)
+    .map(|c| is_word(c.c.chars().next().unwrap_or(' ')))
+    .unwrap_or(false);
 
   let start = (0..=col)
     .rev()
     .find(|&i| {
-      let c = row_cells.get(i).map(|c| c.c).unwrap_or(' ');
+      let c = row_cells
+        .get(i)
+        .map(|c| c.c.chars().next().unwrap_or(' '))
+        .unwrap_or(' ');
       is_word(c) != clicked_is_word
     })
     .map(|i| i + 1)
@@ -133,7 +139,10 @@ pub fn find_word_boundaries(row_cells: &[grid::Cell], col: usize) -> (usize, usi
 
   let end = (col..row_cells.len())
     .find(|&i| {
-      let c = row_cells.get(i).map(|c| c.c).unwrap_or(' ');
+      let c = row_cells
+        .get(i)
+        .map(|c| c.c.chars().next().unwrap_or(' '))
+        .unwrap_or(' ');
       is_word(c) != clicked_is_word
     })
     .map(|i| i.saturating_sub(1))
@@ -172,7 +181,7 @@ pub fn extract_selection(
       grid.cols.saturating_sub(1)
     };
     for cell in row_cells.iter().take(col_end + 1).skip(col_start) {
-      result.push(cell.c);
+      result.push_str(&cell.c);
     }
     if row < er && !grid.row_continuation[row + 1] {
       result.push('\n');

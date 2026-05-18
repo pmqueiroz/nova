@@ -9,6 +9,7 @@ use vte::Parser;
 
 use crate::core::config;
 use crate::core::grid::{DEFAULT_SCROLLBACK_LIMIT, Grid};
+use crate::sys::kitty_graphics::{ApcState, PendingKittyImage};
 use crate::sys::pty::PtyCommand;
 
 pub struct SplitPane {
@@ -28,6 +29,8 @@ pub struct SplitPane {
   pub scroll_offset: usize,
   pub initial_cwd: String,
   pub waiting_after_exit: bool,
+  pub apc_state: ApcState,
+  pub pending_kitty: Option<PendingKittyImage>,
 }
 
 impl SplitPane {
@@ -60,6 +63,8 @@ pub struct Tab {
   pub last_pty_output: Option<Instant>,
   pub waiting_after_exit: bool,
   pub initial_command: Option<String>,
+  pub apc_state: ApcState,
+  pub pending_kitty: Option<PendingKittyImage>,
 }
 
 impl Tab {
@@ -102,6 +107,8 @@ impl Tab {
       last_pty_output: None,
       waiting_after_exit: false,
       initial_command: config::get().general.initial_command.clone(),
+      apc_state: ApcState::default(),
+      pending_kitty: None,
     }
   }
 }

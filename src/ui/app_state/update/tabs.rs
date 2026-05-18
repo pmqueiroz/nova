@@ -144,6 +144,8 @@ impl Nova {
       scroll_offset: 0,
       initial_cwd,
       waiting_after_exit: false,
+      apc_state: crate::sys::kitty_graphics::ApcState::default(),
+      pending_kitty: None,
     });
     tab.active_pane_is_split = true;
     if let Some(split) = &mut tab.split {

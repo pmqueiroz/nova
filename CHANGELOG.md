@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.22.0](https://github.com/pmqueiroz/nova/compare/v0.21.1...v0.22.0) (2026-05-18)
+
+
+### Features
+
+* add grapheme clustering and wide-character support ([048fb96](https://github.com/pmqueiroz/nova/commit/048fb96085a34ba3982a0c2d216328003944a9f0))
+* add initial-command and wait-after-command to settings UI ([3c89f78](https://github.com/pmqueiroz/nova/commit/3c89f78d8875a470081969ec01817542898662bb))
+* change default paste keybind to ctrl+shift+v on linux/windows ([f693c3f](https://github.com/pmqueiroz/nova/commit/f693c3f7efe4f8d9108e047fa4b811b17b1761ec))
+* configurable font family ([fa09c68](https://github.com/pmqueiroz/nova/commit/fa09c68c30a9263a03c42c56a418d8bdffb748de))
+* cursor shape variants (beam/block/underline) and blink support ([5cf4f3a](https://github.com/pmqueiroz/nova/commit/5cf4f3a51aebf6312c6968b9a3ba1e3551841ef1))
+* font family pick list with all installed fonts ([b3906bb](https://github.com/pmqueiroz/nova/commit/b3906bb7fd7010b9ec659b9328d004f8409cf860))
+* implement initial-command and wait-after-command ([ac73a31](https://github.com/pmqueiroz/nova/commit/ac73a31f4df931b7fecea4cba8144a2d7d2c17bd))
+* implement kitty keyboard protocol ([9491848](https://github.com/pmqueiroz/nova/commit/94918482edf4bfa0e9aa553082f90c72c35c4a5c))
+* implement OSC 52 clipboard read/write support ([285e384](https://github.com/pmqueiroz/nova/commit/285e384cef6857313f5588db6978ff6f70e663a5))
+* warn on dangerous paste content ([c7bd8bc](https://github.com/pmqueiroz/nova/commit/c7bd8bc6ca7824218e2eea3e6c2d31775242aa1e))
+
+
+### Bug Fixes
+
+* initialize split pane git branch on creation ([2647c61](https://github.com/pmqueiroz/nova/commit/2647c61b3563df8537c0dc69dab083cced40ea38))
+* **pty:** update title bar and branch on cwd change in linux ([7e0aedf](https://github.com/pmqueiroz/nova/commit/7e0aedfc37fcc622b8c61d2a0b49aea8875c4dbe))
+* route paste to active split pane ([5213901](https://github.com/pmqueiroz/nova/commit/52139013f79bb4ec7bb761adcda1f585abcade50))
+* suppress unused variable warnings in notification on non-linux targets ([65517eb](https://github.com/pmqueiroz/nova/commit/65517eb066acfaa8475378e3f1ae225f68bc36bb))
+
 ## [0.21.1](https://github.com/pmqueiroz/nova/compare/v0.21.0...v0.21.1) (2026-05-17)
 
 

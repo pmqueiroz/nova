@@ -123,10 +123,20 @@ fn is_dangerous_paste(text: &str) -> bool {
 
 impl Nova {
   fn do_paste(&self, text: String) {
-    if let Some(tab) = self.tabs.get(self.active_index)
-      && let Some(tx) = &tab.pty_tx
-    {
-      if tab.grid.bracketed_paste {
+    let Some(tab) = self.tabs.get(self.active_index) else {
+      return;
+    };
+    let (tx, bracketed) = if tab.active_pane_is_split {
+      if let Some(split) = &tab.split {
+        (split.pty_tx.as_ref(), split.grid.bracketed_paste)
+      } else {
+        return;
+      }
+    } else {
+      (tab.pty_tx.as_ref(), tab.grid.bracketed_paste)
+    };
+    if let Some(tx) = tx {
+      if bracketed {
         let mut payload = Vec::with_capacity(text.len() + 12);
         payload.extend_from_slice(b"\x1b[200~");
         payload.extend_from_slice(text.as_bytes());

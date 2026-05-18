@@ -46,7 +46,16 @@ impl Default for Nova {
       false,
     );
     let mut nova = Self {
-      tabs: vec![Tab::new(0, cols, rows, default_shell, String::new())],
+      tabs: vec![Tab::new(
+        0,
+        cols,
+        rows,
+        default_shell,
+        std::env::current_dir()
+          .ok()
+          .and_then(|p| p.into_os_string().into_string().ok())
+          .unwrap_or_default(),
+      )],
       active_index: 0,
       next_tab_id: 1,
       window_id: None,

@@ -266,9 +266,16 @@ fi"#,
 
     match shell_name {
       "bash" => {
-        c.args(["-l", "-i", "-c", "export PS1=\"$NOVA_PS1\"; exec \"$0\" -i"]);
+        if let Some((nova_home, real_home)) = nova_bash_home() {
+          c.env("OLDHOME", real_home);
+          c.env("HOME", nova_home);
+        }
+        c.args(["-l", "-i"]);
       }
       "zsh" => {
+        if let Some(zdotdir) = nova_zsh_zdotdir() {
+          c.env("ZDOTDIR", zdotdir);
+        }
         c.args(["-l", "-i"]);
       }
       "fish" => {
@@ -339,6 +346,58 @@ fi"#,
     }
     c
   }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn nova_zsh_zdotdir() -> Option<std::path::PathBuf> {
+  let home = std::env::var("HOME").ok()?;
+  let dir = std::path::PathBuf::from(&home)
+    .join(".cache")
+    .join("nova")
+    .join("zsh-init");
+  std::fs::create_dir_all(&dir).ok()?;
+
+  let zshenv = "[[ -f \"$HOME/.zshenv\" ]] && source \"$HOME/.zshenv\"\n";
+  let zprofile = "[[ -f \"$HOME/.zprofile\" ]] && source \"$HOME/.zprofile\"\n";
+  let zshrc = "[[ -f \"$HOME/.zshrc\" ]] && source \"$HOME/.zshrc\"\nautoload -Uz add-zsh-hook 2>/dev/null\n__nova_precmd() { eval \"$NOVA_PROMPT_COMMAND\"; }\nadd-zsh-hook precmd __nova_precmd 2>/dev/null\n";
+
+  std::fs::write(dir.join(".zshenv"), zshenv).ok()?;
+  std::fs::write(dir.join(".zprofile"), zprofile).ok()?;
+  std::fs::write(dir.join(".zshrc"), zshrc).ok()?;
+  Some(dir)
+}
+
+#[cfg(not(target_os = "windows"))]
+fn nova_bash_home() -> Option<(std::path::PathBuf, String)> {
+  let home = std::env::var("HOME").ok()?;
+  let dir = std::path::PathBuf::from(&home)
+    .join(".cache")
+    .join("nova")
+    .join("bash-init");
+  std::fs::create_dir_all(&dir).ok()?;
+
+  let bash_profile = r#"export HOME="$OLDHOME"
+unset PROMPT_COMMAND
+if [[ -f "$HOME/.bash_profile" ]]; then
+  source "$HOME/.bash_profile"
+elif [[ -f "$HOME/.bash_login" ]]; then
+  source "$HOME/.bash_login"
+elif [[ -f "$HOME/.profile" ]]; then
+  source "$HOME/.profile"
+fi
+PROMPT_COMMAND="${PROMPT_COMMAND:+${PROMPT_COMMAND}; }eval \"\$NOVA_PROMPT_COMMAND\""
+PS1="$NOVA_PS1"
+"#;
+  let bashrc = r#"export HOME="$OLDHOME"
+unset PROMPT_COMMAND
+[[ -f "$HOME/.bashrc" ]] && source "$HOME/.bashrc"
+PROMPT_COMMAND="${PROMPT_COMMAND:+${PROMPT_COMMAND}; }eval \"\$NOVA_PROMPT_COMMAND\""
+PS1="$NOVA_PS1"
+"#;
+
+  std::fs::write(dir.join(".bash_profile"), bash_profile).ok()?;
+  std::fs::write(dir.join(".bashrc"), bashrc).ok()?;
+  Some((dir, home))
 }
 
 #[cfg(target_os = "windows")]

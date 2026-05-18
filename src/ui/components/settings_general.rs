@@ -115,7 +115,7 @@ pub fn general_tab<'a>(settings: &'a config::Config, shell_input: &'a str) -> El
           "Command to run instead of shell (empty = default shell)",
           text_input("e.g. ssh server", &initial_cmd_val)
             .on_input(Message::SettingsInitialCommandChanged)
-            .font(theme::font::REGULAR)
+            .font(theme::font::regular())
             .size(12)
             .style(input_style)
             .padding(Padding {

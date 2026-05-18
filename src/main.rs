@@ -1,5 +1,3 @@
-#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
-
 mod cli;
 mod core;
 mod sys;
@@ -11,6 +9,9 @@ pub fn main() -> ui::Result {
   if let Some(code) = cli::run_from_env() {
     std::process::exit(code);
   }
+
+  #[cfg(target_os = "windows")]
+  cli::detach_console();
 
   config::init().expect("failed to load config");
   sys::notification::register();

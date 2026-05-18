@@ -9,9 +9,6 @@ pub fn run_from_env() -> Option<i32> {
     return None;
   }
 
-  #[cfg(windows)]
-  win::attach_parent_console();
-
   args.remove(0);
 
   match args.first().map(|s| s.as_str()) {
@@ -35,12 +32,18 @@ pub fn run_from_env() -> Option<i32> {
 }
 
 #[cfg(windows)]
-mod win {
-  use windows_sys::Win32::System::Console::{ATTACH_PARENT_PROCESS, AttachConsole};
-
-  pub fn attach_parent_console() {
-    unsafe {
-      let _ = AttachConsole(ATTACH_PARENT_PROCESS);
+pub fn detach_console() {
+  use windows_sys::Win32::System::Console::{FreeConsole, GetConsoleProcessList, GetConsoleWindow};
+  use windows_sys::Win32::UI::WindowsAndMessaging::{SW_HIDE, ShowWindow};
+  unsafe {
+    let mut pids = [0u32; 2];
+    let count = GetConsoleProcessList(pids.as_mut_ptr(), 2);
+    if count == 1 {
+      let hwnd = GetConsoleWindow();
+      if !hwnd.is_null() {
+        ShowWindow(hwnd, SW_HIDE);
+      }
     }
+    let _ = FreeConsole();
   }
 }

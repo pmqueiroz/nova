@@ -481,15 +481,24 @@ SectionEnd
 !macroend
 
 ; --- PATH helpers ---
-; Add $INSTDIR to PATH (user or machine depending on shell context).
+; Add $INSTDIR to PATH (user or machine depending on install mode).
+; User PATH:    HKCU\Environment\Path
+; Machine PATH: HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\Path
 Function AddNovaToPath
-  ; Determine registry root based on shell context.
-  ; If SetShellVarContext all -> SHCTX resolves to HKLM.
-  ReadRegStr $0 SHCTX "Environment" "Path"
+  !if "${INSTALLMODE}" == "currentUser"
+    ReadRegStr $0 HKCU "Environment" "Path"
+  !else if "${INSTALLMODE}" == "perMachine"
+    ReadRegStr $0 HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "Path"
+  !else
+    ${If} $MultiUser.InstallMode == "AllUsers"
+      ReadRegStr $0 HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "Path"
+    ${Else}
+      ReadRegStr $0 HKCU "Environment" "Path"
+    ${EndIf}
+  !endif
   ${IfThen} $0 == "" ${|} StrCpy $0 "" ${|}
 
   ; Avoid duplicates.
-  ; We check for ";$INSTDIR;" in a normalized ";PATH;" string.
   StrCpy $3 ";$0;"
   ${StrStr} $1 $3 ";$INSTDIR;"
   ${IfThen} $1 != "" ${|} Return ${|}
@@ -500,7 +509,17 @@ Function AddNovaToPath
     StrCpy $2 "$0;$INSTDIR"
   ${EndIf}
 
-  WriteRegExpandStr SHCTX "Environment" "Path" $2
+  !if "${INSTALLMODE}" == "currentUser"
+    WriteRegExpandStr HKCU "Environment" "Path" $2
+  !else if "${INSTALLMODE}" == "perMachine"
+    WriteRegExpandStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "Path" $2
+  !else
+    ${If} $MultiUser.InstallMode == "AllUsers"
+      WriteRegExpandStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "Path" $2
+    ${Else}
+      WriteRegExpandStr HKCU "Environment" "Path" $2
+    ${EndIf}
+  !endif
   ; Notify other processes.
   System::Call 'USER32::SendMessageTimeout(p 0xffff, i ${WM_SETTINGCHANGE}, i 0, t "Environment", i 0, i 5000, *i .r0)'
 FunctionEnd
@@ -540,10 +559,20 @@ Function un.StrReplaceAll
     Push $R5
 FunctionEnd
 
-; Remove $INSTDIR from PATH (user or machine depending on shell context).
+; Remove $INSTDIR from PATH (user or machine depending on install mode).
 ; NSIS requires functions called from the uninstall section to be prefixed with `un.`.
 Function un.RemoveNovaFromPath
-  ReadRegStr $0 SHCTX "Environment" "Path"
+  !if "${INSTALLMODE}" == "currentUser"
+    ReadRegStr $0 HKCU "Environment" "Path"
+  !else if "${INSTALLMODE}" == "perMachine"
+    ReadRegStr $0 HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "Path"
+  !else
+    ${If} $MultiUser.InstallMode == "AllUsers"
+      ReadRegStr $0 HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "Path"
+    ${Else}
+      ReadRegStr $0 HKCU "Environment" "Path"
+    ${EndIf}
+  !endif
   ${IfThen} $0 == "" ${|} Return ${|}
 
   ; Remove occurrences of "$INSTDIR" with optional surrounding semicolons.
@@ -569,7 +598,17 @@ Function un.RemoveNovaFromPath
   ; 4) Only "$INSTDIR"
   ${IfThen} $1 == "$INSTDIR" ${|} StrCpy $1 "" ${|}
 
-  WriteRegExpandStr SHCTX "Environment" "Path" $1
+  !if "${INSTALLMODE}" == "currentUser"
+    WriteRegExpandStr HKCU "Environment" "Path" $1
+  !else if "${INSTALLMODE}" == "perMachine"
+    WriteRegExpandStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "Path" $1
+  !else
+    ${If} $MultiUser.InstallMode == "AllUsers"
+      WriteRegExpandStr HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment" "Path" $1
+    ${Else}
+      WriteRegExpandStr HKCU "Environment" "Path" $1
+    ${EndIf}
+  !endif
   System::Call 'USER32::SendMessageTimeout(p 0xffff, i ${WM_SETTINGCHANGE}, i 0, t "Environment", i 0, i 5000, *i .r0)'
 FunctionEnd
 

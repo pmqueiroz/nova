@@ -355,6 +355,7 @@ impl Nova {
         iced::Task::none()
       }
       Message::SettingsFontFamilyChanged(s) => {
+        crate::ui::theme::font::set_family(&s);
         self.settings.theme.font.family = s;
         let _ = config::save(&self.settings);
         iced::Task::none()

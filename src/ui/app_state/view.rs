@@ -399,13 +399,13 @@ impl Nova {
     let mut inner = column![].spacing(6);
     inner = inner.push(
       text(" \u{2726} NOVA \u{00B7} AI ")
-        .font(theme::font::BOLD)
+        .font(theme::font::bold())
         .size(12)
         .color(accent),
     );
     inner = inner.push(
       text(format!(" {}", strip_markdown(message)))
-        .font(theme::font::REGULAR)
+        .font(theme::font::regular())
         .size(12)
         .color(fg),
     );
@@ -414,7 +414,7 @@ impl Nova {
       inner = inner.push(
         button(
           text(format!(" {} ", cmd_text))
-            .font(theme::font::REGULAR)
+            .font(theme::font::regular())
             .size(12)
             .color(accent),
         )

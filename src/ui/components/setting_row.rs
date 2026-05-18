@@ -18,9 +18,9 @@ pub fn setting_row<'a>(
 
   row![
     column![
-      text(label).font(theme::font::BOLD).size(12).color(fg),
+      text(label).font(theme::font::bold()).size(12).color(fg),
       text(description)
-        .font(theme::font::REGULAR)
+        .font(theme::font::regular())
         .size(11)
         .color(fg_muted),
     ]

@@ -162,7 +162,7 @@ fn row_spans(
             Span::new(first.to_string())
               .color(cursor_color)
               .underline(true)
-              .font(theme::font::REGULAR)
+              .font(theme::font::regular())
               .size(font_size),
             None,
             1u8,
@@ -175,7 +175,7 @@ fn row_spans(
             cells.push((
               Span::new(c.to_string())
                 .color(dim_color)
-                .font(theme::font::REGULAR)
+                .font(theme::font::regular())
                 .size(font_size),
               None,
               1u8,
@@ -242,7 +242,7 @@ pub fn term<'a>(
       let content = container(
         rich_text([span])
           .size(font_size)
-          .font(theme::font::REGULAR)
+          .font(theme::font::regular())
           .wrapping(text::Wrapping::None),
       )
       .width(char_width * col_width as f32)
@@ -408,20 +408,10 @@ fn cell_span(
   }
 
   let font = match (bold, italic) {
-    (true, true) => iced::Font {
-      family: iced::font::Family::Name("FiraCode Nerd Font"),
-      weight: iced::font::Weight::Bold,
-      style: iced::font::Style::Italic,
-      stretch: iced::font::Stretch::Normal,
-    },
-    (true, false) => theme::font::BOLD,
-    (false, true) => iced::Font {
-      family: iced::font::Family::Name("FiraCode Nerd Font"),
-      weight: iced::font::Weight::Normal,
-      style: iced::font::Style::Italic,
-      stretch: iced::font::Stretch::Normal,
-    },
-    (false, false) => theme::font::REGULAR,
+    (true, true) => theme::font::bold_italic(),
+    (true, false) => theme::font::bold(),
+    (false, true) => theme::font::italic(),
+    (false, false) => theme::font::regular(),
   };
 
   if reverse {

@@ -27,8 +27,8 @@ impl Typography {
   pub fn as_text<'a>(&self, content: impl Into<String>) -> iced::widget::Text<'a> {
     text(content.into())
       .font(match self.weight {
-        Weight::Bold => theme::font::BOLD,
-        Weight::Normal => theme::font::REGULAR,
+        Weight::Bold => theme::font::bold(),
+        Weight::Normal => theme::font::regular(),
       })
       .color(self.color)
       .size(self.size)

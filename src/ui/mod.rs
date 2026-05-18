@@ -52,6 +52,7 @@ fn window_settings() -> window::Settings {
 }
 
 pub fn start() -> Result {
+  theme::font::set_family(&crate::core::config::get().theme.font.family);
   iced::application(
     app_state::Nova::default,
     app_state::Nova::update,
@@ -69,7 +70,7 @@ pub fn start() -> Result {
   })
   .font(FIRA_CODE_BYTES)
   .font(FIRA_CODE_BOLD_BYTES)
-  .default_font(theme::font::REGULAR)
+  .default_font(theme::font::regular())
   .antialiasing(true)
   .run()
 }

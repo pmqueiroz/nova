@@ -757,7 +757,19 @@ impl<'a> Perform for AnsiExecutor<'a> {
           && let Some((_, path)) = after_scheme.split_once('/')
         {
           #[cfg(target_os = "windows")]
-          let pwd = path.replace('/', "\\");
+          let pwd = {
+            let mut chars = path.chars();
+            match (chars.next(), chars.next()) {
+              (Some(drive), Some('/')) if drive.is_ascii_alphabetic() => {
+                format!(
+                  "{}:\\{}",
+                  drive.to_ascii_uppercase(),
+                  &path[2..].replace('/', "\\")
+                )
+              }
+              _ => path.replace('/', "\\"),
+            }
+          };
 
           #[cfg(not(target_os = "windows"))]
           let pwd = format!("/{}", path);

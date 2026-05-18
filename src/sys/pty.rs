@@ -236,13 +236,13 @@ fi"#,
       c.env("TERM_PROGRAM", "Nova");
       let (ar, ag, ab) = accent_rgb();
       c.env(
-        "PS1",
+        "NOVA_PS1",
         format!(
           "\\[\\e[38;2;128;128;128m\\]\\w\\[\\e[0m\\] \\[\\e[38;2;{ar};{ag};{ab}m\\]λ\\[\\e[0m\\] "
         ),
       );
       c.env(
-        "PROMPT_COMMAND",
+        "NOVA_PROMPT_COMMAND",
         r#"__nova_exit_code=$?
 if ! declare -f __nova_ssh > /dev/null 2>&1; then
   __nova_ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
@@ -261,6 +261,13 @@ if [ "$__nova_exit_code" -ne 0 ]; then
   printf "\033]777;command_failure;$__nova_exit_code\a"
 fi"#,
       );
+      if let Some((nova_home, real_home)) = nova_git_bash_home() {
+        c.env(
+          "OLDHOME",
+          windows_path_to_unix(std::path::Path::new(&real_home)),
+        );
+        c.env("HOME", windows_path_to_unix(&nova_home));
+      }
       c.args(["--login", "-i"]);
       c
     } else {
@@ -414,6 +421,78 @@ unset PROMPT_COMMAND
 PROMPT_COMMAND="${PROMPT_COMMAND:+${PROMPT_COMMAND}; }eval \"\$NOVA_PROMPT_COMMAND\""
 PS1="$NOVA_PS1"
 "#;
+
+  std::fs::write(dir.join(".bash_profile"), bash_profile).ok()?;
+  std::fs::write(dir.join(".bashrc"), bashrc).ok()?;
+  Some((dir, home))
+}
+
+#[cfg(target_os = "windows")]
+fn windows_path_to_unix(path: &std::path::Path) -> String {
+  let s = path.to_string_lossy();
+  let mut chars = s.chars();
+  match (chars.next(), chars.next(), chars.next()) {
+    (Some(drive), Some(':'), Some('\\')) => {
+      format!(
+        "/{}/{}",
+        drive.to_ascii_lowercase(),
+        &s[3..].replace('\\', "/")
+      )
+    }
+    _ => s.replace('\\', "/").to_string(),
+  }
+}
+
+#[cfg(target_os = "windows")]
+fn nova_git_bash_home() -> Option<(std::path::PathBuf, String)> {
+  let home = std::env::var("USERPROFILE").ok()?;
+  let dir = std::path::PathBuf::from(&home)
+    .join(".cache")
+    .join("nova")
+    .join("bash-init");
+  std::fs::create_dir_all(&dir).ok()?;
+
+  let prompt_script = r#"__nova_exit_code=$?
+if ! declare -f __nova_ssh > /dev/null 2>&1; then
+  __nova_ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
+  ssh() { __nova_ssh "$@"; }
+fi
+if ! declare -f __nova_osc7 > /dev/null 2>&1; then
+  __nova_osc7() { printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
+fi
+__nova_osc7
+if [ -z "${__nova_first_prompt_done+x}" ]; then
+  __nova_first_prompt_done=1
+else
+  printf "\033]777;command_complete;$__nova_exit_code\a"
+fi
+if [ "$__nova_exit_code" -ne 0 ]; then
+  printf "\033]777;command_failure;$__nova_exit_code\a"
+fi
+"#;
+  std::fs::write(dir.join("nova_prompt.sh"), prompt_script).ok()?;
+
+  let dir_unix = windows_path_to_unix(&dir);
+  let bash_profile = format!(
+    "export HOME=\"$OLDHOME\"\n\
+     unset PROMPT_COMMAND\n\
+     if [[ -f \"$HOME/.bash_profile\" ]]; then\n\
+     \x20 source \"$HOME/.bash_profile\"\n\
+     elif [[ -f \"$HOME/.bash_login\" ]]; then\n\
+     \x20 source \"$HOME/.bash_login\"\n\
+     elif [[ -f \"$HOME/.profile\" ]]; then\n\
+     \x20 source \"$HOME/.profile\"\n\
+     fi\n\
+     PROMPT_COMMAND=\"${{PROMPT_COMMAND:+${{PROMPT_COMMAND}}; }}source {dir_unix}/nova_prompt.sh\"\n\
+     PS1=\"$NOVA_PS1\"\n"
+  );
+  let bashrc = format!(
+    "export HOME=\"$OLDHOME\"\n\
+     unset PROMPT_COMMAND\n\
+     [[ -f \"$HOME/.bashrc\" ]] && source \"$HOME/.bashrc\"\n\
+     PROMPT_COMMAND=\"${{PROMPT_COMMAND:+${{PROMPT_COMMAND}}; }}source {dir_unix}/nova_prompt.sh\"\n\
+     PS1=\"$NOVA_PS1\"\n"
+  );
 
   std::fs::write(dir.join(".bash_profile"), bash_profile).ok()?;
   std::fs::write(dir.join(".bashrc"), bashrc).ok()?;

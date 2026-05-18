@@ -255,17 +255,66 @@ impl Nova {
         cursor_blink,
       ))
       .interaction(term_interaction);
-      if self.search_active {
-        use iced::widget::stack;
-        stack![
-          term_el,
-          components::search_bar(
+      let waiting = if active_tab.active_pane_is_split {
+        active_tab
+          .split
+          .as_ref()
+          .map(|s| s.waiting_after_exit)
+          .unwrap_or(false)
+      } else {
+        active_tab.waiting_after_exit
+      };
+
+      if self.search_active || waiting {
+        let mut layers: Vec<Element<'_, Message>> = vec![term_el.into()];
+        if self.search_active {
+          layers.push(components::search_bar(
             &self.search_query,
             self.search_match_index,
             self.search_matches.len(),
-          ),
-        ]
-        .into()
+          ));
+        }
+        if waiting {
+          layers.push(
+            container(
+              container(
+                text("Process exited — press any key to close")
+                  .size(12)
+                  .color(theme::color::runtime().foreground),
+              )
+              .padding(Padding {
+                top: 6.0,
+                bottom: 4.0,
+                left: 14.0,
+                right: 14.0,
+              })
+              .style(|_| {
+                let rt = theme::color::runtime();
+                container::Style {
+                  background: Some(rt.background.into()),
+                  border: Border {
+                    color: rt.border,
+                    width: 1.0,
+                    radius: Radius::new(4.0),
+                  },
+                  ..Default::default()
+                }
+              }),
+            )
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .align_x(Horizontal::Center)
+            .align_y(Vertical::Bottom)
+            .padding(Padding {
+              top: 0.0,
+              bottom: 12.0,
+              left: 0.0,
+              right: 0.0,
+            })
+            .into(),
+          );
+        }
+        stack(layers).into()
       } else {
         term_el.into()
       }

@@ -143,6 +143,7 @@ impl Nova {
       last_pty_output: None,
       scroll_offset: 0,
       initial_cwd,
+      waiting_after_exit: false,
     });
     tab.active_pane_is_split = true;
     if let Some(split) = &mut tab.split {

@@ -18,6 +18,7 @@ struct PtyKey {
   initial_cols: u16,
   initial_rows: u16,
   initial_cwd: String,
+  initial_command: Option<String>,
 }
 
 impl std::hash::Hash for PtyKey {
@@ -54,6 +55,7 @@ fn pty_worker(
   rows: u16,
   shell: String,
   initial_cwd: String,
+  initial_command: Option<String>,
 ) -> impl iced::futures::Stream<Item = Message> {
   stream::channel(
     100,
@@ -69,8 +71,9 @@ fn pty_worker(
         } else {
           Some(initial_cwd.as_str())
         };
-        let mut pty =
-          PtyBridge::new(tx_out, cols, rows, &shell, cwd).expect("failed to create PTY bridge");
+        let cmd = initial_command.as_deref();
+        let mut pty = PtyBridge::new(tx_out, cols, rows, &shell, cwd, cmd)
+          .expect("failed to create PTY bridge");
 
         while let Ok(command) = rx_in.recv_blocking() {
           match command {
@@ -492,6 +495,7 @@ impl Nova {
           initial_cols: tab.grid.cols as u16,
           initial_rows: tab.grid.rows as u16,
           initial_cwd: tab.initial_cwd.clone(),
+          initial_command: tab.initial_command.clone(),
         };
         subs.push(Subscription::run_with(key, |k| {
           pty_worker(
@@ -500,6 +504,7 @@ impl Nova {
             k.initial_rows,
             k.shell_cmd.clone(),
             k.initial_cwd.clone(),
+            k.initial_command.clone(),
           )
         }));
       }
@@ -513,6 +518,7 @@ impl Nova {
           initial_cols: split.grid.cols as u16,
           initial_rows: split.grid.rows as u16,
           initial_cwd: split.initial_cwd.clone(),
+          initial_command: None,
         };
         subs.push(Subscription::run_with(split_key, |k| {
           pty_worker(
@@ -521,6 +527,7 @@ impl Nova {
             k.initial_rows,
             k.shell_cmd.clone(),
             k.initial_cwd.clone(),
+            k.initial_command.clone(),
           )
         }));
       }

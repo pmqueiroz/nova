@@ -7,6 +7,7 @@ mod settings;
 mod tabs;
 mod window;
 
+use base64::Engine;
 use iced::{Point, Size};
 use std::sync::atomic::Ordering;
 use std::time::Instant;
@@ -653,6 +654,28 @@ impl Nova {
         iced::Task::none()
       }
       Message::Tick => iced::Task::none(),
+      Message::Osc52ReadResponse(target_id, text) => {
+        let text = text.unwrap_or_default();
+        let encoded = base64::engine::general_purpose::STANDARD.encode(text.as_bytes());
+        let response = format!("\x1b]52;c;{}\x07", encoded).into_bytes();
+        for tab in &self.tabs {
+          if tab.id == target_id {
+            if let Some(tx) = &tab.pty_tx {
+              let _ = tx.send_blocking(PtyCommand::Input(response));
+            }
+            break;
+          }
+          if let Some(split) = &tab.split
+            && split.id == target_id
+          {
+            if let Some(tx) = &split.pty_tx {
+              let _ = tx.send_blocking(PtyCommand::Input(response));
+            }
+            break;
+          }
+        }
+        iced::Task::none()
+      }
       Message::NoOp => iced::Task::none(),
       Message::ClipboardReceived(text) => {
         if let Some(text) = text

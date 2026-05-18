@@ -99,4 +99,5 @@ pub enum Message {
   SearchPrev,
   NoOp,
   NotificationActivated,
+  Osc52ReadResponse(usize, Option<String>),
 }

@@ -193,17 +193,32 @@ impl Nova {
           let _ = tx.send_blocking(PtyCommand::Input(response));
         }
       }
+      let mut split_clipboard_write: Option<String> = None;
+      let mut split_request_clipboard = false;
       for cmd in split.grid.control_queue.drain(..) {
-        if let ControlCommand::CommandComplete(_) = cmd
-          && let Some(start) = split.command_start.take()
-        {
-          let elapsed = split
-            .last_pty_output
-            .map(|last| last.duration_since(start))
-            .unwrap_or_else(|| start.elapsed());
-          split.last_command_elapsed = Some(elapsed);
-          split.last_pty_output = None;
+        match cmd {
+          ControlCommand::CommandComplete(_) => {
+            if let Some(start) = split.command_start.take() {
+              let elapsed = split
+                .last_pty_output
+                .map(|last| last.duration_since(start))
+                .unwrap_or_else(|| start.elapsed());
+              split.last_command_elapsed = Some(elapsed);
+              split.last_pty_output = None;
+            }
+          }
+          ControlCommand::SetClipboard(text) => split_clipboard_write = Some(text),
+          ControlCommand::RequestClipboard => split_request_clipboard = true,
+          _ => {}
         }
+      }
+      let mut split_tasks: Vec<iced::Task<Message>> = Vec::new();
+      if let Some(text) = split_clipboard_write {
+        split_tasks.push(iced::clipboard::write(text));
+      }
+      if split_request_clipboard {
+        let id = tab_id;
+        split_tasks.push(iced::clipboard::read().map(move |t| Message::Osc52ReadResponse(id, t)));
       }
       if split.command_start.is_some() {
         split.last_pty_output = Some(std::time::Instant::now());
@@ -219,7 +234,11 @@ impl Nova {
       } else {
         split.grid.suggestion = None;
       }
-      return iced::Task::none();
+      return if split_tasks.is_empty() {
+        iced::Task::none()
+      } else {
+        iced::Task::batch(split_tasks)
+      };
     }
 
     let active_tab_id = self.tabs.get(self.active_index).map(|t| t.id);
@@ -245,8 +264,12 @@ impl Nova {
       let mut open_ask_ai = false;
       let mut open_explain_ai = false;
       let mut ai_preset: Option<std::sync::Arc<str>> = None;
+      let mut clipboard_write: Option<String> = None;
+      let mut request_clipboard = false;
       for cmd in tab.grid.control_queue.drain(..) {
         match cmd {
+          ControlCommand::SetClipboard(text) => clipboard_write = Some(text),
+          ControlCommand::RequestClipboard => request_clipboard = true,
           ControlCommand::OpenAskAi { preset } => {
             open_ask_ai = true;
             if let Some(p) = preset
@@ -324,6 +347,15 @@ impl Nova {
         tab.grid.suggestion = None;
       }
 
+      let mut extra_tasks: Vec<iced::Task<Message>> = Vec::new();
+      if let Some(text) = clipboard_write {
+        extra_tasks.push(iced::clipboard::write(text));
+      }
+      if request_clipboard {
+        let id = tab_id;
+        extra_tasks.push(iced::clipboard::read().map(move |t| Message::Osc52ReadResponse(id, t)));
+      }
+
       if open_ask_ai || open_explain_ai {
         self.ai_overlay_open = true;
         AI_OPEN.store(true, Ordering::SeqCst);
@@ -342,9 +374,15 @@ impl Nova {
 
         let focus_task = iced::widget::operation::focus(components::AI_INPUT_ID.clone());
         if !self.ai_input.trim().is_empty() {
-          return iced::Task::batch(vec![focus_task, self.update(Message::AiSubmit)]);
+          extra_tasks.push(focus_task);
+          extra_tasks.push(self.update(Message::AiSubmit));
+          return iced::Task::batch(extra_tasks);
         }
-        return focus_task;
+        if extra_tasks.is_empty() {
+          return focus_task;
+        }
+        extra_tasks.push(focus_task);
+        return iced::Task::batch(extra_tasks);
       }
 
       if let Some(code) = self.ai_pending_diagnostic.take() {
@@ -364,7 +402,13 @@ impl Nova {
           shell: tab.shell.clone(),
           os: os_name(),
         };
-        return iced::Task::perform(crate::core::ai::query(q), Message::DiagnosticBannerResponse);
+        let diag_task =
+          iced::Task::perform(crate::core::ai::query(q), Message::DiagnosticBannerResponse);
+        if extra_tasks.is_empty() {
+          return diag_task;
+        }
+        extra_tasks.push(diag_task);
+        return iced::Task::batch(extra_tasks);
       }
 
       if bell_fired {
@@ -379,6 +423,11 @@ impl Nova {
           crate::core::config::BellType::None => {}
         }
       }
+
+      if extra_tasks.is_empty() {
+        return iced::Task::none();
+      }
+      return iced::Task::batch(extra_tasks);
     }
     iced::Task::none()
   }

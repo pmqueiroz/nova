@@ -1,11 +1,12 @@
 use iced::{Point, Size, mouse, window};
-use std::sync::atomic::AtomicBool;
+use std::sync::atomic::{AtomicBool, AtomicU32};
 use std::time::Instant;
 
 use crate::core::config;
 use crate::ui::tab::Tab;
 
 pub static SETTINGS_OPEN: AtomicBool = AtomicBool::new(false);
+pub static ACTIVE_KITTY_FLAGS: AtomicU32 = AtomicU32::new(0);
 pub static KB_RECORDING: AtomicBool = AtomicBool::new(false);
 pub static PALETTE_OPEN: AtomicBool = AtomicBool::new(false);
 pub static AI_OPEN: AtomicBool = AtomicBool::new(false);

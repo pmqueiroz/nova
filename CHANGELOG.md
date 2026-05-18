@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.2](https://github.com/pmqueiroz/nova/compare/v0.23.1...v0.23.2) (2026-05-18)
+
+
+### Bug Fixes
+
+* **windows:** start terminal in home dir when launched from install dir ([77ed67c](https://github.com/pmqueiroz/nova/commit/77ed67cc0723283fa4cd85f53a41f5773593b3f4))
+
 ## [0.23.1](https://github.com/pmqueiroz/nova/compare/v0.23.0...v0.23.1) (2026-05-18)
 
 

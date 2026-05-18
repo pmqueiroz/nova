@@ -87,4 +87,5 @@ pub struct Nova {
   pub(in crate::ui::app_state) dragging_tab_index: Option<usize>,
   pub(in crate::ui::app_state) drag_pending_tab: Option<usize>,
   pub(in crate::ui::app_state) drag_pending_pos: Option<Point>,
+  pub(in crate::ui::app_state) paste_warning: Option<String>,
 }

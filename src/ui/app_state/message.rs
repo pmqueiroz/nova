@@ -103,4 +103,6 @@ pub enum Message {
   NoOp,
   NotificationActivated,
   Osc52ReadResponse(usize, Option<String>),
+  PasteWarningConfirm,
+  PasteWarningCancel,
 }

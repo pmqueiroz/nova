@@ -18,7 +18,12 @@ pub(super) fn compute_search_matches(grid: &Grid, query: &str) -> Vec<(bool, usi
     }
     'outer: for start in 0..=(n - qlen) {
       for i in 0..qlen {
-        let gc = row_cells[start + i].c.to_ascii_lowercase();
+        let gc = row_cells[start + i]
+          .c
+          .chars()
+          .next()
+          .unwrap_or('\0')
+          .to_ascii_lowercase();
         if gc != query_lower[i] {
           continue 'outer;
         }

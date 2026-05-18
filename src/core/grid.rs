@@ -21,7 +21,8 @@ bitflags! {
 
 #[derive(Clone, Debug)]
 pub struct Cell {
-  pub c: char,
+  pub c: Box<str>,
+  pub width: u8,
   pub fg: Option<Color>,
   pub bg: Option<Color>,
   pub attrs: CellAttrs,
@@ -31,7 +32,8 @@ pub struct Cell {
 impl Default for Cell {
   fn default() -> Self {
     Self {
-      c: ' ',
+      c: Box::from(" "),
+      width: 1,
       fg: None,
       bg: None,
       attrs: CellAttrs::empty(),
@@ -347,30 +349,30 @@ impl Grid {
     let mut input = String::new();
     if start_row == self.cursor_y {
       for col in start_col..self.cursor_x.min(self.cols) {
-        let c = self.cells[start_row * self.cols + col].c;
-        if c != ' ' {
-          input.push(c);
+        let cell = &self.cells[start_row * self.cols + col];
+        if cell.width != 0 && cell.c.as_ref() != " " {
+          input.push_str(&cell.c);
         }
       }
     } else {
       for col in start_col..self.cols {
-        let c = self.cells[start_row * self.cols + col].c;
-        if c != ' ' {
-          input.push(c);
+        let cell = &self.cells[start_row * self.cols + col];
+        if cell.width != 0 && cell.c.as_ref() != " " {
+          input.push_str(&cell.c);
         }
       }
       for row in (start_row + 1)..self.cursor_y {
         for col in 0..self.cols {
-          let c = self.cells[row * self.cols + col].c;
-          if c != ' ' {
-            input.push(c);
+          let cell = &self.cells[row * self.cols + col];
+          if cell.width != 0 && cell.c.as_ref() != " " {
+            input.push_str(&cell.c);
           }
         }
       }
       for col in 0..self.cursor_x.min(self.cols) {
-        let c = self.cells[self.cursor_y * self.cols + col].c;
-        if c != ' ' {
-          input.push(c);
+        let cell = &self.cells[self.cursor_y * self.cols + col];
+        if cell.width != 0 && cell.c.as_ref() != " " {
+          input.push_str(&cell.c);
         }
       }
     }

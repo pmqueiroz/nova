@@ -24,7 +24,7 @@ new-tab = "ctrl+t"
 close-tab = "ctrl+w"
 next-tab = "ctrl+tab"
 prev-tab = "ctrl+shift+tab"
-paste = "ctrl+v"
+paste = "ctrl+shift+v"
 copy = "ctrl+shift+c"
 open-palette = "ctrl+k"
 

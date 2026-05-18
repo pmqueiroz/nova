@@ -162,6 +162,10 @@ foreground-muted = "#666666"
 border = "#FFFFFF12"
 cursor = "#3ECF8E"
 
+[theme.cursor]
+style = "underline"
+blink = false
+
 [keybindings]
 new-tab = "ctrl+t"
 close-tab = "ctrl+w"
@@ -251,6 +255,28 @@ accent = "#3ECF8E"
 foreground-muted = "#666666"
 border = "#FFFFFF12"
 cursor = "#3ECF8E"
+
+[theme.cursor]
+style = "underline"
+blink = true
+
+[ai]
+provider = "anthropic"
+model = "claude-haiku-4-5-20251001"
+api_key = ""
+```
+
+### `[theme.cursor]`
+
+- `style` (string): Cursor shape. One of `block`, `beam`, `underline`.
+- `blink` (bool): Whether the cursor blinks.
+
+Example:
+
+```toml
+[theme.cursor]
+style = "underline"
+blink = true
 ```
 
 ### `[keybindings]`

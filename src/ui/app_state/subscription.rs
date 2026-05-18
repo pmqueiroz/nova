@@ -1,6 +1,8 @@
 use super::helpers::matches_kb;
 use super::message::Message;
-use super::nova::{AI_OPEN, KB_RECORDING, Nova, PALETTE_OPEN, SEARCH_OPEN, SETTINGS_OPEN};
+use super::nova::{
+  ACTIVE_KITTY_FLAGS, AI_OPEN, KB_RECORDING, Nova, PALETTE_OPEN, SEARCH_OPEN, SETTINGS_OPEN,
+};
 
 use iced::keyboard::Key;
 use iced::keyboard::key::Named;
@@ -89,11 +91,66 @@ fn pty_worker(
   )
 }
 
+fn kitty_mod_bits(modifiers: keyboard::Modifiers) -> u8 {
+  let mut m = 0u8;
+  if modifiers.shift() {
+    m |= 1;
+  }
+  if modifiers.alt() {
+    m |= 2;
+  }
+  if modifiers.control() {
+    m |= 4;
+  }
+  if modifiers.logo() {
+    m |= 8;
+  }
+  m
+}
+
+fn kitty_csi_letter(letter: char, modifiers: keyboard::Modifiers) -> Vec<u8> {
+  let m = kitty_mod_bits(modifiers);
+  if m == 0 {
+    format!("\x1b[{}", letter).into_bytes()
+  } else {
+    format!("\x1b[1;{}{}", m + 1, letter).into_bytes()
+  }
+}
+
+fn kitty_csi_tilde(num: u8, modifiers: keyboard::Modifiers) -> Vec<u8> {
+  let m = kitty_mod_bits(modifiers);
+  if m == 0 {
+    format!("\x1b[{}~", num).into_bytes()
+  } else {
+    format!("\x1b[{};{}~", num, m + 1).into_bytes()
+  }
+}
+
+fn kitty_csi_u(codepoint: u32, modifiers: keyboard::Modifiers) -> Vec<u8> {
+  let m = kitty_mod_bits(modifiers);
+  if m == 0 {
+    format!("\x1b[{}u", codepoint).into_bytes()
+  } else {
+    format!("\x1b[{};{}u", codepoint, m + 1).into_bytes()
+  }
+}
+
+fn kitty_f1_f4(letter: char, modifiers: keyboard::Modifiers) -> Vec<u8> {
+  let m = kitty_mod_bits(modifiers);
+  if m == 0 {
+    format!("\x1bO{}", letter).into_bytes()
+  } else {
+    format!("\x1b[1;{}{}", m + 1, letter).into_bytes()
+  }
+}
+
 fn handle_key_pressed(
   key: Key,
   modifiers: keyboard::Modifiers,
   modified_key: Key,
 ) -> Option<Message> {
+  let kitty_flags = ACTIVE_KITTY_FLAGS.load(Ordering::Relaxed);
+  let use_kitty = kitty_flags != 0;
   if KB_RECORDING.load(Ordering::SeqCst) {
     return match &key {
       Key::Named(Named::Escape) => Some(Message::SettingsCancelRecordKb),
@@ -191,16 +248,68 @@ fn handle_key_pressed(
   drop(kb);
 
   match &key {
-    Key::Named(Named::Enter) => return Some(Message::Type(b"\r".to_vec())),
-    Key::Named(Named::Backspace) => return Some(Message::Type(b"\x7F".to_vec())),
-    Key::Named(Named::Tab) => return Some(Message::Type(b"\t".to_vec())),
-    Key::Named(Named::Space) => return Some(Message::Type(b" ".to_vec())),
-    Key::Named(Named::Escape) => return Some(Message::Type(b"\x1b".to_vec())),
-    Key::Named(Named::ArrowUp) => return Some(Message::Type(b"\x1b[A".to_vec())),
-    Key::Named(Named::ArrowDown) => return Some(Message::Type(b"\x1b[B".to_vec())),
+    Key::Named(Named::Enter) => {
+      return Some(Message::Type(
+        if use_kitty && kitty_mod_bits(modifiers) != 0 {
+          kitty_csi_u(13, modifiers)
+        } else {
+          b"\r".to_vec()
+        },
+      ));
+    }
+    Key::Named(Named::Backspace) => {
+      return Some(Message::Type(
+        if use_kitty && kitty_mod_bits(modifiers) != 0 {
+          kitty_csi_u(127, modifiers)
+        } else {
+          b"\x7F".to_vec()
+        },
+      ));
+    }
+    Key::Named(Named::Tab) => {
+      return Some(Message::Type(if use_kitty && modifiers.shift() {
+        kitty_csi_u(9, modifiers)
+      } else if !use_kitty && modifiers.shift() {
+        b"\x1b[Z".to_vec()
+      } else {
+        b"\t".to_vec()
+      }));
+    }
+    Key::Named(Named::Space) => {
+      return Some(Message::Type(
+        if use_kitty && kitty_mod_bits(modifiers) != 0 {
+          kitty_csi_u(32, modifiers)
+        } else {
+          b" ".to_vec()
+        },
+      ));
+    }
+    Key::Named(Named::Escape) => {
+      return Some(Message::Type(if use_kitty && kitty_flags & 1 != 0 {
+        kitty_csi_u(27, keyboard::Modifiers::default())
+      } else {
+        b"\x1b".to_vec()
+      }));
+    }
+    Key::Named(Named::ArrowUp) => {
+      return Some(Message::Type(if use_kitty {
+        kitty_csi_letter('A', modifiers)
+      } else {
+        b"\x1b[A".to_vec()
+      }));
+    }
+    Key::Named(Named::ArrowDown) => {
+      return Some(Message::Type(if use_kitty {
+        kitty_csi_letter('B', modifiers)
+      } else {
+        b"\x1b[B".to_vec()
+      }));
+    }
     #[cfg(target_os = "macos")]
     Key::Named(Named::ArrowRight) => {
-      return Some(Message::Type(if modifiers.logo() {
+      return Some(Message::Type(if use_kitty {
+        kitty_csi_letter('C', modifiers)
+      } else if modifiers.logo() {
         b"\x05".to_vec()
       } else if modifiers.alt() || modifiers.control() {
         b"\x1bf".to_vec()
@@ -210,7 +319,9 @@ fn handle_key_pressed(
     }
     #[cfg(not(target_os = "macos"))]
     Key::Named(Named::ArrowRight) => {
-      return Some(Message::Type(if modifiers.alt() {
+      return Some(Message::Type(if use_kitty {
+        kitty_csi_letter('C', modifiers)
+      } else if modifiers.alt() {
         b"\x05".to_vec()
       } else if modifiers.control() {
         b"\x1bf".to_vec()
@@ -220,7 +331,9 @@ fn handle_key_pressed(
     }
     #[cfg(target_os = "macos")]
     Key::Named(Named::ArrowLeft) => {
-      return Some(Message::Type(if modifiers.logo() {
+      return Some(Message::Type(if use_kitty {
+        kitty_csi_letter('D', modifiers)
+      } else if modifiers.logo() {
         b"\x01".to_vec()
       } else if modifiers.alt() || modifiers.control() {
         b"\x1bb".to_vec()
@@ -230,7 +343,9 @@ fn handle_key_pressed(
     }
     #[cfg(not(target_os = "macos"))]
     Key::Named(Named::ArrowLeft) => {
-      return Some(Message::Type(if modifiers.alt() {
+      return Some(Message::Type(if use_kitty {
+        kitty_csi_letter('D', modifiers)
+      } else if modifiers.alt() {
         b"\x01".to_vec()
       } else if modifiers.control() {
         b"\x1bb".to_vec()
@@ -238,11 +353,36 @@ fn handle_key_pressed(
         b"\x1b[D".to_vec()
       }));
     }
-    Key::Named(Named::Delete) => return Some(Message::Type(b"\x1b[3~".to_vec())),
-    Key::Named(Named::Home) => return Some(Message::Type(b"\x1b[H".to_vec())),
-    Key::Named(Named::End) => return Some(Message::Type(b"\x1b[F".to_vec())),
-    Key::Named(Named::PageUp) => return Some(Message::Type(b"\x1b[5~".to_vec())),
-    Key::Named(Named::PageDown) => return Some(Message::Type(b"\x1b[6~".to_vec())),
+    Key::Named(Named::Delete) => return Some(Message::Type(kitty_csi_tilde(3, modifiers))),
+    Key::Named(Named::Insert) => return Some(Message::Type(kitty_csi_tilde(2, modifiers))),
+    Key::Named(Named::Home) => {
+      return Some(Message::Type(if use_kitty {
+        kitty_csi_letter('H', modifiers)
+      } else {
+        b"\x1b[H".to_vec()
+      }));
+    }
+    Key::Named(Named::End) => {
+      return Some(Message::Type(if use_kitty {
+        kitty_csi_letter('F', modifiers)
+      } else {
+        b"\x1b[F".to_vec()
+      }));
+    }
+    Key::Named(Named::PageUp) => return Some(Message::Type(kitty_csi_tilde(5, modifiers))),
+    Key::Named(Named::PageDown) => return Some(Message::Type(kitty_csi_tilde(6, modifiers))),
+    Key::Named(Named::F1) => return Some(Message::Type(kitty_f1_f4('P', modifiers))),
+    Key::Named(Named::F2) => return Some(Message::Type(kitty_f1_f4('Q', modifiers))),
+    Key::Named(Named::F3) => return Some(Message::Type(kitty_f1_f4('R', modifiers))),
+    Key::Named(Named::F4) => return Some(Message::Type(kitty_f1_f4('S', modifiers))),
+    Key::Named(Named::F5) => return Some(Message::Type(kitty_csi_tilde(15, modifiers))),
+    Key::Named(Named::F6) => return Some(Message::Type(kitty_csi_tilde(17, modifiers))),
+    Key::Named(Named::F7) => return Some(Message::Type(kitty_csi_tilde(18, modifiers))),
+    Key::Named(Named::F8) => return Some(Message::Type(kitty_csi_tilde(19, modifiers))),
+    Key::Named(Named::F9) => return Some(Message::Type(kitty_csi_tilde(20, modifiers))),
+    Key::Named(Named::F10) => return Some(Message::Type(kitty_csi_tilde(21, modifiers))),
+    Key::Named(Named::F11) => return Some(Message::Type(kitty_csi_tilde(23, modifiers))),
+    Key::Named(Named::F12) => return Some(Message::Type(kitty_csi_tilde(24, modifiers))),
     _ => {}
   }
 
@@ -251,6 +391,10 @@ fn handle_key_pressed(
       && let Some(ch) = c.as_str().chars().next()
       && ch.is_ascii_alphabetic()
     {
+      if use_kitty && modifiers.shift() {
+        let lower = ch.to_ascii_lowercase();
+        return Some(Message::Type(kitty_csi_u(lower as u32, modifiers)));
+      }
       let lower = ch.to_ascii_lowercase();
       return Some(Message::Type(vec![(lower as u8) & 0x1f]));
     }
@@ -289,6 +433,23 @@ impl Nova {
     if self.bell_blink_remaining > 0 {
       subs.push(time::every(std::time::Duration::from_millis(200)).map(|_| Message::BellBlinkTick));
     }
+
+    let kitty_flags = self
+      .tabs
+      .get(self.active_index)
+      .map(|tab| {
+        if tab.active_pane_is_split {
+          tab
+            .split
+            .as_ref()
+            .map(|s| s.grid.kitty_keyboard_flags())
+            .unwrap_or(0)
+        } else {
+          tab.grid.kitty_keyboard_flags()
+        }
+      })
+      .unwrap_or(0);
+    ACTIVE_KITTY_FLAGS.store(kitty_flags, Ordering::Relaxed);
 
     subs.push(event::listen_with(|event, _s, window_id| match event {
       Event::Keyboard(keyboard::Event::KeyPressed {

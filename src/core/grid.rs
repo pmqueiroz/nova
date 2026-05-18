@@ -85,6 +85,7 @@ pub struct Grid {
   pub input_start_row: Option<usize>,
   pub scrollback_limit: usize,
   pub cursor_visible: bool,
+  pub kitty_keyboard_flags_stack: Vec<u32>,
   alt_cells: Option<Vec<Cell>>,
   alt_cursor: Option<(usize, usize)>,
   alt_scrollback: Option<VecDeque<(Vec<Cell>, bool)>>,
@@ -132,11 +133,16 @@ impl Grid {
       input_start_row: None,
       scrollback_limit: DEFAULT_SCROLLBACK_LIMIT,
       cursor_visible: true,
+      kitty_keyboard_flags_stack: Vec::new(),
       alt_cells: None,
       alt_cursor: None,
       alt_scrollback: None,
       alt_row_continuation: None,
     }
+  }
+
+  pub fn kitty_keyboard_flags(&self) -> u32 {
+    self.kitty_keyboard_flags_stack.last().copied().unwrap_or(0)
   }
 
   #[inline]

@@ -607,6 +607,29 @@ impl<'a> Perform for AnsiExecutor<'a> {
           self.grid.wrap_next = false;
         }
       }
+      'u' if intermediates == b"=" => {
+        self
+          .grid
+          .kitty_keyboard_flags_stack
+          .push(param_value as u32);
+      }
+      'u' if intermediates == b"<" => {
+        let pop_n = if param_value == 0 { 1 } else { param_value };
+        let keep = self
+          .grid
+          .kitty_keyboard_flags_stack
+          .len()
+          .saturating_sub(pop_n);
+        self.grid.kitty_keyboard_flags_stack.truncate(keep);
+      }
+      'u' if intermediates == b"?" => {
+        let flags = self.grid.kitty_keyboard_flags();
+        let response = format!("\x1b[?{}u", flags);
+        self.grid.output_queue.push(response.into_bytes());
+      }
+      'c' if intermediates.is_empty() => {
+        self.grid.output_queue.push(b"\x1b[?1;2;63c".to_vec());
+      }
       'h' | 'l' if intermediates.contains(&b'?') => {
         let mode = params.iter().next().map_or(0, |p| p[0]);
         match mode {

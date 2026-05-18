@@ -1,10 +1,10 @@
 use iced::{
-  Border, Element, Padding,
+  Border, Color, Element, Padding,
   border::Radius,
-  widget::{button, column, container, pick_list, row, text, text_input},
+  widget::{button, column, container, pick_list, row, text, text_input, toggler},
 };
 
-use super::{input_style, setting_row};
+use super::{input_style, section_label, setting_row};
 use crate::core::config::{self, BellType};
 use crate::ui::{app_state::Message, theme};
 
@@ -99,5 +99,75 @@ pub fn general_tab<'a>(settings: &'a config::Config, shell_input: &'a str) -> El
     "Available shells for new tabs",
     shells_widget,
   ));
+
+  let initial_cmd_val = settings
+    .general
+    .initial_command
+    .as_deref()
+    .unwrap_or("")
+    .to_string();
+  col = col.push(
+    column![
+      section_label("STARTUP"),
+      column![
+        setting_row(
+          "Initial command",
+          "Command to run instead of shell (empty = default shell)",
+          text_input("e.g. ssh server", &initial_cmd_val)
+            .on_input(Message::SettingsInitialCommandChanged)
+            .font(theme::font::REGULAR)
+            .size(12)
+            .style(input_style)
+            .padding(Padding {
+              top: 7.0,
+              bottom: 5.0,
+              left: 10.0,
+              right: 10.0,
+            })
+            .into(),
+        ),
+        setting_row(
+          "Wait after exit",
+          "Keep terminal open when command exits",
+          {
+            let is_on = settings.general.wait_after_command;
+            let wait_toggle: Element<'a, Message> = toggler(is_on)
+              .on_toggle(Message::SettingsWaitAfterCommandToggled)
+              .size(20)
+              .style(move |_t, status| {
+                let is_toggled = match status {
+                  toggler::Status::Active { is_toggled }
+                  | toggler::Status::Hovered { is_toggled }
+                  | toggler::Status::Disabled { is_toggled } => is_toggled,
+                };
+                let rt = theme::color::runtime();
+                let (accent, border_c) = (rt.accent, rt.border);
+                drop(rt);
+                toggler::Style {
+                  background: if is_toggled {
+                    accent.into()
+                  } else {
+                    theme::color::BG_HIGH.as_color().into()
+                  },
+                  background_border_width: 1.0,
+                  background_border_color: if is_toggled { accent } else { border_c },
+                  foreground: Color::WHITE.into(),
+                  foreground_border_width: 0.0,
+                  foreground_border_color: Color::TRANSPARENT,
+                  text_color: None,
+                  border_radius: None,
+                  padding_ratio: 0.15,
+                }
+              })
+              .into();
+            wait_toggle
+          },
+        ),
+      ]
+      .spacing(16),
+    ]
+    .spacing(8),
+  );
+
   col.into()
 }

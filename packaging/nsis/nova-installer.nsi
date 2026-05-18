@@ -485,6 +485,7 @@ SectionEnd
 ; User PATH:    HKCU\Environment\Path
 ; Machine PATH: HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment\Path
 Function AddNovaToPath
+  ClearErrors
   !if "${INSTALLMODE}" == "currentUser"
     ReadRegStr $0 HKCU "Environment" "Path"
   !else if "${INSTALLMODE}" == "perMachine"
@@ -496,9 +497,10 @@ Function AddNovaToPath
       ReadRegStr $0 HKCU "Environment" "Path"
     ${EndIf}
   !endif
-  ${IfThen} $0 == "" ${|} StrCpy $0 "" ${|}
+  ${If} ${Errors}
+    Return
+  ${EndIf}
 
-  ; Avoid duplicates.
   StrCpy $3 ";$0;"
   ${StrStr} $1 $3 ";$INSTDIR;"
   ${IfThen} $1 != "" ${|} Return ${|}
@@ -562,6 +564,7 @@ FunctionEnd
 ; Remove $INSTDIR from PATH (user or machine depending on install mode).
 ; NSIS requires functions called from the uninstall section to be prefixed with `un.`.
 Function un.RemoveNovaFromPath
+  ClearErrors
   !if "${INSTALLMODE}" == "currentUser"
     ReadRegStr $0 HKCU "Environment" "Path"
   !else if "${INSTALLMODE}" == "perMachine"
@@ -573,6 +576,9 @@ Function un.RemoveNovaFromPath
       ReadRegStr $0 HKCU "Environment" "Path"
     ${EndIf}
   !endif
+  ${If} ${Errors}
+    Return
+  ${EndIf}
   ${IfThen} $0 == "" ${|} Return ${|}
 
   ; Remove occurrences of "$INSTDIR" with optional surrounding semicolons.

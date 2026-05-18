@@ -3043,7 +3043,7 @@ dependencies = [
 
 [[package]]
 name = "nova"
-version = "0.23.0"
+version = "0.23.1"
 dependencies = [
  "anthropic",
  "anyhow",

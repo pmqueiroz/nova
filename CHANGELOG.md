@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.1](https://github.com/pmqueiroz/nova/compare/v0.23.0...v0.23.1) (2026-05-18)
+
+
+### Bug Fixes
+
+* **windows:** restore PATH safety and fix CLI prompt on exit ([5cce647](https://github.com/pmqueiroz/nova/commit/5cce6476752ca06c68f12165a57630c56f99104e))
+
 ## [0.23.0](https://github.com/pmqueiroz/nova/compare/v0.22.0...v0.23.0) (2026-05-18)
 
 

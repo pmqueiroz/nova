@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.23.0](https://github.com/pmqueiroz/nova/compare/v0.22.0...v0.23.0) (2026-05-18)
+
+
+### Features
+
+* **cli:** add --version / -v flag ([8fe3d7f](https://github.com/pmqueiroz/nova/commit/8fe3d7f77971b4183f26158846cf9f3f795e0eb5))
+* **cli:** add config command with view and set subcommands ([0c84a51](https://github.com/pmqueiroz/nova/commit/0c84a516e1118224f0ebf289b65e995d642f4498))
+
+
+### Bug Fixes
+
+* git bash ps1 prompt and title bar path resolution ([ae3b3ef](https://github.com/pmqueiroz/nova/commit/ae3b3efb5c4caa0cbbf02a7d05601bb48f00ed53))
+* **installer:** write PATH to correct registry key for machine-wide installs ([a2010dd](https://github.com/pmqueiroz/nova/commit/a2010dd327646352ed1d780d7e58ed64d3d27904))
+* strip trailing semicolon from PROMPT_COMMAND before appending ([9394250](https://github.com/pmqueiroz/nova/commit/9394250441c54e88c7b8aae079ecca817b398315))
+
 ## [0.22.0](https://github.com/pmqueiroz/nova/compare/v0.21.1...v0.22.0) (2026-05-18)
 
 

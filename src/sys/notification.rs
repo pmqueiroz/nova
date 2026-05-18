@@ -35,7 +35,7 @@ pub fn register() {}
 pub fn send(title: &str, body: &str) {
   let title = title.to_string();
   let body = body.to_string();
-  let tx = click_channel().0.clone();
+  let _tx = click_channel().0.clone();
 
   #[cfg(target_os = "windows")]
   std::thread::spawn(move || {
@@ -46,7 +46,7 @@ pub fn send(title: &str, body: &str) {
       .title(&title)
       .text1(&body)
       .on_activated(move |_| {
-        let _ = tx.send_blocking(());
+        let _ = _tx.send_blocking(());
         let _ = done_tx.send(());
         Ok(())
       })
@@ -61,14 +61,14 @@ pub fn send(title: &str, body: &str) {
 
   #[cfg(not(target_os = "windows"))]
   std::thread::spawn(move || {
-    if let Ok(handle) = notify_rust::Notification::new()
+    if let Ok(_handle) = notify_rust::Notification::new()
       .summary(&title)
       .body(&body)
       .show()
     {
       #[cfg(target_os = "linux")]
-      handle.wait_for_action(|_| {
-        let _ = tx.send_blocking(());
+      _handle.wait_for_action(|_| {
+        let _ = _tx.send_blocking(());
       });
     }
   });

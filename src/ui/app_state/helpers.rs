@@ -288,7 +288,6 @@ pub fn resize_direction(pos: Point, size: Size) -> Option<window::Direction> {
   let top = pos.y < RESIZE_EDGE;
   let bottom = pos.y > size.height - RESIZE_EDGE;
 
-  // top edge belongs to the title bar (drag-to-move), never resize from there
   if top {
     return None;
   }

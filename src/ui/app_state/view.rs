@@ -121,6 +121,9 @@ impl Nova {
         None
       };
 
+      let cursor_style = self.settings.theme.cursor.style;
+      let cursor_blink = self.cursor_blink_visible;
+
       let left = mouse_area(
         container(stack![
           components::term(
@@ -132,6 +135,8 @@ impl Nova {
             primary_span,
             search_matches_ref,
             search_current,
+            cursor_style,
+            cursor_blink,
           ),
           make_active_triangle(!active_tab.active_pane_is_split),
           make_close_btn(Message::CloseLeftPane),
@@ -183,6 +188,8 @@ impl Nova {
             None,
             &[],
             None,
+            cursor_style,
+            cursor_blink,
           ),
           make_active_triangle(active_tab.active_pane_is_split),
           make_close_btn(Message::CloseSplitPane),
@@ -233,6 +240,8 @@ impl Nova {
       } else {
         None
       };
+      let cursor_style = self.settings.theme.cursor.style;
+      let cursor_blink = self.cursor_blink_visible;
       let term_el = mouse_area(components::term(
         &active_tab.grid,
         selection,
@@ -242,6 +251,8 @@ impl Nova {
         self.hovered_link_span,
         search_matches_ref,
         search_current,
+        cursor_style,
+        cursor_blink,
       ))
       .interaction(term_interaction);
       if self.search_active {

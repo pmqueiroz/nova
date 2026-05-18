@@ -284,6 +284,7 @@ impl Nova {
 
     subs.push(time::every(std::time::Duration::from_secs(1)).map(|_| Message::Tick));
     subs.push(Subscription::run(notification_click_stream));
+    subs.push(time::every(std::time::Duration::from_millis(500)).map(|_| Message::CursorBlinkTick));
 
     if self.bell_blink_remaining > 0 {
       subs.push(time::every(std::time::Duration::from_millis(200)).map(|_| Message::BellBlinkTick));

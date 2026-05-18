@@ -144,7 +144,6 @@ impl Nova {
         let slot = ((cx - TAB_X_PADDING) / TAB_SLOT).floor().max(0.0) as usize;
         if slot < self.tabs.len() {
           let x_in_slot = (cx - TAB_X_PADDING) - slot as f32 * TAB_SLOT;
-          // Only initiate switch/drag when not clicking the close button area
           if x_in_slot < 120.0 - CLOSE_ZONE {
             self.active_index = slot;
             self.drag_pending_tab = Some(slot);

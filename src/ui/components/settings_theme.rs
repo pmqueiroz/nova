@@ -20,7 +20,7 @@ pub fn theme_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
   let family_input: Element<'a, Message> = column![
     text_input("font family", &settings.theme.font.family)
       .on_input(Message::SettingsFontFamilyChanged)
-      .font(theme::font::REGULAR)
+      .font(theme::font::regular())
       .size(12)
       .style(input_style)
       .padding(Padding {
@@ -29,10 +29,6 @@ pub fn theme_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
         left: 10.0,
         right: 10.0
       }),
-    text("Requires restart to take effect")
-      .font(theme::font::REGULAR)
-      .size(10)
-      .color(theme::color::runtime().foreground_muted),
   ]
   .spacing(4)
   .into();
@@ -49,7 +45,7 @@ pub fn theme_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
       }),
     container(
       text(format!("{}", font_size as u32))
-        .font(theme::font::REGULAR)
+        .font(theme::font::regular())
         .size(12)
         .color(fg),
     )
@@ -102,7 +98,7 @@ pub fn theme_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
     Some(settings.general.window_controls.clone()),
     Message::SettingsWindowControlsChanged,
   )
-  .font(theme::font::REGULAR)
+  .font(theme::font::regular())
   .text_size(12)
   .padding(Padding {
     top: 7.0,
@@ -156,7 +152,7 @@ pub fn theme_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
     Some(cursor.style),
     Message::SettingsCursorStyleChanged,
   )
-  .font(theme::font::REGULAR)
+  .font(theme::font::regular())
   .text_size(12)
   .into();
 

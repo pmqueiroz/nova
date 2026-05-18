@@ -25,7 +25,7 @@ pub fn keybindings_tab<'a>(
   let fg_muted = theme::color::runtime().foreground_muted;
 
   let hint = text("Click a binding and press the desired keys. Esc to cancel.")
-    .font(theme::font::REGULAR)
+    .font(theme::font::regular())
     .size(11)
     .color(fg_muted);
 
@@ -46,7 +46,7 @@ pub fn keybindings_tab<'a>(
       container(
         row![
           text("Recording…")
-            .font(theme::font::REGULAR)
+            .font(theme::font::regular())
             .size(12)
             .color(accent),
           horizontal(),
@@ -71,12 +71,17 @@ pub fn keybindings_tab<'a>(
       .width(200)
       .into()
     } else {
-      button(text(binding).font(theme::font::REGULAR).size(12).color(fg))
-        .style(btn_subtle_style)
-        .on_press(Message::SettingsStartRecordKb(idx))
-        .padding(Padding::from([5, 10]))
-        .width(200)
-        .into()
+      button(
+        text(binding)
+          .font(theme::font::regular())
+          .size(12)
+          .color(fg),
+      )
+      .style(btn_subtle_style)
+      .on_press(Message::SettingsStartRecordKb(idx))
+      .padding(Padding::from([5, 10]))
+      .width(200)
+      .into()
     };
 
     let reset_btn = button(text("Reset").size(11).color(fg_muted2))
@@ -86,7 +91,7 @@ pub fn keybindings_tab<'a>(
 
     rows = rows.push(
       row![
-        container(text(label).font(theme::font::REGULAR).size(12).color(fg)).width(140),
+        container(text(label).font(theme::font::regular()).size(12).color(fg)).width(140),
         binding_widget,
         reset_btn,
       ]

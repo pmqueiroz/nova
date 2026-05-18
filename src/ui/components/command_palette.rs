@@ -149,11 +149,11 @@ pub fn command_palette<'a>(query: &'a str, selected: usize) -> Element<'a, Messa
             text(cmd.label)
               .size(13)
               .color(label_color)
-              .font(theme::font::REGULAR),
+              .font(theme::font::regular()),
             text(cmd.description)
               .size(11)
               .color(desc_color)
-              .font(theme::font::REGULAR),
+              .font(theme::font::regular()),
           ]
           .spacing(2),
         ]
@@ -180,15 +180,15 @@ pub fn command_palette<'a>(query: &'a str, selected: usize) -> Element<'a, Messa
     text("↑↓ navigate")
       .size(10)
       .color(fg_muted)
-      .font(theme::font::REGULAR),
+      .font(theme::font::regular()),
     text("  ↵ confirm")
       .size(10)
       .color(fg_muted)
-      .font(theme::font::REGULAR),
+      .font(theme::font::regular()),
     text("  esc close")
       .size(10)
       .color(fg_muted)
-      .font(theme::font::REGULAR),
+      .font(theme::font::regular()),
   ])
   .padding(Padding {
     top: 8.0,

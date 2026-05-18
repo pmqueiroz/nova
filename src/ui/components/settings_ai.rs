@@ -15,7 +15,7 @@ pub(super) fn ai_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
     Some(settings.ai.provider.clone()),
     Message::SettingsAiProviderChanged,
   )
-  .font(theme::font::REGULAR)
+  .font(theme::font::regular())
   .text_size(12)
   .into();
 
@@ -30,7 +30,7 @@ pub(super) fn ai_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
     "Model name to use",
     text_input("e.g. claude-haiku-4-5-20251001", &settings.ai.model)
       .on_input(Message::SettingsAiModelChanged)
-      .font(theme::font::REGULAR)
+      .font(theme::font::regular())
       .size(12)
       .style(input_style)
       .padding(Padding::from([6, 10]))
@@ -44,7 +44,7 @@ pub(super) fn ai_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
     text_input("sk-...", &settings.ai.api_key)
       .secure(true)
       .on_input(Message::SettingsAiApiKeyChanged)
-      .font(theme::font::REGULAR)
+      .font(theme::font::regular())
       .size(12)
       .style(input_style)
       .padding(Padding::from([6, 10]))
@@ -56,7 +56,7 @@ pub(super) fn ai_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
     "Custom endpoint (optional)",
     text_input("https://api.anthropic.com", base_url_val)
       .on_input(Message::SettingsAiBaseUrlChanged)
-      .font(theme::font::REGULAR)
+      .font(theme::font::regular())
       .size(12)
       .style(input_style)
       .padding(Padding::from([6, 10]))
@@ -82,11 +82,11 @@ pub(super) fn ai_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
     row![
       column![
         text("Error diagnostics")
-          .font(theme::font::BOLD)
+          .font(theme::font::bold())
           .size(12)
           .color(rt.foreground),
         text("Show a banner with AI explanation when a command fails")
-          .font(theme::font::REGULAR)
+          .font(theme::font::regular())
           .size(11)
           .color(rt.foreground_muted),
       ]
@@ -128,7 +128,7 @@ pub(super) fn ai_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
   col = col.push(
     container(
       text(status_text)
-        .font(theme::font::REGULAR)
+        .font(theme::font::regular())
         .size(11)
         .color(status_color),
     )

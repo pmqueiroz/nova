@@ -113,7 +113,10 @@ pub fn ai_overlay<'a>(
 
   let header = container(
     row![
-      text("Ask AI").size(13).color(fg).font(theme::font::REGULAR),
+      text("Ask AI")
+        .size(13)
+        .color(fg)
+        .font(theme::font::regular()),
       space::horizontal(),
       button(text("×").size(14).color(fg_muted))
         .style(|_t, _s| button::Style {
@@ -194,14 +197,14 @@ pub fn ai_overlay<'a>(
       text("Thinking…")
         .size(12)
         .color(fg_muted)
-        .font(theme::font::REGULAR)
+        .font(theme::font::regular())
         .into()
     } else if let Some(content) = response {
       if is_error {
         text(content)
           .size(12)
           .color(red)
-          .font(theme::font::REGULAR)
+          .font(theme::font::regular())
           .width(Length::Fill)
           .into()
       } else {
@@ -212,7 +215,7 @@ pub fn ai_overlay<'a>(
             Segment::Text(t) => text(t)
               .size(12)
               .color(fg)
-              .font(theme::font::REGULAR)
+              .font(theme::font::regular())
               .width(Length::Fill)
               .into(),
             Segment::Code { lang, content } => {
@@ -231,7 +234,7 @@ pub fn ai_overlay<'a>(
                     text(label)
                       .size(10)
                       .color(fg_muted)
-                      .font(theme::font::REGULAR),
+                      .font(theme::font::regular()),
                     space::horizontal(),
                     button(text("Copy").size(10).color(fg_muted))
                       .style(move |_t, status| button::Style {
@@ -285,7 +288,7 @@ pub fn ai_overlay<'a>(
                   text(code)
                     .size(11)
                     .color(fg)
-                    .font(theme::font::REGULAR)
+                    .font(theme::font::regular())
                     .width(Length::Fill),
                 )
                 .padding(Padding::from([8, 10]))

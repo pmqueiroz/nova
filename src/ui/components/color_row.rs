@@ -27,13 +27,13 @@ pub fn color_row<'a>(label: &'static str, hex: &'a str, field: ColorField) -> El
       ..Default::default()
     }),
     text(label)
-      .font(theme::font::REGULAR)
+      .font(theme::font::regular())
       .size(12)
       .color(fg)
       .width(140),
     text_input("#hex", &hex_owned)
       .on_input(move |s| Message::SettingsColorChanged(field.clone(), s))
-      .font(theme::font::REGULAR)
+      .font(theme::font::regular())
       .size(12)
       .style(input_style)
       .padding(Padding::from([5, 10]))

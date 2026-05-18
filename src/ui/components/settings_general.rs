@@ -16,7 +16,7 @@ pub fn general_tab<'a>(settings: &'a config::Config, shell_input: &'a str) -> El
     "External editor for opening files",
     text_input("editor", &settings.general.editor)
       .on_input(Message::SettingsEditorChanged)
-      .font(theme::font::REGULAR)
+      .font(theme::font::regular())
       .size(12)
       .style(input_style)
       .padding(Padding {
@@ -33,7 +33,7 @@ pub fn general_tab<'a>(settings: &'a config::Config, shell_input: &'a str) -> El
     Some(settings.general.bell.clone()),
     Message::SettingsBellChanged,
   )
-  .font(theme::font::REGULAR)
+  .font(theme::font::regular())
   .text_size(12)
   .into();
 
@@ -48,7 +48,7 @@ pub fn general_tab<'a>(settings: &'a config::Config, shell_input: &'a str) -> El
     chips = chips.push(
       container(
         row![
-          text(label).font(theme::font::REGULAR).size(11).color(fg),
+          text(label).font(theme::font::regular()).size(11).color(fg),
           button(text("×").size(10).color(fg_muted))
             .style(|_t, _s| button::Style {
               background: Some(theme::color::TRANSPARENT.as_color().into()),
@@ -81,7 +81,7 @@ pub fn general_tab<'a>(settings: &'a config::Config, shell_input: &'a str) -> El
     text_input("add shell…", shell_input)
       .on_input(Message::SettingsShellInputChanged)
       .on_submit(Message::SettingsAddShell)
-      .font(theme::font::REGULAR)
+      .font(theme::font::regular())
       .size(12)
       .style(input_style)
       .padding(Padding {

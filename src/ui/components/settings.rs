@@ -96,10 +96,13 @@ fn modal_inner<'a>(
 
   let header = container(
     row![
-      text("Settings").font(theme::font::BOLD).size(14).color(fg),
+      text("Settings")
+        .font(theme::font::bold())
+        .size(14)
+        .color(fg),
       horizontal(),
       text(config_path)
-        .font(theme::font::REGULAR)
+        .font(theme::font::regular())
         .size(11)
         .color(fg_muted),
       button(text("×").size(16).color(fg_muted))
@@ -198,7 +201,7 @@ fn modal_inner<'a>(
   let footer = container(
     row![
       text("Changes saved automatically")
-        .font(theme::font::REGULAR)
+        .font(theme::font::regular())
         .size(11)
         .color(fg_muted),
       horizontal(),
@@ -281,7 +284,7 @@ fn sidebar_nav<'a>(active_tab: &'a SettingsTab) -> Element<'a, Message> {
     nav = nav.push(
       button(
         text(label)
-          .font(theme::font::REGULAR)
+          .font(theme::font::regular())
           .size(12)
           .color(label_color),
       )
@@ -325,7 +328,7 @@ fn sidebar_nav<'a>(active_tab: &'a SettingsTab) -> Element<'a, Message> {
   nav = nav.push(
     button(
       text("Reset to defaults")
-        .font(theme::font::REGULAR)
+        .font(theme::font::regular())
         .size(11)
         .color(theme::color::RED.as_color()),
     )
@@ -360,7 +363,7 @@ fn edit_raw_tab<'a>(content: &'a str) -> Element<'a, Message> {
   let fg_muted = theme::color::runtime().foreground_muted;
   container(
     text(content)
-      .font(theme::font::REGULAR)
+      .font(theme::font::regular())
       .size(12)
       .color(fg_muted),
   )

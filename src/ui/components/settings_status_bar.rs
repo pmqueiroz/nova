@@ -17,9 +17,9 @@ pub fn status_bar_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> 
   column![
     row![
       column![
-        text("Visible").font(theme::font::BOLD).size(12).color(fg),
+        text("Visible").font(theme::font::bold()).size(12).color(fg),
         text("Show or hide the status bar at the bottom")
-          .font(theme::font::REGULAR)
+          .font(theme::font::regular())
           .size(11)
           .color(fg_muted),
       ]
@@ -61,7 +61,7 @@ pub fn status_bar_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> 
       "chrono format string for the date",
       text_input("%b %d", &settings.status_bar.date_format)
         .on_input(Message::SettingsDateFormatChanged)
-        .font(theme::font::REGULAR)
+        .font(theme::font::regular())
         .size(12)
         .style(input_style)
         .padding(Padding::from([6, 10]))
@@ -72,7 +72,7 @@ pub fn status_bar_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> 
       "chrono format string for the time",
       text_input("%H:%M:%S", &settings.status_bar.time_format)
         .on_input(Message::SettingsTimeFormatChanged)
-        .font(theme::font::REGULAR)
+        .font(theme::font::regular())
         .size(12)
         .style(input_style)
         .padding(Padding::from([6, 10]))

@@ -68,6 +68,13 @@ impl Tab {
       .unwrap_or(DEFAULT_SCROLLBACK_LIMIT);
     let mut grid = Grid::new(cols, rows);
     grid.scrollback_limit = scrollback_limit;
+    let pwd = if initial_cwd.is_empty() {
+      String::from("~")
+    } else {
+      initial_cwd.clone()
+    };
+    grid.pwd = pwd.clone();
+    let git_branch = read_git_branch(&pwd);
     Self {
       id,
       grid,
@@ -76,8 +83,8 @@ impl Tab {
       ansi_parser: Parser::new(),
       shell,
       shell_cmd,
-      pwd: String::from("~"),
-      git_branch: None,
+      pwd,
+      git_branch,
       pending_command: None,
       scroll_offset: 0,
       initial_cwd,
@@ -124,13 +131,18 @@ pub fn shell_display_name(cmd: &str) -> String {
 }
 
 fn read_git_branch(pwd: &str) -> Option<String> {
-  let head_path = Path::new(pwd).join(".git").join("HEAD");
-  let content = fs::read_to_string(head_path).ok()?;
-  let content = content.trim();
-  if let Some(branch) = content.strip_prefix("ref: refs/heads/") {
-    Some(branch.trim().to_string())
-  } else {
-    Some(content.chars().take(7).collect())
+  let mut dir = Path::new(pwd);
+  loop {
+    let head_path = dir.join(".git").join("HEAD");
+    if let Ok(content) = fs::read_to_string(head_path) {
+      let content = content.trim();
+      return if let Some(branch) = content.strip_prefix("ref: refs/heads/") {
+        Some(branch.trim().to_string())
+      } else {
+        Some(content.chars().take(7).collect())
+      };
+    }
+    dir = dir.parent()?;
   }
 }
 

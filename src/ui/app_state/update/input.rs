@@ -21,7 +21,6 @@ impl Nova {
       return iced::Task::none();
     };
 
-    // If waiting after exit, any keypress closes the pane/tab
     if active_tab.active_pane_is_split {
       if active_tab
         .split

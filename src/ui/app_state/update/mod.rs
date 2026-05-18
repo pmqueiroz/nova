@@ -110,13 +110,34 @@ impl Default for Nova {
       dragging_tab_index: None,
       drag_pending_tab: None,
       drag_pending_pos: None,
+      paste_warning: None,
     };
     nova.load_command_history();
     nova
   }
 }
 
+fn is_dangerous_paste(text: &str) -> bool {
+  text.contains('\n')
+}
+
 impl Nova {
+  fn do_paste(&self, text: String) {
+    if let Some(tab) = self.tabs.get(self.active_index)
+      && let Some(tx) = &tab.pty_tx
+    {
+      if tab.grid.bracketed_paste {
+        let mut payload = Vec::with_capacity(text.len() + 12);
+        payload.extend_from_slice(b"\x1b[200~");
+        payload.extend_from_slice(text.as_bytes());
+        payload.extend_from_slice(b"\x1b[201~");
+        let _ = tx.try_send(PtyCommand::Input(payload));
+      } else {
+        let _ = tx.try_send(PtyCommand::Input(text.into_bytes()));
+      }
+    }
+  }
+
   pub fn update(&mut self, message: Message) -> iced::Task<Message> {
     match message {
       Message::Type(bytes) => self.handle_type_input(bytes),
@@ -701,20 +722,23 @@ impl Nova {
       }
       Message::NoOp => iced::Task::none(),
       Message::ClipboardReceived(text) => {
-        if let Some(text) = text
-          && let Some(tab) = self.tabs.get(self.active_index)
-          && let Some(tx) = &tab.pty_tx
-        {
-          if tab.grid.bracketed_paste {
-            let mut payload = Vec::with_capacity(text.len() + 12);
-            payload.extend_from_slice(b"\x1b[200~");
-            payload.extend_from_slice(text.as_bytes());
-            payload.extend_from_slice(b"\x1b[201~");
-            let _ = tx.try_send(PtyCommand::Input(payload));
+        if let Some(text) = text {
+          if is_dangerous_paste(&text) {
+            self.paste_warning = Some(text);
           } else {
-            let _ = tx.try_send(PtyCommand::Input(text.into_bytes()));
+            self.do_paste(text);
           }
         }
+        iced::Task::none()
+      }
+      Message::PasteWarningConfirm => {
+        if let Some(text) = self.paste_warning.take() {
+          self.do_paste(text);
+        }
+        iced::Task::none()
+      }
+      Message::PasteWarningCancel => {
+        self.paste_warning = None;
         iced::Task::none()
       }
       Message::PasteRequested => iced::clipboard::read().map(Message::ClipboardReceived),

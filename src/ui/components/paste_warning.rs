@@ -57,7 +57,7 @@ pub fn paste_warning_overlay<'a>(content: &'a str) -> Element<'a, Message> {
       text("Paste Warning")
         .size(13)
         .color(orange)
-        .font(theme::font::BOLD),
+        .font(theme::font::bold()),
       space::horizontal(),
       button(text("×").size(14).color(fg_muted))
         .style(|_t, _s| button::Style {
@@ -81,7 +81,7 @@ pub fn paste_warning_overlay<'a>(content: &'a str) -> Element<'a, Message> {
     text(reason)
       .size(12)
       .color(fg_muted)
-      .font(theme::font::REGULAR),
+      .font(theme::font::regular()),
   )
   .padding(Padding {
     top: 10.0,
@@ -97,7 +97,7 @@ pub fn paste_warning_overlay<'a>(content: &'a str) -> Element<'a, Message> {
         text(content)
           .size(11)
           .color(fg)
-          .font(theme::font::REGULAR)
+          .font(theme::font::regular())
           .width(Length::Fill),
       )
       .height(120)

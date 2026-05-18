@@ -1,8 +1,8 @@
 mod ai_overlay;
 mod app;
-mod paste_warning;
 mod color_row;
 mod command_palette;
+mod paste_warning;
 mod search_bar;
 mod section_label;
 mod setting_row;
@@ -21,9 +21,9 @@ mod traffic_lights;
 
 pub use ai_overlay::*;
 pub use app::*;
-pub use paste_warning::*;
 pub use color_row::*;
 pub use command_palette::*;
+pub use paste_warning::*;
 pub use search_bar::*;
 pub use section_label::*;
 pub use setting_row::*;

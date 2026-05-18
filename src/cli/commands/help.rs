@@ -6,6 +6,7 @@ Commands:
   config   View or set configuration values
   explain  Explain output using AI (Nova terminal only)
   help     Show this help
+  mark     Print the Nova mark
 
 Flags:
   --version, -v  Print version

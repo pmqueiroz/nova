@@ -23,6 +23,7 @@ pub fn run_from_env() -> Option<i32> {
     Some("ask") => Some(commands::ask::run(args.get(1..).unwrap_or_default())),
     Some("config") => Some(commands::config::run(args.get(1..).unwrap_or_default())),
     Some("explain") => Some(commands::explain::run(args.get(1..).unwrap_or_default())),
+    Some("mark") => Some(commands::mark::run()),
     Some(cmd) => {
       eprintln!("error: unknown command '{cmd}'\n\n{}", help::usage());
       Some(2)

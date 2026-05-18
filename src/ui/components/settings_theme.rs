@@ -1,10 +1,10 @@
 use iced::{
-  Border, Color, Element, Padding,
+  Border, Color, Element, Length, Padding,
   border::Radius,
-  widget::{button, column, container, pick_list, row, text, text_input, toggler},
+  widget::{button, column, container, pick_list, row, text, toggler},
 };
 
-use super::{btn_subtle_style, color_row, input_style, section_label, setting_row};
+use super::{btn_subtle_style, color_row, section_label, setting_row};
 use crate::core::config::{self, CursorStyle, WindowControls};
 use crate::ui::{
   app_state::{ColorField, Message},
@@ -17,21 +17,25 @@ pub fn theme_tab<'a>(settings: &'a config::Config) -> Element<'a, Message> {
   let font_size = settings.theme.font.size;
   let fg = theme::color::runtime().foreground;
 
-  let family_input: Element<'a, Message> = column![
-    text_input("font family", &settings.theme.font.family)
-      .on_input(Message::SettingsFontFamilyChanged)
+  let fonts = theme::font::installed_fonts();
+  let current_family = settings.theme.font.family.clone();
+  let selected_font = fonts
+    .iter()
+    .find(|f| *f == &current_family)
+    .cloned()
+    .or(Some(current_family));
+  let family_input: Element<'a, Message> =
+    pick_list(fonts, selected_font, Message::SettingsFontFamilyChanged)
       .font(theme::font::regular())
-      .size(12)
-      .style(input_style)
+      .text_size(12)
+      .width(Length::Fixed(200.0))
       .padding(Padding {
         top: 7.0,
         bottom: 5.0,
         left: 10.0,
-        right: 10.0
-      }),
-  ]
-  .spacing(4)
-  .into();
+        right: 10.0,
+      })
+      .into();
 
   let size_control: Element<'a, Message> = row![
     button(text("−").size(14).color(fg))

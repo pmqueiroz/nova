@@ -1,6 +1,17 @@
 use std::sync::{OnceLock, RwLock};
 
 static FONT_FAMILY: OnceLock<RwLock<&'static str>> = OnceLock::new();
+static INSTALLED_FONTS: OnceLock<Vec<String>> = OnceLock::new();
+
+pub fn installed_fonts() -> &'static [String] {
+  INSTALLED_FONTS.get_or_init(|| {
+    use font_kit::source::SystemSource;
+    let mut fonts = SystemSource::new().all_families().unwrap_or_default();
+    fonts.sort_unstable();
+    fonts.dedup();
+    fonts
+  })
+}
 
 fn get_family() -> &'static str {
   *FONT_FAMILY

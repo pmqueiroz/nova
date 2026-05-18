@@ -25,6 +25,7 @@ serde = { version = "1", features = ["derive"] }
 toml = "0.8"
 vte = "0.15.0"
 unicode-width = "0.2"
+font-kit = "0.14"
 bitflags = "2"
 base64 = "0.22.1"
 bincode = "1"

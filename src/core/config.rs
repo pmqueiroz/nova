@@ -97,6 +97,14 @@ pub struct GeneralConfig {
   pub window_controls: WindowControls,
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub scrollback: Option<usize>,
+  #[serde(
+    rename = "initial-command",
+    default,
+    skip_serializing_if = "Option::is_none"
+  )]
+  pub initial_command: Option<String>,
+  #[serde(rename = "wait-after-command", default)]
+  pub wait_after_command: bool,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]

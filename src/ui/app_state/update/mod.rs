@@ -307,9 +307,13 @@ impl Nova {
         iced::Task::none()
       }
       Message::PtyExited(tab_id) => {
+        let wait = config::get().general.wait_after_command;
         if let Some(tab) = self.tabs.iter_mut().find(|t| t.id == tab_id) {
           tab.pty_alive = false;
           tab.pty_tx = None;
+          if wait {
+            tab.waiting_after_exit = true;
+          }
           return iced::Task::none();
         }
         for tab in &mut self.tabs {
@@ -318,6 +322,9 @@ impl Nova {
           {
             split.pty_alive = false;
             split.pty_tx = None;
+            if wait {
+              split.waiting_after_exit = true;
+            }
             return iced::Task::none();
           }
         }

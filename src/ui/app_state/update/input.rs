@@ -20,6 +20,21 @@ impl Nova {
     let Some(active_tab) = self.tabs.get(self.active_index) else {
       return iced::Task::none();
     };
+
+    // If waiting after exit, any keypress closes the pane/tab
+    if active_tab.active_pane_is_split {
+      if active_tab
+        .split
+        .as_ref()
+        .map(|s| s.waiting_after_exit)
+        .unwrap_or(false)
+      {
+        return self.update(Message::CloseSplitPane);
+      }
+    } else if active_tab.waiting_after_exit {
+      return self.update(Message::CloseActiveTab);
+    }
+
     let active_pane_is_split = active_tab.active_pane_is_split;
 
     if active_pane_is_split {

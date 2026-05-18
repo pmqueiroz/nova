@@ -27,6 +27,7 @@ pub struct SplitPane {
   pub last_pty_output: Option<Instant>,
   pub scroll_offset: usize,
   pub initial_cwd: String,
+  pub waiting_after_exit: bool,
 }
 
 impl SplitPane {
@@ -57,6 +58,8 @@ pub struct Tab {
   pub command_done: bool,
   pub last_command_elapsed: Option<Duration>,
   pub last_pty_output: Option<Instant>,
+  pub waiting_after_exit: bool,
+  pub initial_command: Option<String>,
 }
 
 impl Tab {
@@ -97,6 +100,8 @@ impl Tab {
       command_done: false,
       last_command_elapsed: None,
       last_pty_output: None,
+      waiting_after_exit: false,
+      initial_command: config::get().general.initial_command.clone(),
     }
   }
 }

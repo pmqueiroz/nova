@@ -22,6 +22,7 @@ impl PtyBridge {
     rows: u16,
     shell: &str,
     initial_cwd: Option<&str>,
+    initial_command: Option<&str>,
   ) -> anyhow::Result<Self> {
     let pty_system = NativePtySystem::default();
 
@@ -32,7 +33,11 @@ impl PtyBridge {
       pixel_height: 0,
     })?;
 
-    let cmd = build_shell_command(shell, initial_cwd);
+    let cmd = if let Some(cmd) = initial_command {
+      build_direct_command(cmd, initial_cwd)
+    } else {
+      build_shell_command(shell, initial_cwd)
+    };
 
     let child = pair.slave.spawn_command(cmd)?;
 
@@ -91,6 +96,21 @@ fn accent_rgb() -> (u8, u8, u8) {
   } else {
     (123, 147, 253)
   }
+}
+
+fn build_direct_command(cmd: &str, initial_cwd: Option<&str>) -> CommandBuilder {
+  let mut parts = cmd.split_whitespace();
+  let exe = parts.next().unwrap_or(cmd);
+  let mut c = CommandBuilder::new(exe);
+  c.args(parts);
+  if let Some(dir) = initial_cwd {
+    c.cwd(dir);
+  }
+  c.env("TERM", "xterm-256color");
+  c.env("COLORTERM", "truecolor");
+  c.env("NOVA_TERMINAL", "1");
+  c.env("TERM_PROGRAM", "Nova");
+  c
 }
 
 fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder {

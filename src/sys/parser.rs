@@ -754,6 +754,23 @@ impl<'a> Perform for AnsiExecutor<'a> {
           Some(Arc::from(uri.as_ref()))
         };
       }
+      b"52" if params.len() >= 3 => {
+        let data = params[2];
+        if data == b"?" {
+          self
+            .grid
+            .control_queue
+            .push(crate::core::grid::ControlCommand::RequestClipboard);
+        } else if !data.is_empty()
+          && let Ok(bytes) = base64::engine::general_purpose::STANDARD.decode(data)
+          && let Ok(text) = String::from_utf8(bytes)
+        {
+          self
+            .grid
+            .control_queue
+            .push(crate::core::grid::ControlCommand::SetClipboard(text));
+        }
+      }
       _ => {}
     }
   }

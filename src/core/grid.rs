@@ -6,6 +6,15 @@ use std::sync::Arc;
 
 pub const DEFAULT_SCROLLBACK_LIMIT: usize = 10_000;
 
+pub struct PlacedImage {
+  pub id: u32,
+  pub row: usize,
+  pub col: usize,
+  pub pixel_width: u32,
+  pub pixel_height: u32,
+  pub rgba: Vec<u8>,
+}
+
 bitflags! {
     #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
     pub struct CellAttrs: u8 {
@@ -86,6 +95,7 @@ pub struct Grid {
   pub scrollback_limit: usize,
   pub cursor_visible: bool,
   pub kitty_keyboard_flags_stack: Vec<u32>,
+  pub images: Vec<PlacedImage>,
   alt_cells: Option<Vec<Cell>>,
   alt_cursor: Option<(usize, usize)>,
   alt_scrollback: Option<VecDeque<(Vec<Cell>, bool)>>,
@@ -134,6 +144,7 @@ impl Grid {
       scrollback_limit: DEFAULT_SCROLLBACK_LIMIT,
       cursor_visible: true,
       kitty_keyboard_flags_stack: Vec::new(),
+      images: Vec::new(),
       alt_cells: None,
       alt_cursor: None,
       alt_scrollback: None,
@@ -157,6 +168,7 @@ impl Grid {
 
   pub fn enter_alt_screen(&mut self) {
     if self.alt_cells.is_none() {
+      self.images.clear();
       self.alt_cells = Some(self.cells.clone());
       self.alt_cursor = Some((self.cursor_x, self.cursor_y));
       self.alt_scrollback = Some(std::mem::take(&mut self.scrollback));
@@ -177,6 +189,7 @@ impl Grid {
   }
 
   pub fn leave_alt_screen(&mut self) {
+    self.images.clear();
     if let Some(cells) = self.alt_cells.take() {
       self.cells = cells;
     }
@@ -226,6 +239,15 @@ impl Grid {
       }
       self.row_continuation[bottom] = false;
     }
+
+    self.images.retain_mut(|img| {
+      if img.row < count {
+        false
+      } else {
+        img.row -= count;
+        true
+      }
+    });
   }
 
   pub fn scroll_down(&mut self, n: usize) {
@@ -245,6 +267,12 @@ impl Grid {
       }
       self.row_continuation[top] = false;
     }
+
+    let rows = self.rows;
+    self.images.retain_mut(|img| {
+      img.row += count;
+      img.row < rows
+    });
   }
 
   pub fn newline(&mut self) {
@@ -300,6 +328,7 @@ impl Grid {
     }
 
     self.cells = vec![Cell::default(); new_cols * new_rows];
+    self.images.clear();
     self.cols = new_cols;
     self.rows = new_rows;
     self.scroll_top = 0;

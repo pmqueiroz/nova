@@ -1,7 +1,7 @@
 use iced::{
-  Background, Color, Element, Length, Padding,
+  Background, Color, ContentFit, Element, Length, Padding,
   widget::{
-    column, container, rich_text, row,
+    column, container, image as iced_image, rich_text, row,
     space::Space,
     stack,
     text::{self, Span},
@@ -357,21 +357,63 @@ pub fn term<'a>(
 
   let term_bg = theme::color::runtime().background;
 
-  container(grid_ui)
+  let padding = Padding {
+    top: 12.0,
+    right: 20.0,
+    bottom: 8.0,
+    left: 20.0,
+  };
+
+  let text_layer: Element<'_, Message> = container(grid_ui)
     .style(move |_| container::Style {
       background: Some(term_bg.into()),
       ..Default::default()
     })
-    .padding(Padding {
-      top: 12.0,
-      right: 20.0,
-      bottom: 8.0,
-      left: 20.0,
-    })
+    .padding(padding)
     .height(Length::Fill)
     .width(Length::Fill)
     .clip(true)
-    .into()
+    .into();
+
+  let visible_images: Vec<_> = grid
+    .images
+    .iter()
+    .filter(|img| img.row < grid.rows.saturating_sub(clamped_offset))
+    .collect();
+
+  if visible_images.is_empty() {
+    return text_layer;
+  }
+
+  let mut s = iced::widget::Stack::new();
+  s = s.push(text_layer);
+
+  for img in visible_images {
+    let display_row = clamped_offset + img.row;
+    let offset_top = padding.top + display_row as f32 * line_height;
+    let offset_left = padding.left + img.col as f32 * char_width;
+
+    let handle = iced_image::Handle::from_rgba(img.pixel_width, img.pixel_height, img.rgba.clone());
+
+    let positioned: Element<'_, Message> = column![
+      Space::new().height(offset_top),
+      row![
+        Space::new().width(offset_left),
+        iced_image::Image::new(handle)
+          .width(img.pixel_width as f32)
+          .height(img.pixel_height as f32)
+          .content_fit(ContentFit::Fill),
+      ]
+      .height(Length::Shrink),
+    ]
+    .width(Length::Fill)
+    .height(Length::Fill)
+    .into();
+
+    s = s.push(positioned);
+  }
+
+  s.width(Length::Fill).height(Length::Fill).into()
 }
 
 fn cell_span(

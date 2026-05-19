@@ -2,7 +2,8 @@
 use std::io::Write;
 use std::sync::atomic::Ordering;
 
-use crate::core::grid::ControlCommand;
+use crate::core::grid::{ControlCommand, PlacedImage};
+use crate::sys::kitty_graphics::{self, PendingKittyImage};
 use crate::sys::parser::AnsiExecutor;
 use crate::sys::pty::PtyCommand;
 use crate::ui::components;
@@ -10,6 +11,107 @@ use crate::ui::components;
 use super::super::helpers::{command_history_path, os_name};
 use super::super::message::Message;
 use super::super::nova::{AI_OPEN, Nova};
+
+fn process_kitty_apc(
+  content: &[u8],
+  grid: &mut crate::core::grid::Grid,
+  pending: &mut Option<PendingKittyImage>,
+  font_size: f32,
+) {
+  let Some(cmd) = kitty_graphics::parse_kitty_apc(content) else {
+    return;
+  };
+
+  match cmd.action {
+    b'T' | b't' => {
+      if cmd.more {
+        match pending {
+          Some(p) => p.chunks.push(cmd.data.clone()),
+          None => {
+            *pending = Some(PendingKittyImage {
+              format: cmd.format,
+              width: cmd.width,
+              height: cmd.height,
+              id: cmd.id,
+              chunks: vec![cmd.data.clone()],
+            });
+          }
+        }
+      } else {
+        let prior = pending.take();
+        let format = if cmd.format != 0 {
+          cmd.format
+        } else {
+          prior.as_ref().map_or(32, |p| p.format)
+        };
+        let width = if cmd.width != 0 {
+          cmd.width
+        } else {
+          prior.as_ref().map_or(0, |p| p.width)
+        };
+        let height = if cmd.height != 0 {
+          cmd.height
+        } else {
+          prior.as_ref().map_or(0, |p| p.height)
+        };
+        let image_id = if cmd.id != 0 {
+          cmd.id
+        } else {
+          prior.as_ref().map_or(0, |p| p.id)
+        };
+        let prior_chunks: Vec<Vec<u8>> = prior.map(|p| p.chunks).unwrap_or_default();
+
+        if let Some((rgba, pw, ph)) =
+          kitty_graphics::decode_kitty_image(&prior_chunks, &cmd.data, format, width, height)
+        {
+          let line_height = (font_size * 1.29).max(1.0);
+          let term_rows = ((ph as f32 / line_height).ceil() as usize).max(1);
+
+          if image_id != 0 {
+            grid.images.retain(|i| i.id != image_id);
+          }
+
+          grid.images.push(PlacedImage {
+            id: image_id,
+            row: grid.cursor_y,
+            col: grid.cursor_x,
+            pixel_width: pw,
+            pixel_height: ph,
+            rgba,
+          });
+
+          let new_y = grid.cursor_y + term_rows;
+          if new_y >= grid.rows {
+            let scroll_n = new_y - grid.rows + 1;
+            grid.scroll_up(scroll_n);
+            grid.cursor_y = grid.rows.saturating_sub(1);
+          } else {
+            grid.cursor_y = new_y;
+          }
+          grid.cursor_x = 0;
+
+          if cmd.quiet < 2 {
+            let id_part = if image_id != 0 {
+              format!(",i={}", image_id)
+            } else {
+              String::new()
+            };
+            let resp = format!("\x1b_Ga=T{};OK\x1b\\", id_part).into_bytes();
+            grid.output_queue.push(resp);
+          }
+        }
+      }
+    }
+    b'd' => {
+      if cmd.id != 0 {
+        grid.images.retain(|i| i.id != cmd.id);
+      } else {
+        grid.images.clear();
+      }
+    }
+    _ => {}
+  }
+}
 
 impl Nova {
   pub(super) fn handle_type_input(&mut self, bytes: Vec<u8>) -> iced::Task<Message> {
@@ -178,6 +280,7 @@ impl Nova {
   }
 
   pub(super) fn handle_pty_output(&mut self, tab_id: usize, bytes: Vec<u8>) -> iced::Task<Message> {
+    let font_size = self.settings.theme.font.size;
     if let Some(tab_idx) = self
       .tabs
       .iter()
@@ -194,11 +297,30 @@ impl Nova {
       {
         let _ = f.write_all(&bytes);
       }
+
+      let mut vte_bytes = Vec::with_capacity(bytes.len());
+      let mut completed_apcs: Vec<Vec<u8>> = Vec::new();
+      for byte in &bytes {
+        let (pass, apc) = split.apc_state.advance(*byte);
+        vte_bytes.extend_from_slice(&pass);
+        if let Some(content) = apc {
+          completed_apcs.push(content);
+        }
+      }
+      for apc_content in &completed_apcs {
+        process_kitty_apc(
+          apc_content,
+          &mut split.grid,
+          &mut split.pending_kitty,
+          font_size,
+        );
+      }
+
       let mut executor = AnsiExecutor {
         grid: &mut split.grid,
         bell_pending: false,
       };
-      for byte in bytes {
+      for byte in vte_bytes {
         split.ansi_parser.advance(&mut executor, &[byte]);
       }
       while !split.grid.output_queue.is_empty() {
@@ -266,11 +388,30 @@ impl Nova {
       {
         let _ = f.write_all(&bytes);
       }
+
+      let mut vte_bytes = Vec::with_capacity(bytes.len());
+      let mut completed_apcs: Vec<Vec<u8>> = Vec::new();
+      for byte in &bytes {
+        let (pass, apc) = tab.apc_state.advance(*byte);
+        vte_bytes.extend_from_slice(&pass);
+        if let Some(content) = apc {
+          completed_apcs.push(content);
+        }
+      }
+      for apc_content in &completed_apcs {
+        process_kitty_apc(
+          apc_content,
+          &mut tab.grid,
+          &mut tab.pending_kitty,
+          font_size,
+        );
+      }
+
       let mut executor = AnsiExecutor {
         grid: &mut tab.grid,
         bell_pending: false,
       };
-      for byte in bytes {
+      for byte in vte_bytes {
         tab.ansi_parser.advance(&mut executor, &[byte]);
       }
       let bell_fired = executor.bell_pending;

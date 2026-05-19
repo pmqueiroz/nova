@@ -15,7 +15,8 @@ use crate::ui::{
 };
 
 use super::{
-  settings_ai, settings_general, settings_keybindings, settings_status_bar, settings_theme,
+  settings_about, settings_ai, settings_general, settings_keybindings, settings_status_bar,
+  settings_theme,
 };
 
 const SIDEBAR_WIDTH: f32 = 160.0;
@@ -133,68 +134,76 @@ fn modal_inner<'a>(
   let body = row![
     sidebar_nav(active_tab),
     rule::vertical(1),
-    container(
-      scrollable(match active_tab {
-        SettingsTab::General => settings_general::general_tab(settings, shell_input),
-        SettingsTab::Theme => settings_theme::theme_tab(settings),
-        SettingsTab::Keybindings =>
-          settings_keybindings::keybindings_tab(settings, recording_index),
-        SettingsTab::StatusBar => settings_status_bar::status_bar_tab(settings),
-        SettingsTab::Ai => settings_ai::ai_tab(settings),
-        SettingsTab::Raw => edit_raw_tab(raw_content),
-      })
-      .height(Length::Fill)
-      .direction(scrollable::Direction::Vertical(
-        scrollable::Scrollbar::new()
-          .width(4)
-          .margin(4)
-          .scroller_width(4),
-      ))
-      .style(|_t, _status| scrollable::Style {
-        container: container::Style::default(),
-        vertical_rail: scrollable::Rail {
-          background: None,
-          border: Border::default(),
-          scroller: scrollable::Scroller {
-            background: Color {
-              r: 0.5,
-              g: 0.5,
-              b: 0.5,
-              a: 0.35,
-            }
-            .into(),
-            border: Border {
-              color: Color::TRANSPARENT,
-              radius: Radius::new(4.0),
-              width: 0.0,
+    if *active_tab == SettingsTab::About {
+      container(settings_about::about_tab())
+        .width(Length::Fill)
+        .height(Length::Fill)
+    } else {
+      container(
+        scrollable(match active_tab {
+          SettingsTab::General => settings_general::general_tab(settings, shell_input),
+          SettingsTab::Theme => settings_theme::theme_tab(settings),
+          SettingsTab::Keybindings => {
+            settings_keybindings::keybindings_tab(settings, recording_index)
+          }
+          SettingsTab::StatusBar => settings_status_bar::status_bar_tab(settings),
+          SettingsTab::Ai => settings_ai::ai_tab(settings),
+          SettingsTab::Raw => edit_raw_tab(raw_content),
+          SettingsTab::About => unreachable!(),
+        })
+        .height(Length::Fill)
+        .direction(scrollable::Direction::Vertical(
+          scrollable::Scrollbar::new()
+            .width(4)
+            .margin(4)
+            .scroller_width(4),
+        ))
+        .style(|_t, _status| scrollable::Style {
+          container: container::Style::default(),
+          vertical_rail: scrollable::Rail {
+            background: None,
+            border: Border::default(),
+            scroller: scrollable::Scroller {
+              background: Color {
+                r: 0.5,
+                g: 0.5,
+                b: 0.5,
+                a: 0.35,
+              }
+              .into(),
+              border: Border {
+                color: Color::TRANSPARENT,
+                radius: Radius::new(4.0),
+                width: 0.0,
+              },
             },
           },
-        },
-        horizontal_rail: scrollable::Rail {
-          background: None,
-          border: Border::default(),
-          scroller: scrollable::Scroller {
+          horizontal_rail: scrollable::Rail {
+            background: None,
+            border: Border::default(),
+            scroller: scrollable::Scroller {
+              background: Color::TRANSPARENT.into(),
+              border: Border::default(),
+            },
+          },
+          gap: None,
+          auto_scroll: scrollable::AutoScroll {
             background: Color::TRANSPARENT.into(),
             border: Border::default(),
+            shadow: Shadow::default(),
+            icon: Color::TRANSPARENT,
           },
-        },
-        gap: None,
-        auto_scroll: scrollable::AutoScroll {
-          background: Color::TRANSPARENT.into(),
-          border: Border::default(),
-          shadow: Shadow::default(),
-          icon: Color::TRANSPARENT,
-        },
-      }),
-    )
-    .padding(Padding {
-      top: 16.0,
-      bottom: 16.0,
-      left: 20.0,
-      right: 16.0,
-    })
-    .width(Length::Fill)
-    .height(Length::Fill),
+        }),
+      )
+      .padding(Padding {
+        top: 16.0,
+        bottom: 16.0,
+        left: 20.0,
+        right: 16.0,
+      })
+      .width(Length::Fill)
+      .height(Length::Fill)
+    },
   ]
   .height(Length::Fill);
 
@@ -263,6 +272,7 @@ fn sidebar_nav<'a>(active_tab: &'a SettingsTab) -> Element<'a, Message> {
     (SettingsTab::StatusBar, "Status Bar"),
     (SettingsTab::Ai, "AI"),
     (SettingsTab::Raw, "Raw"),
+    (SettingsTab::About, "About"),
   ];
 
   let mut nav = column![].spacing(2).padding(Padding::from([8, 6]));

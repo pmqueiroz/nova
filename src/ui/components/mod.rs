@@ -7,6 +7,7 @@ mod search_bar;
 mod section_label;
 mod setting_row;
 mod settings;
+mod settings_about;
 mod settings_ai;
 mod settings_general;
 mod settings_keybindings;

@@ -20,6 +20,7 @@ pub enum SettingsTab {
   StatusBar,
   Ai,
   Raw,
+  About,
 }
 
 #[derive(Debug, Clone)]

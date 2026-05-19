@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.24.0](https://github.com/pmqueiroz/nova/compare/v0.23.2...v0.24.0) (2026-05-19)
+
+
+### Features
+
+* **settings:** add About tab with brand and version ([4c833a5](https://github.com/pmqueiroz/nova/commit/4c833a51049fb1c9ca274d2c59eb593540bb5462))
+
+
+### Bug Fixes
+
+* **macos:** prevent premature expansion of NOVA_PROMPT_COMMAND in bash init ([38dfc8c](https://github.com/pmqueiroz/nova/commit/38dfc8cc370303eff579e48353c1a1c246c3a7ca))
+
 ## [0.23.2](https://github.com/pmqueiroz/nova/compare/v0.23.1...v0.23.2) (2026-05-18)
 
 

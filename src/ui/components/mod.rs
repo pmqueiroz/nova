@@ -1,5 +1,7 @@
 mod ai_overlay;
 mod app;
+#[allow(dead_code)]
+pub mod block;
 mod color_row;
 mod command_palette;
 #[allow(dead_code)]

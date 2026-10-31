@@ -251,12 +251,6 @@ pub fn calc_grid_split_ratio(
   )
 }
 
-pub const BLOCK_LINE_HEIGHT: f32 = 1.5;
-
-pub fn block_font_size(font_size: f32) -> f32 {
-  (font_size - tokens::space::S2).max(1.0)
-}
-
 pub fn block_output_width(pane_width: f32, timestamps: bool) -> f32 {
   use tokens::space::{S16, S24, S32, S48};
   let ts = if timestamps { S48 + S16 } else { 0.0 };
@@ -275,10 +269,11 @@ pub fn calc_block_grid(
   font_size: f32,
   timestamps: bool,
 ) -> (usize, usize) {
-  let fs = block_font_size(font_size);
+  let fs = tokens::block::font_size(font_size);
   let cols =
     (block_output_width(pane_width, timestamps) / (fs * CHAR_WIDTH_RATIO)).floor() as usize;
-  let rows = (block_viewport_height(window_height) / (fs * BLOCK_LINE_HEIGHT)).floor() as usize;
+  let rows =
+    (block_viewport_height(window_height) / (fs * tokens::block::LINE_HEIGHT)).floor() as usize;
   (cols.max(MIN_COLS), rows.max(MIN_ROWS))
 }
 

@@ -24,6 +24,7 @@ pub struct Block {
   pub exit_code: Option<i32>,
   pub output: Grid,
   pub state: BlockState,
+  pub born: std::time::Instant,
 }
 
 impl Block {
@@ -39,6 +40,7 @@ impl Block {
       exit_code: None,
       output,
       state: BlockState::Pending,
+      born: std::time::Instant::now(),
     }
   }
 

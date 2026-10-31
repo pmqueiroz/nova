@@ -105,3 +105,15 @@ renderer default). 256-color and truecolor values pass through.
   keyframe: scale .96→1, translateY 8→0, scrim/shadow alpha 0→1. `head`
   (h64, padding 0/16/0/24) and `foot` (min-h 56, padding 8/16/8/24) add the
   1 px line separators.
+- `src/ui/components/block.rs` — one command block (`.nv-entry`). Command
+  line in fg-1 (program name semibold, rest regular, wraps anywhere). Output
+  card: surface-1, r8, padding 16/24, output font (`tokens::block::font_size`
+  = size − 2, line height 1.5), default text fg-2, or red when the exit code is
+  non-zero. Lines are rendered as one `rich_text` per grid row, with runs of
+  identically styled cells merged into a single span (reverse swaps fg/bg,
+  dim halves alpha, trailing blanks trimmed). Pending or not-yet-printing
+  blocks show three 6 px accent dots (`motion::dot_phase`, delays
+  0/120/240 ms) + "Running" (14 px fg-3). Optional 48 px `HH:MM` timestamp
+  column (12 px fg-3, gap 16). The entry eases in over 200 ms (translateY 8→0,
+  alpha 0→1); the output follows 60 ms later. `is_animating` keeps frames
+  coming while dots are visible or an entry is still easing in.

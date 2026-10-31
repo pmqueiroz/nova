@@ -143,6 +143,10 @@ impl Grid {
     }
   }
 
+  pub fn in_alt_screen(&self) -> bool {
+    self.alt_cells.is_some()
+  }
+
   pub fn kitty_keyboard_flags(&self) -> u32 {
     self.kitty_keyboard_flags_stack.last().copied().unwrap_or(0)
   }

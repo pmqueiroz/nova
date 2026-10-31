@@ -61,16 +61,7 @@ impl Block {
     }
   }
 
-  pub fn line_count(&self) -> usize {
-    let used = last_used_row(&self.output).map(|r| r + 1).unwrap_or(0);
-    self.output.scrollback.len() + used
-  }
-
-  pub fn has_output(&self) -> bool {
-    self.line_count() > 0
-  }
-
-  pub fn line(&self, i: usize) -> Option<&[Cell]> {
+  fn raw_line(&self, i: usize) -> Option<&[Cell]> {
     let sb = self.output.scrollback.len();
     if i < sb {
       self.output.scrollback.get(i).map(|(r, _)| r.as_slice())
@@ -79,6 +70,33 @@ impl Block {
     } else {
       None
     }
+  }
+
+  fn raw_end(&self) -> usize {
+    let used = last_used_row(&self.output).map(|r| r + 1).unwrap_or(0);
+    self.output.scrollback.len() + used
+  }
+
+  pub fn first_line(&self) -> usize {
+    let end = self.raw_end();
+    (0..end)
+      .find(|&i| self.raw_line(i).is_some_and(|l| !row_is_blank(l)))
+      .unwrap_or(end)
+  }
+
+  pub fn line_count(&self) -> usize {
+    self.raw_end().saturating_sub(self.first_line())
+  }
+
+  pub fn has_output(&self) -> bool {
+    self.line_count() > 0
+  }
+
+  pub fn line(&self, i: usize) -> Option<&[Cell]> {
+    if i >= self.line_count() {
+      return None;
+    }
+    self.raw_line(self.first_line() + i)
   }
 
   pub fn line_text(&self, i: usize) -> String {
@@ -361,6 +379,20 @@ mod tests {
     feed(b, "hello\r\nworld\r\n");
     assert_eq!(b.line_count(), 2);
     assert_eq!(b.text(), "hello\nworld");
+  }
+
+  #[test]
+  fn leading_blank_rows_are_trimmed() {
+    let mut s = Session::new("~".into(), 20, 6);
+    let id = s.submit("x").unwrap();
+    let b = s.block_mut(id).unwrap();
+    feed(
+      b,
+      "[4;1Hhi
+",
+    );
+    assert_eq!(b.line_count(), 1);
+    assert_eq!(b.text(), "hi");
   }
 
   #[test]

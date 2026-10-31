@@ -108,6 +108,33 @@ Every supported shell emits private OSC 777 marks (parsed in
 - Shells that never send `prompt_ready` (fish, WSL distros where the env
   does not cross `wsl.exe`, custom shells) fall back to the classic raw terminal.
 
+### Byte router (`core/router.rs`)
+
+`route()` replaces the plain parse loop in `handle_pty_output` for tabs and
+split panes. It feeds the vte parser byte by byte (one parser per pane) and,
+after every byte, checks whether a mark was just parsed, so a single PTY
+chunk carrying echo + `command_start` + output + `command_complete` + the
+next prompt is split correctly.
+
+- Target grid: `Prompt` phase, a still-`Pending` block, and any non-block
+  mode go to the pane's screen grid (prompt drawing and echo stay hidden in
+  block mode). `Running`/`Raw` go to the block's grid.
+- `Integration` per pane: `Detecting` until the first `prompt_ready` switches
+  it to `Blocks`; `expire()` after 4 s without one switches to `Classic`, the
+  old raw-terminal behavior. `enabled = false` (`tab::BLOCKS_ENABLED`) keeps
+  every pane `Classic`; it is off until the block UI lands.
+- Shells without preexec: `on_submit` sets `awaiting_echo`, and the first
+  `
+` after submit starts the block (skips the echoed line).
+- ConPTY positions its cursor absolutely, so a block's grid starts at the
+  screen grid's cursor row and `Block::first_line` trims the blank lines
+  above the first output.
+- Alt screen inside a block → `Phase::Raw` (the block grid itself is shown
+  full-size); leaving it → back to `Running`.
+- Responses (DA, etc.) and non-block controls are returned in `Routed` and
+  pushed back into the screen grid's queues, so the existing handlers
+  (clipboard, AI triggers, notifications) are unchanged.
+
 ## Shared state
 
 - Config: `core::config` keeps a `OnceLock<Config>` (`config::get()`) plus a

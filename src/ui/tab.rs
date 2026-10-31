@@ -8,10 +8,14 @@ use async_channel::Sender;
 use iced::animation::Animation;
 use vte::Parser;
 
+use crate::core::block::Session;
 use crate::core::config;
 use crate::core::grid::{DEFAULT_SCROLLBACK_LIMIT, Grid};
+use crate::core::router::Integration;
 use crate::sys::pty::PtyCommand;
 use crate::ui::theme::motion;
+
+pub const BLOCKS_ENABLED: bool = false;
 
 pub struct SplitPane {
   pub id: usize,
@@ -19,6 +23,8 @@ pub struct SplitPane {
   pub pty_tx: Option<Sender<PtyCommand>>,
   pub pty_alive: bool,
   pub ansi_parser: Parser,
+  pub session: Session,
+  pub integration: Integration,
   pub shell_cmd: String,
   pub pwd: String,
   pub git_branch: Option<String>,
@@ -43,6 +49,8 @@ pub struct Tab {
   pub pty_tx: Option<Sender<PtyCommand>>,
   pub pty_alive: bool,
   pub ansi_parser: Parser,
+  pub session: Session,
+  pub integration: Integration,
   pub shell: String,
   pub shell_cmd: String,
   pub pwd: String,
@@ -85,6 +93,8 @@ impl Tab {
       pty_tx: None,
       pty_alive: true,
       ansi_parser: Parser::new(),
+      session: Session::new(initial_cwd.clone(), cols, rows),
+      integration: Integration::new(BLOCKS_ENABLED),
       shell,
       shell_cmd,
       pwd,

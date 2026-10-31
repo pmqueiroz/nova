@@ -73,3 +73,6 @@ brightBlack→fg-3, white→fg-1, default→fg-2), per `NV_COLOR` in the handoff
   on-accent text, hover brightness 1.08) and `icon_button` (transparent,
   hover surface-2, fg-2 → fg-1). Both are wrapped in `press`. CSS hover
   color transitions (120 ms) are not animated yet; tracked for the motion audit.
+  `kbd.rs`: `kbd`/`keys` chips (h24, r4, surface-2, 12 px) and
+  `binding_labels`, which renders a parsed keybinding with ⌘/⌃/⌥/⇧ on macOS
+  and Ctrl/Alt/Shift elsewhere.

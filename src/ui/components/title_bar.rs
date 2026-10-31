@@ -1,136 +1,121 @@
-use iced::{
-  Alignment, Element, Length, Padding,
-  alignment::Horizontal,
-  widget::{button, container, image, mouse_area, row, text},
-};
+use iced::widget::{Row, button, container, mouse_area, row, text};
+use iced::{Alignment, Background, Border, Color, Element, Length, Padding};
 
 use crate::core::config::WindowControls;
-use crate::ui::{
-  app_state::Message,
-  components::traffic_lights::{system_controls, traffic_lights},
-  helpers::til_home,
-  theme,
-  typography::{Typography, Weight},
-};
+use crate::ui::app_state::Message;
+use crate::ui::components::ds::button::icon_button;
+use crate::ui::components::ds::transform::Transform;
+use crate::ui::components::traffic_lights::{system_controls, traffic_lights};
+use crate::ui::helpers::til_home;
+use crate::ui::icons::Icon;
+use crate::ui::theme::font;
+use crate::ui::theme::tokens::{self, height, space};
 
-const MARK_PNG: &[u8] = include_bytes!("../../../assets/icons/mark/nova-mark-24.png");
-
-static MARK_HANDLE: std::sync::LazyLock<image::Handle> =
-  std::sync::LazyLock::new(|| image::Handle::from_bytes(MARK_PNG));
-
-fn nova_label() -> impl Into<Element<'static, Message>> {
-  let text = |s: &'static str, accent: bool| {
-    Typography {
-      color: if accent {
-        theme::color::runtime().accent
-      } else {
-        theme::color::runtime().foreground
-      },
-      size: 12.into(),
-      weight: Weight::Bold,
-    }
-    .as_text(s)
-  };
-
-  row![text("no", false), text("v", true), text("a", false),].spacing(0)
+pub fn title<'a>(pwd: &str, flash: bool) -> Element<'a, Message> {
+  let accent = crate::ui::theme::color::runtime().accent;
+  row![
+    text("Nova")
+      .size(tokens::text::T14)
+      .font(font::semibold())
+      .color(if flash { accent } else { tokens::FG_2 }),
+    text(til_home(pwd))
+      .size(tokens::text::T14)
+      .font(font::regular())
+      .color(tokens::FG_3),
+  ]
+  .spacing(space::S8)
+  .align_y(Alignment::Center)
+  .into()
 }
 
-fn settings_button() -> Element<'static, Message> {
-  button(text("󰒓").size(14))
-    .style(move |_t, status| button::Style {
-      text_color: match status {
-        button::Status::Hovered => theme::color::runtime().accent,
-        _ => theme::color::runtime().foreground_muted,
-      },
-      background: Some(theme::color::TRANSPARENT.as_color().into()),
-      ..Default::default()
-    })
-    .on_press(Message::OpenSettings)
-    .padding(Padding::from([4, 6]))
+pub fn actions<'a>() -> Element<'a, Message> {
+  Row::new()
+    .spacing(space::S4)
+    .align_y(Alignment::Center)
+    .push(icon_button(
+      Icon::Plus,
+      20.0,
+      height::H40,
+      Some(Message::NewTab),
+    ))
+    .push(icon_button(
+      Icon::Sliders,
+      20.0,
+      height::H40,
+      Some(Message::OpenSettings),
+    ))
     .into()
 }
 
-pub fn title_bar(
-  window_focused: bool,
-  pwd: &str,
-  _maximized: bool,
+pub fn title_bar<'a>(
+  center: Element<'a, Message>,
   cursor_interaction: iced::mouse::Interaction,
   window_controls: &WindowControls,
-  icon_visible: bool,
-) -> Element<'static, Message> {
-  let controls = match window_controls {
-    WindowControls::TrafficLights => traffic_lights(window_focused),
-    WindowControls::System => system_controls(window_focused),
+) -> Element<'a, Message> {
+  let system = *window_controls == WindowControls::System;
+  let (left, right): (Element<'a, Message>, Element<'a, Message>) = if system {
+    (actions(), system_controls())
+  } else {
+    (traffic_lights(), actions())
   };
 
-  let mark: Element<'static, Message> = if icon_visible {
-    image(MARK_HANDLE.clone()).width(13).height(13).into()
+  let bar = row![
+    container(left)
+      .width(Length::Fill)
+      .align_x(Alignment::Start)
+      .center_y(height::H56),
+    container(center).center_y(height::H56),
+    container(right)
+      .width(Length::Fill)
+      .align_x(Alignment::End)
+      .center_y(height::H56),
+  ]
+  .height(height::H56)
+  .align_y(Alignment::Center);
+
+  let padding = if system {
+    Padding {
+      top: 0.0,
+      right: 0.0,
+      bottom: 0.0,
+      left: space::S16,
+    }
   } else {
-    iced::widget::Space::new().width(13).height(13).into()
-  };
-
-  let pwd_text = Typography {
-    color: theme::color::runtime().foreground_muted,
-    size: 12.into(),
-    ..Default::default()
-  }
-  .as_text(format!("- {}", til_home(pwd)));
-
-  let brand = row![mark, nova_label().into(), pwd_text,]
-    .spacing(6)
-    .height(40)
-    .align_y(Alignment::Center);
-
-  let title_row = if *window_controls == WindowControls::System {
-    row![
-      container(settings_button())
-        .width(Length::FillPortion(1))
-        .center_y(40)
-        .padding(Padding {
-          left: 8.0,
-          ..Default::default()
-        }),
-      container(brand)
-        .center_x(Length::FillPortion(2))
-        .center_y(40),
-      container(controls)
-        .width(Length::FillPortion(1))
-        .height(Length::Fill)
-        .align_x(Horizontal::Right),
-    ]
-    .height(40)
-  } else {
-    row![
-      container(controls)
-        .width(Length::FillPortion(1))
-        .center_y(40)
-        .padding(Padding {
-          left: 8.0,
-          ..Default::default()
-        }),
-      container(brand)
-        .center_x(Length::FillPortion(2))
-        .center_y(40),
-      container(settings_button())
-        .width(Length::FillPortion(1))
-        .center_y(40)
-        .align_x(Horizontal::Right)
-        .padding(Padding {
-          right: 8.0,
-          ..Default::default()
-        }),
-    ]
-    .height(40)
+    Padding {
+      top: 0.0,
+      right: space::S16,
+      bottom: 0.0,
+      left: space::S24,
+    }
   };
 
   mouse_area(
-    container(title_row)
-      .padding(Padding::default())
+    container(bar)
+      .padding(padding)
       .width(Length::Fill)
-      .height(40),
+      .height(height::H56),
   )
   .on_press(Message::DragWindow)
   .on_double_click(Message::MaximizeWindow)
   .interaction(cursor_interaction)
   .into()
+}
+
+pub fn light<'a>(color: Color, msg: Message) -> Element<'a, Message> {
+  let dot = button(iced::widget::Space::new().width(12).height(12))
+    .padding(0)
+    .on_press(msg)
+    .style(move |_t, _s| button::Style {
+      background: Some(Background::Color(color)),
+      border: Border {
+        radius: 6.0.into(),
+        ..Border::default()
+      },
+      ..button::Style::default()
+    });
+  Transform::new(dot)
+    .hover(1.16)
+    .press_to(0.84)
+    .spring()
+    .into()
 }

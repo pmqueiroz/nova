@@ -133,8 +133,8 @@ impl Nova {
     }
 
     if button == mouse::Button::Left {
-      const TAB_BAR_TOP: f32 = 40.0;
-      const TAB_BAR_BOTTOM: f32 = 76.0;
+      const TAB_BAR_TOP: f32 = 56.0;
+      const TAB_BAR_BOTTOM: f32 = 92.0;
       const TAB_X_PADDING: f32 = 8.0;
       const TAB_SLOT: f32 = 122.0;
       const CLOSE_ZONE: f32 = 35.0;

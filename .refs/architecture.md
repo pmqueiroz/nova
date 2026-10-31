@@ -96,6 +96,19 @@ Colors are `Hue` constants in `ui/theme/color.rs` (`BG`, `BG_DEEP`, `FG`,
 Text goes through `ui::typography::Typography`, fonts through
 `ui::theme::font`. Don't hardcode colors or fonts in components.
 
+## Window chrome
+
+- `components/title_bar.rs`: 56 px bar, three columns. Traffic-light
+  layout (macOS default): lights left (12 px, gap 8, padding-left 24), title
+  centered, actions right (`+` new tab, sliders = settings; 40 px icon
+  buttons, 20 px icons). `System` window controls (Windows/Linux default):
+  actions move left and 48×56 min/max/close buttons sit flush right (close
+  hovers `LIGHT_CLOSE`). Title = "Nova" (14 semibold fg-2) + cwd (fg-3).
+  The visual bell flashes "Nova" in the accent color.
+- The terminal area's pixel origin (`helpers::pixel_to_cell`, `calc_grid`
+  padding) still assumes the legacy layout below the 56 px bar. It goes away
+  with the block UI.
+
 ## Platform specifics
 
 - Windows: opaque window with rounded corners, console detached at start,

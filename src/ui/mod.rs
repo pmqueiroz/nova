@@ -13,6 +13,8 @@ pub type Result = iced::Result;
 
 const FIRA_CODE_BYTES: &[u8] = include_bytes!("../../assets/fonts/FiraCodeNerdFont-Regular.ttf");
 const FIRA_CODE_BOLD_BYTES: &[u8] = include_bytes!("../../assets/fonts/FiraCodeNerdFont-Bold.ttf");
+const FIRA_CODE_SEMIBOLD_BYTES: &[u8] =
+  include_bytes!("../../assets/fonts/FiraCodeNerdFont-SemiBold.ttf");
 
 #[cfg(target_os = "windows")]
 const ICON_BYTES: &[u8] = include_bytes!("../../assets/icons/windows/nova-win-256.png");
@@ -72,6 +74,7 @@ pub fn start() -> Result {
   })
   .font(FIRA_CODE_BYTES)
   .font(FIRA_CODE_BOLD_BYTES)
+  .font(FIRA_CODE_SEMIBOLD_BYTES)
   .default_font(theme::font::regular())
   .antialiasing(true)
   .run()

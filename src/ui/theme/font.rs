@@ -37,6 +37,15 @@ pub fn regular() -> iced::Font {
   }
 }
 
+pub fn semibold() -> iced::Font {
+  iced::Font {
+    family: iced::font::Family::Name(get_family()),
+    weight: iced::font::Weight::Semibold,
+    stretch: iced::font::Stretch::Normal,
+    style: iced::font::Style::Normal,
+  }
+}
+
 pub fn bold() -> iced::Font {
   iced::Font {
     family: iced::font::Family::Name(get_family()),

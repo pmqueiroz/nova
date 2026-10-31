@@ -1,3 +1,4 @@
+use iced::animation::Animation;
 use iced::{Point, Size, mouse, window};
 use std::sync::atomic::{AtomicBool, AtomicU32};
 use std::time::Instant;
@@ -89,4 +90,12 @@ pub struct Nova {
   pub(in crate::ui::app_state) drag_pending_tab: Option<usize>,
   pub(in crate::ui::app_state) drag_pending_pos: Option<Point>,
   pub(in crate::ui::app_state) paste_warning: Option<String>,
+  pub(in crate::ui::app_state) now: Instant,
+  pub(in crate::ui::app_state) window_pop: Animation<bool>,
+}
+
+impl Nova {
+  pub(in crate::ui::app_state) fn is_animating(&self) -> bool {
+    self.window_pop.is_animating(self.now)
+  }
 }

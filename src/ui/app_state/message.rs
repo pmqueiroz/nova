@@ -103,6 +103,7 @@ pub enum Message {
   SearchNext,
   SearchPrev,
   NoOp,
+  Frame(std::time::Instant),
   NotificationActivated,
   Osc52ReadResponse(usize, Option<String>),
   PasteWarningConfirm,

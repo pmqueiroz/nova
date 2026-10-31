@@ -433,6 +433,10 @@ impl Nova {
     subs.push(Subscription::run(notification_click_stream));
     subs.push(time::every(std::time::Duration::from_millis(500)).map(|_| Message::CursorBlinkTick));
 
+    if self.is_animating() {
+      subs.push(window::frames().map(Message::Frame));
+    }
+
     if self.bell_blink_remaining > 0 {
       subs.push(time::every(std::time::Duration::from_millis(200)).map(|_| Message::BellBlinkTick));
     }

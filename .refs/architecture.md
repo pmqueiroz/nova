@@ -74,6 +74,12 @@ Code is the truth. This file explains the *why* behind the shape it takes.
   `PALETTE_OPEN`, `AI_OPEN`, `SEARCH_OPEN`, `KB_RECORDING`,
   `ACTIVE_KITTY_FLAGS`) so the keyboard subscription, which can't borrow
   `Nova`, knows how to route keys.
+- Animation clock: `Nova.now` is advanced by `Message::Frame(Instant)`.
+  `subscription` adds `window::frames()` only while `Nova::is_animating()`
+  is true, so an idle window renders no frames. Every animation
+  (`iced::Animation`, curves from `theme/motion.rs`) is interpolated against
+  `Nova.now` in `view`. `window_pop` plays the `pop` keyframe (400 ms ease,
+  scale .96→1, translateY 8→0) when the window opens.
 - Everything else lives on `Nova` (tabs, selection, window state) with
   fields scoped `pub(in crate::ui::app_state)`.
 

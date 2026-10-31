@@ -15,6 +15,7 @@ use std::time::Instant;
 use crate::core::config;
 use crate::sys::pty::PtyCommand;
 use crate::ui::components;
+use crate::ui::theme::motion;
 use crate::ui::tab::Tab;
 
 use super::helpers::{
@@ -121,6 +122,8 @@ impl Default for Nova {
       drag_pending_tab: None,
       drag_pending_pos: None,
       paste_warning: None,
+      now: Instant::now(),
+      window_pop: motion::slow(false),
     };
     nova.load_command_history();
     nova
@@ -475,6 +478,8 @@ impl Nova {
       }
       Message::WindowOpened(id) => {
         self.window_id = Some(id);
+        self.now = Instant::now();
+        self.window_pop.go_mut(true, self.now);
         #[cfg(target_os = "windows")]
         {
           iced::window::set_mode(id, iced::window::Mode::Windowed)
@@ -758,6 +763,10 @@ impl Nova {
         iced::Task::none()
       }
       Message::NoOp => iced::Task::none(),
+      Message::Frame(now) => {
+        self.now = now;
+        iced::Task::none()
+      }
       Message::ClipboardReceived(text) => {
         if let Some(text) = text {
           if is_dangerous_paste(&text) {

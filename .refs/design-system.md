@@ -55,3 +55,7 @@ brightBlack→fg-3, white→fg-1, default→fg-2), per `NV_COLOR` in the handoff
   `height`, `duration`, `font_size` (14–20, step 2, default 16) modules and
   the color constants above, plus `ACCENTS` presets and `with_alpha`/`mix`.
   Components read tokens only; no raw numbers or hex in component code.
+- `src/ui/theme/motion.rs` — `ease`/`spring` cubic-bezier curves wrapped as
+  `EASE`/`SPRING` (`Easing::Custom`), `fast`/`base`/`slow` animation builders
+  (120/200/400 ms), `blink_on` (1 s step blink) and `dot_phase` (the
+  `nv-dot` keyframe: returns opacity and Y offset for a given delay).

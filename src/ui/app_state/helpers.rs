@@ -4,6 +4,7 @@ use std::path::PathBuf;
 
 use crate::core::config::{self, KeyId, ParsedKeybinding};
 use crate::core::grid;
+use crate::ui::theme::tokens;
 
 pub const RESIZE_EDGE: f32 = 8.0;
 pub const SPLIT_DIVIDER_WIDTH: f32 = 8.0;
@@ -250,6 +251,42 @@ pub fn calc_grid_split_ratio(
   )
 }
 
+pub const BLOCK_LINE_HEIGHT: f32 = 1.5;
+
+pub fn block_font_size(font_size: f32) -> f32 {
+  (font_size - tokens::space::S2).max(1.0)
+}
+
+pub fn block_output_width(pane_width: f32, timestamps: bool) -> f32 {
+  use tokens::space::{S16, S24, S32, S48};
+  let ts = if timestamps { S48 + S16 } else { 0.0 };
+  (pane_width - 2.0 * S32 - 2.0 * S24 - ts).max(0.0)
+}
+
+pub fn block_viewport_height(window_height: f32) -> f32 {
+  use tokens::height::H56;
+  use tokens::space::{S16, S24, S32};
+  (window_height - H56 - (H56 + S16) - S16 - S24 - S32).max(0.0)
+}
+
+pub fn calc_block_grid(
+  pane_width: f32,
+  window_height: f32,
+  font_size: f32,
+  timestamps: bool,
+) -> (usize, usize) {
+  let fs = block_font_size(font_size);
+  let cols =
+    (block_output_width(pane_width, timestamps) / (fs * CHAR_WIDTH_RATIO)).floor() as usize;
+  let rows = (block_viewport_height(window_height) / (fs * BLOCK_LINE_HEIGHT)).floor() as usize;
+  (cols.max(MIN_COLS), rows.max(MIN_ROWS))
+}
+
+pub fn split_widths(total_width: f32, ratio: f32) -> (f32, f32) {
+  let avail = (total_width - SPLIT_DIVIDER_WIDTH).max(0.0);
+  (avail * ratio, avail * (1.0 - ratio))
+}
+
 pub fn pixel_to_cell(pos: Point, font_size: f32) -> Option<(usize, usize)> {
   const X_ORIGIN: f32 = 20.0;
   const Y_ORIGIN: f32 = 68.0;
@@ -391,4 +428,31 @@ pub fn strip_markdown(text: &str) -> String {
     .replace("  ", " ")
     .trim()
     .to_string()
+}
+
+#[cfg(test)]
+mod block_grid_tests {
+  use super::*;
+
+  #[test]
+  fn block_grid_uses_smaller_output_font() {
+    let (c16, _) = calc_block_grid(1024.0, 768.0, 16.0, false);
+    let expected = ((1024.0 - 64.0 - 48.0) / (14.0 * CHAR_WIDTH_RATIO)).floor() as usize;
+    assert_eq!(c16, expected);
+  }
+
+  #[test]
+  fn timestamps_column_narrows_output() {
+    let (a, _) = calc_block_grid(1024.0, 768.0, 16.0, false);
+    let (b, _) = calc_block_grid(1024.0, 768.0, 16.0, true);
+    assert!(b < a);
+  }
+
+  #[test]
+  fn tiny_window_keeps_minimums() {
+    assert_eq!(
+      calc_block_grid(10.0, 10.0, 16.0, false),
+      (MIN_COLS, MIN_ROWS)
+    );
+  }
 }

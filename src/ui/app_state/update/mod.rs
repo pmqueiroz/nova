@@ -160,7 +160,14 @@ impl Nova {
   pub fn update(&mut self, message: Message) -> iced::Task<Message> {
     match message {
       Message::Type(bytes) => self.handle_type_input(bytes),
-      Message::PtyOutputReceived(tab_id, bytes) => self.handle_pty_output(tab_id, bytes),
+      Message::PtyOutputReceived(tab_id, bytes) => {
+        let before = self.block_mode_panes();
+        let task = self.handle_pty_output(tab_id, bytes);
+        if self.block_mode_panes() != before {
+          self.resize_all_grids();
+        }
+        task
+      }
       Message::CursorMoved(position) => {
         self.handle_cursor_moved(position);
         iced::Task::none()

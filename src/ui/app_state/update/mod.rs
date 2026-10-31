@@ -3,6 +3,7 @@ mod input;
 mod mouse;
 mod palette;
 mod search;
+mod session;
 mod settings;
 mod tabs;
 mod window;
@@ -738,7 +739,14 @@ impl Nova {
         }
         iced::Task::none()
       }
-      Message::Tick => iced::Task::none(),
+      Message::Tick => {
+        self.expire_integrations(Instant::now());
+        iced::Task::none()
+      }
+      Message::InputChanged(text) => self.handle_input_changed(text),
+      Message::InputSubmit => self.handle_input_submit(),
+      Message::InputHistory(delta) => self.handle_input_history(delta),
+      Message::ClearBlocks => self.handle_clear_blocks(),
       Message::Osc52ReadResponse(target_id, text) => {
         let text = text.unwrap_or_default();
         let encoded = base64::engine::general_purpose::STANDARD.encode(text.as_bytes());

@@ -135,6 +135,21 @@ next prompt is split correctly.
   pushed back into the screen grid's queues, so the existing handlers
   (clipboard, AI triggers, notifications) are unchanged.
 
+### Submitting (`update/session.rs`, `tab.rs`)
+
+- Each pane (`Tab` or `SplitPane`) owns an `InputBox`: the input text, a
+  history cursor with the unsent draft, and a `submitted` counter that drives
+  the enter-button pulse. `Tab::pane_mut` / `active_pane_mut` / `panes_mut`
+  give one `PaneMut` view over either pane type, so session code is written
+  once.
+- `InputSubmit` in block mode: `clear`/`cls` clear the blocks locally (the
+  design's `clear`); anything else goes through `Session::submit`, then
+  `Integration::on_submit`, then writes `command + ` to the PTY. Submits while
+  a command is running, or outside block mode, only pulse.
+- `InputHistory(-1/+1)` walks the deduplicated session history; the draft
+  comes back when walking past the newest entry.
+- `Tick` (1 s) calls `Integration::expire` on every pane.
+
 ## Shared state
 
 - Config: `core::config` keeps a `OnceLock<Config>` (`config::get()`) plus a

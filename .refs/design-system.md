@@ -48,3 +48,10 @@ Colors converted from the handoff's oklch values to sRGB:
 
 ANSI colors in block output are remapped onto these tokens (red→red,
 brightBlack→fg-3, white→fg-1, default→fg-2), per `NV_COLOR` in the handoff.
+
+## Code map
+
+- `src/ui/theme/tokens.rs` — every DS value: `space`, `radius`, `text`,
+  `height`, `duration`, `font_size` (14–20, step 2, default 16) modules and
+  the color constants above, plus `ACCENTS` presets and `with_alpha`/`mix`.
+  Components read tokens only; no raw numbers or hex in component code.

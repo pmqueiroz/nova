@@ -13,6 +13,7 @@ use crate::ui::theme;
 impl Nova {
   pub fn view(&self) -> Element<'_, Message> {
     let active_tab = &self.tabs[self.active_index];
+    let pop = self.window_pop.interpolate(0.0, 1.0, self.now);
 
     let selection = match (self.selection_start, self.selection_end) {
       (Some(start), Some(end)) if start != end => {
@@ -393,10 +394,10 @@ impl Nova {
         &self.raw_config_content,
         config_path_str,
       );
-      components::app(stack![col, modal], self.window_maximized)
+      components::app(stack![col, modal], self.window_maximized, pop)
     } else if self.command_palette_open {
       let palette = components::command_palette(&self.palette_query, self.palette_selected);
-      components::app(stack![col, palette], self.window_maximized)
+      components::app(stack![col, palette], self.window_maximized, pop)
     } else if self.ai_overlay_open || self.ai_loading {
       let overlay = components::ai_overlay(
         &self.ai_input,
@@ -404,19 +405,19 @@ impl Nova {
         self.ai_loading,
         self.ai_is_error,
       );
-      components::app(stack![col, overlay], self.window_maximized)
+      components::app(stack![col, overlay], self.window_maximized, pop)
     } else if self.shell_picker_open {
       let picker = components::shell_picker(
         &self.available_shells,
         self.shell_picker_anchor,
         self.window_size.width,
       );
-      components::app(stack![col, picker], self.window_maximized)
+      components::app(stack![col, picker], self.window_maximized, pop)
     } else if let Some(ref pending) = self.paste_warning {
       let overlay = components::paste_warning_overlay(pending);
-      components::app(stack![col, overlay], self.window_maximized)
+      components::app(stack![col, overlay], self.window_maximized, pop)
     } else {
-      components::app(col, self.window_maximized)
+      components::app(col, self.window_maximized, pop)
     };
 
     mouse_area(inner).interaction(outer_interaction).into()

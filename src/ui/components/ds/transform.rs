@@ -2,11 +2,12 @@ use iced::advanced::layout::{self, Layout};
 use iced::advanced::renderer;
 use iced::advanced::widget::{self, Tree, Widget, tree};
 use iced::advanced::{Clipboard, Shell, mouse, overlay};
-use iced::animation::Animation;
+use iced::animation::{Animation, Easing};
 use iced::time::Instant;
 use iced::{Element, Event, Length, Rectangle, Size, Transformation, Vector, window};
 
 use crate::ui::theme::motion;
+use crate::ui::theme::tokens::duration;
 
 pub const PRESS_SCALE: f32 = 0.96;
 
@@ -15,19 +16,25 @@ pub struct Transform<'a, Message, Theme, Renderer> {
   scale: f32,
   offset: Vector,
   press: Option<f32>,
+  hover: Option<f32>,
+  easing: Easing,
 }
 
 struct State {
   pressed: bool,
+  hovered: bool,
   anim: Animation<bool>,
+  hover_anim: Animation<bool>,
   now: Instant,
 }
 
-impl Default for State {
-  fn default() -> Self {
+impl State {
+  fn new(easing: Easing) -> Self {
     Self {
       pressed: false,
-      anim: motion::fast(false),
+      hovered: false,
+      anim: motion::anim(false, duration::D1, easing),
+      hover_anim: motion::anim(false, duration::D1, easing),
       now: Instant::now(),
     }
   }
@@ -40,6 +47,8 @@ impl<'a, Message, Theme, Renderer> Transform<'a, Message, Theme, Renderer> {
       scale: 1.0,
       offset: Vector::ZERO,
       press: None,
+      hover: None,
+      easing: motion::EASE,
     }
   }
 
@@ -60,6 +69,16 @@ impl<'a, Message, Theme, Renderer> Transform<'a, Message, Theme, Renderer> {
 
   pub fn press_to(mut self, scale: f32) -> Self {
     self.press = Some(scale);
+    self
+  }
+
+  pub fn hover(mut self, scale: f32) -> Self {
+    self.hover = Some(scale);
+    self
+  }
+
+  pub fn spring(mut self) -> Self {
+    self.easing = motion::SPRING;
     self
   }
 }
@@ -87,7 +106,7 @@ where
   }
 
   fn state(&self) -> tree::State {
-    tree::State::new(State::default())
+    tree::State::new(State::new(self.easing))
   }
 
   fn children(&self) -> Vec<Tree> {
@@ -129,11 +148,19 @@ where
     shell: &mut Shell<'_, Message>,
     viewport: &Rectangle,
   ) {
-    if self.press.is_some() {
+    if self.press.is_some() || self.hover.is_some() {
       let state = tree.state.downcast_mut::<State>();
       match event {
+        Event::Mouse(mouse::Event::CursorMoved { .. }) if self.hover.is_some() => {
+          let over = cursor.is_over(layout.bounds());
+          if over != state.hovered {
+            state.hovered = over;
+            state.hover_anim.go_mut(over, state.now);
+            shell.request_redraw();
+          }
+        }
         Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left))
-          if cursor.is_over(layout.bounds()) =>
+          if self.press.is_some() && cursor.is_over(layout.bounds()) =>
         {
           state.pressed = true;
           state.anim.go_mut(true, state.now);
@@ -146,7 +173,7 @@ where
         }
         Event::Window(window::Event::RedrawRequested(now)) => {
           state.now = *now;
-          if state.anim.is_animating(*now) {
+          if state.anim.is_animating(*now) || state.hover_anim.is_animating(*now) {
             shell.request_redraw();
           }
         }
@@ -177,9 +204,12 @@ where
     viewport: &Rectangle,
   ) {
     let mut scale = self.scale;
+    let state = tree.state.downcast_ref::<State>();
     if let Some(target) = self.press {
-      let state = tree.state.downcast_ref::<State>();
       scale *= state.anim.interpolate(1.0, target, state.now);
+    }
+    if let Some(target) = self.hover {
+      scale *= state.hover_anim.interpolate(1.0, target, state.now);
     }
 
     if (scale - 1.0).abs() < f32::EPSILON && self.offset == Vector::ZERO {

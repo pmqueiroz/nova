@@ -68,6 +68,8 @@ brightBlack→fg-3, white→fg-1, default→fg-2), per `NV_COLOR` in the handoff
   without touching layout, and `.press()` eases to `PRESS_SCALE` (.96) while
   the left button is held, matching `:active{transform:scale(.96)}`. Needs the
   iced `advanced` feature.
+  `.hover(scale)` adds a hover scale and `.spring()` switches both to the
+  spring curve (traffic lights: hover 1.16, press .84).
   `button.rs`: `btn(Variant)` builder (default/ghost/primary, h40, r8,
   padding 0/16, gap 8, 14 px semibold; primary bold on accent with
   on-accent text, hover brightness 1.08) and `icon_button` (transparent,

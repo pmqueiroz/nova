@@ -760,7 +760,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
                 format!(
                   "{}:\\{}",
                   drive.to_ascii_uppercase(),
-                  &path[2..].replace('/', "\\")
+                  path[2..].replace('/', "\\")
                 )
               }
               _ => path.replace('/', "\\"),

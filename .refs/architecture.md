@@ -150,6 +150,11 @@ next prompt is split correctly.
 - `InputHistory(-1/+1)` walks the deduplicated session history; the draft
   comes back when walking past the newest entry.
 - `Tick` (1 s) calls `Integration::expire` on every pane.
+- History: `Session.history` is the block-mode source of truth. It is
+  loaded from `command_history.bin` (bincode, `helpers::command_history_path`)
+  into every pane at startup, copied from the active pane into new tabs and
+  splits, and saved after every submit. Classic panes keep using
+  `Grid.command_history` for the legacy inline ghost suggestion.
 
 ### Sizing (`helpers::calc_block_grid`, `update/window.rs`)
 

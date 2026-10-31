@@ -169,7 +169,11 @@ fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder
       let ps_prompt_script = format!(
         r#"
           Set-Item function:prompt {{
+              $__nova_ok = $?
               if (-not $global:__nova_prompt_count) {{ $global:__nova_prompt_count = $true; $global:LASTEXITCODE = 0; $exitCode = 0; $is_first = $true }} else {{ $exitCode = $global:LASTEXITCODE; $global:LASTEXITCODE = 0; $is_first = $false }}
+              if (-not $is_first -and -not $__nova_ok -and -not $exitCode) {{
+                  $exitCode = if ($Error.Count -gt 0 -and $Error[0].FullyQualifiedErrorId -like 'CommandNotFoundException*') {{ 127 }} else {{ 1 }}
+              }}
               $p = $PWD.ProviderPath;
               $h = [regex]::Escape($env:USERPROFILE);
               $d = $p -replace ('^' + $h), '~';

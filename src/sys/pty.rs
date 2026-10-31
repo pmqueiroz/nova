@@ -436,7 +436,7 @@ fn windows_path_to_unix(path: &std::path::Path) -> String {
       format!(
         "/{}/{}",
         drive.to_ascii_lowercase(),
-        &s[3..].replace('\\', "/")
+        s[3..].replace('\\', "/")
       )
     }
     _ => s.replace('\\', "/").to_string(),

@@ -89,13 +89,16 @@ Pull requests are reviewed by the maintainer. Feedback will come as review comme
 - Follow standard Rust idioms. `cargo fmt` and `cargo clippy` are the authority.
 - Prefer explicit imports over wildcard `use *` except where established by the existing module conventions.
 - Keep UI components in `src/ui/components/` and pure logic out of the view layer.
-- Write comments only when the *why* is non-obvious from the code itself — not to narrate what the code does.
+- No comments in code. Explanations of non-obvious decisions go in the matching `.refs/` file instead (see [`.refs/conventions.md`](.refs/conventions.md)).
+- When you add or change a feature, update the corresponding `.refs/` doc in the same PR.
 
 ## Commit Messages
 
-- Use the imperative mood in the subject line: `fix: pty restart on resize`, not `fixed`.
+Follow [Conventional Commits](https://www.conventionalcommits.org/); `feat` and `fix` drive release-please versioning and the changelog. Full rules: [`.agents/skills/commit/SKILL.md`](.agents/skills/commit/SKILL.md).
+
+- Use the imperative mood, lower-case subject: `fix(pty): restart on resize`, not `fixed`.
 - Keep the subject under 72 characters.
-- Explain *why* in the body when the change is non-obvious.
+- Keep commits small and atomic, with a title only. Put the *why* in the PR description. A body is only for `BREAKING CHANGE:` notes or `Co-Authored-By:` trailers.
 
 ## Licensing
 

@@ -17,6 +17,83 @@ use crate::ui::theme::motion;
 
 pub const BLOCKS_ENABLED: bool = false;
 
+#[derive(Default, Debug, Clone)]
+pub struct InputBox {
+  pub text: String,
+  pub history_cursor: Option<usize>,
+  pub draft: String,
+  pub submitted: u64,
+}
+
+impl InputBox {
+  pub fn take(&mut self) -> String {
+    self.history_cursor = None;
+    self.draft.clear();
+    self.submitted += 1;
+    std::mem::take(&mut self.text)
+  }
+
+  pub fn set(&mut self, text: String) {
+    self.text = text;
+    self.history_cursor = None;
+  }
+
+  pub fn history_up(&mut self, session: &Session) {
+    let next = self.history_cursor.map(|c| c + 1).unwrap_or(0);
+    if let Some(entry) = session.history_back(next) {
+      if self.history_cursor.is_none() {
+        self.draft = self.text.clone();
+      }
+      self.history_cursor = Some(next);
+      self.text = entry.to_string();
+    }
+  }
+
+  pub fn history_down(&mut self, session: &Session) {
+    match self.history_cursor {
+      None => {}
+      Some(0) => {
+        self.history_cursor = None;
+        self.text = std::mem::take(&mut self.draft);
+      }
+      Some(c) => {
+        self.history_cursor = Some(c - 1);
+        if let Some(entry) = session.history_back(c - 1) {
+          self.text = entry.to_string();
+        }
+      }
+    }
+  }
+}
+
+#[allow(dead_code)]
+pub struct PaneMut<'a> {
+  pub id: usize,
+  pub grid: &'a mut Grid,
+  pub session: &'a mut Session,
+  pub integration: &'a mut Integration,
+  pub input: &'a mut InputBox,
+  pub pty_tx: &'a Option<Sender<PtyCommand>>,
+}
+
+impl PaneMut<'_> {
+  pub fn write(&self, bytes: Vec<u8>) {
+    if let Some(tx) = self.pty_tx {
+      let _ = tx.send_blocking(PtyCommand::Input(bytes));
+    }
+  }
+}
+
+#[allow(dead_code)]
+pub struct PaneRef<'a> {
+  pub id: usize,
+  pub grid: &'a Grid,
+  pub session: &'a Session,
+  pub integration: &'a Integration,
+  pub input: &'a InputBox,
+  pub scroll_offset: usize,
+}
+
 pub struct SplitPane {
   pub id: usize,
   pub grid: Grid,
@@ -25,6 +102,7 @@ pub struct SplitPane {
   pub ansi_parser: Parser,
   pub session: Session,
   pub integration: Integration,
+  pub input: InputBox,
   pub shell_cmd: String,
   pub pwd: String,
   pub git_branch: Option<String>,
@@ -51,6 +129,7 @@ pub struct Tab {
   pub ansi_parser: Parser,
   pub session: Session,
   pub integration: Integration,
+  pub input: InputBox,
   pub shell: String,
   pub shell_cmd: String,
   pub pwd: String,
@@ -95,6 +174,7 @@ impl Tab {
       ansi_parser: Parser::new(),
       session: Session::new(initial_cwd.clone(), cols, rows),
       integration: Integration::new(BLOCKS_ENABLED),
+      input: InputBox::default(),
       shell,
       shell_cmd,
       pwd,
@@ -114,6 +194,94 @@ impl Tab {
       waiting_after_exit: false,
       initial_command: config::get().general.initial_command.clone(),
     }
+  }
+}
+
+impl Tab {
+  pub fn pane_mut(&mut self, split: bool) -> PaneMut<'_> {
+    if split && let Some(sp) = self.split.as_mut() {
+      return PaneMut {
+        id: sp.id,
+        grid: &mut sp.grid,
+        session: &mut sp.session,
+        integration: &mut sp.integration,
+        input: &mut sp.input,
+        pty_tx: &sp.pty_tx,
+      };
+    }
+    PaneMut {
+      id: self.id,
+      grid: &mut self.grid,
+      session: &mut self.session,
+      integration: &mut self.integration,
+      input: &mut self.input,
+      pty_tx: &self.pty_tx,
+    }
+  }
+
+  #[allow(dead_code)]
+  pub fn pane(&self, split: bool) -> PaneRef<'_> {
+    if split && let Some(sp) = self.split.as_ref() {
+      return PaneRef {
+        id: sp.id,
+        grid: &sp.grid,
+        session: &sp.session,
+        integration: &sp.integration,
+        input: &sp.input,
+        scroll_offset: sp.scroll_offset,
+      };
+    }
+    PaneRef {
+      id: self.id,
+      grid: &self.grid,
+      session: &self.session,
+      integration: &self.integration,
+      input: &self.input,
+      scroll_offset: self.scroll_offset,
+    }
+  }
+
+  pub fn active_pane_mut(&mut self) -> PaneMut<'_> {
+    let split = self.active_pane_is_split;
+    self.pane_mut(split)
+  }
+
+  #[allow(dead_code)]
+  pub fn active_pane(&self) -> PaneRef<'_> {
+    self.pane(self.active_pane_is_split)
+  }
+
+  pub fn panes_mut(&mut self) -> Vec<PaneMut<'_>> {
+    let mut out = Vec::new();
+    let Tab {
+      id,
+      grid,
+      session,
+      integration,
+      input,
+      pty_tx,
+      split,
+      ..
+    } = self;
+    out.push(PaneMut {
+      id: *id,
+      grid,
+      session,
+      integration,
+      input,
+      pty_tx,
+    });
+    if let Some(sp) = split.as_mut() {
+      out.push(PaneMut {
+        id: sp.id,
+        grid: &mut sp.grid,
+        session: &mut sp.session,
+        integration: &mut sp.integration,
+        input: &mut sp.input,
+        pty_tx: &sp.pty_tx,
+      });
+    }
+    out
   }
 }
 
@@ -165,5 +333,49 @@ fn read_git_branch(pwd: &str) -> Option<String> {
 impl Tab {
   pub fn update_git_status(&mut self) {
     self.git_branch = read_git_branch(&self.pwd);
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  fn session_with(history: &[&str]) -> Session {
+    let mut s = Session::new("~".into(), 80, 24);
+    for h in history {
+      s.push_history(h);
+    }
+    s
+  }
+
+  #[test]
+  fn history_walks_back_and_restores_draft() {
+    let s = session_with(&["ls", "pwd"]);
+    let mut i = InputBox {
+      text: "gi".into(),
+      ..InputBox::default()
+    };
+    i.history_up(&s);
+    assert_eq!(i.text, "pwd");
+    i.history_up(&s);
+    assert_eq!(i.text, "ls");
+    i.history_up(&s);
+    assert_eq!(i.text, "ls");
+    i.history_down(&s);
+    assert_eq!(i.text, "pwd");
+    i.history_down(&s);
+    assert_eq!(i.text, "gi");
+    assert_eq!(i.history_cursor, None);
+  }
+
+  #[test]
+  fn take_clears_and_bumps_pulse() {
+    let mut i = InputBox {
+      text: "echo".into(),
+      ..InputBox::default()
+    };
+    assert_eq!(i.take(), "echo");
+    assert!(i.text.is_empty());
+    assert_eq!(i.submitted, 1);
   }
 }

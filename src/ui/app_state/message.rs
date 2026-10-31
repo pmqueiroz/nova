@@ -102,6 +102,14 @@ pub enum Message {
   SearchNext,
   SearchPrev,
   NoOp,
+  #[allow(dead_code)]
+  InputChanged(String),
+  #[allow(dead_code)]
+  InputSubmit,
+  #[allow(dead_code)]
+  InputHistory(i32),
+  #[allow(dead_code)]
+  ClearBlocks,
   Frame(std::time::Instant),
   NotificationActivated,
   Osc52ReadResponse(usize, Option<String>),

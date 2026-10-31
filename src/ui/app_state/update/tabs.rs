@@ -5,7 +5,7 @@ use crate::core::config;
 use crate::core::grid::{DEFAULT_SCROLLBACK_LIMIT, Grid};
 use crate::core::router::Integration;
 use crate::sys::pty::PtyCommand;
-use crate::ui::tab::{BLOCKS_ENABLED, SplitPane, Tab, shell_display_name};
+use crate::ui::tab::{BLOCKS_ENABLED, InputBox, SplitPane, Tab, shell_display_name};
 
 use super::super::helpers::{
   calc_grid, calc_grid_split, calc_grid_split_ratio, command_history_path,
@@ -132,6 +132,7 @@ impl Nova {
       ansi_parser: Parser::new(),
       session: Session::new(initial_cwd.clone(), cols, rows),
       integration: Integration::new(BLOCKS_ENABLED),
+      input: InputBox::default(),
       shell_cmd,
       pwd: initial_cwd.clone(),
       git_branch: None,

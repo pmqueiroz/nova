@@ -325,12 +325,9 @@ impl Nova {
 
     let mut col = column![
       components::title_bar(
-        self.window_focused,
-        &active_tab.pwd,
-        self.window_maximized,
+        components::title(&active_tab.pwd, !self.bell_blink_visible),
         tb_interaction,
         &self.settings.general.window_controls,
-        self.bell_blink_visible,
       ),
       components::tab_bar(&self.tabs, self.active_index, self.dragging_tab_index),
       term_area,

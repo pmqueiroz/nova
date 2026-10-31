@@ -6,7 +6,7 @@ use iced::{Alignment, Background, Border, Color, Element, Length, Padding, Shado
 use crate::ui::app_state::Message;
 use crate::ui::components::ds::button::icon_button_style;
 use crate::ui::components::ds::focus_within::focus_within;
-use crate::ui::components::ds::kbd::{kbd, mod_label};
+use crate::ui::components::ds::kbd::{kbd, shortcut_label};
 use crate::ui::components::ds::transform::{Transform, press};
 use crate::ui::components::session::input_id;
 use crate::ui::helpers::til_home;
@@ -81,7 +81,7 @@ pub fn ask_ai_button<'a>(compact: bool) -> Element<'a, Message> {
           .size(tokens::text::T14)
           .font(font::semibold()),
       )
-      .push(kbd(format!("{}K", mod_label())));
+      .push(kbd(shortcut_label("K")));
   }
   press(
     button(container(content).center_y(Length::Fill))

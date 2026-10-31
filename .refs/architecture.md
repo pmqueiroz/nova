@@ -102,6 +102,19 @@ Every supported shell emits private OSC 777 marks (parsed in
   never set; the prompt reads `$?` first and maps `CommandNotFoundException`
   to 127 (other failures to 1) so the AI Fix flow sees the same codes as POSIX
   shells.
+- ConPTY (Windows) passes OSC sequences through immediately but renders text
+  on its own schedule, so OSC marks can overtake the output they follow. On
+  Windows PowerShell the boundary marks are therefore text: private-use
+  characters U+F8F0 (`prompt_ready`), U+F8F1 (`prompt_ready;preexec`) and
+  U+F8F2 (`command_start`), which `AnsiExecutor::print` swallows into
+  `ControlCommand`s (they never render, in any mode). Because ConPTY replays
+  its screen buffer, the readline wrapper clears the console
+  (`[Console]::Clear()`) before writing `command_start` with
+  `$Host.UI.WriteLine` (Unicode-safe, `[Console]::Write` would turn it into
+  `?`), so marks from earlier prompts can never be replayed mid-command.
+  `command_complete` only records the exit code; the block ends at the next
+  `prompt_ready`. A replayed `command_start` is a no-op (`begin_output` only
+  moves `Pending` blocks).
 - cmd: `PROMPT=$E]777;prompt_ready$E\$P$G` (ST-terminated). No exit codes,
   no preexec: a `prompt_ready` while a command runs ends it with code 0, and the
   echoed command line is skipped.

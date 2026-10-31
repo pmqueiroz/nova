@@ -21,6 +21,7 @@ pub struct Integration {
   pub mode: Mode,
   pub preexec: bool,
   pub awaiting_echo: bool,
+  pub pending_exit: Option<i32>,
   pub spawned_at: Instant,
 }
 
@@ -35,6 +36,7 @@ impl Integration {
       },
       preexec: false,
       awaiting_echo: false,
+      pending_exit: None,
       spawned_at: Instant::now(),
     }
   }
@@ -92,7 +94,9 @@ fn target(session: &Session, integ: &Integration) -> Target {
 }
 
 fn begin_output(session: &mut Session, screen: &Grid) {
-  if let Some(b) = session.active_mut() {
+  if let Some(b) = session.active_mut()
+    && b.state == BlockState::Pending
+  {
     b.state = BlockState::Running;
     b.output.cursor_x = 0;
     b.output.cursor_y = screen.cursor_y.min(b.output.rows.saturating_sub(1));
@@ -121,8 +125,10 @@ fn handle_control(
         out.entered_blocks = true;
       }
       if integ.mode == Mode::Blocks && session.is_running() {
-        finish(session, integ, 0, out);
+        let code = integ.pending_exit.take().unwrap_or(0);
+        finish(session, integ, code, out);
       }
+      integ.pending_exit = None;
     }
     ControlCommand::CommandStart if integ.mode == Mode::Blocks => {
       if session.is_running() {
@@ -132,7 +138,7 @@ fn handle_control(
     }
     ControlCommand::CommandComplete(code) if integ.mode == Mode::Blocks => {
       if session.is_running() {
-        finish(session, integ, code as i32, out);
+        integ.pending_exit = Some(code as i32);
       }
       out.controls.push(ControlCommand::CommandComplete(code));
     }
@@ -296,6 +302,36 @@ mod tests {
     assert_eq!(out.finished, vec![(id, 127)]);
     assert!(r.session.block(id).unwrap().is_error());
     assert!(out.controls.contains(&ControlCommand::CommandFailure(127)));
+  }
+
+  #[test]
+  fn conpty_reordered_osc_waits_for_text_prompt_mark() {
+    let mut r = Rig::new();
+    r.feed("\u{F8F1}PS> ");
+    let id = r.submit("echo hello");
+    let out = r.feed("echo hello\r\n\u{F8F2}\x1b]777;command_complete;0\x07hello\r\n\u{F8F1}PS> ");
+    assert_eq!(out.finished, vec![(id, 0)]);
+    assert_eq!(r.session.block(id).unwrap().text(), "hello");
+  }
+
+  #[test]
+  fn replayed_command_start_does_not_reset_block() {
+    let mut r = Rig::new();
+    r.feed(READY_PREEXEC);
+    let id = r.submit("dir");
+    r.feed("\u{F8F2}line1\r\nline2\r\n\u{F8F2}");
+    assert_eq!(r.session.block(id).unwrap().text(), "line1\nline2");
+  }
+
+  #[test]
+  fn exit_code_is_kept_until_prompt() {
+    let mut r = Rig::new();
+    r.feed("\u{F8F1}");
+    let id = r.submit("clsd");
+    let out = r.feed("\u{F8F2}\x1b]777;command_complete;127\x07not found\r\n");
+    assert!(out.finished.is_empty());
+    let out = r.feed("\u{F8F1}");
+    assert_eq!(out.finished, vec![(id, 127)]);
   }
 
   #[test]

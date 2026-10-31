@@ -6,6 +6,10 @@ use std::sync::Arc;
 
 pub const DEFAULT_SCROLLBACK_LIMIT: usize = 10_000;
 
+pub const MARK_PROMPT: char = '\u{F8F0}';
+pub const MARK_PROMPT_PREEXEC: char = '\u{F8F1}';
+pub const MARK_COMMAND_START: char = '\u{F8F2}';
+
 bitflags! {
     #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
     pub struct CellAttrs: u8 {

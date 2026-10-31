@@ -40,6 +40,14 @@ pub fn mod_label() -> &'static str {
   if IS_MAC { "⌘" } else { "Ctrl" }
 }
 
+pub fn shortcut_label(key: &str) -> String {
+  if IS_MAC {
+    format!("⌘{key}")
+  } else {
+    format!("Ctrl {key}")
+  }
+}
+
 pub fn ctrl_label() -> &'static str {
   if IS_MAC { "⌃" } else { "Ctrl" }
 }

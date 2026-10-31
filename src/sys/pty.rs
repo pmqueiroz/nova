@@ -182,7 +182,7 @@ fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder
               Write-Host -NoNewline ('{{0}}]7;{{1}}{{0}}{{2}}' -f [char]27, $uri, [char]92);
               $complete = if (-not $is_first) {{ "$ESC]777;command_complete;$exitCode$([char]7)" }} else {{ "" }}
               $diag = if ($exitCode -ne 0) {{ "$ESC]777;command_failure;$exitCode$([char]7)" }} else {{ "" }}
-              $ready = if ($global:__nova_preexec) {{ "$ESC]777;prompt_ready;preexec$([char]7)" }} else {{ "$ESC]777;prompt_ready$([char]7)" }}
+              $ready = if ($global:__nova_preexec) {{ [string][char]0xF8F1 }} else {{ [string][char]0xF8F0 }}
               return ($complete + $diag + $ready + $ESC + '[38;2;128;128;128m' + $d + $ESC + '[0m ' + $ESC + '[38;2;{ar};{ag};{ab}mλ' + $ESC + '[0m ')
           }}
           $__nova_rl = Get-Command PSConsoleHostReadLine -CommandType Function -ErrorAction SilentlyContinue
@@ -191,7 +191,8 @@ fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder
               $global:__nova_preexec = $true
               function global:PSConsoleHostReadLine {{
                   $line = & $global:__nova_readline
-                  [Console]::Write("$([char]27)]777;command_start$([char]7)")
+                  [Console]::Clear()
+                  $Host.UI.WriteLine([string][char]0xF8F2)
                   return $line
               }}
           }}

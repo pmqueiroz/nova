@@ -521,7 +521,7 @@ impl Nova {
       }
       Message::WindowFocused => {
         self.window_focused = true;
-        iced::Task::none()
+        self.focus_input()
       }
       Message::WindowUnfocused => {
         self.window_focused = false;

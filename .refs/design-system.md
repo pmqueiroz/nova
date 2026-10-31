@@ -86,3 +86,5 @@ brightBlack→fg-3, white→fg-1, default→fg-2), per `NV_COLOR` in the handoff
   `swatch.rs`: 32 px color dot, custom widget. Selected rings (2 px win-bot,
   then 2 px fg-1) are drawn outside its bounds like CSS box-shadow, so layout
   never shifts. Hover springs to 1.08, press .96, 2 px black .16 inner edge.
+  `row.rs`: settings row (min-h 64, padding 12/0, gap 24, 16 px label fg-1,
+  14 px hint fg-3) with a 1 px line divider unless it is the last row.

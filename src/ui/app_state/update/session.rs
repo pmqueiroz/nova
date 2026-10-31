@@ -24,6 +24,7 @@ impl Nova {
     let pane = tab.active_pane_mut();
     if !pane.integration.is_blocks() || pane.session.is_running() {
       pane.input.submitted += 1;
+      pane.input.pulsed_at = Some(Instant::now());
       return iced::Task::none();
     }
     let command = pane.input.take();

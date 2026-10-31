@@ -15,7 +15,7 @@ use crate::core::router::Integration;
 use crate::sys::pty::PtyCommand;
 use crate::ui::theme::motion;
 
-pub const BLOCKS_ENABLED: bool = false;
+pub const BLOCKS_ENABLED: bool = true;
 
 #[derive(Default, Debug, Clone)]
 pub struct InputBox {
@@ -24,6 +24,7 @@ pub struct InputBox {
   pub draft: String,
   pub submitted: u64,
   pub scrolled_up: bool,
+  pub pulsed_at: Option<Instant>,
 }
 
 impl InputBox {
@@ -31,6 +32,7 @@ impl InputBox {
     self.history_cursor = None;
     self.draft.clear();
     self.submitted += 1;
+    self.pulsed_at = Some(Instant::now());
     std::mem::take(&mut self.text)
   }
 
@@ -67,9 +69,7 @@ impl InputBox {
   }
 }
 
-#[allow(dead_code)]
 pub struct PaneMut<'a> {
-  pub id: usize,
   pub grid: &'a mut Grid,
   pub session: &'a mut Session,
   pub integration: &'a mut Integration,
@@ -85,14 +85,11 @@ impl PaneMut<'_> {
   }
 }
 
-#[allow(dead_code)]
 pub struct PaneRef<'a> {
   pub id: usize,
-  pub grid: &'a Grid,
   pub session: &'a Session,
   pub integration: &'a Integration,
   pub input: &'a InputBox,
-  pub scroll_offset: usize,
 }
 
 pub struct SplitPane {
@@ -202,7 +199,6 @@ impl Tab {
   pub fn pane_mut(&mut self, split: bool) -> PaneMut<'_> {
     if split && let Some(sp) = self.split.as_mut() {
       return PaneMut {
-        id: sp.id,
         grid: &mut sp.grid,
         session: &mut sp.session,
         integration: &mut sp.integration,
@@ -211,7 +207,6 @@ impl Tab {
       };
     }
     PaneMut {
-      id: self.id,
       grid: &mut self.grid,
       session: &mut self.session,
       integration: &mut self.integration,
@@ -220,25 +215,20 @@ impl Tab {
     }
   }
 
-  #[allow(dead_code)]
   pub fn pane(&self, split: bool) -> PaneRef<'_> {
     if split && let Some(sp) = self.split.as_ref() {
       return PaneRef {
         id: sp.id,
-        grid: &sp.grid,
         session: &sp.session,
         integration: &sp.integration,
         input: &sp.input,
-        scroll_offset: sp.scroll_offset,
       };
     }
     PaneRef {
       id: self.id,
-      grid: &self.grid,
       session: &self.session,
       integration: &self.integration,
       input: &self.input,
-      scroll_offset: self.scroll_offset,
     }
   }
 
@@ -247,7 +237,6 @@ impl Tab {
     self.pane_mut(split)
   }
 
-  #[allow(dead_code)]
   pub fn active_pane(&self) -> PaneRef<'_> {
     self.pane(self.active_pane_is_split)
   }
@@ -265,7 +254,6 @@ impl Tab {
   pub fn panes_mut(&mut self) -> Vec<PaneMut<'_>> {
     let mut out = Vec::new();
     let Tab {
-      id,
       grid,
       session,
       integration,
@@ -275,7 +263,6 @@ impl Tab {
       ..
     } = self;
     out.push(PaneMut {
-      id: *id,
       grid,
       session,
       integration,
@@ -284,7 +271,6 @@ impl Tab {
     });
     if let Some(sp) = split.as_mut() {
       out.push(PaneMut {
-        id: sp.id,
         grid: &mut sp.grid,
         session: &mut sp.session,
         integration: &mut sp.integration,

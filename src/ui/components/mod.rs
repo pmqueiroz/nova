@@ -1,15 +1,14 @@
 mod ai_overlay;
 mod app;
-#[allow(dead_code)]
 pub mod block;
 mod color_row;
 mod command_palette;
 #[allow(dead_code)]
 pub mod ds;
+mod input_bar;
 mod paste_warning;
 mod search_bar;
 mod section_label;
-#[allow(dead_code)]
 pub mod session;
 mod setting_row;
 mod settings;
@@ -28,9 +27,11 @@ pub use ai_overlay::*;
 pub use app::*;
 pub use color_row::*;
 pub use command_palette::*;
+pub use input_bar::*;
 pub use paste_warning::*;
 pub use search_bar::*;
 pub use section_label::*;
+pub use session::{SessionView, blocks_area};
 pub use setting_row::*;
 pub use settings::*;
 pub use shell_picker::*;

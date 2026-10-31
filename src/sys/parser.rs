@@ -732,6 +732,20 @@ impl<'a> Perform for AnsiExecutor<'a> {
           .push(ControlCommand::CommandComplete(code));
       }
       cli::constants::PRIVATE_NOVA_OSC_CODE_BYTES
+        if params.len() >= 2 && params[1] == b"prompt_ready" =>
+      {
+        let preexec = params.get(2).is_some_and(|c| *c == b"preexec");
+        self
+          .grid
+          .control_queue
+          .push(ControlCommand::PromptReady { preexec });
+      }
+      cli::constants::PRIVATE_NOVA_OSC_CODE_BYTES
+        if params.len() >= 2 && params[1] == b"command_start" =>
+      {
+        self.grid.control_queue.push(ControlCommand::CommandStart);
+      }
+      cli::constants::PRIVATE_NOVA_OSC_CODE_BYTES
         if params.len() >= 2 && params[1] == b"explain_ai" =>
       {
         let preset = if params.len() >= 3 && !params[2].is_empty() {
@@ -824,6 +838,48 @@ mod tests {
       bell_pending: false,
     };
     parser.advance(&mut exec, s.as_bytes());
+  }
+
+  #[test]
+  fn osc_prompt_ready_reports_preexec_capability() {
+    let mut grid = make_grid(10, 5);
+    print_str(
+      &mut grid,
+      "\x1b]777;prompt_ready;preexec\x07\x1b]777;prompt_ready\x07",
+    );
+    assert_eq!(
+      grid.control_queue,
+      vec![
+        ControlCommand::PromptReady { preexec: true },
+        ControlCommand::PromptReady { preexec: false },
+      ]
+    );
+  }
+
+  #[test]
+  fn osc_prompt_ready_accepts_st_terminator() {
+    let mut grid = make_grid(10, 5);
+    print_str(&mut grid, "\x1b]777;prompt_ready\x1b\\C:\\>");
+    assert_eq!(
+      grid.control_queue,
+      vec![ControlCommand::PromptReady { preexec: false }]
+    );
+  }
+
+  #[test]
+  fn osc_command_start_and_complete() {
+    let mut grid = make_grid(10, 5);
+    print_str(
+      &mut grid,
+      "\x1b]777;command_start\x07out\x1b]777;command_complete;127\x07",
+    );
+    assert_eq!(
+      grid.control_queue,
+      vec![
+        ControlCommand::CommandStart,
+        ControlCommand::CommandComplete(127),
+      ]
+    );
   }
 
   #[test]

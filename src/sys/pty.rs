@@ -85,6 +85,34 @@ impl PtyBridge {
   }
 }
 
+pub const CMD_PROMPT: &str = "$E]777;prompt_ready$E\\$P$G";
+
+pub const POSIX_PROMPT_HOOK: &str = r#"__nova_exit_code=$?
+if ! declare -f __nova_ssh > /dev/null 2>&1; then
+  __nova_ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
+  ssh() { __nova_ssh "$@"; }
+fi
+if ! declare -f __nova_osc7 > /dev/null 2>&1; then
+  __nova_osc7() { printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
+fi
+__nova_osc7
+if [ -z "${__nova_first_prompt_done+x}" ]; then
+  __nova_first_prompt_done=1
+else
+  printf "\033]777;command_complete;$__nova_exit_code\a"
+fi
+if [ "$__nova_exit_code" -ne 0 ]; then
+  printf "\033]777;command_failure;$__nova_exit_code\a"
+fi
+if [ -n "${ZSH_VERSION:-}" ]; then
+  printf "]777;prompt_ready;preexec"
+elif [ "${BASH_VERSINFO[0]:-0}" -gt 4 ] || { [ "${BASH_VERSINFO[0]:-0}" -eq 4 ] && [ "${BASH_VERSINFO[1]:-0}" -ge 4 ]; }; then
+  PS0="$(printf ']777;command_start')"
+  printf "]777;prompt_ready;preexec"
+else
+  printf "]777;prompt_ready"
+fi"#;
+
 fn accent_rgb() -> (u8, u8, u8) {
   let hex = &crate::core::config::get().theme.colors.accent;
   let h = hex.trim_start_matches('#');
@@ -150,7 +178,18 @@ fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder
               Write-Host -NoNewline ('{{0}}]7;{{1}}{{0}}{{2}}' -f [char]27, $uri, [char]92);
               $complete = if (-not $is_first) {{ "$ESC]777;command_complete;$exitCode$([char]7)" }} else {{ "" }}
               $diag = if ($exitCode -ne 0) {{ "$ESC]777;command_failure;$exitCode$([char]7)" }} else {{ "" }}
-              return ($complete + $diag + $ESC + '[38;2;128;128;128m' + $d + $ESC + '[0m ' + $ESC + '[38;2;{ar};{ag};{ab}mλ' + $ESC + '[0m ')
+              $ready = if ($global:__nova_preexec) {{ "$ESC]777;prompt_ready;preexec$([char]7)" }} else {{ "$ESC]777;prompt_ready$([char]7)" }}
+              return ($complete + $diag + $ready + $ESC + '[38;2;128;128;128m' + $d + $ESC + '[0m ' + $ESC + '[38;2;{ar};{ag};{ab}mλ' + $ESC + '[0m ')
+          }}
+          $__nova_rl = Get-Command PSConsoleHostReadLine -CommandType Function -ErrorAction SilentlyContinue
+          if ($__nova_rl) {{
+              $global:__nova_readline = $__nova_rl.ScriptBlock
+              $global:__nova_preexec = $true
+              function global:PSConsoleHostReadLine {{
+                  $line = & $global:__nova_readline
+                  [Console]::Write("$([char]27)]777;command_start$([char]7)")
+                  return $line
+              }}
           }}
           if (-not (Get-Command ssh -CommandType Function -ErrorAction SilentlyContinue)) {{
               function global:ssh {{
@@ -183,6 +222,7 @@ fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder
       if let Some(dir) = initial_cwd {
         c.cwd(dir);
       }
+      c.env("PROMPT", CMD_PROMPT);
       c.env("NOVA_TERMINAL", "1");
       c.env("TERM_PROGRAM", "Nova");
       c
@@ -202,26 +242,7 @@ fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder
           "\\[\\e[38;2;128;128;128m\\]\\w\\[\\e[0m\\] \\[\\e[38;2;{ar};{ag};{ab}m\\]λ\\[\\e[0m\\] "
         ),
       );
-      c.env(
-        "PROMPT_COMMAND",
-        r#"__nova_exit_code=$?
-if ! declare -f __nova_ssh > /dev/null 2>&1; then
-  __nova_ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
-  ssh() { __nova_ssh "$@"; }
-fi
-if ! declare -f __nova_osc7 > /dev/null 2>&1; then
-  __nova_osc7() { printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
-fi
-__nova_osc7
-if [ -z "${__nova_first_prompt_done+x}" ]; then
-  __nova_first_prompt_done=1
-else
-  printf "\033]777;command_complete;$__nova_exit_code\a"
-fi
-if [ "$__nova_exit_code" -ne 0 ]; then
-  printf "\033]777;command_failure;$__nova_exit_code\a"
-fi"#,
-      );
+      c.env("PROMPT_COMMAND", POSIX_PROMPT_HOOK);
       c
     } else if is_git_bash {
       let exe =
@@ -241,26 +262,7 @@ fi"#,
           "\\[\\e[38;2;128;128;128m\\]\\w\\[\\e[0m\\] \\[\\e[38;2;{ar};{ag};{ab}m\\]λ\\[\\e[0m\\] "
         ),
       );
-      c.env(
-        "NOVA_PROMPT_COMMAND",
-        r#"__nova_exit_code=$?
-if ! declare -f __nova_ssh > /dev/null 2>&1; then
-  __nova_ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
-  ssh() { __nova_ssh "$@"; }
-fi
-if ! declare -f __nova_osc7 > /dev/null 2>&1; then
-  __nova_osc7() { printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
-fi
-__nova_osc7
-if [ -z "${__nova_first_prompt_done+x}" ]; then
-  __nova_first_prompt_done=1
-else
-  printf "\033]777;command_complete;$__nova_exit_code\a"
-fi
-if [ "$__nova_exit_code" -ne 0 ]; then
-  printf "\033]777;command_failure;$__nova_exit_code\a"
-fi"#,
-      );
+      c.env("NOVA_PROMPT_COMMAND", POSIX_PROMPT_HOOK);
       if let Some((nova_home, real_home)) = nova_git_bash_home() {
         c.env(
           "OLDHOME",
@@ -323,26 +325,7 @@ fi"#,
           "\\[\\e[38;2;128;128;128m\\]\\w\\[\\e[0m\\] \\[\\e[38;2;{ar};{ag};{ab}m\\]λ\\[\\e[0m\\] "
         ),
       );
-      c.env(
-        "PROMPT_COMMAND",
-        r#"__nova_exit_code=$?
-if ! declare -f __nova_ssh > /dev/null 2>&1; then
-  __nova_ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
-  ssh() { __nova_ssh "$@"; }
-fi
-if ! declare -f __nova_osc7 > /dev/null 2>&1; then
-  __nova_osc7() { printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
-fi
-__nova_osc7
-if [ -z "${__nova_first_prompt_done+x}" ]; then
-  __nova_first_prompt_done=1
-else
-  printf "\033]777;command_complete;$__nova_exit_code\a"
-fi
-if [ "$__nova_exit_code" -ne 0 ]; then
-  printf "\033]777;command_failure;$__nova_exit_code\a"
-fi"#,
-      );
+      c.env("PROMPT_COMMAND", POSIX_PROMPT_HOOK);
 
       c.env(
         "NOVA_PS1",
@@ -350,26 +333,7 @@ fi"#,
           "\\[\\e[38;2;128;128;128m\\]\\w\\[\\e[0m\\] \\[\\e[38;2;{ar};{ag};{ab}m\\]λ\\[\\e[0m\\] "
         ),
       );
-      c.env(
-        "NOVA_PROMPT_COMMAND",
-        r#"__nova_exit_code=$?
-if ! declare -f __nova_ssh > /dev/null 2>&1; then
-  __nova_ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
-  ssh() { __nova_ssh "$@"; }
-fi
-if ! declare -f __nova_osc7 > /dev/null 2>&1; then
-  __nova_osc7() { printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
-fi
-__nova_osc7
-if [ -z "${__nova_first_prompt_done+x}" ]; then
-  __nova_first_prompt_done=1
-else
-  printf "\033]777;command_complete;$__nova_exit_code\a"
-fi
-if [ "$__nova_exit_code" -ne 0 ]; then
-  printf "\033]777;command_failure;$__nova_exit_code\a"
-fi"#,
-      );
+      c.env("NOVA_PROMPT_COMMAND", POSIX_PROMPT_HOOK);
     }
     c
   }
@@ -386,7 +350,7 @@ fn nova_zsh_zdotdir() -> Option<std::path::PathBuf> {
 
   let zshenv = "[[ -f \"$HOME/.zshenv\" ]] && source \"$HOME/.zshenv\"\n";
   let zprofile = "[[ -f \"$HOME/.zprofile\" ]] && source \"$HOME/.zprofile\"\n";
-  let zshrc = "[[ -f \"$HOME/.zshrc\" ]] && source \"$HOME/.zshrc\"\nautoload -Uz add-zsh-hook 2>/dev/null\n__nova_precmd() { eval \"$NOVA_PROMPT_COMMAND\"; }\nadd-zsh-hook precmd __nova_precmd 2>/dev/null\n";
+  let zshrc = "[[ -f \"$HOME/.zshrc\" ]] && source \"$HOME/.zshrc\"\nautoload -Uz add-zsh-hook 2>/dev/null\n__nova_precmd() { eval \"$NOVA_PROMPT_COMMAND\"; }\nadd-zsh-hook precmd __nova_precmd 2>/dev/null\n__nova_preexec() { printf '\\033]777;command_start\\a'; }\nadd-zsh-hook preexec __nova_preexec 2>/dev/null\n";
 
   std::fs::write(dir.join(".zshenv"), zshenv).ok()?;
   std::fs::write(dir.join(".zprofile"), zprofile).ok()?;
@@ -452,24 +416,7 @@ fn nova_git_bash_home() -> Option<(std::path::PathBuf, String)> {
     .join("bash-init");
   std::fs::create_dir_all(&dir).ok()?;
 
-  let prompt_script = r#"__nova_exit_code=$?
-if ! declare -f __nova_ssh > /dev/null 2>&1; then
-  __nova_ssh() { local h="" s=false; for a in "$@"; do $s && { s=false; continue; }; case "$a" in -b|-c|-D|-E|-e|-F|-I|-i|-J|-L|-l|-m|-o|-p|-Q|-R|-S|-W|-w) s=true;; -*) ;; *) h="$a"; break;; esac; done; [ -n "$h" ] && printf "\033]7;ssh://%s\033\\" "$h"; command ssh "$@"; printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
-  ssh() { __nova_ssh "$@"; }
-fi
-if ! declare -f __nova_osc7 > /dev/null 2>&1; then
-  __nova_osc7() { printf "\033]7;file://%s%s\033\\" "$HOSTNAME" "$PWD"; }
-fi
-__nova_osc7
-if [ -z "${__nova_first_prompt_done+x}" ]; then
-  __nova_first_prompt_done=1
-else
-  printf "\033]777;command_complete;$__nova_exit_code\a"
-fi
-if [ "$__nova_exit_code" -ne 0 ]; then
-  printf "\033]777;command_failure;$__nova_exit_code\a"
-fi
-"#;
+  let prompt_script = format!("{POSIX_PROMPT_HOOK}\n");
   std::fs::write(dir.join("nova_prompt.sh"), prompt_script).ok()?;
 
   let dir_unix = windows_path_to_unix(&dir);

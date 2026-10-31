@@ -98,6 +98,8 @@ pub enum ControlCommand {
   OpenExplainAi { preset: Option<std::sync::Arc<str>> },
   CommandFailure(u8),
   CommandComplete(u8),
+  PromptReady { preexec: bool },
+  CommandStart,
   SetClipboard(String),
   RequestClipboard,
 }

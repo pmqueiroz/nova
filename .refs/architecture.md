@@ -82,6 +82,28 @@ v2 shows each command as a block instead of a raw scrolling grid.
 - `submit` refuses empty input and refuses while a command is running.
   `clear` drops every block except the running one.
 
+### Shell integration marks (OSC 777, `sys/pty.rs`)
+
+Nova owns the prompt, so it needs to know where each command starts and ends.
+Every supported shell emits private OSC 777 marks (parsed in
+`sys/parser.rs` into `ControlCommand`s):
+
+| Mark | Meaning | Emitted by |
+|---|---|---|
+| `prompt_ready[;preexec]` | Shell is at a prompt, ready for input. `preexec` = this shell will also send `command_start`. | End of every prompt hook. |
+| `command_start` | The submitted line was read; output that follows belongs to the command. | zsh `preexec` hook; bash ≥ 4.4 `PS0`; PowerShell `PSConsoleHostReadLine` wrapper (only if PSReadLine is present). |
+| `command_complete;<code>` | Previous command finished with exit `code`. Not sent on the first prompt. | bash/zsh/git-bash hook, PowerShell prompt. |
+| `command_failure;<code>` | Non-zero exit (drives the AI diagnosis). | Same. |
+
+- The POSIX hook lives once in `POSIX_PROMPT_HOOK` and is used by bash, zsh
+  (via `NOVA_PROMPT_COMMAND` + precmd), git-bash (`nova_prompt.sh`) and the
+  WSL env. It detects zsh / bash ≥ 4.4 at runtime to decide `preexec`.
+- cmd: `PROMPT=$E]777;prompt_ready$E\$P$G` (ST-terminated). No exit codes,
+  no preexec: a `prompt_ready` while a command runs ends it with code 0, and the
+  echoed command line is skipped.
+- Shells that never send `prompt_ready` (fish, WSL distros where the env
+  does not cross `wsl.exe`, custom shells) fall back to the classic raw terminal.
+
 ## Shared state
 
 - Config: `core::config` keeps a `OnceLock<Config>` (`config::get()`) plus a

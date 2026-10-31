@@ -1,6 +1,6 @@
 use crate::cli;
-use crate::core::grid::ControlCommand;
 use crate::core::grid::Grid;
+use crate::core::grid::{ControlCommand, MARK_COMMAND_START, MARK_PROMPT, MARK_PROMPT_PREEXEC};
 use base64::Engine;
 use iced::Color;
 use std::sync::Arc;
@@ -64,6 +64,17 @@ pub struct AnsiExecutor<'a> {
 impl<'a> Perform for AnsiExecutor<'a> {
   fn print(&mut self, c: char) {
     use unicode_width::UnicodeWidthChar;
+
+    let mark = match c {
+      MARK_PROMPT => Some(ControlCommand::PromptReady { preexec: false }),
+      MARK_PROMPT_PREEXEC => Some(ControlCommand::PromptReady { preexec: true }),
+      MARK_COMMAND_START => Some(ControlCommand::CommandStart),
+      _ => None,
+    };
+    if let Some(m) = mark {
+      self.grid.control_queue.push(m);
+      return;
+    }
 
     let char_width = c.width().unwrap_or(1) as u8;
 
@@ -844,6 +855,22 @@ mod tests {
     assert_eq!(ansi_color(0, true), tokens::FG_3);
     assert_eq!(ansi_color(7, false), tokens::FG_1);
     assert_eq!(ansi_bg(0, false), tokens::WIN_BOT);
+  }
+
+  #[test]
+  fn text_marks_become_controls_and_never_render() {
+    let mut grid = make_grid(10, 5);
+    print_str(&mut grid, "a\u{F8F2}b\u{F8F1}");
+    assert_eq!(
+      grid.control_queue,
+      vec![
+        ControlCommand::CommandStart,
+        ControlCommand::PromptReady { preexec: true },
+      ]
+    );
+    assert_eq!(grid.cells[0].c.as_ref(), "a");
+    assert_eq!(grid.cells[1].c.as_ref(), "b");
+    assert_eq!(grid.cursor_x, 2);
   }
 
   #[test]

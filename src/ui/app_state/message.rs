@@ -11,6 +11,8 @@ pub enum Message {
   Type(Vec<u8>),
   NewTab,
   CloseTab(usize),
+  TabPressed(usize),
+  TabHovered(Option<usize>),
   PtyReady(usize, Sender<PtyCommand>),
   PtyOutputReceived(usize, Vec<u8>),
   PtyExited(usize),

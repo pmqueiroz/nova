@@ -61,12 +61,6 @@ pub const ACCENT: Hue = Hue {
   b: 0x8E,
   a: 1.0,
 };
-pub const ACCENT_DIM: Hue = Hue {
-  r: 0x3E,
-  g: 0xCF,
-  b: 0x8E,
-  a: 0.75,
-};
 pub const RED: Hue = Hue {
   r: 0xFD,
   g: 0x73,

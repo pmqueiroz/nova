@@ -105,6 +105,15 @@ Text goes through `ui::typography::Typography`, fonts through
   actions move left and 48×56 min/max/close buttons sit flush right (close
   hovers `LIGHT_CLOSE`). Title = "Nova" (14 semibold fg-2) + cwd (fg-3).
   The visual bell flashes "Nova" in the accent color.
+- Tabs (`components/tab_bar.rs`) replace the centered title whenever more than
+  one tab is open: surface-1 r12 pill track (max `min(560, 50% window)`,
+  horizontal scroll, hidden scrollbar), tabs h32, min-w 96, width computed from
+  the monospace label (`tab_width`), active = surface-2/fg-1, close × (24 px)
+  shown only on the active or hovered tab. New tabs play the `pop` keyframe
+  through `Tab.appear`. Drag-reorder is position-free: `TabPressed` arms a
+  drag, the 6 px move threshold in `mouse.rs` starts it, and `TabHovered`
+  over another tab swaps them. Middle-click closes. Right-click on the title
+  bar `+` opens the shell picker.
 - The terminal area's pixel origin (`helpers::pixel_to_cell`, `calc_grid`
   padding) still assumes the legacy layout below the 56 px bar. It goes away
   with the block UI.

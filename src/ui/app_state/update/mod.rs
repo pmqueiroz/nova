@@ -119,6 +119,7 @@ impl Default for Nova {
       search_match_index: 0,
       search_generation: 0,
       dragging_tab_index: None,
+      hovered_tab: None,
       drag_pending_tab: None,
       drag_pending_pos: None,
       paste_warning: None,
@@ -220,6 +221,27 @@ impl Nova {
       }
       Message::CloseTab(index) => {
         self.handle_close_tab(index);
+        self.hovered_tab = None;
+        iced::Task::none()
+      }
+      Message::TabPressed(index) => {
+        if index < self.tabs.len() {
+          self.active_index = index;
+          self.drag_pending_tab = Some(index);
+          self.drag_pending_pos = Some(self.cursor_position);
+        }
+        iced::Task::none()
+      }
+      Message::TabHovered(hovered) => {
+        self.hovered_tab = hovered;
+        if let (Some(from), Some(to)) = (self.dragging_tab_index, hovered)
+          && let Some((from, to)) = components::reorder(self.tabs.len(), from, to)
+        {
+          let tab = self.tabs.remove(from);
+          self.tabs.insert(to, tab);
+          self.active_index = to;
+          self.dragging_tab_index = Some(to);
+        }
         iced::Task::none()
       }
       Message::NewTab => {

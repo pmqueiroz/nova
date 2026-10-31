@@ -325,11 +325,21 @@ impl Nova {
 
     let mut col = column![
       components::title_bar(
-        components::title(&active_tab.pwd, !self.bell_blink_visible),
+        if self.tabs.len() > 1 {
+          components::tab_bar(components::TabView {
+            tabs: &self.tabs,
+            active: self.active_index,
+            hovered: self.hovered_tab,
+            dragging: self.dragging_tab_index,
+            now: self.now,
+            window_width: self.window_size.width,
+          })
+        } else {
+          components::title(&active_tab.pwd, !self.bell_blink_visible)
+        },
         tb_interaction,
         &self.settings.general.window_controls,
       ),
-      components::tab_bar(&self.tabs, self.active_index, self.dragging_tab_index),
       term_area,
     ];
 

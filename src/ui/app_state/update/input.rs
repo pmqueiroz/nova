@@ -330,7 +330,6 @@ impl Nova {
                   format!("Finished in {}m {}s", secs / 60, secs % 60)
                 };
                 crate::sys::notification::send("Nova", &body);
-                tab.command_done = true;
               }
             }
           }

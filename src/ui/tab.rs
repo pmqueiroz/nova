@@ -5,11 +5,13 @@ use std::{
 };
 
 use async_channel::Sender;
+use iced::animation::Animation;
 use vte::Parser;
 
 use crate::core::config;
 use crate::core::grid::{DEFAULT_SCROLLBACK_LIMIT, Grid};
 use crate::sys::pty::PtyCommand;
+use crate::ui::theme::motion;
 
 pub struct SplitPane {
   pub id: usize,
@@ -55,7 +57,7 @@ pub struct Tab {
   pub split_ratio: f32,
   pub shell_at_prompt: bool,
   pub command_start: Option<Instant>,
-  pub command_done: bool,
+  pub appear: Animation<bool>,
   pub last_command_elapsed: Option<Duration>,
   pub last_pty_output: Option<Instant>,
   pub waiting_after_exit: bool,
@@ -97,7 +99,7 @@ impl Tab {
       split_ratio: 0.5,
       shell_at_prompt: true,
       command_start: None,
-      command_done: false,
+      appear: motion::entrance(Instant::now()),
       last_command_elapsed: None,
       last_pty_output: None,
       waiting_after_exit: false,

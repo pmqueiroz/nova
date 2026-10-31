@@ -14,10 +14,7 @@ use crate::ui::{
   theme,
 };
 
-use super::{
-  settings_about, settings_ai, settings_general, settings_keybindings, settings_status_bar,
-  settings_theme,
-};
+use super::{settings_about, settings_ai, settings_general, settings_keybindings, settings_theme};
 
 const SIDEBAR_WIDTH: f32 = 160.0;
 
@@ -146,7 +143,6 @@ fn modal_inner<'a>(
           SettingsTab::Keybindings => {
             settings_keybindings::keybindings_tab(settings, recording_index)
           }
-          SettingsTab::StatusBar => settings_status_bar::status_bar_tab(settings),
           SettingsTab::Ai => settings_ai::ai_tab(settings),
           SettingsTab::Raw => edit_raw_tab(raw_content),
           SettingsTab::About => unreachable!(),
@@ -269,7 +265,6 @@ fn sidebar_nav<'a>(active_tab: &'a SettingsTab) -> Element<'a, Message> {
     (SettingsTab::General, "General"),
     (SettingsTab::Theme, "Appearance"),
     (SettingsTab::Keybindings, "Keybindings"),
-    (SettingsTab::StatusBar, "Status Bar"),
     (SettingsTab::Ai, "AI"),
     (SettingsTab::Raw, "Raw"),
     (SettingsTab::About, "About"),

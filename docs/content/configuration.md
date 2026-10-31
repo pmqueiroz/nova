@@ -31,11 +31,6 @@ Non-macOS default excerpt:
 editor = "nano"
 bell = "none"
 
-[status-bar]
-visible = true
-date-format = "%b %d"
-time-format = "%H:%M:%S"
-
 [theme.font]
 size = 16
 family = "FiraCode Nerd Font"
@@ -85,21 +80,6 @@ editor = "code -w"
 bell = "none"
 shells = ["zsh", "bash"]
 window-controls = "system"
-```
-
-### `[status-bar]`
-
-- `visible` (bool)
-- `date-format` (string)
-- `time-format` (string)
-
-Example:
-
-```toml
-[status-bar]
-visible = true
-date-format = "%Y-%m-%d"
-time-format = "%H:%M"
 ```
 
 ### `[theme.font]`

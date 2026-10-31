@@ -38,7 +38,6 @@ impl Nova {
           self.window_size.width,
           self.window_size.height,
           self.settings.theme.font.size,
-          self.settings.status_bar.visible,
           banner_visible,
           tab.split_ratio,
         );
@@ -63,7 +62,6 @@ impl Nova {
           self.window_size.width,
           self.window_size.height,
           self.settings.theme.font.size,
-          self.settings.status_bar.visible,
           banner_visible,
         );
         tab.grid.resize(cols, rows);
@@ -85,7 +83,6 @@ impl Nova {
         self.window_size.width,
         self.window_size.height,
         self.settings.theme.font.size,
-        self.settings.status_bar.visible,
         self.diagnostic_banner.is_some(),
       );
       self
@@ -114,7 +111,6 @@ impl Nova {
       self.window_size.width,
       self.window_size.height,
       self.settings.theme.font.size,
-      self.settings.status_bar.visible,
       self.diagnostic_banner.is_some(),
     );
 
@@ -125,7 +121,6 @@ impl Nova {
     let mut split_grid = Grid::new(cols, rows);
     split_grid.scrollback_limit = scrollback_limit;
     split_grid.pwd = initial_cwd.clone();
-    let shell = shell_display_name(&shell_cmd);
     let tab = &mut self.tabs[self.active_index];
     tab.split = Some(SplitPane {
       id: split_id,
@@ -133,7 +128,6 @@ impl Nova {
       pty_tx: None,
       pty_alive: true,
       ansi_parser: Parser::new(),
-      shell,
       shell_cmd,
       pwd: initial_cwd.clone(),
       git_branch: None,
@@ -154,7 +148,6 @@ impl Nova {
       self.window_size.width,
       self.window_size.height,
       self.settings.theme.font.size,
-      self.settings.status_bar.visible,
       self.diagnostic_banner.is_some(),
     );
     let tab = &mut self.tabs[self.active_index];
@@ -180,7 +173,6 @@ impl Nova {
       self.window_size.width,
       self.window_size.height,
       self.settings.theme.font.size,
-      self.settings.status_bar.visible,
       self.diagnostic_banner.is_some(),
     );
     let tab = &mut self.tabs[self.active_index];
@@ -221,7 +213,6 @@ impl Nova {
       self.window_size.width,
       self.window_size.height,
       self.settings.theme.font.size,
-      self.settings.status_bar.visible,
       self.diagnostic_banner.is_some(),
     );
     let tab = &mut self.tabs[self.active_index];
@@ -247,7 +238,6 @@ impl Nova {
       self.window_size.width,
       self.window_size.height,
       self.settings.theme.font.size,
-      self.settings.status_bar.visible,
       banner_visible,
       ratio,
     );

@@ -19,7 +19,6 @@ pub struct SplitPane {
   pub pty_tx: Option<Sender<PtyCommand>>,
   pub pty_alive: bool,
   pub ansi_parser: Parser,
-  pub shell: String,
   pub shell_cmd: String,
   pub pwd: String,
   pub git_branch: Option<String>,

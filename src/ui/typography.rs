@@ -4,7 +4,6 @@ use crate::ui::theme;
 
 pub enum Weight {
   Normal,
-  Bold,
 }
 
 pub struct Typography {
@@ -27,7 +26,6 @@ impl Typography {
   pub fn as_text<'a>(&self, content: impl Into<String>) -> iced::widget::Text<'a> {
     text(content.into())
       .font(match self.weight {
-        Weight::Bold => theme::font::bold(),
         Weight::Normal => theme::font::regular(),
       })
       .color(self.color)

@@ -51,9 +51,6 @@ pub enum Message {
   SettingsFontFamilyChanged(String),
   SettingsFontSizeChanged(f32),
   SettingsColorChanged(ColorField, String),
-  SettingsStatusBarToggled(bool),
-  SettingsDateFormatChanged(String),
-  SettingsTimeFormatChanged(String),
   SettingsStartRecordKb(usize),
   SettingsRecordKb {
     key: keyboard::Key,

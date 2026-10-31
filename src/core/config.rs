@@ -12,8 +12,6 @@ const DEFAULT_CONFIG: &str = include_str!("../../assets/default_settings.toml");
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Config {
   pub general: GeneralConfig,
-  #[serde(rename = "status-bar")]
-  pub status_bar: StatusBarConfig,
   pub theme: ThemeConfig,
   pub keybindings: KeybindingsConfig,
   #[serde(default)]
@@ -105,15 +103,6 @@ pub struct GeneralConfig {
   pub initial_command: Option<String>,
   #[serde(rename = "wait-after-command", default)]
   pub wait_after_command: bool,
-}
-
-#[derive(Deserialize, Serialize, Debug, Clone)]
-pub struct StatusBarConfig {
-  pub visible: bool,
-  #[serde(rename = "date-format")]
-  pub date_format: String,
-  #[serde(rename = "time-format")]
-  pub time_format: String,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
@@ -462,4 +451,22 @@ pub fn reload_parsed_keybindings(config: &Config) -> anyhow::Result<()> {
   let parsed = build_parsed_keybindings(config)?;
   update_keybindings(parsed);
   Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn default_config_parses() {
+    toml::from_str::<Config>(DEFAULT_CONFIG).unwrap();
+  }
+
+  #[test]
+  fn legacy_status_bar_section_is_ignored() {
+    let legacy = format!(
+      "{DEFAULT_CONFIG}\n[status-bar]\nvisible = true\ndate-format = \"%b %d\"\ntime-format = \"%H:%M:%S\"\n"
+    );
+    toml::from_str::<Config>(&legacy).unwrap();
+  }
 }

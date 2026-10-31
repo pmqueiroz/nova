@@ -40,13 +40,7 @@ impl Default for Nova {
       }
     });
     let cfg = config::get();
-    let (cols, rows) = calc_grid(
-      1024.0,
-      768.0,
-      cfg.theme.font.size,
-      cfg.status_bar.visible,
-      false,
-    );
+    let (cols, rows) = calc_grid(1024.0, 768.0, cfg.theme.font.size, false);
     let mut nova = Self {
       tabs: vec![Tab::new(0, cols, rows, default_shell, {
         let cur = std::env::current_dir().ok();
@@ -269,7 +263,6 @@ impl Nova {
           self.window_size.width,
           self.window_size.height,
           self.settings.theme.font.size,
-          self.settings.status_bar.visible,
           self.diagnostic_banner.is_some(),
         );
         let parent_pwd = self
@@ -461,22 +454,6 @@ impl Nova {
         self.default_font_size = size;
         let _ = config::save(&self.settings);
         self.debounce_font_resize()
-      }
-      Message::SettingsStatusBarToggled(visible) => {
-        self.settings.status_bar.visible = visible;
-        let _ = config::save(&self.settings);
-        self.resize_all_grids();
-        iced::Task::none()
-      }
-      Message::SettingsDateFormatChanged(s) => {
-        self.settings.status_bar.date_format = s;
-        let _ = config::save(&self.settings);
-        iced::Task::none()
-      }
-      Message::SettingsTimeFormatChanged(s) => {
-        self.settings.status_bar.time_format = s;
-        let _ = config::save(&self.settings);
-        iced::Task::none()
       }
       Message::SettingsStartRecordKb(idx) => {
         self.settings_recording_index = Some(idx);

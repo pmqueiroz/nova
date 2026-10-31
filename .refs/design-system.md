@@ -46,8 +46,11 @@ Colors converted from the handoff's oklch values to sRGB:
 | traffic lights | close `#F75E54`, min `#FAC131`, max `#61CC69` |
 | scrim | `#04060990` |
 
-ANSI colors in block output are remapped onto these tokens (red→red,
-brightBlack→fg-3, white→fg-1, default→fg-2), per `NV_COLOR` in the handoff.
+ANSI colors are remapped onto these tokens in `sys/parser.rs::ansi_color`
+(normal and bright share a token: black→fg-3, red, green, yellow, blue,
+magenta, cyan, white→fg-1), per `NV_COLOR` in the handoff. Background black
+maps to win-bot so dark fills stay dark. Unstyled output is fg-2 (block
+renderer default). 256-color and truecolor values pass through.
 
 ## Code map
 

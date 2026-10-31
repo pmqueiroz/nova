@@ -15,8 +15,8 @@ use std::time::Instant;
 use crate::core::config;
 use crate::sys::pty::PtyCommand;
 use crate::ui::components;
-use crate::ui::theme::motion;
 use crate::ui::tab::Tab;
+use crate::ui::theme::motion;
 
 use super::helpers::{
   calc_grid, derive_available_shells, extract_selection, rebuild_runtime_theme,

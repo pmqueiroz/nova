@@ -62,3 +62,9 @@ brightBlack→fg-3, white→fg-1, default→fg-2), per `NV_COLOR` in the handoff
 - `src/ui/icons.rs` — the handoff's 14 stroke icons (`Icon`), rendered as
   24×24 stroke-2 round-cap SVG and tinted through `svg::Style::color`.
   Handles are cached per icon so iced rasterizes each one once.
+- `src/ui/components/ds/` — DS primitives, one file per handoff CSS class.
+  `transform.rs` is the scale/translate wrapper (`Transform`, `press`):
+  it scales about the content's center through `Renderer::with_transformation`
+  without touching layout, and `.press()` eases to `PRESS_SCALE` (.96) while
+  the left button is held, matching `:active{transform:scale(.96)}`. Needs the
+  iced `advanced` feature.

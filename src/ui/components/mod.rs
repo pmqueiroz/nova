@@ -2,6 +2,8 @@ mod ai_overlay;
 mod app;
 mod color_row;
 mod command_palette;
+#[allow(dead_code)]
+pub mod ds;
 mod paste_warning;
 mod search_bar;
 mod section_label;

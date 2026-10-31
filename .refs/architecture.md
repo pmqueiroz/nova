@@ -100,4 +100,4 @@ Text goes through `ui::typography::Typography`, fonts through
 
 ## Known gaps
 
-- No automated test suite; verification is manual (`cargo run`).
+- Unit tests only (`cargo test`, e.g. `sys/parser.rs`); UI verification is manual (`cargo run`).

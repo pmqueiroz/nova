@@ -6,29 +6,23 @@ use iced::Color;
 use std::sync::Arc;
 use vte::{Params, Perform};
 
+use crate::ui::theme::tokens;
+
 fn rgb8(r: u8, g: u8, b: u8) -> Color {
   Color::from_rgb(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0)
 }
 
-fn ansi_color(index: u16, bright: bool) -> Color {
-  match (index, bright) {
-    (0, false) => rgb8(0x1a, 0x1a, 0x1a),
-    (1, false) => rgb8(0xff, 0x5f, 0x57),
-    (2, false) => rgb8(0x3e, 0xcf, 0x8e),
-    (3, false) => rgb8(0xf0, 0xc0, 0x40),
-    (4, false) => rgb8(0x7b, 0x93, 0xfd),
-    (5, false) => rgb8(0xc0, 0x84, 0xfc),
-    (6, false) => rgb8(0x67, 0xe8, 0xf9),
-    (7, false) => rgb8(0xe5, 0xe5, 0xe5),
-    (0, true) => rgb8(0x55, 0x55, 0x55),
-    (1, true) => rgb8(0xff, 0x6e, 0x6e),
-    (2, true) => rgb8(0x5a, 0xf7, 0x8e),
-    (3, true) => rgb8(0xf4, 0xf9, 0x9d),
-    (4, true) => rgb8(0xca, 0xe8, 0xff),
-    (5, true) => rgb8(0xd5, 0x7b, 0xff),
-    (6, true) => rgb8(0x9a, 0xed, 0xfe),
-    (7, true) => rgb8(0xff, 0xff, 0xff),
-    _ => Color::WHITE,
+pub fn ansi_color(index: u16, bright: bool) -> Color {
+  let _ = bright;
+  match index {
+    0 => tokens::FG_3,
+    1 => tokens::RED,
+    2 => tokens::GREEN,
+    3 => tokens::YELLOW,
+    4 => tokens::BLUE,
+    5 => tokens::MAGENTA,
+    6 => tokens::CYAN,
+    _ => tokens::FG_1,
   }
 }
 
@@ -37,7 +31,10 @@ fn ansi_fg(index: u16, bright: bool) -> Color {
 }
 
 fn ansi_bg(index: u16, bright: bool) -> Color {
-  ansi_color(index, bright)
+  match index {
+    0 => tokens::WIN_BOT,
+    _ => ansi_color(index, bright),
+  }
 }
 
 fn color_256(n: u8) -> Color {
@@ -838,6 +835,15 @@ mod tests {
       bell_pending: false,
     };
     parser.advance(&mut exec, s.as_bytes());
+  }
+
+  #[test]
+  fn ansi_palette_maps_to_design_tokens() {
+    assert_eq!(ansi_color(1, false), tokens::RED);
+    assert_eq!(ansi_color(1, true), tokens::RED);
+    assert_eq!(ansi_color(0, true), tokens::FG_3);
+    assert_eq!(ansi_color(7, false), tokens::FG_1);
+    assert_eq!(ansi_bg(0, false), tokens::WIN_BOT);
   }
 
   #[test]

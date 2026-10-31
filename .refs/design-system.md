@@ -76,3 +76,6 @@ brightBlack→fg-3, white→fg-1, default→fg-2), per `NV_COLOR` in the handoff
   `kbd.rs`: `kbd`/`keys` chips (h24, r4, surface-2, 12 px) and
   `binding_labels`, which renders a parsed keybinding with ⌘/⌃/⌥/⇧ on macOS
   and Ctrl/Alt/Shift elsewhere.
+  `seg.rs`: segmented control (surface-1 r12 track, padding 4, h32 r8
+  buttons, selected surface-3/fg-1, idle fg-3). `track_style` is shared with
+  the stepper.

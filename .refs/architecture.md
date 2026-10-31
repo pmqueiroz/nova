@@ -46,6 +46,22 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 4. Keyboard input is encoded in `subscription.rs` (`handle_key_pressed`,
    including kitty keyboard protocol) and sent back as `PtyCommand::Input`.
 
+## Terminal emulation notes (`sys/parser.rs`, `core/grid.rs`)
+
+- C0 controls in `execute`: `0x0D` CR (column 0, clears pending wrap),
+  `0x08`/`0x7F` backspace, `0x09` tab (fixed 8-column stops, clamped to the
+  last column; no `HTS`/`TBC` support), `0x07` BEL (sets `bell_pending`).
+- SGR 8 (hidden) and 28 (reveal) are accepted and ignored: there is no
+  hidden attribute in `CellAttrs`.
+- `MouseMode` maps to DEC private modes: `Normal` = `?1000`, `Button` =
+  `?1002`, `AnyEvent` = `?1003`.
+
+## Assets and credits
+
+- `assets/sounds/bell.flac`: "Notification Sound" by thehorriblejoke,
+  <https://freesound.org/s/583554/>, CC0. Embedded by `sys/bell.rs`.
+- `assets/fonts/`: Fira Code Nerd Font (regular, bold), embedded by `ui/mod.rs`.
+
 ## Shared state
 
 - Config: `core::config` keeps a `OnceLock<Config>` (`config::get()`) plus a

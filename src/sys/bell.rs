@@ -1,4 +1,3 @@
-// Notification Sound by thehorriblejoke -- https://freesound.org/s/583554/ -- License: Creative Commons 0
 const BELL_FLAC: &[u8] = include_bytes!("../../assets/sounds/bell.flac");
 
 pub fn play() {

@@ -220,21 +220,17 @@ impl<'a> Perform for AnsiExecutor<'a> {
         self.grid.cursor_x = 0;
         self.grid.newline();
       }
-      // carriage return
       0x0D => {
         self.grid.cursor_x = 0;
         self.grid.wrap_next = false;
       }
-      // backspace
       0x08 | 0x7F if self.grid.cursor_x > 0 => {
         self.grid.cursor_x -= 1;
       }
-      // tab — advance to next 8-column tab stop
       0x09 => {
         let next = (self.grid.cursor_x / 8 + 1) * 8;
         self.grid.cursor_x = next.min(self.grid.cols.saturating_sub(1));
       }
-      // BEL
       0x07 => {
         self.bell_pending = true;
       }
@@ -287,7 +283,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
               .grid
               .current_attrs
               .insert(crate::core::grid::CellAttrs::REVERSE),
-            8 => {} // HIDDEN
+            8 => {}
             9 => self
               .grid
               .current_attrs
@@ -318,7 +314,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
               .grid
               .current_attrs
               .remove(crate::core::grid::CellAttrs::REVERSE),
-            28 => {} // REVEAL
+            28 => {}
             29 => self
               .grid
               .current_attrs

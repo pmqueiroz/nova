@@ -83,3 +83,6 @@ brightBlack→fg-3, white→fg-1, default→fg-2), per `NV_COLOR` in the handoff
   (200 ms) and the 24 px knob springs 20 px (200 ms `spring`), fg-1 → on-accent,
   with a 0/2/4 black .24 shadow; press scales .96.
   `stepper.rs`: −/+ icon buttons (32) around a 48-wide value in a seg track.
+  `swatch.rs`: 32 px color dot, custom widget. Selected rings (2 px win-bot,
+  then 2 px fg-1) are drawn outside its bounds like CSS box-shadow, so layout
+  never shifts. Hover springs to 1.08, press .96, 2 px black .16 inner edge.

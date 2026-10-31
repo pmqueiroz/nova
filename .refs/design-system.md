@@ -92,3 +92,11 @@ brightBlack→fg-3, white→fg-1, default→fg-2), per `NV_COLOR` in the handoff
   Selected = surface-2 + fg-1 + accent icon; `Tone::Error` paints icon and
   hint red. Hovering publishes `on_hover` so the keyboard selection follows the
   mouse, as in `useNvList`.
+  `sheet.rs`: modal sheet (`.nv-scrim` + `.nv-sheet`). Scrim fills the window
+  and closes on press; the panel (576 wide, 640 for settings, r16, gradient,
+  1 px line-2 edge, 0/32/64 black .48 shadow) sits `min(16vh, 128)` from the
+  top and is wrapped in `opaque` so clicks inside never reach the scrim.
+  `progress` (0→1, driven by the caller's spring animation) maps to the `pop`
+  keyframe: scale .96→1, translateY 8→0, scrim/shadow alpha 0→1. `head`
+  (h64, padding 0/16/0/24) and `foot` (min-h 56, padding 8/16/8/24) add the
+  1 px line separators.

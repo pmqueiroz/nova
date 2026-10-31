@@ -3,6 +3,7 @@ pub mod kbd;
 pub mod list_item;
 pub mod row;
 pub mod seg;
+pub mod sheet;
 pub mod stepper;
 pub mod swatch;
 pub mod toggle;

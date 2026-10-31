@@ -102,6 +102,8 @@ pub enum Message {
   SearchNext,
   SearchPrev,
   NoOp,
+  BlocksScrolled(usize, bool),
+  FocusInput,
   #[allow(dead_code)]
   InputChanged(String),
   #[allow(dead_code)]

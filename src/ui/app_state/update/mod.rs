@@ -166,7 +166,7 @@ impl Nova {
         if self.block_mode_panes() != before {
           self.resize_all_grids();
         }
-        task
+        iced::Task::batch([task, self.follow_output(tab_id)])
       }
       Message::CursorMoved(position) => {
         self.handle_cursor_moved(position);
@@ -752,6 +752,8 @@ impl Nova {
         iced::Task::none()
       }
       Message::InputChanged(text) => self.handle_input_changed(text),
+      Message::BlocksScrolled(pane_id, pinned) => self.handle_blocks_scrolled(pane_id, pinned),
+      Message::FocusInput => self.focus_input(),
       Message::InputSubmit => self.handle_input_submit(),
       Message::InputHistory(delta) => self.handle_input_history(delta),
       Message::ClearBlocks => self.handle_clear_blocks(),

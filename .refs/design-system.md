@@ -117,3 +117,11 @@ renderer default). 256-color and truecolor values pass through.
   column (12 px fg-3, gap 16). The entry eases in over 200 ms (translateY 8→0,
   alpha 0→1); the output follows 60 ms later. `is_animating` keeps frames
   coming while dots are visible or an entry is still easing in.
+- `src/ui/components/session.rs` — the block log (`.nv-scroll`/`.nv-log`).
+  Scrollable column of block entries, gap 8, padding 16/32/24 (compact
+  8/16/16). Empty session: centered "Type *help* to see what Nova can do"
+  (16 px fg-3, `help` italic fg-1), fading in over 400 ms. Pinning: each
+  pane records `InputBox.scrolled_up` from `on_scroll` (more than 32 px from
+  the bottom = scrolled up); new PTY output snaps the log to the end only
+  while pinned (`Nova::follow_output`). Clicking the log focuses the pane's
+  input (`FocusInput`). Widget ids per pane: `scroll_id`, `input_id`.

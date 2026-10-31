@@ -1,5 +1,7 @@
 use std::time::Instant;
 
+use crate::ui::components::session;
+
 use super::super::message::Message;
 use super::super::nova::Nova;
 
@@ -57,6 +59,39 @@ impl Nova {
   pub(super) fn handle_clear_blocks(&mut self) -> iced::Task<Message> {
     if let Some(tab) = self.tabs.get_mut(self.active_index) {
       tab.active_pane_mut().session.clear();
+    }
+    iced::Task::none()
+  }
+
+  pub(super) fn handle_blocks_scrolled(
+    &mut self,
+    pane_id: usize,
+    pinned: bool,
+  ) -> iced::Task<Message> {
+    for tab in self.tabs.iter_mut() {
+      if let Some(pane) = tab.pane_by_id_mut(pane_id) {
+        pane.input.scrolled_up = !pinned;
+        break;
+      }
+    }
+    iced::Task::none()
+  }
+
+  pub(super) fn focus_input(&self) -> iced::Task<Message> {
+    match self.tabs.get(self.active_index) {
+      Some(tab) => iced::widget::operation::focus(session::input_id(tab.active_pane().id)),
+      None => iced::Task::none(),
+    }
+  }
+
+  pub(super) fn follow_output(&mut self, pane_id: usize) -> iced::Task<Message> {
+    for tab in self.tabs.iter_mut() {
+      if let Some(pane) = tab.pane_by_id_mut(pane_id) {
+        if pane.integration.is_blocks() && !pane.input.scrolled_up {
+          return iced::widget::operation::snap_to_end(session::scroll_id(pane_id));
+        }
+        break;
+      }
     }
     iced::Task::none()
   }

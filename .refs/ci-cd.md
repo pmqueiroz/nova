@@ -37,5 +37,5 @@ Locally, `lefthook.yml` runs `cargo clippy --fix` and `cargo fmt` on staged
 
 ## Not set up yet
 
-- No test job (no test suite).
+- No test job: unit tests (`cargo test`) exist but CI does not run them.
 - No code signing / notarization for Windows or macOS artifacts.

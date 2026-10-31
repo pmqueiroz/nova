@@ -32,12 +32,15 @@ pub fn actions<'a>() -> Element<'a, Message> {
   Row::new()
     .spacing(space::S4)
     .align_y(Alignment::Center)
-    .push(icon_button(
-      Icon::Plus,
-      20.0,
-      height::H40,
-      Some(Message::NewTab),
-    ))
+    .push(
+      mouse_area(icon_button(
+        Icon::Plus,
+        20.0,
+        height::H40,
+        Some(Message::NewTab),
+      ))
+      .on_right_press(Message::OpenShellPicker),
+    )
     .push(icon_button(
       Icon::Sliders,
       20.0,

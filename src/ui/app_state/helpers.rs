@@ -12,8 +12,8 @@ const CHAR_WIDTH_RATIO: f32 = 0.62;
 const CHAR_HEIGHT_RATIO: f32 = 1.29;
 const BANNER_HEIGHT_RATIO: f32 = 2.5;
 const TERM_PADDING_X: f32 = 40.0;
-const PADDING_Y_WITH_STATUSBAR: f32 = 134.0;
-const PADDING_Y_NO_STATUSBAR: f32 = 112.0;
+const PADDING_Y_WITH_STATUSBAR: f32 = 98.0;
+const PADDING_Y_NO_STATUSBAR: f32 = 76.0;
 const MIN_COLS: usize = 10;
 const MIN_SPLIT_COLS: usize = 5;
 const MIN_ROWS: usize = 5;
@@ -273,7 +273,7 @@ pub fn calc_grid_split_ratio(
 
 pub fn pixel_to_cell(pos: Point, font_size: f32) -> Option<(usize, usize)> {
   const X_ORIGIN: f32 = 20.0;
-  const Y_ORIGIN: f32 = 104.0;
+  const Y_ORIGIN: f32 = 68.0;
   if pos.y < Y_ORIGIN || pos.x < X_ORIGIN {
     return None;
   }

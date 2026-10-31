@@ -87,6 +87,7 @@ pub struct Nova {
   pub(in crate::ui::app_state) search_match_index: usize,
   pub(in crate::ui::app_state) search_generation: u64,
   pub(in crate::ui::app_state) dragging_tab_index: Option<usize>,
+  pub(in crate::ui::app_state) hovered_tab: Option<usize>,
   pub(in crate::ui::app_state) drag_pending_tab: Option<usize>,
   pub(in crate::ui::app_state) drag_pending_pos: Option<Point>,
   pub(in crate::ui::app_state) paste_warning: Option<String>,
@@ -97,5 +98,6 @@ pub struct Nova {
 impl Nova {
   pub(in crate::ui::app_state) fn is_animating(&self) -> bool {
     self.window_pop.is_animating(self.now)
+      || self.tabs.iter().any(|t| t.appear.is_animating(self.now))
   }
 }

@@ -51,17 +51,7 @@ impl Nova {
       }
     }
 
-    if let Some(current) = self.dragging_tab_index {
-      const TAB_BAR_PADDING: f32 = 8.0;
-      const TAB_SLOT: f32 = 122.0;
-      let target = ((position.x - TAB_BAR_PADDING) / TAB_SLOT).floor().max(0.0) as usize;
-      let target = target.min(self.tabs.len().saturating_sub(1));
-      if target != current && target < self.tabs.len() {
-        let tab = self.tabs.remove(current);
-        self.tabs.insert(target, tab);
-        self.active_index = target;
-        self.dragging_tab_index = Some(target);
-      }
+    if self.dragging_tab_index.is_some() {
       return;
     }
 
@@ -130,28 +120,6 @@ impl Nova {
       && let Some(direction) = resize_direction(self.cursor_position, self.window_size)
     {
       return iced::window::drag_resize(window_id, direction);
-    }
-
-    if button == mouse::Button::Left {
-      const TAB_BAR_TOP: f32 = 56.0;
-      const TAB_BAR_BOTTOM: f32 = 92.0;
-      const TAB_X_PADDING: f32 = 8.0;
-      const TAB_SLOT: f32 = 122.0;
-      const CLOSE_ZONE: f32 = 35.0;
-      let cy = self.cursor_position.y;
-      let cx = self.cursor_position.x;
-      if (TAB_BAR_TOP..TAB_BAR_BOTTOM).contains(&cy) {
-        let slot = ((cx - TAB_X_PADDING) / TAB_SLOT).floor().max(0.0) as usize;
-        if slot < self.tabs.len() {
-          let x_in_slot = (cx - TAB_X_PADDING) - slot as f32 * TAB_SLOT;
-          if x_in_slot < 120.0 - CLOSE_ZONE {
-            self.active_index = slot;
-            self.drag_pending_tab = Some(slot);
-            self.drag_pending_pos = Some(self.cursor_position);
-          }
-        }
-        return iced::Task::none();
-      }
     }
 
     let font_size = self.settings.theme.font.size;

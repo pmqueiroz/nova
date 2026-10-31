@@ -126,6 +126,14 @@ Text goes through `ui::typography::Typography`, fonts through
 - macOS/Linux: transparent window background; custom title bar and traffic
   lights (window decorations are off on every platform).
 
+## Removed in v2
+
+- Status bar (shell, git branch, command timer, date/time) and its
+  `[status-bar]` config section. Old config files that still contain the
+  section keep loading: serde ignores unknown sections, which matters because
+  `config::init` overwrites any file that fails to parse
+  (`legacy_status_bar_section_is_ignored` test).
+
 ## Known gaps
 
 - Unit tests only (`cargo test`, e.g. `sys/parser.rs`); UI verification is manual (`cargo run`).

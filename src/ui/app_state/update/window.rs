@@ -25,18 +25,11 @@ impl Nova {
     }
     let banner_visible = self.diagnostic_banner.is_some();
     let font_size = self.settings.theme.font.size;
-    let status_bar_visible = self.settings.status_bar.visible;
 
     for tab in self.tabs.iter_mut() {
       if tab.split.is_some() {
-        let (left_cols, right_cols, rows) = calc_grid_split_ratio(
-          width,
-          height,
-          font_size,
-          status_bar_visible,
-          banner_visible,
-          tab.split_ratio,
-        );
+        let (left_cols, right_cols, rows) =
+          calc_grid_split_ratio(width, height, font_size, banner_visible, tab.split_ratio);
         if tab.grid.cols != left_cols || tab.grid.rows != rows {
           tab.grid.resize(left_cols, rows);
           if let Some(tx) = &tab.pty_tx {
@@ -58,7 +51,7 @@ impl Nova {
           }
         }
       } else {
-        let (cols, rows) = calc_grid(width, height, font_size, status_bar_visible, banner_visible);
+        let (cols, rows) = calc_grid(width, height, font_size, banner_visible);
         if tab.grid.cols == cols && tab.grid.rows == rows {
           continue;
         }

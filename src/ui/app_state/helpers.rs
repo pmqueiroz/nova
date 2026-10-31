@@ -12,8 +12,7 @@ const CHAR_WIDTH_RATIO: f32 = 0.62;
 const CHAR_HEIGHT_RATIO: f32 = 1.29;
 const BANNER_HEIGHT_RATIO: f32 = 2.5;
 const TERM_PADDING_X: f32 = 40.0;
-const PADDING_Y_WITH_STATUSBAR: f32 = 98.0;
-const PADDING_Y_NO_STATUSBAR: f32 = 76.0;
+const PADDING_Y: f32 = 76.0;
 const MIN_COLS: usize = 10;
 const MIN_SPLIT_COLS: usize = 5;
 const MIN_ROWS: usize = 5;
@@ -190,13 +189,7 @@ pub fn extract_selection(
   result.trim_end().to_string()
 }
 
-pub fn calc_grid(
-  width: f32,
-  height: f32,
-  font_size: f32,
-  status_bar_visible: bool,
-  banner_visible: bool,
-) -> (usize, usize) {
+pub fn calc_grid(width: f32, height: f32, font_size: f32, banner_visible: bool) -> (usize, usize) {
   let char_width = font_size * CHAR_WIDTH_RATIO;
   let char_height = font_size * CHAR_HEIGHT_RATIO;
   let banner_extra = if banner_visible {
@@ -204,11 +197,7 @@ pub fn calc_grid(
   } else {
     0.0
   };
-  let padding_y = if status_bar_visible {
-    PADDING_Y_WITH_STATUSBAR
-  } else {
-    PADDING_Y_NO_STATUSBAR
-  } + banner_extra;
+  let padding_y = PADDING_Y + banner_extra;
   let cols = ((width - TERM_PADDING_X) / char_width).floor() as usize;
   let rows = ((height - padding_y) / char_height).floor() as usize;
   (cols.max(MIN_COLS), rows.max(MIN_ROWS))
@@ -218,7 +207,6 @@ pub fn calc_grid_split(
   total_width: f32,
   height: f32,
   font_size: f32,
-  status_bar_visible: bool,
   banner_visible: bool,
 ) -> (usize, usize) {
   let char_width = font_size * CHAR_WIDTH_RATIO;
@@ -228,11 +216,7 @@ pub fn calc_grid_split(
   } else {
     0.0
   };
-  let padding_y = if status_bar_visible {
-    PADDING_Y_WITH_STATUSBAR
-  } else {
-    PADDING_Y_NO_STATUSBAR
-  } + banner_extra;
+  let padding_y = PADDING_Y + banner_extra;
   let pane_width = ((total_width - SPLIT_DIVIDER_WIDTH) / 2.0).max(0.0);
   let cols = ((pane_width - TERM_PADDING_X).max(0.0) / char_width).floor() as usize;
   let rows = ((height - padding_y) / char_height).max(0.0).floor() as usize;
@@ -243,7 +227,6 @@ pub fn calc_grid_split_ratio(
   total_width: f32,
   height: f32,
   font_size: f32,
-  status_bar_visible: bool,
   banner_visible: bool,
   ratio: f32,
 ) -> (usize, usize, usize) {
@@ -254,11 +237,7 @@ pub fn calc_grid_split_ratio(
   } else {
     0.0
   };
-  let padding_y = if status_bar_visible {
-    PADDING_Y_WITH_STATUSBAR
-  } else {
-    PADDING_Y_NO_STATUSBAR
-  } + banner_extra;
+  let padding_y = PADDING_Y + banner_extra;
   let avail_width = (total_width - SPLIT_DIVIDER_WIDTH).max(0.0);
   let left_cols = (((avail_width * ratio) - TERM_PADDING_X).max(0.0) / char_width).floor() as usize;
   let right_cols =

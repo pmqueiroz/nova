@@ -347,42 +347,6 @@ impl Nova {
       col = col.push(self.diagnostic_banner_widget(message, command.as_deref()));
     }
 
-    if self.settings.status_bar.visible {
-      let (sb_shell, sb_branch, sb_cmd_start, sb_cmd_elapsed) = if active_tab.active_pane_is_split {
-        if let Some(split) = &active_tab.split {
-          (
-            split.shell.as_str(),
-            split.git_branch.as_deref(),
-            split.command_start,
-            split.last_command_elapsed,
-          )
-        } else {
-          (
-            active_tab.shell.as_str(),
-            active_tab.git_branch.as_deref(),
-            active_tab.command_start,
-            active_tab.last_command_elapsed,
-          )
-        }
-      } else {
-        (
-          active_tab.shell.as_str(),
-          active_tab.git_branch.as_deref(),
-          active_tab.command_start,
-          active_tab.last_command_elapsed,
-        )
-      };
-      col = col.push(components::status_bar(
-        sb_shell,
-        sb_branch,
-        sb_cmd_start,
-        sb_cmd_elapsed,
-        &self.settings.status_bar.date_format,
-        &self.settings.status_bar.time_format,
-        self.window_maximized,
-      ));
-    }
-
     let outer_interaction = if self.dragging_split {
       mouse::Interaction::ResizingColumn
     } else {

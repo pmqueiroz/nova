@@ -18,7 +18,6 @@ pub enum SettingsTab {
   General,
   Theme,
   Keybindings,
-  StatusBar,
   Ai,
   Raw,
   About,

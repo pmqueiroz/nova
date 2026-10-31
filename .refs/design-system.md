@@ -1,0 +1,50 @@
+# Design system (Nova v2)
+
+Source of truth: Claude Design project `019df3c6-3f35-775a-a557-c65b0361a221`,
+files `Terminal v2.html`, `nova-ds.css`, `nova-session.jsx`, `nova-overlays.jsx`.
+The UI must match that handoff. When this file and the handoff disagree, the
+handoff wins and this file gets fixed.
+
+## Binding constraints
+
+- Every size is a multiple of 2. Spacing 2/4/8/12/16/24/32/48/64, radius
+  4/8/12/16, text 12/14/16/18/24, control heights 24/32/40/48/56/64.
+- Motion durations 120/200/400 ms. Curves: `ease` = cubic-bezier(.2,.8,.2,1),
+  `spring` = cubic-bezier(.34,1.56,.64,1).
+- Fonts: Fira Code Nerd Font for everything (deliberate deviation from the
+  handoff's IBM Plex Mono/Sans). Sizes and weights still follow the handoff.
+- Shortcuts are shown as `⌘` on macOS and `Ctrl` elsewhere.
+
+## iced 0.14 capabilities and fallbacks
+
+| Design feature | iced 0.14 | Approach |
+|---|---|---|
+| Keyframe/transition timing | `iced::Animation<T>` (lilt), `Easing::Custom(fn(f32) -> f32)` | Curves implemented as cubic-bezier solvers in `theme/motion.rs`, passed as `Easing::Custom`. |
+| Frame ticks | `iced::window::frames()` | Subscribed only while any animation `is_animating`. |
+| Scale (press .96, pop .96, pulse .8, hover 1.08/1.16) | `widget::float` only transforms when scale > 1 or translated, and then draws as an overlay layer | Custom wrapper widget using `Renderer::with_transformation` (scale about the center, plus translate). Layout is unaffected, as with CSS transforms. |
+| translateY (`in`, `pop`, `dot`) | same wrapper | `Transformation::translate`. |
+| Opacity fades | no global alpha | Style fns take an alpha factor and scale the colors they emit. |
+| Window gradient | `Background::Gradient(Linear)` | 180° from win-top to win-bot. |
+| Shadows, focus glow | `Shadow { color, offset, blur_radius }` on container/button styles | The 4 px accent glow becomes a shadow with blur 4. Inset 1 px lines become a border. |
+| Backdrop blur (scrim) | none | Scrim color only (`#04060990`). |
+| `prefers-reduced-motion` | not exposed | Omitted. |
+
+## Tokens
+
+Colors converted from the handoff's oklch values to sRGB:
+
+| Token | Value |
+|---|---|
+| win-top / win-bot | `#2A3139` / `#15181F` |
+| surface-1/2/3 | white α .04 / .08 / .12 |
+| line / line-2 | white α .08 / .14 |
+| fg-1 / fg-2 / fg-3 | `#F0F2F5` / `#CDD1D8` / `#9399A2` |
+| green / red / yellow | `#88E48C` / `#FD736D` / `#F2CD64` |
+| blue / magenta / cyan | `#82BAFF` / `#D695E4` / `#72DEE4` |
+| on-accent | `#11161F` |
+| accents | Blue `#82BAFF`, Mint `#65DFAF`, Amber `#FCBE62`, Rose `#FC899D` |
+| traffic lights | close `#F75E54`, min `#FAC131`, max `#61CC69` |
+| scrim | `#04060990` |
+
+ANSI colors in block output are remapped onto these tokens (red→red,
+brightBlack→fg-3, white→fg-1, default→fg-2), per `NV_COLOR` in the handoff.

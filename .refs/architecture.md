@@ -62,6 +62,26 @@ Code is the truth. This file explains the *why* behind the shape it takes.
   <https://freesound.org/s/583554/>, CC0. Embedded by `sys/bell.rs`.
 - `assets/fonts/`: Fira Code Nerd Font (regular, bold), embedded by `ui/mod.rs`.
 
+## Block engine (`core/block.rs`)
+
+v2 shows each command as a block instead of a raw scrolling grid.
+
+- `Session` (one per pane): `blocks`, deduplicated `history` (a repeated
+  command moves to the end and its count goes up; capped at 2000), the `cwd`,
+  the PTY size and the `phase`:
+  - `Prompt`: the shell is waiting; Nova's input bar owns the keyboard.
+  - `Running(id)`: a command was submitted; PTY output belongs to block `id`.
+  - `Raw(id)`: that command switched to the alt screen (vim, htop); the UI
+    shows the raw grid full-size and forwards keys untouched.
+- `Block`: command text, cwd, start/finish time (`chrono::Local`), exit code,
+  `state` (`Pending` until the shell confirms the command started, then
+  `Running`, then `Done`) and its own `output: Grid`, sized like the PTY
+  screen so cursor movement and in-place redraws behave as in a normal
+  terminal. Rendered lines = grid scrollback + screen rows up to the last
+  non-blank row or the cursor row (`line_count`, `line`, `text`).
+- `submit` refuses empty input and refuses while a command is running.
+  `clear` drops every block except the running one.
+
 ## Shared state
 
 - Config: `core::config` keeps a `OnceLock<Config>` (`config::get()`) plus a

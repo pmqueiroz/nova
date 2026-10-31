@@ -3,7 +3,7 @@ use std::io::Write;
 use std::sync::atomic::Ordering;
 
 use crate::core::grid::ControlCommand;
-use crate::sys::parser::AnsiExecutor;
+use crate::core::router::route;
 use crate::sys::pty::PtyCommand;
 use crate::ui::components;
 
@@ -194,13 +194,15 @@ impl Nova {
       {
         let _ = f.write_all(&bytes);
       }
-      let mut executor = AnsiExecutor {
-        grid: &mut split.grid,
-        bell_pending: false,
-      };
-      for byte in bytes {
-        split.ansi_parser.advance(&mut executor, &[byte]);
-      }
+      let routed = route(
+        &mut split.ansi_parser,
+        &mut split.grid,
+        &mut split.session,
+        &mut split.integration,
+        &bytes,
+      );
+      split.grid.output_queue.extend(routed.responses);
+      split.grid.control_queue.extend(routed.controls);
       while !split.grid.output_queue.is_empty() {
         let response = split.grid.output_queue.remove(0);
         if let Some(tx) = &split.pty_tx {
@@ -266,14 +268,16 @@ impl Nova {
       {
         let _ = f.write_all(&bytes);
       }
-      let mut executor = AnsiExecutor {
-        grid: &mut tab.grid,
-        bell_pending: false,
-      };
-      for byte in bytes {
-        tab.ansi_parser.advance(&mut executor, &[byte]);
-      }
-      let bell_fired = executor.bell_pending;
+      let routed = route(
+        &mut tab.ansi_parser,
+        &mut tab.grid,
+        &mut tab.session,
+        &mut tab.integration,
+        &bytes,
+      );
+      tab.grid.output_queue.extend(routed.responses);
+      tab.grid.control_queue.extend(routed.controls);
+      let bell_fired = routed.bell;
 
       let mut open_ask_ai = false;
       let mut open_explain_ai = false;

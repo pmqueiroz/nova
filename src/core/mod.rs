@@ -3,4 +3,6 @@ pub mod ai;
 pub mod block;
 pub mod config;
 pub mod grid;
+#[allow(dead_code)]
+pub mod router;
 pub mod url;

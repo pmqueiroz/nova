@@ -32,14 +32,13 @@ impl Nova {
     if is_local_clear(trimmed) {
       pane.session.push_history(trimmed);
       pane.session.clear();
-      return iced::Task::none();
-    }
-    if pane.session.submit(trimmed).is_some() {
+    } else if pane.session.submit(trimmed).is_some() {
       pane.integration.on_submit();
       let mut bytes = trimmed.as_bytes().to_vec();
       bytes.push(b'\r');
       pane.write(bytes);
     }
+    self.save_session_history();
     iced::Task::none()
   }
 

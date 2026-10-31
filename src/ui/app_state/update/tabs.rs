@@ -1,9 +1,11 @@
+use std::collections::VecDeque;
+
 use iced::Size;
 use vte::Parser;
 
 use crate::core::block::Session;
 use crate::core::config;
-use crate::core::grid::{DEFAULT_SCROLLBACK_LIMIT, Grid};
+use crate::core::grid::{CommandEntry, DEFAULT_SCROLLBACK_LIMIT, Grid};
 use crate::core::router::Integration;
 use crate::sys::pty::PtyCommand;
 use crate::ui::tab::{BLOCKS_ENABLED, InputBox, SplitPane, Tab, shell_display_name};
@@ -29,6 +31,26 @@ impl Nova {
     };
     for tab in self.tabs.iter_mut() {
       tab.grid.command_history = history.clone();
+      for pane in tab.panes_mut() {
+        pane.session.history = history.clone();
+      }
+    }
+  }
+
+  pub(super) fn active_history(&self) -> VecDeque<CommandEntry> {
+    self
+      .tabs
+      .get(self.active_index)
+      .map(|t| t.active_pane().session.history.clone())
+      .unwrap_or_default()
+  }
+
+  pub(super) fn save_session_history(&self) {
+    let Some(path) = command_history_path() else {
+      return;
+    };
+    if let Ok(data) = bincode::serialize(&self.active_history()) {
+      let _ = std::fs::write(&path, &data);
     }
   }
 
@@ -85,6 +107,7 @@ impl Nova {
     let mut split_grid = Grid::new(cols, rows);
     split_grid.scrollback_limit = scrollback_limit;
     split_grid.pwd = initial_cwd.clone();
+    let history = self.active_history();
     let tab = &mut self.tabs[self.active_index];
     tab.split = Some(SplitPane {
       id: split_id,
@@ -108,6 +131,7 @@ impl Nova {
     });
     tab.active_pane_is_split = true;
     if let Some(split) = &mut tab.split {
+      split.session.history = history;
       split.update_git_status();
     }
 

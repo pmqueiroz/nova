@@ -278,9 +278,10 @@ impl Nova {
           .get(self.active_index)
           .map(|t| t.pwd.clone())
           .unwrap_or_default();
-        self
-          .tabs
-          .push(Tab::new(new_id, cols, rows, shell, parent_pwd));
+        let history = self.active_history();
+        let mut tab = Tab::new(new_id, cols, rows, shell, parent_pwd);
+        tab.session.history = history;
+        self.tabs.push(tab);
         self.active_index = self.tabs.len() - 1;
         iced::Task::none()
       }

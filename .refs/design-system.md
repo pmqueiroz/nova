@@ -59,3 +59,6 @@ brightBlack→fg-3, white→fg-1, default→fg-2), per `NV_COLOR` in the handoff
   `EASE`/`SPRING` (`Easing::Custom`), `fast`/`base`/`slow` animation builders
   (120/200/400 ms), `blink_on` (1 s step blink) and `dot_phase` (the
   `nv-dot` keyframe: returns opacity and Y offset for a given delay).
+- `src/ui/icons.rs` — the handoff's 14 stroke icons (`Icon`), rendered as
+  24×24 stroke-2 round-cap SVG and tinted through `svg::Style::color`.
+  Handles are cached per icon so iced rasterizes each one once.

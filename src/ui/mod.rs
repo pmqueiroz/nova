@@ -3,6 +3,8 @@ use iced::{Size, window};
 pub mod app_state;
 pub mod components;
 mod helpers;
+#[allow(dead_code)]
+pub mod icons;
 mod tab;
 pub mod theme;
 pub mod typography;

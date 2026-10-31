@@ -9,6 +9,8 @@ explain the *why* and the gotchas.
   code** (docs go in `.refs/`), reusable-component discipline. Read first.
 - [architecture.md](./.refs/architecture.md) — module layout (cli/core/sys/ui),
   PTY → vte → grid → iced data flow, shared state, components and tokens.
+- [design-system.md](./.refs/design-system.md) — v2 design handoff source,
+  binding size/motion constraints, tokens, iced capability fallbacks.
 - [ci-cd.md](./.refs/ci-cd.md) — CI (fmt, clippy matrix), release-please,
   tag-driven packaging and package-manager publishing.
 - [docs/content/](./docs/content/) — user-facing docs site (config,

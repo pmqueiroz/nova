@@ -98,6 +98,10 @@ Every supported shell emits private OSC 777 marks (parsed in
 - The POSIX hook lives once in `POSIX_PROMPT_HOOK` and is used by bash, zsh
   (via `NOVA_PROMPT_COMMAND` + precmd), git-bash (`nova_prompt.sh`) and the
   WSL env. It detects zsh / bash ≥ 4.4 at runtime to decide `preexec`.
+- PowerShell reports `$LASTEXITCODE`, which cmdlet/command-not-found errors
+  never set; the prompt reads `$?` first and maps `CommandNotFoundException`
+  to 127 (other failures to 1) so the AI Fix flow sees the same codes as POSIX
+  shells.
 - cmd: `PROMPT=$E]777;prompt_ready$E\$P$G` (ST-terminated). No exit codes,
   no preexec: a `prompt_ready` while a command runs ends it with code 0, and the
   echoed command line is skipped.

@@ -52,9 +52,9 @@ pub struct CommandEntry {
 pub enum MouseMode {
   #[default]
   None,
-  Normal,   // ?1000
-  Button,   // ?1002
-  AnyEvent, // ?1003
+  Normal,
+  Button,
+  AnyEvent,
 }
 
 pub struct Grid {

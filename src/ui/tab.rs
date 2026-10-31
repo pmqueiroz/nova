@@ -23,6 +23,7 @@ pub struct InputBox {
   pub history_cursor: Option<usize>,
   pub draft: String,
   pub submitted: u64,
+  pub scrolled_up: bool,
 }
 
 impl InputBox {
@@ -249,6 +250,16 @@ impl Tab {
   #[allow(dead_code)]
   pub fn active_pane(&self) -> PaneRef<'_> {
     self.pane(self.active_pane_is_split)
+  }
+
+  pub fn pane_by_id_mut(&mut self, id: usize) -> Option<PaneMut<'_>> {
+    if self.id == id {
+      return Some(self.pane_mut(false));
+    }
+    if self.split.as_ref().is_some_and(|s| s.id == id) {
+      return Some(self.pane_mut(true));
+    }
+    None
   }
 
   pub fn panes_mut(&mut self) -> Vec<PaneMut<'_>> {

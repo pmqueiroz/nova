@@ -9,6 +9,8 @@ pub mod ds;
 mod paste_warning;
 mod search_bar;
 mod section_label;
+#[allow(dead_code)]
+pub mod session;
 mod setting_row;
 mod settings;
 mod settings_about;

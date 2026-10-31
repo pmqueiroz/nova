@@ -68,9 +68,9 @@ pub const ACCENT_DIM: Hue = Hue {
   a: 0.75,
 };
 pub const RED: Hue = Hue {
-  r: 0xFF,
-  g: 0x5F,
-  b: 0x57,
+  r: 0xFD,
+  g: 0x73,
+  b: 0x6D,
   a: 1.0,
 };
 pub const FG: Hue = Hue {
@@ -99,21 +99,21 @@ pub const TRANSPARENT: Hue = Hue {
 };
 
 pub const TRAFFIC_LIGHT_RED: Hue = Hue {
-  r: 0xFF,
-  g: 0x60,
-  b: 0x5C,
+  r: 0xF7,
+  g: 0x5E,
+  b: 0x54,
   a: 1.0,
 };
 pub const TRAFFIC_LIGHT_YELLOW: Hue = Hue {
-  r: 0xFF,
-  g: 0xBD,
-  b: 0x44,
+  r: 0xFA,
+  g: 0xC1,
+  b: 0x31,
   a: 1.0,
 };
 pub const TRAFFIC_LIGHT_GREEN: Hue = Hue {
-  r: 0x00,
-  g: 0xCA,
-  b: 0x4E,
+  r: 0x61,
+  g: 0xCC,
+  b: 0x69,
   a: 1.0,
 };
 pub const TRAFFIC_LIGHT_INACTIVE: Hue = Hue {

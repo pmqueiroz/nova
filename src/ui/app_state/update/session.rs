@@ -62,11 +62,31 @@ impl Nova {
     iced::Task::none()
   }
 
+  pub(super) fn block_mode_panes(&self) -> usize {
+    self
+      .tabs
+      .iter()
+      .map(|t| {
+        usize::from(t.integration.is_blocks())
+          + t
+            .split
+            .as_ref()
+            .map_or(0, |s| usize::from(s.integration.is_blocks()))
+      })
+      .sum()
+  }
+
   pub(super) fn expire_integrations(&mut self, now: Instant) {
+    let mut expired = false;
     for tab in self.tabs.iter_mut() {
       for pane in tab.panes_mut() {
-        pane.integration.expire(now);
+        if pane.integration.expire(now) {
+          expired = true;
+        }
       }
+    }
+    if expired {
+      self.resize_all_grids();
     }
   }
 }

@@ -1,3 +1,4 @@
+use iced::Size;
 use vte::Parser;
 
 use crate::core::block::Session;
@@ -33,48 +34,9 @@ impl Nova {
 
   pub(super) fn resize_all_grids(&mut self) {
     let banner_visible = self.diagnostic_banner.is_some();
-    for tab in self.tabs.iter_mut() {
-      let has_split = tab.split.is_some();
-      if has_split {
-        let (left_cols, right_cols, rows) = calc_grid_split_ratio(
-          self.window_size.width,
-          self.window_size.height,
-          self.settings.theme.font.size,
-          banner_visible,
-          tab.split_ratio,
-        );
-        tab.grid.resize(left_cols, rows);
-        if let Some(tx) = &tab.pty_tx {
-          let _ = tx.send_blocking(PtyCommand::Resize {
-            cols: left_cols as u16,
-            rows: rows as u16,
-          });
-        }
-        if let Some(split) = &mut tab.split {
-          split.grid.resize(right_cols, rows);
-          if let Some(tx) = &split.pty_tx {
-            let _ = tx.send_blocking(PtyCommand::Resize {
-              cols: right_cols as u16,
-              rows: rows as u16,
-            });
-          }
-        }
-      } else {
-        let (cols, rows) = calc_grid(
-          self.window_size.width,
-          self.window_size.height,
-          self.settings.theme.font.size,
-          banner_visible,
-        );
-        tab.grid.resize(cols, rows);
-        if let Some(tx) = &tab.pty_tx {
-          let _ = tx.send_blocking(PtyCommand::Resize {
-            cols: cols as u16,
-            rows: rows as u16,
-          });
-        }
-      }
-    }
+    let font_size = self.settings.theme.font.size;
+    let Size { width, height } = self.window_size;
+    self.resize_panes(width, height, banner_visible, font_size);
   }
 
   pub(super) fn handle_close_tab(&mut self, index: usize) {

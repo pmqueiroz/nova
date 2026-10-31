@@ -144,11 +144,26 @@ next prompt is split correctly.
   once.
 - `InputSubmit` in block mode: `clear`/`cls` clear the blocks locally (the
   design's `clear`); anything else goes through `Session::submit`, then
-  `Integration::on_submit`, then writes `command + ` to the PTY. Submits while
+  `Integration::on_submit`, then writes `command + 
+` to the PTY. Submits while
   a command is running, or outside block mode, only pulse.
 - `InputHistory(-1/+1)` walks the deduplicated session history; the draft
   comes back when walking past the newest entry.
 - `Tick` (1 s) calls `Integration::expire` on every pane.
+
+### Sizing (`helpers::calc_block_grid`, `update/window.rs`)
+
+Panes are sized per mode by `Nova::resize_panes` (window resize, font
+change, a pane entering/leaving block mode, integration timeout):
+
+- Classic panes keep the legacy `calc_grid*` math.
+- Block/detecting panes: the PTY width equals the block output column, so
+  programs wrap exactly at the card edge. Width = pane width − 2×32 (scroll
+  padding) − 2×24 (output card padding) − 64 if timestamps are shown; height =
+  window − 56 (title bar) − 72 (input bar + margin) − scroll/card paddings.
+  Cell size uses the output font (`font size − 2`) and line height 1.5.
+- `apply_size` resizes the screen grid, every block grid (reflow via
+  `Grid::resize`) and the PTY together.
 
 ## Shared state
 

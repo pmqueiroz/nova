@@ -1,6 +1,8 @@
+use crate::core::router::Mode;
 use crate::sys::pty::PtyCommand;
+use crate::ui::tab::PaneMut;
 
-use super::super::helpers::{calc_grid, calc_grid_split_ratio};
+use super::super::helpers::{calc_block_grid, calc_grid, calc_grid_split_ratio, split_widths};
 use super::super::message::Message;
 use super::super::nova::Nova;
 
@@ -26,48 +28,70 @@ impl Nova {
     let banner_visible = self.diagnostic_banner.is_some();
     let font_size = self.settings.theme.font.size;
 
-    for tab in self.tabs.iter_mut() {
-      if tab.split.is_some() {
-        let (left_cols, right_cols, rows) =
-          calc_grid_split_ratio(width, height, font_size, banner_visible, tab.split_ratio);
-        if tab.grid.cols != left_cols || tab.grid.rows != rows {
-          tab.grid.resize(left_cols, rows);
-          if let Some(tx) = &tab.pty_tx {
-            let _ = tx.send_blocking(PtyCommand::Resize {
-              cols: left_cols as u16,
-              rows: rows as u16,
-            });
-          }
-        }
-        if let Some(split) = &mut tab.split
-          && (split.grid.cols != right_cols || split.grid.rows != rows)
-        {
-          split.grid.resize(right_cols, rows);
-          if let Some(tx) = &split.pty_tx {
-            let _ = tx.send_blocking(PtyCommand::Resize {
-              cols: right_cols as u16,
-              rows: rows as u16,
-            });
-          }
-        }
-      } else {
-        let (cols, rows) = calc_grid(width, height, font_size, banner_visible);
-        if tab.grid.cols == cols && tab.grid.rows == rows {
-          continue;
-        }
-        tab.grid.resize(cols, rows);
-        if let Some(tx) = &tab.pty_tx {
-          let _ = tx.send_blocking(PtyCommand::Resize {
-            cols: cols as u16,
-            rows: rows as u16,
-          });
-        }
-      }
-    }
+    self.resize_panes(width, height, banner_visible, font_size);
 
     if let Some(id) = self.window_id {
       return iced::window::is_maximized(id).map(Message::WindowMaximizedState);
     }
     iced::Task::none()
+  }
+}
+
+fn apply_size(pane: &mut PaneMut<'_>, cols: usize, rows: usize) {
+  if pane.grid.cols != cols || pane.grid.rows != rows {
+    pane.grid.resize(cols, rows);
+  }
+  if pane.session.cols != cols || pane.session.rows != rows {
+    pane.session.resize(cols, rows);
+  }
+  if let Some(tx) = pane.pty_tx {
+    let _ = tx.send_blocking(PtyCommand::Resize {
+      cols: cols as u16,
+      rows: rows as u16,
+    });
+  }
+}
+
+impl Nova {
+  pub(super) fn resize_panes(
+    &mut self,
+    width: f32,
+    height: f32,
+    banner_visible: bool,
+    font_size: f32,
+  ) {
+    let timestamps = false;
+    for tab in self.tabs.iter_mut() {
+      let has_split = tab.split.is_some();
+      let (classic_left, classic_right, classic_rows) = if has_split {
+        calc_grid_split_ratio(width, height, font_size, banner_visible, tab.split_ratio)
+      } else {
+        let (c, r) = calc_grid(width, height, font_size, banner_visible);
+        (c, c, r)
+      };
+      let (left_w, right_w) = if has_split {
+        split_widths(width, tab.split_ratio)
+      } else {
+        (width, width)
+      };
+      for (i, mut pane) in tab.panes_mut().into_iter().enumerate() {
+        let blocks = pane.integration.mode != Mode::Classic;
+        let (cols, rows) = if blocks {
+          calc_block_grid(
+            if i == 0 { left_w } else { right_w },
+            height,
+            font_size,
+            timestamps,
+          )
+        } else if i == 0 {
+          (classic_left, classic_rows)
+        } else {
+          (classic_right, classic_rows)
+        };
+        if pane.grid.cols != cols || pane.grid.rows != rows {
+          apply_size(&mut pane, cols, rows);
+        }
+      }
+    }
   }
 }

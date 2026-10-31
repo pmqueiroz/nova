@@ -79,3 +79,6 @@ brightBlack→fg-3, white→fg-1, default→fg-2), per `NV_COLOR` in the handoff
   `seg.rs`: segmented control (surface-1 r12 track, padding 4, h32 r8
   buttons, selected surface-3/fg-1, idle fg-3). `track_style` is shared with
   the stepper.
+  `toggle.rs`: 48×28 switch, custom widget. The track eases surface-3 → accent
+  (200 ms) and the 24 px knob springs 20 px (200 ms `spring`), fg-1 → on-accent,
+  with a 0/2/4 black .24 shadow; press scales .96.

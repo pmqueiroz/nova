@@ -82,3 +82,4 @@ brightBlack→fg-3, white→fg-1, default→fg-2), per `NV_COLOR` in the handoff
   `toggle.rs`: 48×28 switch, custom widget. The track eases surface-3 → accent
   (200 ms) and the 24 px knob springs 20 px (200 ms `spring`), fg-1 → on-accent,
   with a 0/2/4 black .24 shadow; press scales .96.
+  `stepper.rs`: −/+ icon buttons (32) around a 48-wide value in a seg track.

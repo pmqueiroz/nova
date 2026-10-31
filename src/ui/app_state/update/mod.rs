@@ -163,10 +163,12 @@ impl Nova {
       Message::PtyOutputReceived(tab_id, bytes) => {
         let before = self.block_mode_panes();
         let task = self.handle_pty_output(tab_id, bytes);
+        let mut tasks = vec![task, self.follow_output(tab_id)];
         if self.block_mode_panes() != before {
           self.resize_all_grids();
+          tasks.push(self.focus_input());
         }
-        iced::Task::batch([task, self.follow_output(tab_id)])
+        iced::Task::batch(tasks)
       }
       Message::CursorMoved(position) => {
         self.handle_cursor_moved(position);

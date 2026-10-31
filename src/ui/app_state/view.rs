@@ -7,7 +7,10 @@ use iced::mouse;
 use iced::widget::{button, column, container, mouse_area, row, stack, text};
 use iced::{Border, Color, Element, Length, Padding, Theme, border::Radius};
 
+use crate::core::router::Mode;
 use crate::ui::components;
+
+pub const COMPACT_WIDTH: f32 = 640.0;
 use crate::ui::theme;
 
 impl Nova {
@@ -127,18 +130,20 @@ impl Nova {
 
       let left = mouse_area(
         container(stack![
-          components::term(
-            &active_tab.grid,
-            primary_selection,
-            font_size,
-            active_tab.scroll_offset,
-            primary_url,
-            primary_span,
-            search_matches_ref,
-            search_current,
-            cursor_style,
-            cursor_blink,
-          ),
+          self
+            .pane_body(active_tab, false)
+            .unwrap_or_else(|| components::term(
+              &active_tab.grid,
+              primary_selection,
+              font_size,
+              active_tab.scroll_offset,
+              primary_url,
+              primary_span,
+              search_matches_ref,
+              search_current,
+              cursor_style,
+              cursor_blink,
+            )),
           make_active_triangle(!active_tab.active_pane_is_split),
           make_close_btn(Message::CloseLeftPane),
         ])
@@ -180,18 +185,20 @@ impl Nova {
 
       let right = mouse_area(
         container(stack![
-          components::term(
-            &split.grid,
-            None,
-            font_size,
-            split.scroll_offset,
-            None,
-            None,
-            &[],
-            None,
-            cursor_style,
-            cursor_blink,
-          ),
+          self
+            .pane_body(active_tab, true)
+            .unwrap_or_else(|| components::term(
+              &split.grid,
+              None,
+              font_size,
+              split.scroll_offset,
+              None,
+              None,
+              &[],
+              None,
+              cursor_style,
+              cursor_blink,
+            )),
           make_active_triangle(active_tab.active_pane_is_split),
           make_close_btn(Message::CloseSplitPane),
         ])
@@ -243,19 +250,23 @@ impl Nova {
       };
       let cursor_style = self.settings.theme.cursor.style;
       let cursor_blink = self.cursor_blink_visible;
-      let term_el = mouse_area(components::term(
-        &active_tab.grid,
-        selection,
-        font_size,
-        active_tab.scroll_offset,
-        self.hovered_url.as_deref(),
-        self.hovered_link_span,
-        search_matches_ref,
-        search_current,
-        cursor_style,
-        cursor_blink,
-      ))
-      .interaction(term_interaction);
+      let term_el: Element<'_, Message> = match self.pane_body(active_tab, false) {
+        Some(body) => body,
+        None => mouse_area(components::term(
+          &active_tab.grid,
+          selection,
+          font_size,
+          active_tab.scroll_offset,
+          self.hovered_url.as_deref(),
+          self.hovered_link_span,
+          search_matches_ref,
+          search_current,
+          cursor_style,
+          cursor_blink,
+        ))
+        .interaction(term_interaction)
+        .into(),
+      };
       let waiting = if active_tab.active_pane_is_split {
         active_tab
           .split
@@ -267,7 +278,7 @@ impl Nova {
       };
 
       if self.search_active || waiting {
-        let mut layers: Vec<Element<'_, Message>> = vec![term_el.into()];
+        let mut layers: Vec<Element<'_, Message>> = vec![term_el];
         if self.search_active {
           layers.push(components::search_bar(
             &self.search_query,
@@ -317,7 +328,7 @@ impl Nova {
         }
         stack(layers).into()
       } else {
-        term_el.into()
+        term_el
       }
     };
 
@@ -392,6 +403,44 @@ impl Nova {
     };
 
     mouse_area(inner).interaction(outer_interaction).into()
+  }
+
+  fn pane_body<'a>(
+    &'a self,
+    tab: &'a crate::ui::tab::Tab,
+    split: bool,
+  ) -> Option<Element<'a, Message>> {
+    let pane = tab.pane(split);
+    if pane.integration.mode == Mode::Classic {
+      return None;
+    }
+    let font_size = self.settings.theme.font.size;
+    let compact = self.window_size.width <= COMPACT_WIDTH;
+    let view = components::SessionView {
+      pane_id: pane.id,
+      session: pane.session,
+      font_size,
+      timestamps: false,
+      now: self.now,
+      shown_at: pane.integration.spawned_at,
+      compact,
+    };
+    Some(
+      column![
+        components::blocks_area(&view),
+        components::input_bar(components::InputBarView {
+          pane_id: pane.id,
+          cwd: &pane.session.cwd,
+          value: &pane.input.text,
+          running: pane.session.is_running(),
+          pulsed_at: pane.input.pulsed_at,
+          now: self.now,
+          font_size,
+          compact,
+        }),
+      ]
+      .into(),
+    )
   }
 
   pub fn theme(&self) -> Theme {

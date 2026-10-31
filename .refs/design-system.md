@@ -125,3 +125,13 @@ renderer default). 256-color and truecolor values pass through.
   the bottom = scrolled up); new PTY output snaps the log to the end only
   while pinned (`Nova::follow_output`). Clicking the log focuses the pane's
   input (`FocusInput`). Widget ids per pane: `scroll_id`, `input_id`.
+- `src/ui/components/input_bar.rs` — Warp-style input (`.nv-inputbar`): h56,
+  margin 0/16/16, padding 0/8/0/16, r12, surface-2 + 1 px line; focused (via
+  `ds/focus_within.rs`, which runs a focusable operation over its subtree)
+  white α .10, accent α .48 border and accent α .12 glow. Prompt = short cwd
+  fg-3 + semibold accent `$`; transparent `text_input`; ghost "Ask AI" button
+  (sparkle + label + ⌘K/Ctrl K kbd, label hidden when compact); enter icon
+  button that springs .8→1 on every submit (`InputBox.pulsed_at`). While block
+  mode is at the prompt `INPUT_OWNS_KEYS` is set: ↑/↓ walk history, Ctrl+C
+  clears the input, Ctrl+L clears blocks; nothing is forwarded to the PTY.
+  Block mode is on (`tab::BLOCKS_ENABLED`).

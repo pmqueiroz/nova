@@ -1,7 +1,8 @@
 use super::helpers::matches_kb;
 use super::message::Message;
 use super::nova::{
-  ACTIVE_KITTY_FLAGS, AI_OPEN, KB_RECORDING, Nova, PALETTE_OPEN, SEARCH_OPEN, SETTINGS_OPEN,
+  ACTIVE_KITTY_FLAGS, AI_OPEN, INPUT_OWNS_KEYS, KB_RECORDING, Nova, PALETTE_OPEN, SEARCH_OPEN,
+  SETTINGS_OPEN,
 };
 
 use iced::keyboard::Key;
@@ -250,6 +251,20 @@ fn handle_key_pressed(
   }
   drop(kb);
 
+  if INPUT_OWNS_KEYS.load(Ordering::Relaxed) {
+    return match &key {
+      Key::Named(Named::ArrowUp) => Some(Message::InputHistory(-1)),
+      Key::Named(Named::ArrowDown) => Some(Message::InputHistory(1)),
+      Key::Character(c) if modifiers.control() && c.eq_ignore_ascii_case("c") => {
+        Some(Message::InputChanged(String::new()))
+      }
+      Key::Character(c) if modifiers.control() && c.eq_ignore_ascii_case("l") => {
+        Some(Message::ClearBlocks)
+      }
+      _ => None,
+    };
+  }
+
   match &key {
     Key::Named(Named::Enter) => {
       return Some(Message::Type(
@@ -457,6 +472,11 @@ impl Nova {
       })
       .unwrap_or(0);
     ACTIVE_KITTY_FLAGS.store(kitty_flags, Ordering::Relaxed);
+    let owns = self.tabs.get(self.active_index).is_some_and(|t| {
+      let pane = t.active_pane();
+      pane.integration.is_blocks() && !pane.session.is_running()
+    });
+    INPUT_OWNS_KEYS.store(owns, Ordering::Relaxed);
 
     subs.push(event::listen_with(|event, _s, window_id| match event {
       Event::Keyboard(keyboard::Event::KeyPressed {

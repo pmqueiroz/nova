@@ -12,6 +12,9 @@ pub static KB_RECORDING: AtomicBool = AtomicBool::new(false);
 pub static PALETTE_OPEN: AtomicBool = AtomicBool::new(false);
 pub static AI_OPEN: AtomicBool = AtomicBool::new(false);
 pub static SEARCH_OPEN: AtomicBool = AtomicBool::new(false);
+pub static INPUT_OWNS_KEYS: AtomicBool = AtomicBool::new(false);
+
+pub const ANIM_TAIL: std::time::Duration = std::time::Duration::from_millis(400);
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SettingsTab {
@@ -95,8 +98,31 @@ pub struct Nova {
 }
 
 impl Nova {
+  fn pane_animating(&self, tab: &Tab, split: bool) -> bool {
+    let pane = tab.pane(split);
+    if pane.integration.mode == crate::core::router::Mode::Classic {
+      return false;
+    }
+    let now = self.now;
+    pane
+      .session
+      .blocks
+      .iter()
+      .any(|b| crate::ui::components::block::is_animating(b, now))
+      || pane
+        .input
+        .pulsed_at
+        .is_some_and(|p| now.saturating_duration_since(p) < ANIM_TAIL)
+      || now.saturating_duration_since(pane.integration.spawned_at) < ANIM_TAIL * 12
+  }
+
   pub(in crate::ui::app_state) fn is_animating(&self) -> bool {
     self.window_pop.is_animating(self.now)
       || self.tabs.iter().any(|t| t.appear.is_animating(self.now))
+      || self.tabs.get(self.active_index).is_some_and(|t| {
+        [false, true]
+          .into_iter()
+          .any(|split| self.pane_animating(t, split))
+      })
   }
 }

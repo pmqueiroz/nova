@@ -81,7 +81,7 @@ impl Default for Nova {
       hovered_url: None,
       hovered_link_span: None,
       shell_picker_open: false,
-      shell_picker_anchor: 0.0,
+      shell_picker_selected: 0,
       available_shells,
       settings_open: false,
       settings_tab: SettingsTab::General,
@@ -286,14 +286,32 @@ impl Nova {
           let shell = self.available_shells.first().cloned().unwrap_or_default();
           return self.update(Message::NewTabWithShell(shell));
         }
-        self.shell_picker_anchor = self.cursor_position.x;
+        self.sheet_opened_at = Instant::now();
+        self.now = self.sheet_opened_at;
+        self.shell_picker_selected = 0;
         self.shell_picker_open = true;
         iced::Task::none()
       }
       Message::CloseShellPicker => {
         self.shell_picker_open = false;
+        self.focus_input()
+      }
+      Message::ShellPickerHover(i) => {
+        self.shell_picker_selected = i;
         iced::Task::none()
       }
+      Message::ShellPickerNavigate(d) => {
+        self.shell_picker_selected =
+          components::clamp_step(self.shell_picker_selected, d, self.available_shells.len());
+        iced::Task::none()
+      }
+      Message::ShellPickerConfirm => match self.available_shells.get(self.shell_picker_selected) {
+        Some(shell) => {
+          let shell = shell.clone();
+          self.update(Message::NewTabWithShell(shell))
+        }
+        None => iced::Task::none(),
+      },
       Message::NewTabWithShell(shell) => {
         self.shell_picker_open = false;
         let new_id = self.next_tab_id;

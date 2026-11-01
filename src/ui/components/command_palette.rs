@@ -25,6 +25,7 @@ pub enum PaletteAction {
   Settings,
   SplitPane,
   Find,
+  NewTabWithShell,
 }
 
 pub struct PaletteItem {
@@ -120,6 +121,12 @@ pub fn items() -> Vec<PaletteItem> {
       label: "Find",
       icon: Icon::Search,
       keys: chord("F"),
+    },
+    PaletteItem {
+      action: NewTabWithShell,
+      label: "New tab with shell…",
+      icon: Icon::Terminal,
+      keys: &[],
     },
   ]
 }
@@ -262,7 +269,7 @@ mod tests {
   #[test]
   fn substring_filter_is_case_insensitive() {
     let f = filtered("TAB");
-    assert_eq!(f.len(), 2);
+    assert_eq!(f.len(), 3);
     assert!(filtered("zzz").is_empty());
     assert_eq!(palette_action_at("set", 0), Some(PaletteAction::Settings));
   }

@@ -336,8 +336,9 @@ impl Nova {
     } else if self.shell_picker_open {
       let picker = components::shell_picker(
         &self.available_shells,
-        self.shell_picker_anchor,
-        self.window_size.width,
+        self.shell_picker_selected,
+        self.sheet_progress(),
+        self.window_size.height,
       );
       components::app(stack![col, picker], self.window_maximized, pop)
     } else if let Some(ref pending) = self.paste_warning {

@@ -418,17 +418,17 @@ impl<'a> Perform for AnsiExecutor<'a> {
           match mode {
             0 => {
               for col in x..self.grid.cols {
-                *self.grid.cell_mut(y, col) = crate::core::grid::Cell::default();
+                *self.grid.cell_mut(y, col) = self.grid.blank_cell();
               }
             }
             1 => {
               for col in 0..=x {
-                *self.grid.cell_mut(y, col) = crate::core::grid::Cell::default();
+                *self.grid.cell_mut(y, col) = self.grid.blank_cell();
               }
             }
             2 => {
               for col in 0..self.grid.cols {
-                *self.grid.cell_mut(y, col) = crate::core::grid::Cell::default();
+                *self.grid.cell_mut(y, col) = self.grid.blank_cell();
               }
             }
             _ => {}
@@ -490,28 +490,28 @@ impl<'a> Perform for AnsiExecutor<'a> {
         match mode {
           0 => {
             for col in x..self.grid.cols {
-              *self.grid.cell_mut(y, col) = crate::core::grid::Cell::default();
+              *self.grid.cell_mut(y, col) = self.grid.blank_cell();
             }
             for row in (y + 1)..self.grid.rows {
               for col in 0..self.grid.cols {
-                *self.grid.cell_mut(row, col) = crate::core::grid::Cell::default();
+                *self.grid.cell_mut(row, col) = self.grid.blank_cell();
               }
             }
           }
           1 => {
             for row in 0..y {
               for col in 0..self.grid.cols {
-                *self.grid.cell_mut(row, col) = crate::core::grid::Cell::default();
+                *self.grid.cell_mut(row, col) = self.grid.blank_cell();
               }
             }
             for col in 0..=x {
-              *self.grid.cell_mut(y, col) = crate::core::grid::Cell::default();
+              *self.grid.cell_mut(y, col) = self.grid.blank_cell();
             }
           }
           2 | 3 => {
             for row in 0..self.grid.rows {
               for col in 0..self.grid.cols {
-                *self.grid.cell_mut(row, col) = crate::core::grid::Cell::default();
+                *self.grid.cell_mut(row, col) = self.grid.blank_cell();
               }
             }
           }
@@ -528,7 +528,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
 
           self.grid.cells[start_idx..end_idx].rotate_right(count);
           for col in x..(x + count) {
-            *self.grid.cell_mut(y, col) = crate::core::grid::Cell::default();
+            *self.grid.cell_mut(y, col) = self.grid.blank_cell();
           }
         }
       }
@@ -542,7 +542,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
 
           self.grid.cells[start_idx..end_idx].rotate_left(count);
           for col in (self.grid.cols - count)..self.grid.cols {
-            *self.grid.cell_mut(y, col) = crate::core::grid::Cell::default();
+            *self.grid.cell_mut(y, col) = self.grid.blank_cell();
           }
         }
       }
@@ -551,7 +551,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
         let x = self.grid.cursor_x;
         if y < self.grid.rows {
           for col in x..(x + n).min(self.grid.cols) {
-            *self.grid.cell_mut(y, col) = crate::core::grid::Cell::default();
+            *self.grid.cell_mut(y, col) = self.grid.blank_cell();
           }
         }
       }
@@ -846,6 +846,16 @@ mod tests {
       bell_pending: false,
     };
     parser.advance(&mut exec, s.as_bytes());
+  }
+
+  #[test]
+  fn erase_fills_with_current_background() {
+    let mut grid = make_grid(10, 3);
+    print_str(&mut grid, "\x1b[48;2;10;20;30mab\x1b[K\x1b[2;1H\x1b[2X");
+    let bg = Some(rgb8(10, 20, 30));
+    assert_eq!(grid.row(0)[9].bg, bg);
+    assert_eq!(grid.row(1)[1].bg, bg);
+    assert_eq!(grid.row(1)[2].bg, None);
   }
 
   #[test]

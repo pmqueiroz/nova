@@ -160,6 +160,13 @@ impl Grid {
     &mut self.cells[row * self.cols + col]
   }
 
+  pub fn blank_cell(&self) -> Cell {
+    Cell {
+      bg: self.current_bg,
+      ..Cell::default()
+    }
+  }
+
   pub fn row(&self, row: usize) -> &[Cell] {
     let start = row * self.cols;
     &self.cells[start..start + self.cols]
@@ -213,6 +220,7 @@ impl Grid {
     let top = self.scroll_top;
     let bottom = self.scroll_bottom;
     let count = n.min(bottom.saturating_sub(top) + 1);
+    let blank = self.blank_cell();
 
     for _ in 0..count {
       if top == 0 && bottom == self.rows.saturating_sub(1) {
@@ -232,7 +240,7 @@ impl Grid {
 
       let clear_start = bottom * self.cols;
       for cell in &mut self.cells[clear_start..clear_start + self.cols] {
-        *cell = Cell::default();
+        *cell = blank.clone();
       }
       self.row_continuation[bottom] = false;
     }
@@ -242,6 +250,7 @@ impl Grid {
     let top = self.scroll_top;
     let bottom = self.scroll_bottom;
     let count = n.min(bottom.saturating_sub(top) + 1);
+    let blank = self.blank_cell();
 
     for _ in 0..count {
       let start_idx = top * self.cols;
@@ -251,7 +260,7 @@ impl Grid {
 
       let clear_start = top * self.cols;
       for cell in &mut self.cells[clear_start..clear_start + self.cols] {
-        *cell = Cell::default();
+        *cell = blank.clone();
       }
       self.row_continuation[top] = false;
     }

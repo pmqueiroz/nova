@@ -65,7 +65,10 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 - `Grid::resize` while on the alt screen reflows the saved primary buffer to
   the new size and crops the alt buffer (the app redraws after the resize);
   otherwise leaving the alt screen would restore a buffer of the old size.
-  Reflow never paints with the pen's background.
+  Reflow never paints with the pen's background, and it drops trailing
+  blank cells (`Cell::is_blank`: a space with no background) from each
+  logical line before re-wrapping, so rows padded to a wider width don't
+  spill their padding into empty continuation rows when narrowed.
 - Block elements U+2580–259F (halves, eighths, quadrants, shades) are not
   drawn from the font: `core::glyph::block_glyph` maps each to rectangles in
   eighths of the cell, and `term`'s `block_cell` paints them in the cell's
@@ -145,6 +148,21 @@ Every supported shell emits private OSC 777 marks (parsed in
 - Shells that never send `prompt_ready` (fish, WSL distros where the env
   does not cross `wsl.exe`, custom shells) fall back to the classic raw terminal.
 
+### Pagers and the wheel in raw takeover
+
+- Raw takeover is driven only by the alt screen (`?1049`/`?47`/`?1047`).
+  `less` skips it when its options contain `X`, and Git exports
+  `LESS=FRX` when `LESS` is unset, so `git log` used to page inside a block.
+  `sys/pty.rs::nova_env` (shared by every shell branch, with
+  `NOVA_TERMINAL`/`TERM_PROGRAM`) sets `LESS=FR` unless the user already has
+  `LESS`. `F` keeps short output inline: less >= 530 skips the alt screen
+  when the text fits.
+- Wheel in raw takeover (`update/mouse.rs::scroll_raw_pane`): if the raw
+  grid has mouse reporting on, a wheel report (`helpers::wheel_report`, SGR
+  or X10) at the cell under the pointer (`raw_pixel_to_cell`, raw padding
+  and term metrics); otherwise alternate scroll: 3 arrow keys per notch
+  (`alternate_scroll_keys`), as xterm/Windows Terminal do on the alt screen.
+
 ### Byte router (`core/router.rs`)
 
 `route()` replaces the plain parse loop in `handle_pty_output` for tabs and
@@ -168,7 +186,21 @@ next prompt is split correctly.
   screen grid's cursor row and `Block::first_line` trims the blank lines
   above the first output.
 - Alt screen inside a block → `Phase::Raw` (the block grid itself is shown
-  full-size); leaving it → back to `Running`.
+  full-size); leaving it → back to `Running`, and the alt screen's last frame
+  is kept in the block (`keep_last_frame`). `Grid::leave_alt_screen`
+  snapshots the visible rows with trailing blank cells and rows trimmed (so
+  the later shrink back to card width doesn't reflow padding into empty
+  lines). `Grid::keep_frame` then moves the primary screen's used rows and
+  the frame into the grid's scrollback and clears the screen. It must not
+  write the frame onto the screen: right after `?1049l` ConPTY repaints its
+  own primary buffer (`ESC[H` + `ESC[K CR LF` per row), which wiped
+  everything but the lines that had already scrolled off. That way `git log`
+  / `less` leave what was on screen instead of an empty block (vim leaves its
+  last screen too). Known gap: under ConPTY, output printed before the
+  program went fullscreen can be repainted once more below the frame.
+- Exit 141 (128 + SIGPIPE) is not a failure (`Block::is_error`,
+  `SIGPIPE_EXIT`): Git exits with it whenever the pager is quit before Git
+  finished writing, which drew `git log` blocks in the failed (red) style.
 - Responses (DA, etc.) and non-block controls are returned in `Routed` and
   pushed back into the screen grid's queues, so the existing handlers
   (clipboard, AI triggers, notifications) are unchanged.
@@ -418,7 +450,8 @@ Text goes through `ui::typography::Typography`, fonts through
   cursor position (always the last word); no candidate list UI (the handoff
   does not cover one), only cycling. cmd panes never report cwd changes, so
   paths there resolve against the starting directory.
-- Mouse reporting is not forwarded in raw takeover (vim/htop mouse mode).
+- In raw takeover only the wheel reaches the program; clicks and drags are
+  not forwarded.
 - cmd has no exit codes in block mode (all blocks finish as 0), and a window
   resize during a long cmd command can end its block early (ConPTY replays
   the prompt mark).

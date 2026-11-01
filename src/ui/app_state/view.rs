@@ -230,7 +230,7 @@ impl Nova {
           components::search_bar(
             &self.search_query,
             self.search_match_index,
-            self.search_matches.len(),
+            self.search_match_count(),
           ),
         ]
         .into()
@@ -283,7 +283,7 @@ impl Nova {
           layers.push(components::search_bar(
             &self.search_query,
             self.search_match_index,
-            self.search_matches.len(),
+            self.search_match_count(),
           ));
         }
         if waiting {
@@ -446,6 +446,13 @@ impl Nova {
       compact,
       selection: self.block_selection,
       hover_url: self.block_url.as_ref(),
+      matches: if self.search_active && tab.active_pane().id == pane.id {
+        &self.block_matches
+      } else {
+        &[]
+      },
+      current_match: (self.search_active && !self.block_matches.is_empty())
+        .then_some(self.search_match_index),
     };
     Some(
       column![

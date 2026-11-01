@@ -191,6 +191,19 @@ next prompt is split correctly.
   Ctrl+C copies when a selection exists (`HAS_BLOCK_SELECTION`), otherwise it
   clears the input.
 
+### Search
+
+Ctrl/⌘+F opens `components::search_bar`: a floating 384×48 DS bar (window
+gradient, r12, line-2 edge, drop shadow) top-right of the body, with a
+search icon, `Find` input (red when nothing matches), `n / N` counter,
+chevron prev/next and close. In block mode `recompute_search` runs
+`core::search::search_session` over the active pane's blocks
+(case-insensitive, per output line) into `Nova.block_matches`; matches render
+on yellow α .32 and the current one solid yellow with on-accent text.
+Next/prev snaps the log to the current match's relative position
+(`relative_position`, an approximation by line count). Classic panes keep
+the legacy grid search.
+
 ### Raw takeover
 
 When the running block enters the alt screen (`Phase::Raw`),

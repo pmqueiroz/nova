@@ -5,5 +5,6 @@ pub mod config;
 pub mod grid;
 #[allow(dead_code)]
 pub mod router;
+pub mod search;
 pub mod selection;
 pub mod url;

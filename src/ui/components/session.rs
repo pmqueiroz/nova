@@ -5,6 +5,7 @@ use iced::widget::{Column, container, mouse_area, rich_text, scrollable, text::S
 use iced::{Alignment, Element, Length, Padding};
 
 use crate::core::block::Session;
+use crate::core::search::BlockMatch;
 use crate::core::selection::BlockSelection;
 use crate::ui::app_state::Message;
 use crate::ui::components::block::{self, EntryOptions};
@@ -76,6 +77,8 @@ pub struct SessionView<'a> {
   pub compact: bool,
   pub selection: Option<BlockSelection>,
   pub hover_url: Option<&'a BlockUrl>,
+  pub matches: &'a [BlockMatch],
+  pub current_match: Option<usize>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -108,6 +111,8 @@ pub fn blocks_area<'a>(v: &SessionView<'a>) -> Element<'a, Message> {
       .as_ref()
       .filter(|h| h.pane_id == v.pane_id)
       .map(|h| (h.block_id, h.line, h.start, h.end)),
+    matches: v.matches,
+    current_match: v.current_match,
   };
   let log = v
     .session

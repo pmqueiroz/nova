@@ -87,6 +87,7 @@ pub struct Nova {
   pub(in crate::ui::app_state) search_active: bool,
   pub(in crate::ui::app_state) search_query: String,
   pub(in crate::ui::app_state) search_matches: Vec<(bool, usize, usize, usize)>,
+  pub(in crate::ui::app_state) block_matches: Vec<crate::core::search::BlockMatch>,
   pub(in crate::ui::app_state) search_match_index: usize,
   pub(in crate::ui::app_state) search_generation: u64,
   pub(in crate::ui::app_state) dragging_tab_index: Option<usize>,

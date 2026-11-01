@@ -111,6 +111,7 @@ impl Default for Nova {
       search_active: false,
       search_query: String::new(),
       search_matches: Vec::new(),
+      block_matches: Vec::new(),
       search_match_index: 0,
       search_generation: 0,
       dragging_tab_index: None,
@@ -729,25 +730,25 @@ impl Nova {
       Message::SearchDebounced(search_gen) => {
         if search_gen == self.search_generation {
           self.recompute_search();
+          return self.scroll_to_block_match();
         }
         iced::Task::none()
       }
       Message::SearchNext => {
-        if !self.search_matches.is_empty() {
-          self.search_match_index = (self.search_match_index + 1) % self.search_matches.len();
+        let count = self.search_match_count();
+        if count > 0 {
+          self.search_match_index = (self.search_match_index + 1) % count;
           self.scroll_to_search_match();
         }
-        iced::Task::none()
+        self.scroll_to_block_match()
       }
       Message::SearchPrev => {
-        if !self.search_matches.is_empty() {
-          self.search_match_index = self
-            .search_match_index
-            .checked_sub(1)
-            .unwrap_or(self.search_matches.len() - 1);
+        let count = self.search_match_count();
+        if count > 0 {
+          self.search_match_index = self.search_match_index.checked_sub(1).unwrap_or(count - 1);
           self.scroll_to_search_match();
         }
-        iced::Task::none()
+        self.scroll_to_block_match()
       }
       Message::NotificationActivated => {
         if let Some(id) = self.window_id {

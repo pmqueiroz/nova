@@ -197,10 +197,59 @@ pub struct KeybindingsConfig {
   pub copy: String,
   #[serde(rename = "open-palette", default = "default_open_palette")]
   pub open_palette: String,
+  #[serde(rename = "ask-ai", default = "default_ask_ai")]
+  pub ask_ai: String,
+  #[serde(default = "default_settings_key")]
+  pub settings: String,
 }
 
+pub const MOD: &str = if cfg!(target_os = "macos") {
+  "cmd"
+} else {
+  "ctrl"
+};
+
+pub const LEGACY_ACCENT: &str = "#3ECF8E";
+pub const DEFAULT_ACCENT: &str = "#82BAFF";
+
 fn default_open_palette() -> String {
-  "ctrl+k".to_string()
+  format!("{MOD}+p")
+}
+
+fn default_ask_ai() -> String {
+  format!("{MOD}+k")
+}
+
+fn default_settings_key() -> String {
+  format!("{MOD}+,")
+}
+
+pub fn migrate(config: &mut Config) -> bool {
+  let mut changed = false;
+  if config.keybindings.open_palette == format!("{MOD}+k")
+    && config.keybindings.ask_ai == default_ask_ai()
+  {
+    config.keybindings.open_palette = default_open_palette();
+    changed = true;
+  }
+  if config
+    .theme
+    .colors
+    .accent
+    .eq_ignore_ascii_case(LEGACY_ACCENT)
+  {
+    config.theme.colors.accent = DEFAULT_ACCENT.to_string();
+    if config
+      .theme
+      .colors
+      .cursor
+      .eq_ignore_ascii_case(LEGACY_ACCENT)
+    {
+      config.theme.colors.cursor = DEFAULT_ACCENT.to_string();
+    }
+    changed = true;
+  }
+  changed
 }
 
 pub struct ParsedKeybinding {
@@ -224,6 +273,8 @@ pub struct ParsedKeybindings {
   pub paste: ParsedKeybinding,
   pub copy: ParsedKeybinding,
   pub open_palette: ParsedKeybinding,
+  pub ask_ai: ParsedKeybinding,
+  pub settings: ParsedKeybinding,
 }
 
 pub fn parse_keybinding(s: &str) -> anyhow::Result<ParsedKeybinding> {
@@ -303,6 +354,11 @@ pub fn init() -> anyhow::Result<()> {
     }
   };
 
+  let mut config = config;
+  if migrate(&mut config) {
+    let _ = std::fs::write(&path, toml::to_string_pretty(&config).unwrap_or_default());
+  }
+
   let parsed = build_parsed_keybindings(&config)?;
 
   CONFIG.set(config).ok();
@@ -326,7 +382,11 @@ fn build_parsed_keybindings(config: &Config) -> anyhow::Result<ParsedKeybindings
     copy: parse_keybinding(&config.keybindings.copy)
       .map_err(|e| anyhow::anyhow!("keybinding 'copy': {}", e))?,
     open_palette: parse_keybinding(&config.keybindings.open_palette)
-      .unwrap_or_else(|_| parse_keybinding("ctrl+k").unwrap()),
+      .unwrap_or_else(|_| parse_keybinding(&default_open_palette()).unwrap()),
+    ask_ai: parse_keybinding(&config.keybindings.ask_ai)
+      .unwrap_or_else(|_| parse_keybinding(&default_ask_ai()).unwrap()),
+    settings: parse_keybinding(&config.keybindings.settings)
+      .unwrap_or_else(|_| parse_keybinding(&default_settings_key()).unwrap()),
   })
 }
 
@@ -458,6 +518,40 @@ mod tests {
   #[test]
   fn default_config_parses() {
     toml::from_str::<Config>(DEFAULT_CONFIG).unwrap();
+  }
+
+  #[test]
+  fn defaults_use_design_accent_and_bindings() {
+    let c: Config = toml::from_str(DEFAULT_CONFIG).unwrap();
+    assert_eq!(c.theme.colors.accent, DEFAULT_ACCENT);
+    assert_eq!(c.keybindings.open_palette, default_open_palette());
+    assert_eq!(c.keybindings.ask_ai, default_ask_ai());
+    assert_eq!(c.keybindings.settings, default_settings_key());
+  }
+
+  #[test]
+  fn migrates_legacy_palette_binding_and_accent() {
+    let legacy = DEFAULT_CONFIG
+      .replace(DEFAULT_ACCENT, LEGACY_ACCENT)
+      .replace(
+        &format!("open-palette = \"{MOD}+p\""),
+        &format!("open-palette = \"{MOD}+k\""),
+      )
+      .replace(&format!("ask-ai = \"{MOD}+k\"\n"), "");
+    let mut c: Config = toml::from_str(&legacy).unwrap();
+    assert!(migrate(&mut c));
+    assert_eq!(c.keybindings.open_palette, default_open_palette());
+    assert_eq!(c.theme.colors.accent, DEFAULT_ACCENT);
+    assert_eq!(c.theme.colors.cursor, DEFAULT_ACCENT);
+    assert!(!migrate(&mut c));
+  }
+
+  #[test]
+  fn custom_accent_is_kept() {
+    let mut c: Config = toml::from_str(DEFAULT_CONFIG).unwrap();
+    c.theme.colors.accent = "#FF00FF".into();
+    migrate(&mut c);
+    assert_eq!(c.theme.colors.accent, "#FF00FF");
   }
 
   #[test]

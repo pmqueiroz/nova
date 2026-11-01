@@ -9,10 +9,10 @@ family = "FiraCode Nerd Font"
 [theme.colors]
 background = "#0D0D0D"
 foreground = "#E5E5E5"
-accent = "#3ECF8E"
+accent = "#82BAFF"
 foreground-muted = "#666666"
 border = "#FFFFFF12"
-cursor = "#3ECF8E"
+cursor = "#82BAFF"
 
 [theme.cursor]
 style = "underline"
@@ -25,7 +25,9 @@ next-tab = "ctrl+tab"
 prev-tab = "ctrl+shift+tab"
 paste = "cmd+v"
 copy = "cmd+c"
-open-palette = "cmd+k"
+open-palette = "cmd+p"
+ask-ai = "cmd+k"
+settings = "cmd+,"
 
 [ai]
 provider = "anthropic"

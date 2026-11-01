@@ -38,10 +38,10 @@ family = "FiraCode Nerd Font"
 [theme.colors]
 background = "#0D0D0D"
 foreground = "#E5E5E5"
-accent = "#3ECF8E"
+accent = "#82BAFF"
 foreground-muted = "#666666"
 border = "#FFFFFF12"
-cursor = "#3ECF8E"
+cursor = "#82BAFF"
 
 [theme.cursor]
 style = "underline"
@@ -54,7 +54,9 @@ next-tab = "ctrl+tab"
 prev-tab = "ctrl+shift+tab"
 paste = "ctrl+v"
 copy = "ctrl+shift+c"
-open-palette = "ctrl+k"
+open-palette = "ctrl+p"
+ask-ai = "ctrl+k"
+settings = "ctrl+,"
 
 [ai]
 provider = "anthropic"
@@ -82,6 +84,10 @@ shells = ["zsh", "bash"]
 window-controls = "system"
 ```
 
+### `[theme]`
+
+- `timestamps` (bool, default `false`): show the `HH:MM` each command ran next to its block.
+
 ### `[theme.font]`
 
 - `size` (number)
@@ -106,7 +112,7 @@ Keys:
 
 - `background`
 - `foreground`
-- `accent`
+- `accent` (the settings sheet offers Blue `#82BAFF`, Mint `#65DFAF`, Amber `#FCBE62`, Rose `#FC899D`)
 - `foreground-muted`
 - `border`
 - `cursor`
@@ -117,10 +123,10 @@ Example:
 [theme.colors]
 background = "#0D0D0D"
 foreground = "#E5E5E5"
-accent = "#3ECF8E"
+accent = "#82BAFF"
 foreground-muted = "#666666"
 border = "#FFFFFF12"
-cursor = "#3ECF8E"
+cursor = "#82BAFF"
 
 [theme.cursor]
 style = "underline"
@@ -158,6 +164,8 @@ Keys:
 - `paste`
 - `copy`
 - `open-palette`
+- `ask-ai`
+- `settings`
 
 ### `[ai]`
 

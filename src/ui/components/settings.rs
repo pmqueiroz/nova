@@ -295,6 +295,8 @@ pub fn key_entries(s: &config::Config) -> Vec<(usize, &'static str, String)> {
     (4, "Paste", kb.paste.clone()),
     (5, "Copy", kb.copy.clone()),
     (6, "Command palette", kb.open_palette.clone()),
+    (7, "Ask AI", kb.ask_ai.clone()),
+    (8, "Settings", kb.settings.clone()),
   ]
 }
 

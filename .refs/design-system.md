@@ -191,3 +191,25 @@ renderer default). 256-color and truecolor values pass through.
   Text fields use `field_style` (surface-1, r8, line edge, accent α .48 when
   focused). The background/foreground/border color editors are gone (the DS
   owns those); the fields stay in the config file for compatibility.
+
+## Motion audit (handoff keyframes → implementation)
+
+| Handoff | Where | Status |
+|---|---|---|
+| `pop` 400 ms ease (window) | `components/app.rs`, `Nova.window_pop` | done |
+| `pop` 200 ms spring (sheets) | `ds/sheet.rs`, `Nova::sheet_progress` | done (opacity → scrim/shadow alpha) |
+| `pop` 200 ms ease (new tab) | `tab_bar.rs`, `Tab.appear` | done |
+| `in` 200 ms (entry, output +60 ms) | `components/block.rs` | done (opacity via color alpha) |
+| `fade` 400 ms (empty state) | `components/session.rs` | done |
+| `fade` 200 ms (scrim) | `ds/sheet.rs` | done |
+| `fade` 200 ms (settings rows on tab switch) | `components/settings.rs` | not animated (gap) |
+| `dot` 1 s loop, 0/120/240 ms | `block::dots`, `motion::dot_phase` | done |
+| `blink` 1 s steps (AI caret) | `ai_sheet.rs`, `motion::blink_on` | done |
+| `pulse` 200 ms spring (enter icon) | `input_bar.rs`, `InputBox.pulsed_at` | done |
+| `:active` scale .96 | buttons, icon buttons, list items, tabs, seg, swatch, toggle (`ds/transform.rs` `press`) | done |
+| lights hover 1.16 / active .84 spring | `title_bar::light` | done |
+| swatch hover 1.08 spring | `ds/swatch.rs` | done |
+| toggle knob 200 ms spring, track 200 ms ease | `ds/toggle.rs` | done |
+| hover background/color transitions (120–200 ms) | buttons, tabs, seg, list items | instant (gap): iced styles switch per status; animating them needs a stateful wrapper per widget |
+| tab close × opacity 120 ms | `tab_bar.rs` | instant (gap) |
+| input bar focus ring 200 ms | `input_bar.rs` / `ds/focus_within.rs` | instant (gap) |

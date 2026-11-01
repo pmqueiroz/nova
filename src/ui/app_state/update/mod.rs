@@ -120,6 +120,8 @@ impl Default for Nova {
       drag_pending_pos: None,
       paste_warning: None,
       now: Instant::now(),
+      sheet_opened_at: Instant::now(),
+      timestamps: false,
       block_selection: None,
       block_pointer: None,
       block_url: None,
@@ -539,6 +541,12 @@ impl Nova {
         iced::Task::none()
       }
       Message::OpenCommandPalette => {
+        if self.command_palette_open {
+          self.close_palette();
+          return self.focus_input();
+        }
+        self.sheet_opened_at = Instant::now();
+        self.now = self.sheet_opened_at;
         self.command_palette_open = true;
         self.palette_query = String::new();
         self.palette_selected = 0;
@@ -546,10 +554,16 @@ impl Nova {
         iced::widget::operation::focus(components::PALETTE_INPUT_ID.clone())
       }
       Message::CloseCommandPalette => {
-        self.command_palette_open = false;
-        self.palette_query = String::new();
-        self.palette_selected = 0;
-        PALETTE_OPEN.store(false, Ordering::SeqCst);
+        self.close_palette();
+        self.focus_input()
+      }
+      Message::PaletteHover(i) => {
+        self.palette_selected = i;
+        iced::Task::none()
+      }
+      Message::ToggleTimestamps => {
+        self.timestamps = !self.timestamps;
+        self.resize_all_grids();
         iced::Task::none()
       }
       Message::PaletteQueryChanged(s) => {
@@ -559,10 +573,7 @@ impl Nova {
       }
       Message::PaletteNavigate(d) => {
         let count = components::palette_filtered_count(&self.palette_query);
-        if count > 0 {
-          self.palette_selected =
-            (self.palette_selected as i32 + d).rem_euclid(count as i32) as usize;
-        }
+        self.palette_selected = components::clamp_step(self.palette_selected, d, count);
         iced::Task::none()
       }
       Message::OpenAskAi => {

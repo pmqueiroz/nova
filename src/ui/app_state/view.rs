@@ -310,7 +310,12 @@ impl Nova {
       );
       components::app(stack![col, modal], self.window_maximized, pop)
     } else if self.command_palette_open {
-      let palette = components::command_palette(&self.palette_query, self.palette_selected);
+      let palette = components::command_palette(
+        &self.palette_query,
+        self.palette_selected,
+        self.sheet_progress(),
+        self.window_size.height,
+      );
       components::app(stack![col, palette], self.window_maximized, pop)
     } else if self.ai_overlay_open || self.ai_loading {
       let overlay = components::ai_overlay(
@@ -372,7 +377,7 @@ impl Nova {
       pane_id: pane.id,
       session: pane.session,
       font_size,
-      timestamps: false,
+      timestamps: self.timestamps,
       now: self.now,
       shown_at: pane.integration.spawned_at,
       compact,

@@ -96,6 +96,8 @@ pub struct Nova {
   pub(in crate::ui::app_state) drag_pending_pos: Option<Point>,
   pub(in crate::ui::app_state) paste_warning: Option<String>,
   pub(in crate::ui::app_state) now: Instant,
+  pub(in crate::ui::app_state) sheet_opened_at: Instant,
+  pub(in crate::ui::app_state) timestamps: bool,
   pub(in crate::ui::app_state) block_selection: Option<crate::core::selection::BlockSelection>,
   pub(in crate::ui::app_state) block_pointer: Option<(usize, u64, (usize, usize))>,
   pub(in crate::ui::app_state) block_url: Option<crate::ui::components::session::BlockUrl>,
@@ -121,8 +123,32 @@ impl Nova {
       || now.saturating_duration_since(pane.integration.spawned_at) < ANIM_TAIL * 12
   }
 
+  pub(in crate::ui::app_state) fn any_sheet_open(&self) -> bool {
+    self.command_palette_open
+      || self.settings_open
+      || self.ai_overlay_open
+      || self.ai_loading
+      || self.shell_picker_open
+      || self.paste_warning.is_some()
+  }
+
+  pub(in crate::ui::app_state) fn sheet_progress(&self) -> f32 {
+    let t = self
+      .now
+      .saturating_duration_since(self.sheet_opened_at)
+      .as_secs_f32()
+      / crate::ui::theme::tokens::duration::D2.as_secs_f32();
+    if t >= 1.0 {
+      1.0
+    } else {
+      crate::ui::theme::motion::spring(t.max(0.0))
+    }
+  }
+
   pub(in crate::ui::app_state) fn is_animating(&self) -> bool {
     self.window_pop.is_animating(self.now)
+      || (self.any_sheet_open()
+        && self.now.saturating_duration_since(self.sheet_opened_at) < ANIM_TAIL)
       || self.tabs.iter().any(|t| t.appear.is_animating(self.now))
       || self.tabs.get(self.active_index).is_some_and(|t| {
         [false, true]

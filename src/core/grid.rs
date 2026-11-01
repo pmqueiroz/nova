@@ -290,6 +290,60 @@ impl Grid {
       return;
     }
 
+    if self.alt_cells.is_some() {
+      self.resize_alt(new_cols, new_rows);
+    } else {
+      self.reflow(new_cols, new_rows);
+    }
+  }
+
+  fn resize_alt(&mut self, new_cols: usize, new_rows: usize) {
+    let (old_cols, old_rows) = (self.cols, self.rows);
+    let primary = self.alt_cells.take().unwrap_or_default();
+    let alt = std::mem::replace(&mut self.cells, primary);
+    self.row_continuation = self
+      .alt_row_continuation
+      .take()
+      .unwrap_or_else(|| vec![false; old_rows]);
+    let alt_scrollback = std::mem::replace(
+      &mut self.scrollback,
+      self.alt_scrollback.take().unwrap_or_default(),
+    );
+    let alt_cursor = (self.cursor_x, self.cursor_y);
+    if let Some((x, y)) = self.alt_cursor {
+      self.cursor_x = x;
+      self.cursor_y = y;
+    }
+
+    self.reflow(new_cols, new_rows);
+
+    let mut cropped = vec![Cell::default(); new_cols * new_rows];
+    for r in 0..old_rows.min(new_rows) {
+      for c in 0..old_cols.min(new_cols) {
+        cropped[r * new_cols + c] = alt[r * old_cols + c].clone();
+      }
+    }
+    self.alt_cells = Some(std::mem::replace(&mut self.cells, cropped));
+    self.alt_row_continuation = Some(std::mem::replace(
+      &mut self.row_continuation,
+      vec![false; new_rows],
+    ));
+    self.alt_scrollback = Some(std::mem::replace(&mut self.scrollback, alt_scrollback));
+    self.alt_cursor = Some((self.cursor_x, self.cursor_y));
+    self.cursor_x = alt_cursor.0.min(new_cols - 1);
+    self.cursor_y = alt_cursor.1.min(new_rows - 1);
+    self.scroll_top = 0;
+    self.scroll_bottom = new_rows - 1;
+    self.wrap_next = false;
+  }
+
+  fn reflow(&mut self, new_cols: usize, new_rows: usize) {
+    let pen_bg = self.current_bg.take();
+    self.reflow_lines(new_cols, new_rows);
+    self.current_bg = pen_bg;
+  }
+
+  fn reflow_lines(&mut self, new_cols: usize, new_rows: usize) {
     let mut logical_lines: Vec<Vec<Cell>> = Vec::new();
     for (cells, is_cont) in self.scrollback.iter() {
       if *is_cont {

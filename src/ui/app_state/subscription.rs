@@ -292,6 +292,13 @@ fn handle_key_pressed(
     return match &key {
       Key::Named(Named::ArrowUp) => Some(Message::InputHistory(-1)),
       Key::Named(Named::ArrowDown) => Some(Message::InputHistory(1)),
+      Key::Named(Named::Tab) if !modifiers.control() && !modifiers.alt() => {
+        Some(Message::InputComplete(if modifiers.shift() {
+          -1
+        } else {
+          1
+        }))
+      }
       Key::Character(c) if modifiers.control() && c.eq_ignore_ascii_case("c") => {
         if HAS_BLOCK_SELECTION.load(Ordering::Relaxed) {
           Some(Message::CopySelection)

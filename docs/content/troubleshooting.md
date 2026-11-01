@@ -44,6 +44,12 @@ Nova therefore starts its shells with `LESS=FR` (pager output that fits on one
 screen still prints inline and exits). If you set `LESS` yourself, Nova leaves
 it alone: drop the `X` flag from it to get fullscreen pagers.
 
+In PowerShell, `help` (and its alias `man`) normally pipes through Windows'
+`more`, which never goes fullscreen and waits for a key after every page.
+Nova's PowerShell session replaces `help`: it pages through `less` when one is
+on `PATH`, otherwise it prints the whole topic into the block, which you can
+scroll.
+
 While a program is fullscreen, the mouse wheel scrolls it: Nova sends arrow
 keys, or wheel events if the program asked for mouse reporting.
 

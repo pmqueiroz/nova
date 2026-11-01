@@ -13,6 +13,7 @@ pub static PALETTE_OPEN: AtomicBool = AtomicBool::new(false);
 pub static AI_OPEN: AtomicBool = AtomicBool::new(false);
 pub static SEARCH_OPEN: AtomicBool = AtomicBool::new(false);
 pub static INPUT_OWNS_KEYS: AtomicBool = AtomicBool::new(false);
+pub static HAS_BLOCK_SELECTION: AtomicBool = AtomicBool::new(false);
 
 pub const ANIM_TAIL: std::time::Duration = std::time::Duration::from_millis(400);
 
@@ -94,6 +95,9 @@ pub struct Nova {
   pub(in crate::ui::app_state) drag_pending_pos: Option<Point>,
   pub(in crate::ui::app_state) paste_warning: Option<String>,
   pub(in crate::ui::app_state) now: Instant,
+  pub(in crate::ui::app_state) block_selection: Option<crate::core::selection::BlockSelection>,
+  pub(in crate::ui::app_state) block_pointer: Option<(usize, u64, (usize, usize))>,
+  pub(in crate::ui::app_state) block_url: Option<crate::ui::components::session::BlockUrl>,
   pub(in crate::ui::app_state) window_pop: Animation<bool>,
 }
 

@@ -1,8 +1,8 @@
 use super::helpers::matches_kb;
 use super::message::Message;
 use super::nova::{
-  ACTIVE_KITTY_FLAGS, AI_OPEN, INPUT_OWNS_KEYS, KB_RECORDING, Nova, PALETTE_OPEN, SEARCH_OPEN,
-  SETTINGS_OPEN,
+  ACTIVE_KITTY_FLAGS, AI_OPEN, HAS_BLOCK_SELECTION, INPUT_OWNS_KEYS, KB_RECORDING, Nova,
+  PALETTE_OPEN, SEARCH_OPEN, SETTINGS_OPEN,
 };
 
 use iced::keyboard::Key;
@@ -256,7 +256,11 @@ fn handle_key_pressed(
       Key::Named(Named::ArrowUp) => Some(Message::InputHistory(-1)),
       Key::Named(Named::ArrowDown) => Some(Message::InputHistory(1)),
       Key::Character(c) if modifiers.control() && c.eq_ignore_ascii_case("c") => {
-        Some(Message::InputChanged(String::new()))
+        if HAS_BLOCK_SELECTION.load(Ordering::Relaxed) {
+          Some(Message::CopySelection)
+        } else {
+          Some(Message::InputChanged(String::new()))
+        }
       }
       Key::Character(c) if modifiers.control() && c.eq_ignore_ascii_case("l") => {
         Some(Message::ClearBlocks)
@@ -473,6 +477,10 @@ impl Nova {
       pane.integration.is_blocks() && !pane.session.is_running()
     });
     INPUT_OWNS_KEYS.store(owns, Ordering::Relaxed);
+    HAS_BLOCK_SELECTION.store(
+      self.block_selection.is_some_and(|s| !s.is_empty()),
+      Ordering::Relaxed,
+    );
 
     subs.push(event::listen_with(|event, _s, window_id| match event {
       Event::Keyboard(keyboard::Event::KeyPressed {

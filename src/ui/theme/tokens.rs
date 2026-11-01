@@ -48,6 +48,7 @@ pub mod duration {
 
 pub mod block {
   pub const LINE_HEIGHT: f32 = 1.5;
+  pub const CHAR_WIDTH_RATIO: f32 = 0.62;
 
   pub fn font_size(font_size: f32) -> f32 {
     (font_size - super::space::S2).max(1.0)

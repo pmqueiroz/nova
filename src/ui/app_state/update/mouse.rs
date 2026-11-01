@@ -194,6 +194,11 @@ impl Nova {
     &mut self,
     button: mouse::Button,
   ) -> iced::Task<super::super::message::Message> {
+    if button == mouse::Button::Left
+      && let Some(sel) = self.block_selection.as_mut()
+    {
+      sel.dragging = false;
+    }
     if self.last_mouse_button == Some(button) {
       self.last_mouse_button = None;
     }

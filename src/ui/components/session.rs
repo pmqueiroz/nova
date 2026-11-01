@@ -5,6 +5,7 @@ use iced::widget::{Column, container, mouse_area, rich_text, scrollable, text::S
 use iced::{Alignment, Element, Length, Padding};
 
 use crate::core::block::Session;
+use crate::core::selection::BlockSelection;
 use crate::ui::app_state::Message;
 use crate::ui::components::block::{self, EntryOptions};
 use crate::ui::theme::font;
@@ -73,6 +74,18 @@ pub struct SessionView<'a> {
   pub now: Instant,
   pub shown_at: Instant,
   pub compact: bool,
+  pub selection: Option<BlockSelection>,
+  pub hover_url: Option<&'a BlockUrl>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct BlockUrl {
+  pub pane_id: usize,
+  pub block_id: crate::core::block::BlockId,
+  pub line: usize,
+  pub start: usize,
+  pub end: usize,
+  pub url: String,
 }
 
 pub fn blocks_area<'a>(v: &SessionView<'a>) -> Element<'a, Message> {
@@ -85,9 +98,16 @@ pub fn blocks_area<'a>(v: &SessionView<'a>) -> Element<'a, Message> {
       .into();
   }
   let opts = EntryOptions {
+    pane_id: v.pane_id,
     font_size: v.font_size,
     timestamps: v.timestamps,
     now: v.now,
+    selection: v.selection.filter(|s| s.pane_id == v.pane_id),
+    hover_url: v
+      .hover_url
+      .as_ref()
+      .filter(|h| h.pane_id == v.pane_id)
+      .map(|h| (h.block_id, h.line, h.start, h.end)),
   };
   let log = v
     .session

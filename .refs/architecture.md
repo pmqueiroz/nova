@@ -174,6 +174,23 @@ next prompt is split correctly.
   splits, and saved after every submit. Classic panes keep using
   `Grid.command_history` for the legacy inline ghost suggestion.
 
+### Selection and links in blocks (`core/selection.rs`)
+
+- Each output card is a `mouse_area`; `on_move` reports the pointer relative to
+  the card, mapped to `(line, col)` with the card padding (24/16) and the
+  output font's cell size (`tokens::block`). State lives on `Nova`:
+  `block_pointer`, `block_selection` (`BlockSelection`, scoped to one block of
+  one pane) and `block_url`.
+- Press starts a selection, moving with the button held extends it, release
+  ends it (also on a global release). A click without a drag clears the
+  selection and focuses the input. Selected cells render fg-1 on accent α .32;
+  full middle lines stop at the last visible character.
+- The URL under the pointer (`url_at` → `core::url::detect_urls`) is
+  underlined with a pointer cursor; Ctrl+click opens it.
+- Copy: the copy keybinding copies the block selection. In the input bar,
+  Ctrl+C copies when a selection exists (`HAS_BLOCK_SELECTION`), otherwise it
+  clears the input.
+
 ### Raw takeover
 
 When the running block enters the alt screen (`Phase::Raw`),

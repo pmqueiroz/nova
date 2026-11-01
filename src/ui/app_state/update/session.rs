@@ -1,6 +1,8 @@
 use std::time::Instant;
 
-use crate::ui::components::session;
+use crate::core::selection::{BlockSelection, cell_at, url_at};
+use crate::ui::components::session::{self, BlockUrl};
+use crate::ui::theme::tokens;
 
 use super::super::message::Message;
 use super::super::nova::Nova;
@@ -95,6 +97,98 @@ impl Nova {
       }
     }
     iced::Task::none()
+  }
+
+  fn find_block(&self, pane_id: usize, block_id: u64) -> Option<&crate::core::block::Block> {
+    self.tabs.iter().find_map(|t| {
+      [false, true]
+        .into_iter()
+        .filter(|split| !*split || t.split.is_some())
+        .map(|split| t.pane(split))
+        .find(|p| p.id == pane_id)
+        .and_then(|p| p.session.block(block_id))
+    })
+  }
+
+  pub(super) fn handle_block_pointer(
+    &mut self,
+    pane_id: usize,
+    block_id: u64,
+    p: iced::Point,
+  ) -> iced::Task<Message> {
+    let fs = tokens::block::font_size(self.settings.theme.font.size);
+    let cell = cell_at(
+      p.x,
+      p.y,
+      tokens::space::S24,
+      tokens::space::S16,
+      fs * tokens::block::CHAR_WIDTH_RATIO,
+      fs * tokens::block::LINE_HEIGHT,
+    );
+    self.block_pointer = Some((pane_id, block_id, cell));
+    if let Some(sel) = self.block_selection.as_mut()
+      && sel.dragging
+      && sel.pane_id == pane_id
+      && sel.block_id == block_id
+    {
+      sel.head = cell;
+    }
+    self.block_url = self.find_block(pane_id, block_id).and_then(|b| {
+      url_at(b, cell).map(|(start, end, url)| BlockUrl {
+        pane_id,
+        block_id,
+        line: cell.0,
+        start,
+        end,
+        url,
+      })
+    });
+    iced::Task::none()
+  }
+
+  pub(super) fn handle_block_press(
+    &mut self,
+    pane_id: usize,
+    block_id: u64,
+  ) -> iced::Task<Message> {
+    if self.ctrl_held
+      && let Some(u) = self.block_url.as_ref()
+      && u.pane_id == pane_id
+      && u.block_id == block_id
+    {
+      let _ = open::that_detached(&u.url);
+      return iced::Task::none();
+    }
+    let cell = self
+      .block_pointer
+      .filter(|(p, b, _)| *p == pane_id && *b == block_id)
+      .map(|(_, _, c)| c)
+      .unwrap_or((0, 0));
+    self.block_selection = Some(BlockSelection {
+      pane_id,
+      block_id,
+      anchor: cell,
+      head: cell,
+      dragging: true,
+    });
+    iced::Task::none()
+  }
+
+  pub(super) fn handle_block_release(&mut self) -> iced::Task<Message> {
+    if let Some(sel) = self.block_selection.as_mut() {
+      sel.dragging = false;
+      if sel.is_empty() {
+        self.block_selection = None;
+        return self.focus_input();
+      }
+    }
+    iced::Task::none()
+  }
+
+  pub(super) fn block_selection_text(&self) -> Option<String> {
+    let sel = self.block_selection.filter(|s| !s.is_empty())?;
+    let text = sel.text(self.find_block(sel.pane_id, sel.block_id)?);
+    (!text.is_empty()).then_some(text)
   }
 
   pub(super) fn raw_panes(&self) -> usize {

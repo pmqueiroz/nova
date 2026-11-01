@@ -1,7 +1,7 @@
 use std::sync::LazyLock;
 
 use iced::widget::{
-  Column, Row, button, column, container, pick_list, row, scrollable, svg, text, text_input,
+  Column, Row, button, column, container, image, pick_list, row, scrollable, text, text_input,
 };
 use iced::{Alignment, Background, Border, Color, ContentFit, Element, Length, Padding};
 
@@ -19,9 +19,11 @@ use crate::ui::icons::Icon;
 use crate::ui::theme::tokens::{self, font_size, height, radius, space};
 use crate::ui::theme::{color, font};
 
-const BRAND_SVG: &[u8] = include_bytes!("../../../assets/brand/nova-brand.svg");
+const BRAND_PNG: &[u8] =
+  include_bytes!("../../../assets/brand/lockup/nova-lockup-for-dark-256h.png");
 
-static BRAND_HANDLE: LazyLock<svg::Handle> = LazyLock::new(|| svg::Handle::from_memory(BRAND_SVG));
+static BRAND_HANDLE: LazyLock<image::Handle> =
+  LazyLock::new(|| image::Handle::from_bytes(BRAND_PNG));
 
 pub const TABS: [(SettingsTab, &str); 5] = [
   (SettingsTab::Appearance, "Appearance"),
@@ -396,7 +398,7 @@ fn ai_tab<'a>(s: &'a config::Config) -> Element<'a, Message> {
 fn about<'a>() -> Element<'a, Message> {
   container(
     column![
-      svg(BRAND_HANDLE.clone())
+      image(BRAND_HANDLE.clone())
         .width(240)
         .content_fit(ContentFit::Contain),
       text(format!("Version {}", env!("CARGO_PKG_VERSION")))

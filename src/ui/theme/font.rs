@@ -3,6 +3,12 @@ use std::sync::{OnceLock, RwLock};
 static FONT_FAMILY: OnceLock<RwLock<&'static str>> = OnceLock::new();
 static INSTALLED_FONTS: OnceLock<Vec<String>> = OnceLock::new();
 
+pub fn prewarm_installed_fonts() {
+  std::thread::spawn(|| {
+    installed_fonts();
+  });
+}
+
 pub fn installed_fonts() -> &'static [String] {
   INSTALLED_FONTS.get_or_init(|| {
     use font_kit::source::SystemSource;

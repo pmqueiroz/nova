@@ -42,11 +42,7 @@ impl Nova {
     };
 
     let term_area: Element<'_, Message> = if let Some(split) = &active_tab.split {
-      let rt = theme::color::runtime();
-      let border_color = rt.border;
-      let accent = rt.accent;
-      let fg_muted = rt.foreground_muted;
-      drop(rt);
+      let border_color = crate::ui::theme::tokens::LINE;
 
       let primary_selection = if !active_tab.active_pane_is_split {
         selection
@@ -65,49 +61,17 @@ impl Nova {
       };
 
       let make_close_btn = move |msg: Message| {
-        container(
-          button(text("\u{2715}").size(10).color(fg_muted))
-            .on_press(msg)
-            .padding(Padding::from([2, 6]))
-            .style(move |_t, status| button::Style {
-              text_color: match status {
-                button::Status::Hovered | button::Status::Pressed => theme::color::RED.as_color(),
-                _ => fg_muted,
-              },
-              background: None,
-              ..Default::default()
-            }),
-        )
+        container(crate::ui::components::ds::button::icon_button(
+          crate::ui::icons::Icon::Close,
+          16.0,
+          crate::ui::theme::tokens::height::H32,
+          Some(msg),
+        ))
         .align_x(Horizontal::Right)
         .align_y(Vertical::Top)
-        .padding(Padding::from([4, 4]))
+        .padding(crate::ui::theme::tokens::space::S8)
         .width(Length::Fill)
         .height(Length::Fill)
-      };
-
-      let make_active_triangle = move |is_active: bool| {
-        const SIZE: u32 = 16;
-        let fill = if is_active {
-          format!(
-            "#{:02x}{:02x}{:02x}",
-            (accent.r * 255.0) as u8,
-            (accent.g * 255.0) as u8,
-            (accent.b * 255.0) as u8,
-          )
-        } else {
-          "none".to_string()
-        };
-        let svg_data = format!(
-          r#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {s} {s}"><polygon points="0,0 {s},0 0,{s}" fill="{fill}"/></svg>"#,
-          s = SIZE,
-          fill = fill,
-        );
-        let handle = iced::widget::svg::Handle::from_memory(svg_data.into_bytes());
-        container(iced::widget::svg(handle).width(SIZE).height(SIZE))
-          .align_x(Horizontal::Left)
-          .align_y(Vertical::Top)
-          .width(Length::Fill)
-          .height(Length::Fill)
       };
 
       let ratio = active_tab.split_ratio;
@@ -144,24 +108,8 @@ impl Nova {
               cursor_style,
               cursor_blink,
             )),
-          make_active_triangle(!active_tab.active_pane_is_split),
           make_close_btn(Message::CloseLeftPane),
         ])
-        .style(move |_| {
-          let border_width = if !active_tab.active_pane_is_split {
-            1.0
-          } else {
-            0.0
-          };
-          container::Style {
-            border: Border {
-              color: accent,
-              width: border_width,
-              radius: Radius::new(0.0),
-            },
-            ..Default::default()
-          }
-        })
         .width(Length::FillPortion(left_portion))
         .height(Length::Fill),
       )
@@ -199,24 +147,8 @@ impl Nova {
               cursor_style,
               cursor_blink,
             )),
-          make_active_triangle(active_tab.active_pane_is_split),
           make_close_btn(Message::CloseSplitPane),
         ])
-        .style(move |_| {
-          let border_width = if active_tab.active_pane_is_split {
-            1.0
-          } else {
-            0.0
-          };
-          container::Style {
-            border: Border {
-              color: accent,
-              width: border_width,
-              radius: Radius::new(0.0),
-            },
-            ..Default::default()
-          }
-        })
         .width(Length::FillPortion(right_portion))
         .height(Length::Fill),
       )

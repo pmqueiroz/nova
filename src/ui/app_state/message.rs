@@ -106,7 +106,7 @@ pub enum Message {
   BlockPress(usize, u64),
   BlockRelease,
   BlocksScrolled(usize, bool),
-  FocusInput,
+  FocusPane(usize),
   InputChanged(String),
   InputSubmit,
   InputHistory(i32),

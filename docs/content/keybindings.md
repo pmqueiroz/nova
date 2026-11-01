@@ -113,8 +113,11 @@ Font size steps by 2 within 14–20 (odd sizes snap to the next even step). Rese
 |---|---|
 | Run the command in the input bar | `Enter` |
 | Previous / next history entry | `Up` / `Down` |
+| Complete the word at the end / cycle back | `Tab` / `Shift+Tab` |
 | Clear the input (or copy the selection, when text is selected) | `Ctrl+C` |
 | Clear all blocks | `Ctrl+L` |
+
+`Tab` completes the last word of the input. Nova does this itself, not the shell: the first word completes to commands from your `PATH` and history, any other word (or one with a `/`) to files and folders relative to the pane's current directory (`~` is your home). One match is inserted outright (folders end in `/`, everything else gets a trailing space); several matches first fill in their common prefix, then each further `Tab` cycles through them (`Shift+Tab` goes backwards). Names with spaces are quoted. Shell-specific completions (git branches, PowerShell cmdlets, option flags) are not available.
 
 While a command runs, every key goes to that program (`Ctrl+C` interrupts it).
 Full-screen programs (vim, htop, less) take over the whole pane until they exit.

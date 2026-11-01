@@ -39,6 +39,14 @@ Code is the truth. This file explains the *why* behind the shape it takes.
 
 1. A `PtyKey` subscription per pane (`subscription.rs`) spawns a PTY worker;
    bytes arrive as `Message::PtyOutputReceived(tab_id, bytes)`.
+   If `PtyBridge::new` fails (e.g. `initial-command` names a program that
+   is not on `PATH`; it is spawned directly, not via the shell), the worker
+   sends `spawn_error_message` (red `nova: could not start ...` with the OS
+   reason, NULs from portable-pty's `CreateProcessW` text stripped) as
+   output and returns, so the pane gets `PtyExited` instead of a panicked
+   thread behind a blank, input-dead window. The worker drops its own
+   `tx_out` clone after a successful spawn so `rx_out` still closes when the
+   shell exits.
 2. `update` feeds the bytes through the pane's `vte::Parser` into
    `AnsiExecutor`, which mutates that pane's `Grid` (and handles OSC 7 cwd,
    OSC 8 links, OSC 777 Nova commands).

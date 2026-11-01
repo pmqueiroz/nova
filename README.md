@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src=".github/assets/banner.png" width="100%" />
+<img src=".github/assets/nova-hero-1280x400.gif" width="100%" />
 
 </div>
 

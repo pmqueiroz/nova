@@ -22,6 +22,9 @@ pub fn run_from_env() -> Option<i32> {
     }
     Some("ask") => Some(commands::ask::run(args.get(1..).unwrap_or_default())),
     Some("config") => Some(commands::config::run(args.get(1..).unwrap_or_default())),
+    Some("update") | Some("--check-update") => {
+      Some(commands::update::run(args.get(1..).unwrap_or_default()))
+    }
     Some("explain") => Some(commands::explain::run(args.get(1..).unwrap_or_default())),
     Some(cmd) => {
       eprintln!("error: unknown command '{cmd}'\n\n{}", help::usage());

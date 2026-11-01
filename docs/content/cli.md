@@ -9,6 +9,19 @@ Nova includes a small CLI surface:
 
 - `nova help`: Show usage
 - `nova ask [preset...]`: Open the Ask AI modal in the running Nova app
+- `nova update` (alias `nova --check-update`): Check for a newer release
+
+## `nova update`
+
+Asks GitHub for the latest release and compares it with the running version. Works outside Nova and ignores `general.check-updates`.
+
+```text
+$ nova update
+nova 1.1.0 is available (current 1.0.0)
+https://github.com/pmqueiroz/nova/releases/tag/v1.1.0
+```
+
+It only reports; it does not download or replace the binary. Update with the installer or package manager you used originally (winget, Scoop, Homebrew, apt, AUR, …). Exits `1` if the check fails (offline, rate limited).
 
 ## `nova ask`
 

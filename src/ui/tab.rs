@@ -77,6 +77,22 @@ pub struct PaneMut<'a> {
   pub pty_tx: &'a Option<Sender<PtyCommand>>,
 }
 
+impl<'a> PaneRef<'a> {
+  pub fn raw_grid(&self) -> Option<&'a Grid> {
+    if self.integration.mode == crate::core::router::Mode::Classic {
+      return None;
+    }
+    match self.session.phase {
+      crate::core::block::Phase::Raw(id) => self.session.block(id).map(|b| &b.output),
+      _ => None,
+    }
+  }
+
+  pub fn input_grid(&self) -> &'a Grid {
+    self.raw_grid().unwrap_or(self.grid)
+  }
+}
+
 impl PaneMut<'_> {
   pub fn write(&self, bytes: Vec<u8>) {
     if let Some(tx) = self.pty_tx {
@@ -86,6 +102,7 @@ impl PaneMut<'_> {
 }
 
 pub struct PaneRef<'a> {
+  pub grid: &'a Grid,
   pub id: usize,
   pub session: &'a Session,
   pub integration: &'a Integration,
@@ -219,6 +236,7 @@ impl Tab {
     if split && let Some(sp) = self.split.as_ref() {
       return PaneRef {
         id: sp.id,
+        grid: &sp.grid,
         session: &sp.session,
         integration: &sp.integration,
         input: &sp.input,
@@ -226,6 +244,7 @@ impl Tab {
     }
     PaneRef {
       id: self.id,
+      grid: &self.grid,
       session: &self.session,
       integration: &self.integration,
       input: &self.input,

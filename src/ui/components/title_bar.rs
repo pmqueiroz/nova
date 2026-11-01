@@ -11,6 +11,8 @@ use crate::ui::icons::Icon;
 use crate::ui::theme::font;
 use crate::ui::theme::tokens::{self, height, space};
 
+pub const TITLE_BAR_HEIGHT: f32 = height::H48;
+
 pub fn title<'a>(pwd: &str, flash: bool, compact: bool) -> Element<'a, Message> {
   let accent = crate::ui::theme::color::runtime().accent;
   row![
@@ -37,12 +39,12 @@ pub fn actions<'a>() -> Element<'a, Message> {
     .spacing(space::S4)
     .align_y(Alignment::Center)
     .push(
-      mouse_area(icon_button(Icon::Plus, IconSize::Md, Some(Message::NewTab)))
+      mouse_area(icon_button(Icon::Plus, IconSize::Sm, Some(Message::NewTab)))
         .on_right_press(Message::OpenShellPicker),
     )
     .push(icon_button(
       Icon::Sliders,
-      IconSize::Md,
+      IconSize::Sm,
       Some(Message::OpenSettings),
     ))
     .into()
@@ -64,14 +66,14 @@ pub fn title_bar<'a>(
     container(left)
       .width(Length::Fill)
       .align_x(Alignment::Start)
-      .center_y(height::H56),
-    container(center).center_y(height::H56),
+      .center_y(TITLE_BAR_HEIGHT),
+    container(center).center_y(TITLE_BAR_HEIGHT),
     container(right)
       .width(Length::Fill)
       .align_x(Alignment::End)
-      .center_y(height::H56),
+      .center_y(TITLE_BAR_HEIGHT),
   ]
-  .height(height::H56)
+  .height(TITLE_BAR_HEIGHT)
   .align_y(Alignment::Center);
 
   let padding = if system {
@@ -94,7 +96,7 @@ pub fn title_bar<'a>(
     container(bar)
       .padding(padding)
       .width(Length::Fill)
-      .height(height::H56),
+      .height(TITLE_BAR_HEIGHT),
   )
   .on_press(Message::DragWindow)
   .on_double_click(Message::MaximizeWindow)

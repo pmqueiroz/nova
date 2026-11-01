@@ -2,9 +2,9 @@ use iced::widget::{button, container, row};
 use iced::{Alignment, Background, Border, Element, Length};
 
 use crate::ui::app_state::Message;
-use crate::ui::components::title_bar::light;
+use crate::ui::components::title_bar::{TITLE_BAR_HEIGHT, light};
 use crate::ui::icons::{Icon, icon};
-use crate::ui::theme::tokens::{self, height, space};
+use crate::ui::theme::tokens::{self, space};
 
 pub fn traffic_lights() -> Element<'static, Message> {
   row![
@@ -42,7 +42,7 @@ pub fn system_controls() -> Element<'static, Message> {
     )
     .on_press(msg)
     .width(SYSTEM_BUTTON_WIDTH)
-    .height(height::H56)
+    .height(TITLE_BAR_HEIGHT)
     .padding(0)
     .style(move |_t, s| system_button_style(close, s))
   };
@@ -52,6 +52,6 @@ pub fn system_controls() -> Element<'static, Message> {
     win_btn(Icon::Maximize, Message::MaximizeWindow, false),
     win_btn(Icon::Close, Message::CloseWindow, true),
   ]
-  .height(height::H56)
+  .height(TITLE_BAR_HEIGHT)
   .into()
 }

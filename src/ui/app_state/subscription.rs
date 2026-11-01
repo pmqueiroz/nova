@@ -416,6 +416,12 @@ fn handle_key_pressed(
       let lower = ch.to_ascii_lowercase();
       return Some(Message::Type(vec![(lower as u8) & 0x1f]));
     }
+    if let Key::Character(c) = &key
+      && let Some(ch) = c.as_str().chars().next()
+      && (ch as u32) < 0x20
+    {
+      return Some(Message::Type(vec![ch as u8]));
+    }
     return None;
   }
 

@@ -346,3 +346,18 @@ Text goes through `ui::typography::Typography`, fonts through
 ## Known gaps
 
 - Unit tests only (`cargo test`, e.g. `sys/parser.rs`); UI verification is manual (`cargo run`).
+- Tab completion: the shell cannot complete inside Nova's input bar (the
+  handoff does not cover it).
+- Mouse reporting is not forwarded in raw takeover (vim/htop mouse mode).
+- cmd has no exit codes in block mode (all blocks finish as 0), and a window
+  resize during a long cmd command can end its block early (ConPTY replays
+  the prompt mark).
+- WSL and fish never send prompt marks, so they stay in classic mode.
+- Classic mode (fallback) keeps the legacy inline prompt code: ghost
+  suggestions, grid search, pixel-based selection (`helpers::pixel_to_cell`).
+- Hover color transitions, the tab close × fade and the settings row fade are
+  instant (see the motion audit in `design-system.md`).
+- Block mode has only been exercised on Windows (PowerShell, cmd, Git Bash);
+  the zsh/bash hooks on macOS/Linux are untested.
+- The handoff's PNG icons/banner were not re-compared (only `nova-mark.svg`,
+  which matches).

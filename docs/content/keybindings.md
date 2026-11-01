@@ -105,7 +105,19 @@ The divider between panes is draggable. Hover over it to see a resize cursor, th
 | Decrease font size | `Cmd+-` | `Ctrl+-` |
 | Reset font size | `Cmd+0` | `Ctrl+0` |
 
-Font size steps snap to even numbers (e.g. 15 → 16 → 18 → 20). Range: 8–72. Reset returns to the size that was configured at app start.
+Font size steps by 2 within 14–20 (odd sizes snap to the next even step). Reset returns to the size that was configured at app start.
+
+### Block input
+
+| Action | Key |
+|---|---|
+| Run the command in the input bar | `Enter` |
+| Previous / next history entry | `Up` / `Down` |
+| Clear the input (or copy the selection, when text is selected) | `Ctrl+C` |
+| Clear all blocks | `Ctrl+L` |
+
+While a command runs, every key goes to that program (`Ctrl+C` interrupts it).
+Full-screen programs (vim, htop, less) take over the whole pane until they exit.
 
 ### Search
 
@@ -116,7 +128,7 @@ Font size steps snap to even numbers (e.g. 15 → 16 → 18 → 20). Range: 8–
 | Previous match | `Shift+Enter` | `Shift+Enter` |
 | Close search | `Escape` | `Escape` |
 
-Search is case-insensitive and covers both the scrollback buffer and the visible terminal rows. The current match is highlighted in yellow; other matches are dimly highlighted. The match count is shown in the search bar (e.g. `3 / 15`). Searching closes automatically when switching tabs.
+Search is case-insensitive and covers the output of every block in the active pane (or the scrollback and visible rows in classic mode). The current match is highlighted in yellow; other matches are dimly highlighted. The match count is shown in the search bar (e.g. `3 / 15`). Searching closes automatically when switching tabs.
 
 ## Notes
 

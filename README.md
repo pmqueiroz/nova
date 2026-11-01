@@ -6,6 +6,7 @@
 
 ## ✨ Features
 
+- **Command blocks:** Type into a dedicated input bar; every command and its output becomes a block you can select, search and copy from. Full-screen apps take over the pane until they exit.
 - **Multi-tab workflow:** Open, close, and switch between terminal tabs without leaving the window.
 - **ANSI & VTE support:** Full escape code processing via `vte` for accurate rendering of colors, cursor movement, and control sequences.
 - **Built-in font:** Ships with Fira Code Nerd Font — no system font installation required.

@@ -5,10 +5,16 @@ description: "Providers, configuration, and how Nova builds AI requests."
 
 ## Overview
 
-Nova's AI features live in the UI (Ask AI and Explain Error). They use:
+Press `Ctrl+K` (`Cmd+K` on macOS) or click **Ask AI** in the input bar. The AI
+sheet offers:
 
-- Your question
-- Terminal context extracted from the last command output
+- **Suggest a command for “…”**: describe what you want in plain words.
+- **Fix “cmd”**: shown after a command fails; diagnoses it and proposes a fix.
+- **Explain last command**: explains what the last command did.
+
+Answers type in; when the reply contains a command, a card with a **Run**
+button (or `Enter`) runs it in the current tab. Requests use your question
+plus the output of the relevant block as context.
 
 AI is optional. If `api_key` is empty, requests fail with a clear error.
 

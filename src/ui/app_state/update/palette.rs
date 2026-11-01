@@ -17,6 +17,7 @@ pub fn action_message(action: PaletteAction) -> Message {
     PaletteAction::Settings => Message::OpenSettings,
     PaletteAction::SplitPane => Message::SplitPane,
     PaletteAction::Find => Message::SearchOpen,
+    PaletteAction::NewTabWithShell => Message::OpenShellPicker,
   }
 }
 

@@ -7,7 +7,6 @@ mod helpers;
 pub mod icons;
 mod tab;
 pub mod theme;
-pub mod typography;
 
 pub type Result = iced::Result;
 

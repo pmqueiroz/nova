@@ -15,6 +15,7 @@ pub static SEARCH_OPEN: AtomicBool = AtomicBool::new(false);
 pub static INPUT_OWNS_KEYS: AtomicBool = AtomicBool::new(false);
 pub static HAS_BLOCK_SELECTION: AtomicBool = AtomicBool::new(false);
 pub static PASTE_OPEN: AtomicBool = AtomicBool::new(false);
+pub static SHELL_PICKER_OPEN: AtomicBool = AtomicBool::new(false);
 
 pub const ANIM_TAIL: std::time::Duration = std::time::Duration::from_millis(400);
 
@@ -60,7 +61,7 @@ pub struct Nova {
   pub(in crate::ui::app_state) hovered_url: Option<String>,
   pub(in crate::ui::app_state) hovered_link_span: Option<(usize, usize, usize)>,
   pub(in crate::ui::app_state) shell_picker_open: bool,
-  pub(in crate::ui::app_state) shell_picker_anchor: f32,
+  pub(in crate::ui::app_state) shell_picker_selected: usize,
   pub(in crate::ui::app_state) available_shells: Vec<String>,
   pub(in crate::ui::app_state) settings_open: bool,
   pub(in crate::ui::app_state) settings_tab: SettingsTab,

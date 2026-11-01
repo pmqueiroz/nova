@@ -169,3 +169,8 @@ renderer default). 256-color and truecolor values pass through.
   Cancel (ghost) and Paste (primary). esc cancels, ↩ pastes. In block mode at
   the prompt, pasted text goes into the input bar with lines joined by `; `;
   otherwise it is written to the PTY (bracketed paste when enabled).
+- `src/ui/components/shell_picker.rs` — "New tab with shell" list sheet
+  (terminal icon per shell, `default` hint on the first). Opens from
+  right-click on the title bar `+` or the palette item "New tab with shell…"
+  (only when more than one shell is available; otherwise it opens the
+  default directly). ↑/↓ clamp, ↩ opens, esc / scrim close.

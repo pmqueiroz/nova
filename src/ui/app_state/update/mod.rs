@@ -9,7 +9,7 @@ mod tabs;
 mod window;
 
 use base64::Engine;
-use iced::{Point, Size};
+use iced::Point;
 use std::sync::atomic::Ordering;
 use std::time::Instant;
 
@@ -20,7 +20,8 @@ use crate::ui::tab::Tab;
 use crate::ui::theme::motion;
 
 use super::helpers::{
-  calc_grid, derive_available_shells, extract_selection, rebuild_runtime_theme,
+  INITIAL_WINDOW_SIZE, calc_grid, derive_available_shells, extract_selection, fit_window_size,
+  rebuild_runtime_theme, recenter,
 };
 use super::message::Message;
 use super::nova::{KB_RECORDING, Nova, PALETTE_OPEN, SEARCH_OPEN, SETTINGS_OPEN, SettingsTab};
@@ -66,7 +67,7 @@ impl Default for Nova {
       window_id: None,
       window_focused: false,
       window_maximized: false,
-      window_size: Size::new(1024.0, 768.0),
+      window_size: INITIAL_WINDOW_SIZE,
       cursor_position: Point::ORIGIN,
       selection_start: None,
       selection_end: None,
@@ -547,12 +548,13 @@ impl Nova {
         self.window_id = Some(id);
         self.now = Instant::now();
         self.window_pop.go_mut(true, self.now);
+        let fit = fit_window(id);
         #[cfg(target_os = "windows")]
         {
-          iced::window::set_mode(id, iced::window::Mode::Windowed)
+          fit.chain(iced::window::set_mode(id, iced::window::Mode::Windowed))
         }
         #[cfg(not(target_os = "windows"))]
-        iced::Task::none()
+        fit
       }
       Message::MinimizeWindow => {
         if let Some(window_id) = self.window_id {
@@ -904,4 +906,23 @@ impl Nova {
       }
     }
   }
+}
+
+fn fit_window(id: iced::window::Id) -> iced::Task<Message> {
+  iced::window::monitor_size(id).then(move |monitor| {
+    let Some(monitor) = monitor else {
+      return iced::Task::none();
+    };
+    let target = fit_window_size(monitor);
+    iced::window::position(id).then(move |position| {
+      let resize = iced::window::resize(id, target);
+      match position {
+        Some(p) => resize.chain(iced::window::move_to(
+          id,
+          recenter(p, INITIAL_WINDOW_SIZE, target),
+        )),
+        None => resize,
+      }
+    })
+  })
 }

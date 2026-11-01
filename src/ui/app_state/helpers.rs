@@ -17,6 +17,23 @@ const PADDING_Y: f32 = 76.0;
 const MIN_COLS: usize = 10;
 const MIN_SPLIT_COLS: usize = 5;
 const MIN_ROWS: usize = 5;
+pub const INITIAL_WINDOW_SIZE: Size = Size::new(1200.0, 750.0);
+const WINDOW_ASPECT: f32 = 1.6;
+const WINDOW_WIDTH_FRACTION: f32 = 0.65;
+const WINDOW_HEIGHT_FRACTION: f32 = 0.8;
+
+pub fn fit_window_size(monitor: Size) -> Size {
+  let width = (monitor.width * WINDOW_WIDTH_FRACTION)
+    .min(monitor.height * WINDOW_HEIGHT_FRACTION * WINDOW_ASPECT);
+  Size::new(width.round(), (width / WINDOW_ASPECT).round())
+}
+
+pub fn recenter(position: Point, from: Size, to: Size) -> Point {
+  Point::new(
+    position.x + (from.width - to.width) / 2.0,
+    position.y + (from.height - to.height) / 2.0,
+  )
+}
 
 pub fn get_display_row(grid: &grid::Grid, scroll_offset: usize, y: usize) -> Option<&[grid::Cell]> {
   let sb_len = grid.scrollback.len();
@@ -500,5 +517,33 @@ mod block_grid_tests {
       calc_block_grid(10.0, 10.0, 16.0, false, false),
       (MIN_COLS, MIN_ROWS)
     );
+  }
+}
+
+#[cfg(test)]
+mod window_fit_tests {
+  use super::*;
+
+  #[test]
+  fn fits_scaled_1080p_without_overflow() {
+    let s = fit_window_size(Size::new(1280.0, 720.0));
+    assert_eq!(s, Size::new(832.0, 520.0));
+  }
+
+  #[test]
+  fn height_bound_on_tall_ratio_limits() {
+    let s = fit_window_size(Size::new(3440.0, 1440.0));
+    assert!(s.height <= 1440.0 * 0.8);
+    assert!((s.width / s.height - 1.6).abs() < 0.01);
+  }
+
+  #[test]
+  fn recenter_keeps_center() {
+    let p = recenter(
+      Point::new(100.0, 50.0),
+      Size::new(1200.0, 750.0),
+      Size::new(800.0, 500.0),
+    );
+    assert_eq!(p, Point::new(300.0, 175.0));
   }
 }

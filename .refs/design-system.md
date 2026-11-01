@@ -187,7 +187,8 @@ renderer default). 256-color and truecolor values pass through.
   - Keys: one row per binding with kbd chips; click to re-record ("Press
     keys…" in accent), click again or esc to cancel.
   - AI: provider seg, model, API key (secure), base URL, auto-diagnose toggle.
-  - About: brand, version, "Reset to defaults".
+  - About: brand lockup (`assets/brand/lockup/nova-lockup-for-dark-256h.png`,
+    raster `image`, 240 wide), version, "Reset to defaults".
   Text fields use `field_style` (surface-1, r8, line edge, accent α .48 when
   focused). The background/foreground/border color editors are gone (the DS
   owns those); the fields stay in the config file for compatibility.

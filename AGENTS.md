@@ -11,6 +11,8 @@ explain the *why* and the gotchas.
   PTY → vte → grid → iced data flow, shared state, components and tokens.
 - [design-system.md](./.refs/design-system.md) — v2 design handoff source,
   binding size/motion constraints, tokens, iced capability fallbacks.
+- [brand.md](./.refs/brand.md) — brand-v2 asset layout, which file each
+  platform/surface uses, colors.
 - [ci-cd.md](./.refs/ci-cd.md) — CI (fmt, clippy matrix), release-please,
   tag-driven packaging and package-manager publishing.
 - [docs/content/](./docs/content/) — user-facing docs site (config,

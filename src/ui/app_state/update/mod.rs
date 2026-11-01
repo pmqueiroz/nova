@@ -826,6 +826,7 @@ impl Nova {
       Message::BlockRelease => self.handle_block_release(),
       Message::InputSubmit => self.handle_input_submit(),
       Message::InputHistory(delta) => self.handle_input_history(delta),
+      Message::InputComplete(delta) => self.handle_input_complete(delta),
       Message::ClearBlocks => self.handle_clear_blocks(),
       Message::Osc52ReadResponse(target_id, text) => {
         let text = text.unwrap_or_default();

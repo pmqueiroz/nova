@@ -9,6 +9,7 @@ use iced::animation::Animation;
 use vte::Parser;
 
 use crate::core::block::Session;
+use crate::core::completion::Completion;
 use crate::core::config;
 use crate::core::grid::{DEFAULT_SCROLLBACK_LIMIT, Grid};
 use crate::core::router::Integration;
@@ -25,11 +26,13 @@ pub struct InputBox {
   pub submitted: u64,
   pub scrolled_up: bool,
   pub pulsed_at: Option<Instant>,
+  pub completion: Option<Completion>,
 }
 
 impl InputBox {
   pub fn take(&mut self) -> String {
     self.history_cursor = None;
+    self.completion = None;
     self.draft.clear();
     self.submitted += 1;
     self.pulsed_at = Some(Instant::now());
@@ -39,9 +42,11 @@ impl InputBox {
   pub fn set(&mut self, text: String) {
     self.text = text;
     self.history_cursor = None;
+    self.completion = None;
   }
 
   pub fn history_up(&mut self, session: &Session) {
+    self.completion = None;
     let next = self.history_cursor.map(|c| c + 1).unwrap_or(0);
     if let Some(entry) = session.history_back(next) {
       if self.history_cursor.is_none() {
@@ -53,6 +58,7 @@ impl InputBox {
   }
 
   pub fn history_down(&mut self, session: &Session) {
+    self.completion = None;
     match self.history_cursor {
       None => {}
       Some(0) => {

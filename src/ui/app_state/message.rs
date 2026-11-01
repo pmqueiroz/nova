@@ -120,6 +120,7 @@ pub enum Message {
   InputChanged(String),
   InputSubmit,
   InputHistory(i32),
+  InputComplete(i32),
   ClearBlocks,
   Frame(std::time::Instant),
   NotificationActivated,

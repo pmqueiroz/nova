@@ -1,4 +1,7 @@
+use std::path::Path;
 use std::time::Instant;
+
+use crate::core::completion::{Context, complete};
 
 use crate::core::selection::{BlockSelection, cell_at, url_at};
 use crate::ui::components::session::{self, BlockUrl};
@@ -56,6 +59,40 @@ impl Nova {
       }
     }
     iced::Task::none()
+  }
+
+  pub(super) fn handle_input_complete(&mut self, delta: i32) -> iced::Task<Message> {
+    let Some(tab) = self.tabs.get_mut(self.active_index) else {
+      return iced::Task::none();
+    };
+    let pane_id = tab.active_pane().id;
+    let pane = tab.active_pane_mut();
+    if !pane.integration.is_blocks() || pane.session.is_running() {
+      return iced::Task::none();
+    }
+    if let Some(cycle) = pane.input.completion.as_mut() {
+      pane.input.text = cycle.step(delta);
+    } else {
+      let history: Vec<&str> = pane
+        .session
+        .history
+        .iter()
+        .map(|e| e.text.as_str())
+        .collect();
+      let ctx = Context {
+        cwd: Path::new(&pane.session.cwd),
+        home: dirs::home_dir(),
+        posix: pane.integration.readline,
+        history,
+      };
+      let Some((text, cycle)) = complete(&pane.input.text, &ctx) else {
+        return iced::Task::none();
+      };
+      pane.input.text = text;
+      pane.input.history_cursor = None;
+      pane.input.completion = cycle;
+    }
+    iced::widget::operation::move_cursor_to_end(session::input_id(pane_id))
   }
 
   pub(super) fn handle_clear_blocks(&mut self) -> iced::Task<Message> {

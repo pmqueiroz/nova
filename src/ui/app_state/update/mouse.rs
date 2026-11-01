@@ -3,8 +3,9 @@ use iced::{Point, mouse};
 use crate::sys::pty::PtyCommand;
 
 use super::super::helpers::{
-  extract_selection, find_word_boundaries, get_display_row, pixel_to_cell, resize_direction,
-  resolve_hovered_url,
+  SPLIT_DIVIDER_WIDTH, alternate_scroll_keys, extract_selection, find_word_boundaries,
+  get_display_row, pixel_to_cell, raw_pixel_to_cell, resize_direction, resolve_hovered_url,
+  split_widths, wheel_report,
 };
 use super::super::nova::Nova;
 
@@ -245,39 +246,78 @@ impl Nova {
     iced::Task::none()
   }
 
+  fn wheel_button(&self, delta: f32) -> u8 {
+    let mut cb = if delta < 0.0 { 65 } else { 64 };
+    if self.shift_held {
+      cb |= 4;
+    }
+    if self.alt_held {
+      cb |= 8;
+    }
+    if self.ctrl_held {
+      cb |= 16;
+    }
+    cb
+  }
+
+  fn scroll_raw_pane(&self, delta: f32) -> bool {
+    let Some(tab) = self.tabs.get(self.active_index) else {
+      return false;
+    };
+    let split = tab.active_pane_is_split;
+    let Some(grid) = tab.pane(split).raw_grid() else {
+      return false;
+    };
+    let tx = if split {
+      tab.split.as_ref().and_then(|s| s.pty_tx.as_ref())
+    } else {
+      tab.pty_tx.as_ref()
+    };
+    let Some(tx) = tx else {
+      return true;
+    };
+    let bytes = if grid.mouse_mode != crate::core::grid::MouseMode::None {
+      let pane_x = if split {
+        split_widths(self.window_size.width, tab.split_ratio).0 + SPLIT_DIVIDER_WIDTH
+      } else {
+        0.0
+      };
+      let compact = crate::ui::theme::tokens::block::is_compact(self.window_size.width);
+      let (col, row) = raw_pixel_to_cell(
+        self.cursor_position,
+        pane_x,
+        compact,
+        self.settings.theme.font.size,
+      );
+      wheel_report(
+        self.wheel_button(delta),
+        col.min(grid.cols.saturating_sub(1)),
+        row.min(grid.rows.saturating_sub(1)),
+        grid.mouse_sgr,
+      )
+    } else {
+      alternate_scroll_keys(delta)
+    };
+    let _ = tx.try_send(PtyCommand::Input(bytes));
+    true
+  }
+
   pub(super) fn handle_scroll(&mut self, delta: f32) {
     if self.settings_open {
       return;
     }
     let font_size = self.settings.theme.font.size;
+    if self.scroll_raw_pane(delta) {
+      return;
+    }
+    let cb = self.wheel_button(delta);
     if let Some(tab) = self.tabs.get_mut(self.active_index) {
       if tab.grid.mouse_mode != crate::core::grid::MouseMode::None && !self.shift_held {
-        if let Some((col, row)) = pixel_to_cell(self.cursor_position, font_size) {
-          let is_down = delta < 0.0;
-          let btn = if is_down { 65 } else { 64 };
-          let mut cb = btn;
-          if self.shift_held {
-            cb |= 4;
-          }
-          if self.alt_held {
-            cb |= 8;
-          }
-          if self.ctrl_held {
-            cb |= 16;
-          }
-
-          if let Some(tx) = &tab.pty_tx {
-            if tab.grid.mouse_sgr {
-              let cmd = format!("\x1b[<{};{};{}M", cb, col + 1, row + 1);
-              let _ = tx.try_send(PtyCommand::Input(cmd.into_bytes()));
-            } else {
-              let cb_byte = (cb + 32).min(255) as u8;
-              let cx = (col + 1 + 32).min(255) as u8;
-              let cy = (row + 1 + 32).min(255) as u8;
-              let cmd = vec![b'\x1b', b'[', b'M', cb_byte, cx, cy];
-              let _ = tx.try_send(PtyCommand::Input(cmd));
-            }
-          }
+        if let Some((col, row)) = pixel_to_cell(self.cursor_position, font_size)
+          && let Some(tx) = &tab.pty_tx
+        {
+          let report = wheel_report(cb, col, row, tab.grid.mouse_sgr);
+          let _ = tx.try_send(PtyCommand::Input(report));
         }
         return;
       }

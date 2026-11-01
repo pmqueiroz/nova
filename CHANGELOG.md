@@ -1,5 +1,96 @@
 # Changelog
 
+## [1.0.0](https://github.com/pmqueiroz/nova/compare/v0.24.0...v1.0.0) (2026-11-01)
+
+
+### Features
+
+* **ai:** rebuild ai sheet with actions and typed answers ([f80a367](https://github.com/pmqueiroz/nova/commit/f80a367a8a76e87ae1ee6773db027dfd39c67ec8))
+* **ai:** restyle diagnostic suggestion ([7ff03c3](https://github.com/pmqueiroz/nova/commit/7ff03c3a28153c7917368c3dace9a60041d26b9b))
+* **brand:** apply brand-v2 app icons ([7e315e5](https://github.com/pmqueiroz/nova/commit/7e315e5cb48c67f8a2f4d595ecfde3fc3e43b5b8))
+* **config:** v2 defaults and keybindings ([97a0f98](https://github.com/pmqueiroz/nova/commit/97a0f98809244c1957577931c655425a01328f26))
+* **core:** add block session model ([62cd123](https://github.com/pmqueiroz/nova/commit/62cd123cef74b21fe8d9542f7cb53671cc90d1de))
+* **core:** reflow blocks on resize ([aae1df2](https://github.com/pmqueiroz/nova/commit/aae1df21f35eb133925a70d1b452ec6b03baddff))
+* **core:** route pty output into blocks ([dd68c2d](https://github.com/pmqueiroz/nova/commit/dd68c2d6da959e4a0a3d365d972bbc6f763960e7))
+* **core:** submit commands from nova input ([ad69edf](https://github.com/pmqueiroz/nova/commit/ad69edf8fba9df6d7210e9286acd4f10765b7b2a))
+* **pty:** emit block marks from shell integration ([afa8364](https://github.com/pmqueiroz/nova/commit/afa8364eca137061fe006cefc3f84fadbca2b843))
+* **settings:** rebuild settings sheet ([c8a9933](https://github.com/pmqueiroz/nova/commit/c8a99333c17493f9643c0e12dad85cf53917a511))
+* **settings:** show brand-v2 lockup in about ([d659121](https://github.com/pmqueiroz/nova/commit/d659121d16575b974b3e274b5b0c42850f87d287))
+* **theme:** add motion curves and animation helper ([c6e3e4f](https://github.com/pmqueiroz/nova/commit/c6e3e4fdeb34c3fe3b860bcfee23c91c25127f97))
+* **title-bar:** shrink the title bar to 48px with small action buttons ([dbf5064](https://github.com/pmqueiroz/nova/commit/dbf5064adb3a66ed0d4e5fd0b7f3a2083e014b68))
+* **ui:** add block scroll view ([e8c7295](https://github.com/pmqueiroz/nova/commit/e8c72951dc52ce8d2dd4d2fdab79f77c16530c66))
+* **ui:** add ds button ([8c61437](https://github.com/pmqueiroz/nova/commit/8c61437d45d3808d1a21dc5dad00118003e78081))
+* **ui:** add ds kbd ([61790d4](https://github.com/pmqueiroz/nova/commit/61790d4445e594d331dbd052346ce05a9f95f90a))
+* **ui:** add ds list item ([2a84c19](https://github.com/pmqueiroz/nova/commit/2a84c19a6a8709c5bb2f0ddc44e0f65fea58850a))
+* **ui:** add ds press transform ([d99adeb](https://github.com/pmqueiroz/nova/commit/d99adeb988fcbd4a4b0ed6c92302fc0925d07d91))
+* **ui:** add ds row ([14c12a0](https://github.com/pmqueiroz/nova/commit/14c12a019485bab3d4f58f8477f6a3de69f18dae))
+* **ui:** add ds segmented control ([a8a678a](https://github.com/pmqueiroz/nova/commit/a8a678a8bc2c51e4640d106fd969e0db5e15ab02))
+* **ui:** add ds sheet ([3d52773](https://github.com/pmqueiroz/nova/commit/3d52773dd3586e3697e1850503b8b233b7c2ac0e))
+* **ui:** add ds stepper ([d317211](https://github.com/pmqueiroz/nova/commit/d31721191f8dde86675342b1a9f9d825b48cb567))
+* **ui:** add ds swatch ([3a7794f](https://github.com/pmqueiroz/nova/commit/3a7794faa4e0e55dba2a2a21b4195182d77e645b))
+* **ui:** add ds toggle ([99daa0f](https://github.com/pmqueiroz/nova/commit/99daa0f0c23910cbecc0bcd23b8b62638155eb25))
+* **ui:** add hover scale to ds transform ([2c34103](https://github.com/pmqueiroz/nova/commit/2c3410326a6f49ea15054753844ee10998a25e7f))
+* **ui:** add nova icon set ([cadce6f](https://github.com/pmqueiroz/nova/commit/cadce6f56e2527febb504bec330f0786cf9adc33))
+* **ui:** add warp-style input bar ([c7cb8ef](https://github.com/pmqueiroz/nova/commit/c7cb8ef26955fc4def39f31a4205c9af009898fb))
+* **ui:** compact layout for narrow windows ([8860dae](https://github.com/pmqueiroz/nova/commit/8860daed5674b013fc49b6851022d0b061335a7a))
+* **ui:** drop status bar ([b82c1b1](https://github.com/pmqueiroz/nova/commit/b82c1b1bb75a465151447473ac8d4f4d11bc60fd))
+* **ui:** forward keys to running command ([ef05709](https://github.com/pmqueiroz/nova/commit/ef05709045611ea47d914d4ecb6e50884d34bace))
+* **ui:** keep the last fullscreen frame in the block ([a465326](https://github.com/pmqueiroz/nova/commit/a4653264b98989b989d0570d43064241f2cbd30a))
+* **ui:** map ansi palette to ds colors ([e62bef9](https://github.com/pmqueiroz/nova/commit/e62bef9eca95168336945ec094d98fc7e842929d))
+* **ui:** move paste warning to sheet ([6d559dd](https://github.com/pmqueiroz/nova/commit/6d559dd9e787d3d05aef9b790a8518aa136fef7d))
+* **ui:** move shell picker to sheet ([f08a14b](https://github.com/pmqueiroz/nova/commit/f08a14b437afc3a1bfebc63bd14eaf727f91382d))
+* **ui:** move tabs into title bar ([5383b5c](https://github.com/pmqueiroz/nova/commit/5383b5cc07e9241a3989683dfcbd7060be46dfe2))
+* **ui:** raw terminal takeover for full-screen apps ([343e15b](https://github.com/pmqueiroz/nova/commit/343e15b38505b8922f0e6a8681a77be708d0ce0c))
+* **ui:** rebuild command palette ([04ce9fa](https://github.com/pmqueiroz/nova/commit/04ce9facd2bac2de45929d581dd2bb1b05a8a7b0))
+* **ui:** render command blocks ([76434f1](https://github.com/pmqueiroz/nova/commit/76434f10524daf80b3c0f997a4bb9832cc146804))
+* **ui:** restyle search for blocks ([2b2a660](https://github.com/pmqueiroz/nova/commit/2b2a66055f3d7cc81a7f1d64d2d7a2475ad1adac))
+* **ui:** restyle split panes ([9106a4c](https://github.com/pmqueiroz/nova/commit/9106a4cfffed05adf48a2d3f15d8b7511b82c807))
+* **ui:** restyle title bar ([5334dc5](https://github.com/pmqueiroz/nova/commit/5334dc55facce761f134099bbf28d3285b395211))
+* **ui:** restyle window surface ([f8846f9](https://github.com/pmqueiroz/nova/commit/f8846f90f13e529ed0d35d9be00d401328902f2a))
+* **ui:** scroll fullscreen programs with the mouse wheel ([5b46d4e](https://github.com/pmqueiroz/nova/commit/5b46d4e8b5447e8e2d7777928be1bafe5d386c53))
+* **ui:** select and open links inside blocks ([7aa5254](https://github.com/pmqueiroz/nova/commit/7aa5254337016caa14dc45e34b15cbd4396f6867))
+* **ui:** tab completion in the input bar ([4b04afb](https://github.com/pmqueiroz/nova/commit/4b04afb9e20319b17b9072169607497edbda77e4))
+* **ui:** v2 global shortcuts ([8974e19](https://github.com/pmqueiroz/nova/commit/8974e197125f5304ebf130d5033ce5cdd37b7bbf))
+
+
+### Bug Fixes
+
+* **core:** prefix readline submits with kill-line ([ceea08b](https://github.com/pmqueiroz/nova/commit/ceea08b4da0e71d8bbb9bf7a02d3bbdd1b3c4c84))
+* **core:** recover block mode after a slow shell start ([3410391](https://github.com/pmqueiroz/nova/commit/341039100b616488182db08ca0ec2f9cd45bdb58))
+* **core:** trim blank lines left by block reflow ([d0ca68e](https://github.com/pmqueiroz/nova/commit/d0ca68ee5e4a11d5502d05fd3383b8727c7a6fc4))
+* gate windows-only constants to silence dead code on unix ([92c1a99](https://github.com/pmqueiroz/nova/commit/92c1a995d187b135a01c3fdc2ccaf3c84331f190))
+* **pty:** keep block marks in order under conpty ([372889a](https://github.com/pmqueiroz/nova/commit/372889aedbea5e925d001d95c08f5f62a061b262))
+* **pty:** let pagers use the alternate screen ([fa08b58](https://github.com/pmqueiroz/nova/commit/fa08b58952962f5ad74f7265b8f799ebf7d21e15))
+* **pty:** report powershell command-not-found as exit 127 ([00422ae](https://github.com/pmqueiroz/nova/commit/00422ae181b2deba3c80670b23e181a20ac9b5fa))
+* **pty:** show a startup error instead of panicking when the program cannot start ([b5db7bb](https://github.com/pmqueiroz/nova/commit/b5db7bba0f7ca5d37a8c88da0a0e1cafe917a059))
+* **pty:** use text marks for cmd and git bash under conpty ([c8bdb65](https://github.com/pmqueiroz/nova/commit/c8bdb65457104e2ab2d4453e7362065f4eea3ae9))
+* **sheet:** keep a bottom gap matching the top offset ([c7408c0](https://github.com/pmqueiroz/nova/commit/c7408c07109aaf1f6ed4f6c7eae8ddf0f8ac0919))
+* **tabs:** stop hidden close icon rendering black on inactive tabs ([682341f](https://github.com/pmqueiroz/nova/commit/682341f9847dc0509997a463e40864a68b3aaf20))
+* **terminal:** drop trailing blanks when reflowing lines ([facb81e](https://github.com/pmqueiroz/nova/commit/facb81e755345956567d66cba48df5be2b72d296))
+* **terminal:** fill erased cells with the current background color ([fbdd041](https://github.com/pmqueiroz/nova/commit/fbdd041b66a15580504bb900a888755522ba86d7))
+* **terminal:** keep the primary screen intact when resizing on the alt screen ([268209f](https://github.com/pmqueiroz/nova/commit/268209f9e98a09528bbfb9b732826756017ffabc))
+* **terminal:** parse colon-form truecolor with a color space id ([cc7cca3](https://github.com/pmqueiroz/nova/commit/cc7cca3db645352e56f2ddf1a66ae5c6fb21d749))
+* **ui:** draw block elements as solid cell rectangles ([7325729](https://github.com/pmqueiroz/nova/commit/73257297a298bae8ff01e58b85850c565cbe5c1f))
+* **ui:** ease the input bar focus ring ([bc156bd](https://github.com/pmqueiroz/nova/commit/bc156bdfb15e078316d88a0e826c2ab833a1547c))
+* **ui:** size fullscreen programs to the whole pane ([2d25a8c](https://github.com/pmqueiroz/nova/commit/2d25a8c854efeac3616e26454dd66a976f7ff74f))
+* **ui:** stop treating a closed pager pipe as a failure ([fd813d5](https://github.com/pmqueiroz/nova/commit/fd813d547d91e4b41159774f3c382a2487097499))
+* **ui:** use iced transparent color for window background ([b56a505](https://github.com/pmqueiroz/nova/commit/b56a50542472dc042e16ecac43b8e7b9bf058519))
+* **window:** fit initial window size to the monitor ([5771d30](https://github.com/pmqueiroz/nova/commit/5771d303de9a1571247a218c2b2f4ff4de79e63d))
+* **windows:** stop powershell help from blocking on the more pager ([25b7bc1](https://github.com/pmqueiroz/nova/commit/25b7bc19b3c7a37f0d364a5c09ff7f0a16017e65))
+
+
+### Performance Improvements
+
+* **blocks:** resolve a block's line range once instead of per line ([67e02df](https://github.com/pmqueiroz/nova/commit/67e02dfe133491cebf733af4275ef3fbfbd071f8))
+* **settings:** prewarm the installed font list at startup ([4e04215](https://github.com/pmqueiroz/nova/commit/4e04215f6cb77bf719d36d3710e34cc1ee2a5ba6))
+* **sheet:** drop the pop scale so text is not re-rasterized every frame ([2175ca6](https://github.com/pmqueiroz/nova/commit/2175ca62eaac25d34ba544ea177db16a7945c743))
+* **ui:** only shape and draw visible block output lines ([76420a3](https://github.com/pmqueiroz/nova/commit/76420a3be305e63fed0fb545bc00d42ee1d69196))
+
+
+### Miscellaneous Chores
+
+* release 1.0.0 ([2cd8695](https://github.com/pmqueiroz/nova/commit/2cd8695c84decff977209c0000815237246a2c52))
+
 ## [0.24.0](https://github.com/pmqueiroz/nova/compare/v0.23.2...v0.24.0) (2026-05-19)
 
 

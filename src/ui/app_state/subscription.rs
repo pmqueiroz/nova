@@ -172,7 +172,10 @@ fn handle_key_pressed(
   }
   if AI_OPEN.load(Ordering::SeqCst) {
     return match &key {
-      Key::Named(Named::Escape) => Some(Message::CloseAiOverlay),
+      Key::Named(Named::Escape) => Some(Message::AiEscape),
+      Key::Named(Named::ArrowUp) => Some(Message::AiNavigate(-1)),
+      Key::Named(Named::ArrowDown) => Some(Message::AiNavigate(1)),
+      Key::Named(Named::Enter) => Some(Message::AiEnter),
       _ => None,
     };
   }

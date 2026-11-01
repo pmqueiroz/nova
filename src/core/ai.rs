@@ -39,6 +39,31 @@ pub fn extract_last_output(grid: &Grid) -> String {
     .join("\n")
 }
 
+pub fn split_answer(text: &str) -> (String, Option<String>) {
+  let mut body = String::new();
+  let mut cmd: Option<String> = None;
+  let mut in_code = false;
+  for line in text.lines() {
+    if line.trim_start().starts_with("```") {
+      in_code = !in_code;
+      continue;
+    }
+    if in_code {
+      if cmd.is_none() && !line.trim().is_empty() {
+        cmd = Some(line.trim().trim_start_matches("$ ").to_string());
+      }
+      continue;
+    }
+    if !line.trim().is_empty() {
+      if !body.is_empty() {
+        body.push(' ');
+      }
+      body.push_str(line.trim());
+    }
+  }
+  (body.replace("**", ""), cmd)
+}
+
 pub async fn query(q: AiQuery) -> Result<String, String> {
   if q.api_key.is_empty() {
     return Err("No API key configured. Add one in Settings → AI.".into());
@@ -162,5 +187,33 @@ fn build_user_message(context: &str, question: &str) -> String {
     question.to_string()
   } else {
     format!("Context:\n{}\n\nQuestion: {}", context, question)
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn split_answer_takes_first_command_and_flattens_prose() {
+    let (body, cmd) = split_answer(
+      "`clsd` is a **typo**.
+Try this:
+```bash
+$ cls
+```
+```bash
+other
+```",
+    );
+    assert_eq!(body, "`clsd` is a typo. Try this:");
+    assert_eq!(cmd.as_deref(), Some("cls"));
+  }
+
+  #[test]
+  fn split_answer_without_code() {
+    let (body, cmd) = split_answer("Just text.");
+    assert_eq!(body, "Just text.");
+    assert!(cmd.is_none());
   }
 }

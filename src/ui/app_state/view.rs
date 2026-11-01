@@ -317,13 +317,16 @@ impl Nova {
         self.window_size.height,
       );
       components::app(stack![col, palette], self.window_maximized, pop)
-    } else if self.ai_overlay_open || self.ai_loading {
-      let overlay = components::ai_overlay(
-        &self.ai_input,
-        self.ai_response.as_deref(),
-        self.ai_loading,
-        self.ai_is_error,
-      );
+    } else if self.ai_overlay_open {
+      let overlay = components::ai_sheet(components::AiSheetView {
+        query: &self.ai_input,
+        items: self.ai_items(),
+        selected: self.ai_selected,
+        answer: self.ai_answer.as_ref(),
+        now: self.now,
+        progress: self.sheet_progress(),
+        window_height: self.window_size.height,
+      });
       components::app(stack![col, overlay], self.window_maximized, pop)
     } else if self.shell_picker_open {
       let picker = components::shell_picker(

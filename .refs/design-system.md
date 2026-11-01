@@ -144,3 +144,14 @@ renderer default). 256-color and truecolor values pass through.
   close, hovering selects. Pressing the palette shortcut again closes it.
   The sheet pops with `Nova::sheet_progress` (200 ms spring from
   `sheet_opened_at`).
+- `src/ui/components/ai_sheet.rs` — AI sheet (`NvAI`). List view: accent
+  sparkle + 18 px "Describe what you want to do"; items `Suggest a command
+  for “q”` (only with a query), `Fix “cmd”` with a red `exit N` hint (only
+  when the active pane's last block failed) and `Explain last command`.
+  Answer view: back button, title (Suggested command / Diagnosis / Explain)
+  and sparkle; "Thinking" dots while the request runs; the reply types in at
+  2 chars per 16 ms with a blinking accent caret; backtick spans render as
+  code chips (surface-2); errors are red. When done, a suggestion card
+  (surface-1, r12, line edge) shows `$ cmd` + primary Run. Footer hints ↩
+  Select/Run, esc Close/Back. Run closes the sheet and submits the command in
+  the active session 120 ms later (`Message::RunCommand`).

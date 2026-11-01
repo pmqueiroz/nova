@@ -107,7 +107,7 @@ impl Nova {
     button: mouse::Button,
   ) -> iced::Task<super::super::message::Message> {
     self.last_mouse_button = Some(button);
-    if self.settings_open || self.command_palette_open || self.ai_overlay_open || self.ai_loading {
+    if self.settings_open || self.command_palette_open || self.ai_overlay_open {
       return iced::Task::none();
     }
     if self.ctrl_held
@@ -216,7 +216,7 @@ impl Nova {
     }
 
     self.is_selecting = false;
-    if self.settings_open || self.command_palette_open || self.ai_overlay_open || self.ai_loading {
+    if self.settings_open || self.command_palette_open || self.ai_overlay_open {
       return iced::Task::none();
     }
 

@@ -23,9 +23,7 @@ use super::helpers::{
   calc_grid, derive_available_shells, extract_selection, rebuild_runtime_theme,
 };
 use super::message::Message;
-use super::nova::{
-  AI_OPEN, KB_RECORDING, Nova, PALETTE_OPEN, SEARCH_OPEN, SETTINGS_OPEN, SettingsTab,
-};
+use super::nova::{KB_RECORDING, Nova, PALETTE_OPEN, SEARCH_OPEN, SETTINGS_OPEN, SettingsTab};
 
 impl Default for Nova {
   fn default() -> Self {
@@ -96,9 +94,8 @@ impl Default for Nova {
       palette_selected: 0,
       ai_overlay_open: false,
       ai_input: String::new(),
-      ai_loading: false,
-      ai_response: None,
-      ai_is_error: false,
+      ai_selected: 0,
+      ai_answer: None,
       diagnostic_banner: None,
       ai_pending_diagnostic: None,
       bell_blink_visible: true,
@@ -210,8 +207,23 @@ impl Nova {
           iced::Task::none()
         }
       }
-      Message::AiSubmit => self.handle_ai_submit(),
-      Message::ExplainError => self.handle_explain_error(),
+      Message::AiSubmit => {
+        let task = self.open_ai_sheet();
+        iced::Task::batch([task, self.start_ai(components::AiKind::Generate)])
+      }
+      Message::ExplainError => {
+        let task = self.open_ai_sheet();
+        let kind = if self
+          .ai_items()
+          .iter()
+          .any(|i| i.kind == components::AiKind::Diagnose)
+        {
+          components::AiKind::Diagnose
+        } else {
+          components::AiKind::Explain
+        };
+        iced::Task::batch([task, self.start_ai(kind)])
+      }
       Message::DiagnosticBannerResponse(result) => {
         self.handle_diagnostic_banner_response(result);
         iced::Task::none()
@@ -577,41 +589,47 @@ impl Nova {
         iced::Task::none()
       }
       Message::OpenAskAi => {
-        self.ai_overlay_open = true;
-        AI_OPEN.store(true, Ordering::SeqCst);
-        self.ai_input = String::new();
-        self.ai_response = None;
-        self.ai_is_error = false;
-        self.ai_loading = false;
-        iced::widget::operation::focus(components::AI_INPUT_ID.clone())
+        if self.ai_overlay_open {
+          return self.close_ai_sheet();
+        }
+        self.ai_input.clear();
+        self.open_ai_sheet()
       }
-      Message::CloseAiOverlay => {
-        self.ai_overlay_open = false;
-        AI_OPEN.store(false, Ordering::SeqCst);
-        self.ai_input = String::new();
-        self.ai_response = None;
-        self.ai_is_error = false;
-        self.ai_loading = false;
-        iced::Task::none()
-      }
+      Message::CloseAiOverlay => self.close_ai_sheet(),
       Message::AiOverlayInputChanged(s) => {
         self.ai_input = s;
+        self.ai_selected = 0;
         iced::Task::none()
       }
-      Message::AiResponseReceived(result) => {
-        self.ai_loading = false;
-        match result {
-          Ok(text) => {
-            self.ai_response = Some(text);
-            self.ai_is_error = false;
-          }
-          Err(e) => {
-            self.ai_response = Some(e);
-            self.ai_is_error = true;
-          }
+      Message::AiResponseReceived(result) => self.handle_ai_response(result),
+      Message::AiHover(i) => {
+        self.ai_selected = i;
+        iced::Task::none()
+      }
+      Message::AiPick(i) => self.handle_ai_pick(i),
+      Message::AiConfirm => {
+        if self.ai_answer.is_none() {
+          return self.handle_ai_pick(self.ai_selected);
         }
         iced::Task::none()
       }
+      Message::AiNavigate(d) => {
+        if self.ai_answer.is_none() {
+          let count = self.ai_items().len();
+          self.ai_selected = components::clamp_step(self.ai_selected, d, count);
+        }
+        iced::Task::none()
+      }
+      Message::AiEscape => self.handle_ai_escape(),
+      Message::AiBack => self.handle_ai_escape(),
+      Message::AiEnter => {
+        if self.ai_answer.is_some() {
+          return self.handle_ai_run();
+        }
+        iced::Task::none()
+      }
+      Message::AiRunSuggestion => self.handle_ai_run(),
+      Message::RunCommand(cmd) => self.handle_run_command(cmd),
       Message::DiagnosticBannerCommand(cmd) => {
         if let Some(tab) = self.tabs.get(self.active_index)
           && let Some(tx) = &tab.pty_tx
@@ -626,20 +644,6 @@ impl Nova {
         }
         self.settings.ai.diagnostic_banner = enabled;
         let _ = config::save(&self.settings);
-        iced::Task::none()
-      }
-      Message::CopyCodeBlock(code) => iced::clipboard::write(code),
-      Message::RunCodeInTerminal(code) => {
-        self.ai_overlay_open = false;
-        AI_OPEN.store(false, Ordering::SeqCst);
-        self.ai_response = None;
-        self.ai_is_error = false;
-        self.ai_loading = false;
-        if let Some(tab) = self.tabs.get(self.active_index)
-          && let Some(tx) = &tab.pty_tx
-        {
-          let _ = tx.try_send(PtyCommand::Input(code.into_bytes()));
-        }
         iced::Task::none()
       }
       Message::SettingsAiProviderChanged(provider) => {

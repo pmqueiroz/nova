@@ -72,9 +72,8 @@ pub struct Nova {
   pub(in crate::ui::app_state) palette_selected: usize,
   pub(in crate::ui::app_state) ai_overlay_open: bool,
   pub(in crate::ui::app_state) ai_input: String,
-  pub(in crate::ui::app_state) ai_loading: bool,
-  pub(in crate::ui::app_state) ai_response: Option<String>,
-  pub(in crate::ui::app_state) ai_is_error: bool,
+  pub(in crate::ui::app_state) ai_selected: usize,
+  pub(in crate::ui::app_state) ai_answer: Option<crate::ui::components::AiAnswer>,
   pub(in crate::ui::app_state) diagnostic_banner: Option<(u8, String, Option<String>)>,
   pub(in crate::ui::app_state) ai_pending_diagnostic: Option<u8>,
   pub(in crate::ui::app_state) bell_blink_visible: bool,
@@ -127,7 +126,6 @@ impl Nova {
     self.command_palette_open
       || self.settings_open
       || self.ai_overlay_open
-      || self.ai_loading
       || self.shell_picker_open
       || self.paste_warning.is_some()
   }
@@ -147,6 +145,11 @@ impl Nova {
 
   pub(in crate::ui::app_state) fn is_animating(&self) -> bool {
     self.window_pop.is_animating(self.now)
+      || (self.ai_overlay_open
+        && self
+          .ai_answer
+          .as_ref()
+          .is_some_and(|a| a.loading || !a.is_done(self.now)))
       || (self.any_sheet_open()
         && self.now.saturating_duration_since(self.sheet_opened_at) < ANIM_TAIL)
       || self.tabs.iter().any(|t| t.appear.is_animating(self.now))

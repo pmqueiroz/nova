@@ -1,8 +1,8 @@
-mod ai_overlay;
+mod ai_sheet;
 mod app;
 pub mod block;
 mod color_row;
-mod command_palette;
+pub mod command_palette;
 #[allow(dead_code)]
 pub mod ds;
 mod input_bar;
@@ -23,7 +23,7 @@ mod term;
 mod title_bar;
 mod traffic_lights;
 
-pub use ai_overlay::*;
+pub use ai_sheet::*;
 pub use app::*;
 pub use color_row::*;
 pub use command_palette::*;

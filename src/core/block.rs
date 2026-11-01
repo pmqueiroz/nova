@@ -7,6 +7,7 @@ use crate::core::grid::{Cell, CommandEntry, DEFAULT_SCROLLBACK_LIMIT, Grid};
 pub type BlockId = u64;
 
 pub const HISTORY_LIMIT: usize = 2000;
+pub const SIGPIPE_EXIT: i32 = 141;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum BlockState {
@@ -45,7 +46,7 @@ impl Block {
   }
 
   pub fn is_error(&self) -> bool {
-    matches!(self.exit_code, Some(c) if c != 0)
+    matches!(self.exit_code, Some(c) if c != 0 && c != SIGPIPE_EXIT)
   }
 
   pub fn is_finished(&self) -> bool {
@@ -355,6 +356,16 @@ mod tests {
     let b = s.block(id).unwrap();
     assert!(b.is_error());
     assert_eq!(s.last_failure().map(|b| b.id), Some(id));
+  }
+
+  #[test]
+  fn closed_pager_pipe_is_not_a_failure() {
+    let mut s = Session::new("~".into(), 80, 24);
+    let id = s.submit("git log").unwrap();
+    s.mark_started();
+    s.finish(SIGPIPE_EXIT);
+    assert!(!s.block(id).unwrap().is_error());
+    assert!(s.last_failure().is_none());
   }
 
   #[test]

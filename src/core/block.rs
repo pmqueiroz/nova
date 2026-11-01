@@ -75,8 +75,14 @@ impl Block {
   }
 
   fn raw_end(&self) -> usize {
-    let used = last_used_row(&self.output).map(|r| r + 1).unwrap_or(0);
-    self.output.scrollback.len() + used
+    let sb = self.output.scrollback.len();
+    if let Some(r) = last_used_row(&self.output) {
+      return sb + r + 1;
+    }
+    (0..sb)
+      .rev()
+      .find(|&i| self.raw_line(i).is_some_and(|l| !row_is_blank(l)))
+      .map_or(0, |i| i + 1)
   }
 
   pub fn first_line(&self) -> usize {
@@ -395,6 +401,20 @@ mod tests {
     );
     assert_eq!(b.line_count(), 1);
     assert_eq!(b.text(), "hi");
+  }
+
+  #[test]
+  fn narrowing_resize_keeps_output_tight() {
+    let mut s = Session::new("~".into(), 40, 8);
+    let id = s.submit("echo").unwrap();
+    feed(
+      s.block_mut(id).unwrap(),
+      "left
+",
+    );
+    s.resize(20, 8);
+    let b = s.block(id).unwrap();
+    assert_eq!(b.text(), "left");
   }
 
   #[test]

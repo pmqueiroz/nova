@@ -294,6 +294,34 @@ pub fn calc_raw_grid(
   (cols.max(MIN_COLS), rows.max(MIN_ROWS))
 }
 
+pub fn raw_pixel_to_cell(pos: Point, pane_x: f32, compact: bool, font_size: f32) -> (usize, usize) {
+  let fs = tokens::block::font_size(font_size);
+  let pad = crate::ui::components::session::raw_padding(compact);
+  let x = (pos.x - pane_x - pad.left).max(0.0);
+  let y = (pos.y - tokens::height::H56 - pad.top).max(0.0);
+  (
+    (x / (fs * CHAR_WIDTH_RATIO)).floor() as usize,
+    (y / (fs * CHAR_HEIGHT_RATIO)).floor() as usize,
+  )
+}
+
+pub fn wheel_report(cb: u8, col: usize, row: usize, sgr: bool) -> Vec<u8> {
+  if sgr {
+    format!("\x1b[<{};{};{}M", cb, col + 1, row + 1).into_bytes()
+  } else {
+    let cb_byte = cb.saturating_add(32);
+    let cx = (col + 1 + 32).min(255) as u8;
+    let cy = (row + 1 + 32).min(255) as u8;
+    vec![b'\x1b', b'[', b'M', cb_byte, cx, cy]
+  }
+}
+
+pub fn alternate_scroll_keys(delta: f32) -> Vec<u8> {
+  let lines = ((delta.abs() * 3.0).round() as usize).max(1);
+  let key: &[u8] = if delta > 0.0 { b"\x1b[A" } else { b"\x1b[B" };
+  key.repeat(lines)
+}
+
 pub fn split_widths(total_width: f32, ratio: f32) -> (f32, f32) {
   let avail = (total_width - SPLIT_DIVIDER_WIDTH).max(0.0);
   (avail * ratio, avail * (1.0 - ratio))
@@ -429,6 +457,21 @@ pub fn os_name() -> String {
 #[cfg(test)]
 mod block_grid_tests {
   use super::*;
+
+  #[test]
+  fn alternate_scroll_sends_three_arrows_per_notch() {
+    assert_eq!(alternate_scroll_keys(1.0), b"\x1b[A\x1b[A\x1b[A".to_vec());
+    assert_eq!(alternate_scroll_keys(-0.1), b"\x1b[B".to_vec());
+  }
+
+  #[test]
+  fn wheel_report_encodes_sgr_and_x10() {
+    assert_eq!(wheel_report(64, 0, 4, true), b"\x1b[<64;1;5M".to_vec());
+    assert_eq!(
+      wheel_report(65, 0, 0, false),
+      vec![0x1b, b'[', b'M', 97, 33, 33]
+    );
+  }
 
   #[test]
   fn block_grid_uses_smaller_output_font() {

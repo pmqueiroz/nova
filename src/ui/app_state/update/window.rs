@@ -48,18 +48,15 @@ fn send_pty_size(pane: &PaneMut<'_>, cols: usize, rows: usize) {
   }
 }
 
-fn active_block_size(pane: &PaneMut<'_>) -> Option<(usize, usize)> {
-  let id = pane.session.active_id()?;
-  pane
-    .session
-    .block(id)
-    .map(|b| (b.output.cols, b.output.rows))
-}
-
 fn needs_size(pane: &PaneMut<'_>, cols: usize, rows: usize) -> bool {
   pane.grid.cols != cols
     || pane.grid.rows != rows
-    || active_block_size(pane).is_some_and(|size| size != (cols, rows))
+    || pane
+      .session
+      .blocks
+      .iter()
+      .filter(|b| !b.keeps_width())
+      .any(|b| (b.output.cols, b.output.rows) != (cols, rows))
 }
 
 fn apply_size(pane: &mut PaneMut<'_>, cols: usize, rows: usize) {

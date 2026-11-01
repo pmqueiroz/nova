@@ -250,11 +250,19 @@ pub fn output_card<'a>(
       .map(|&(_, a, b, current)| (a, b, current))
       .collect(),
   };
-  let card = container(output_lines(lines, fg, size, alpha, Box::new(marks)))
-    .width(Length::Fill)
-    .padding(card_padding(o.compact))
-    .clip(true)
-    .style(move |_| card_style(alpha));
+  let scroll_x = block.scroll_col as f32 * size * tokens::block::CHAR_WIDTH_RATIO;
+  let card = container(output_lines(
+    lines,
+    fg,
+    size,
+    alpha,
+    scroll_x,
+    Box::new(marks),
+  ))
+  .width(Length::Fill)
+  .padding(card_padding(o.compact))
+  .clip(true)
+  .style(move |_| card_style(alpha));
   let (pane_id, block_id) = (o.pane_id, block.id);
   mouse_area(card)
     .on_move(move |p| Message::BlockPointer(pane_id, block_id, p))

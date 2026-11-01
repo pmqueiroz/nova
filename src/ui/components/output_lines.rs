@@ -27,6 +27,7 @@ pub struct OutputLines<'a> {
   fg: Color,
   size: f32,
   alpha: f32,
+  scroll_x: f32,
   marks: MarksFn<'a>,
 }
 
@@ -48,6 +49,7 @@ pub fn output_lines<'a>(
   fg: Color,
   size: f32,
   alpha: f32,
+  scroll_x: f32,
   marks: MarksFn<'a>,
 ) -> OutputLines<'a> {
   OutputLines {
@@ -55,6 +57,7 @@ pub fn output_lines<'a>(
     fg,
     size,
     alpha,
+    scroll_x,
     marks,
   }
 }
@@ -242,27 +245,29 @@ impl<Message> Widget<Message, iced::Theme, iced::Renderer> for OutputLines<'_> {
     let state = tree.state.downcast_ref::<State>();
     let mut cache = state.cache.borrow_mut();
     let mut previous = std::mem::take(&mut *cache);
-    for i in start..end {
-      let Some(cells) = self.lines.get(i) else {
-        continue;
-      };
-      let line_runs = runs(cells, self.fg, (self.marks)(i, cells));
-      if line_runs.is_empty() {
-        continue;
+    renderer.with_layer(clip, |renderer| {
+      for i in start..end {
+        let Some(cells) = self.lines.get(i) else {
+          continue;
+        };
+        let line_runs = runs(cells, self.fg, (self.marks)(i, cells));
+        if line_runs.is_empty() {
+          continue;
+        }
+        let hit = previous.iter().position(|s| {
+          s.line == i && s.alpha == self.alpha && s.size == self.size && s.runs == line_runs
+        });
+        let shaped = match hit {
+          Some(k) => previous.swap_remove(k),
+          None => shape(i, line_runs, self.alpha, self.size),
+        };
+        let origin = Point::new(bounds.x - self.scroll_x, bounds.y + i as f32 * line_h);
+        draw_decorations(renderer, &shaped, origin);
+        draw_block_glyphs(renderer, &shaped, origin);
+        renderer.fill_paragraph(&shaped.paragraph, origin, self.fg, clip);
+        cache.push(shaped);
       }
-      let hit = previous.iter().position(|s| {
-        s.line == i && s.alpha == self.alpha && s.size == self.size && s.runs == line_runs
-      });
-      let shaped = match hit {
-        Some(k) => previous.swap_remove(k),
-        None => shape(i, line_runs, self.alpha, self.size),
-      };
-      let origin = Point::new(bounds.x, bounds.y + i as f32 * line_h);
-      draw_decorations(renderer, &shaped, origin);
-      draw_block_glyphs(renderer, &shaped, origin);
-      renderer.fill_paragraph(&shaped.paragraph, origin, self.fg, clip);
-      cache.push(shaped);
-    }
+    });
   }
 }
 

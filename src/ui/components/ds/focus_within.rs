@@ -3,16 +3,69 @@ use iced::advanced::renderer::{self, Quad};
 use iced::advanced::widget::operation::Focusable;
 use iced::advanced::widget::{self, Operation, Tree, Widget, tree};
 use iced::advanced::{Clipboard, Shell, mouse, overlay};
-use iced::{Element, Event, Length, Rectangle, Size, Vector};
+use iced::animation::Animation;
+use iced::time::Instant;
+use iced::widget::container;
+use iced::{Background, Border, Element, Event, Length, Rectangle, Shadow, Size, Vector, window};
+
+use crate::ui::theme::motion;
+use crate::ui::theme::tokens;
 
 pub struct FocusWithin<'a, Message> {
   content: Element<'a, Message>,
   style: Box<dyn Fn(bool) -> iced::widget::container::Style + 'a>,
 }
 
-#[derive(Default)]
 struct State {
   focused: bool,
+  anim: Animation<bool>,
+  now: Instant,
+}
+
+impl Default for State {
+  fn default() -> Self {
+    Self {
+      focused: false,
+      anim: motion::base(false),
+      now: Instant::now(),
+    }
+  }
+}
+
+fn mix_bg(a: Option<Background>, b: Option<Background>, t: f32) -> Option<Background> {
+  match (a, b) {
+    (Some(Background::Color(x)), Some(Background::Color(y))) => {
+      Some(Background::Color(tokens::mix(x, y, t)))
+    }
+    (x, y) => {
+      if t < 0.5 {
+        x
+      } else {
+        y
+      }
+    }
+  }
+}
+
+pub fn blend(a: container::Style, b: container::Style, t: f32) -> container::Style {
+  container::Style {
+    background: mix_bg(a.background, b.background, t),
+    border: Border {
+      color: tokens::mix(a.border.color, b.border.color, t),
+      width: a.border.width + (b.border.width - a.border.width) * t,
+      radius: if t < 0.5 {
+        a.border.radius
+      } else {
+        b.border.radius
+      },
+    },
+    shadow: Shadow {
+      color: tokens::mix(a.shadow.color, b.shadow.color, t),
+      offset: a.shadow.offset + (b.shadow.offset - a.shadow.offset) * t,
+      blur_radius: a.shadow.blur_radius + (b.shadow.blur_radius - a.shadow.blur_radius) * t,
+    },
+    ..b
+  }
 }
 
 struct AnyFocused(bool);
@@ -97,8 +150,15 @@ impl<Message> Widget<Message, iced::Theme, iced::Renderer> for FocusWithin<'_, M
       .as_widget_mut()
       .operate(&mut tree.children[0], layout, renderer, &mut op);
     let state = tree.state.downcast_mut::<State>();
+    if let Event::Window(window::Event::RedrawRequested(now)) = event {
+      state.now = *now;
+      if state.anim.is_animating(*now) {
+        shell.request_redraw();
+      }
+    }
     if state.focused != op.0 {
       state.focused = op.0;
+      state.anim.go_mut(op.0, state.now);
       shell.request_redraw();
     }
   }
@@ -114,8 +174,9 @@ impl<Message> Widget<Message, iced::Theme, iced::Renderer> for FocusWithin<'_, M
     viewport: &Rectangle,
   ) {
     use iced::advanced::Renderer as _;
-    let focused = tree.state.downcast_ref::<State>().focused;
-    let s = (self.style)(focused);
+    let state = tree.state.downcast_ref::<State>();
+    let t = state.anim.interpolate(0.0, 1.0, state.now);
+    let s = blend((self.style)(false), (self.style)(true), t);
     if let Some(bg) = s.background {
       renderer.fill_quad(
         Quad {
@@ -189,5 +250,39 @@ impl<Message> Widget<Message, iced::Theme, iced::Renderer> for FocusWithin<'_, M
 impl<'a, Message: 'a> From<FocusWithin<'a, Message>> for Element<'a, Message> {
   fn from(f: FocusWithin<'a, Message>) -> Self {
     Element::new(f)
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use iced::Color;
+
+  #[test]
+  fn blend_interpolates_border_and_background() {
+    let a = container::Style {
+      background: Some(Background::Color(Color::BLACK)),
+      border: Border {
+        color: Color::BLACK,
+        width: 1.0,
+        radius: 4.0.into(),
+      },
+      ..container::Style::default()
+    };
+    let b = container::Style {
+      background: Some(Background::Color(Color::WHITE)),
+      border: Border {
+        color: Color::WHITE,
+        width: 1.0,
+        radius: 4.0.into(),
+      },
+      ..container::Style::default()
+    };
+    let m = blend(a, b, 0.5);
+    assert_eq!(m.border.color.r, 0.5);
+    assert_eq!(
+      m.background,
+      Some(Background::Color(Color::from_rgb(0.5, 0.5, 0.5)))
+    );
   }
 }

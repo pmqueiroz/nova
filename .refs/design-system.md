@@ -212,4 +212,4 @@ renderer default). 256-color and truecolor values pass through.
 | toggle knob 200 ms spring, track 200 ms ease | `ds/toggle.rs` | done |
 | hover background/color transitions (120–200 ms) | buttons, tabs, seg, list items | instant (gap): iced styles switch per status; animating them needs a stateful wrapper per widget |
 | tab close × opacity 120 ms | `tab_bar.rs` | instant (gap) |
-| input bar focus ring 200 ms | `input_bar.rs` / `ds/focus_within.rs` | instant (gap) |
+| input bar focus ring 200 ms | `input_bar.rs` / `ds/focus_within.rs` (`blend`) | done |

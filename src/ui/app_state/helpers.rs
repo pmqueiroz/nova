@@ -276,9 +276,10 @@ pub fn block_output_width(pane_width: f32, timestamps: bool, compact: bool) -> f
 }
 
 pub fn block_viewport_height(window_height: f32) -> f32 {
+  use crate::ui::components::TITLE_BAR_HEIGHT;
   use tokens::height::H56;
   use tokens::space::{S16, S24, S32};
-  (window_height - H56 - (H56 + S16) - S16 - S24 - S32).max(0.0)
+  (window_height - TITLE_BAR_HEIGHT - (H56 + S16) - S16 - S24 - S32).max(0.0)
 }
 
 pub fn calc_block_grid(
@@ -305,7 +306,8 @@ pub fn calc_raw_grid(
   let fs = tokens::block::font_size(font_size);
   let pad = crate::ui::components::session::raw_padding(compact);
   let width = (pane_width - pad.left - pad.right).max(0.0);
-  let height = (window_height - tokens::height::H56 - pad.top - pad.bottom).max(0.0);
+  let height =
+    (window_height - crate::ui::components::TITLE_BAR_HEIGHT - pad.top - pad.bottom).max(0.0);
   let cols = (width / (fs * CHAR_WIDTH_RATIO)).floor() as usize;
   let rows = (height / (fs * CHAR_HEIGHT_RATIO)).floor() as usize;
   (cols.max(MIN_COLS), rows.max(MIN_ROWS))
@@ -315,7 +317,7 @@ pub fn raw_pixel_to_cell(pos: Point, pane_x: f32, compact: bool, font_size: f32)
   let fs = tokens::block::font_size(font_size);
   let pad = crate::ui::components::session::raw_padding(compact);
   let x = (pos.x - pane_x - pad.left).max(0.0);
-  let y = (pos.y - tokens::height::H56 - pad.top).max(0.0);
+  let y = (pos.y - crate::ui::components::TITLE_BAR_HEIGHT - pad.top).max(0.0);
   (
     (x / (fs * CHAR_WIDTH_RATIO)).floor() as usize,
     (y / (fs * CHAR_HEIGHT_RATIO)).floor() as usize,

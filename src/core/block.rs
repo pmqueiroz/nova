@@ -27,6 +27,7 @@ pub struct Block {
   pub state: BlockState,
   pub born: std::time::Instant,
   pub takeover: bool,
+  pub scroll_col: usize,
 }
 
 impl Block {
@@ -44,6 +45,7 @@ impl Block {
       state: BlockState::Pending,
       born: std::time::Instant::now(),
       takeover: false,
+      scroll_col: 0,
     }
   }
 
@@ -53,6 +55,21 @@ impl Block {
 
   pub fn is_finished(&self) -> bool {
     self.state == BlockState::Done
+  }
+
+  pub fn keeps_width(&self) -> bool {
+    self.takeover && self.is_finished()
+  }
+
+  pub fn scroll_to_col(&mut self, col: usize, visible_cols: usize) {
+    let max = self.output.cols.saturating_sub(visible_cols);
+    let visible_cols = visible_cols.max(1);
+    if col < self.scroll_col {
+      self.scroll_col = col;
+    } else if col >= self.scroll_col + visible_cols {
+      self.scroll_col = col + 1 - visible_cols;
+    }
+    self.scroll_col = self.scroll_col.min(max);
   }
 
   pub fn program(&self) -> &str {
@@ -309,7 +326,7 @@ impl Session {
   pub fn resize(&mut self, cols: usize, rows: usize) {
     self.cols = cols.max(1);
     self.rows = rows.max(1);
-    for b in self.blocks.iter_mut() {
+    for b in self.blocks.iter_mut().filter(|b| !b.keeps_width()) {
       if b.output.cols != self.cols || b.output.rows != self.rows {
         b.output.resize(self.cols, self.rows);
       }
@@ -443,6 +460,30 @@ mod tests {
     );
     assert_eq!(b.line_count(), 1);
     assert_eq!(b.text(), "hi");
+  }
+
+  #[test]
+  fn finished_takeover_block_keeps_its_width() {
+    let mut s = Session::new("~".into(), 20, 5);
+    let id = s.submit("claude").unwrap();
+    s.resize(30, 5);
+    s.block_mut(id).unwrap().takeover = true;
+    s.finish(0);
+    s.resize(20, 5);
+    assert_eq!(s.block(id).unwrap().output.cols, 30);
+  }
+
+  #[test]
+  fn scroll_to_col_follows_the_column_and_clamps() {
+    let mut b = Block::new(1, "claude".into(), "~".into(), 30, 5);
+    b.scroll_to_col(25, 20);
+    assert_eq!(b.scroll_col, 6);
+    b.scroll_to_col(29, 20);
+    assert_eq!(b.scroll_col, 10);
+    b.scroll_to_col(40, 20);
+    assert_eq!(b.scroll_col, 10);
+    b.scroll_to_col(3, 20);
+    assert_eq!(b.scroll_col, 3);
   }
 
   #[test]

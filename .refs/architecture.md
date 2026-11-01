@@ -196,6 +196,20 @@ Every supported shell emits private OSC 777 marks (parsed in
   the command finishes (REPLs toggle `?2004` per input line and would
   otherwise flicker). The block grid only sees modes set after
   `command_start`, so the shell's own prompt-time `?2004h` never counts.
+- A finished inline takeover (`Block::keeps_width`: `takeover` and done)
+  keeps its fullscreen width forever: `Session::resize` and
+  `update/window.rs::needs_size` skip it, because reflowing an absolutely
+  positioned frame to card width wraps its dividers and right-aligned
+  text. Every other block that doesn't match the card size is resized
+  (not just the active one), so blocks never stay at a stale width.
+- The card clips the wider frame with no scrollbar. `Block::scroll_col` is
+  a horizontal offset in columns: `OutputLines` draws shifted by
+  `scroll_col × size × CHAR_WIDTH_RATIO` inside a `with_layer(clip)` so
+  nothing paints into the card padding, and `handle_block_pointer` adds it
+  to the hit column. It only changes while a selection is being dragged:
+  a pointer move on the first or last visible column scrolls one column
+  (`scroll_block_to` → `Block::scroll_to_col`, clamped to the frame
+  width).
   `less` skips it when its options contain `X`, and Git exports
   `LESS=FRX` when `LESS` is unset, so `git log` used to page inside a block.
   `sys/pty.rs::nova_env` (shared by every shell branch, with

@@ -135,6 +135,33 @@ impl Nova {
     iced::Task::none()
   }
 
+  fn scroll_block_to(
+    &mut self,
+    pane_id: usize,
+    block_id: u64,
+    col: usize,
+    dragging: bool,
+  ) -> usize {
+    let Some(pane) = self.tabs.iter_mut().find_map(|t| t.pane_by_id_mut(pane_id)) else {
+      return 0;
+    };
+    let visible = pane.session.cols;
+    let Some(block) = pane.session.block_mut(block_id) else {
+      return 0;
+    };
+    if dragging && block.output.cols > visible {
+      let edge = if col + 1 >= visible {
+        block.scroll_col + visible
+      } else if col == 0 {
+        block.scroll_col.saturating_sub(1)
+      } else {
+        block.scroll_col + col
+      };
+      block.scroll_to_col(edge.min(block.output.cols - 1), visible);
+    }
+    block.scroll_col
+  }
+
   fn find_block(&self, pane_id: usize, block_id: u64) -> Option<&crate::core::block::Block> {
     self.tabs.iter().find_map(|t| {
       [false, true]
@@ -155,13 +182,20 @@ impl Nova {
     let fs = tokens::block::font_size(self.settings.theme.font.size);
     let pad =
       crate::ui::components::block::card_padding(tokens::block::is_compact(self.window_size.width));
-    let cell = cell_at(
+    let (line, col) = cell_at(
       p.x,
       p.y,
       pad.left,
       pad.top,
       fs * tokens::block::CHAR_WIDTH_RATIO,
       fs * tokens::block::LINE_HEIGHT,
+    );
+    let dragging = self
+      .block_selection
+      .is_some_and(|s| s.dragging && s.pane_id == pane_id && s.block_id == block_id);
+    let cell = (
+      line,
+      col + self.scroll_block_to(pane_id, block_id, col, dragging),
     );
     self.block_pointer = Some((pane_id, block_id, cell));
     if let Some(sel) = self.block_selection.as_mut()

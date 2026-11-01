@@ -100,8 +100,32 @@ v2 shows each command as a block instead of a raw scrolling grid.
   screen so cursor movement and in-place redraws behave as in a normal
   terminal. Rendered lines = grid scrollback + screen rows up to the last
   non-blank row or the cursor row (`line_count`, `line`, `text`).
+  Finding that range scans the whole screen grid, so anything walking many
+  lines takes `Block::lines()` once (a `Lines` view with the range resolved)
+  instead of calling `line(i)` in a loop: the old per-line calls rescanned
+  the grid for every line and made scrolling cost O(lines × rows × cols).
 - `submit` refuses empty input and refuses while a command is running.
   `clear` drops every block except the running one.
+
+### Block log rendering (`components/output_lines.rs`)
+
+Every wheel tick (`on_scroll` → `BlocksScrolled`) and pointer move re-runs
+`view`, so the log must be cheap to rebuild regardless of how much output it
+holds. A block's output is one `OutputLines` widget, not a `rich_text` per
+line:
+
+- Layout is O(1): `lines × font size × LINE_HEIGHT`, the same fixed line
+  height `handle_block_pointer` assumes when mapping the pointer to a cell.
+- `draw` only shapes lines intersecting the clipped viewport
+  (`visible_range`). Each visible line's runs (`block::runs`, which apply
+  selection/URL/search marks) are rebuilt and compared with the paragraph
+  cached in the widget's tree state; only changed lines are re-shaped. The
+  cache holds just the lines drawn last frame.
+- Run backgrounds, underline and strikethrough are drawn from
+  `Paragraph::span_bounds` the way iced's `rich_text` does, so the look is
+  unchanged.
+- Marks come from a per-block closure (`MarksFn`) built in `output_card`,
+  which pre-filters search matches to the block once per view.
 
 ### Shell integration marks (OSC 777, `sys/pty.rs`)
 

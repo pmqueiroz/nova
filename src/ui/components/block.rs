@@ -202,8 +202,12 @@ pub fn card_style(alpha: f32) -> container::Style {
   }
 }
 
-pub fn card_padding() -> Padding {
-  Padding::from([space::S16, space::S24])
+pub fn card_padding(compact: bool) -> Padding {
+  if compact {
+    Padding::from([space::S12, space::S16])
+  } else {
+    Padding::from([space::S16, space::S24])
+  }
 }
 
 pub fn dots<'a>(born: Instant, now: Instant) -> Element<'a, Message> {
@@ -229,7 +233,12 @@ pub fn dots<'a>(born: Instant, now: Instant) -> Element<'a, Message> {
     .into()
 }
 
-pub fn pending_card<'a>(born: Instant, now: Instant, alpha: f32) -> Element<'a, Message> {
+pub fn pending_card<'a>(
+  born: Instant,
+  now: Instant,
+  alpha: f32,
+  compact: bool,
+) -> Element<'a, Message> {
   container(
     row![
       dots(born, now),
@@ -241,7 +250,7 @@ pub fn pending_card<'a>(born: Instant, now: Instant, alpha: f32) -> Element<'a, 
     .align_y(Alignment::Center),
   )
   .width(Length::Fill)
-  .padding(card_padding())
+  .padding(card_padding(compact))
   .style(move |_| card_style(alpha))
   .into()
 }
@@ -282,7 +291,7 @@ pub fn output_card<'a>(
   });
   let card = container(lines)
     .width(Length::Fill)
-    .padding(card_padding())
+    .padding(card_padding(o.compact))
     .clip(true)
     .style(move |_| card_style(alpha));
   let (pane_id, block_id) = (o.pane_id, block.id);
@@ -322,6 +331,7 @@ pub struct EntryOptions<'a> {
   pub hover_url: Option<(BlockId, usize, usize, usize)>,
   pub matches: &'a [BlockMatch],
   pub current_match: Option<usize>,
+  pub compact: bool,
 }
 
 pub fn block_entry<'a>(block: &Block, o: &EntryOptions<'_>) -> Element<'a, Message> {
@@ -332,7 +342,7 @@ pub fn block_entry<'a>(block: &Block, o: &EntryOptions<'_>) -> Element<'a, Messa
   let pending = block.state == BlockState::Pending
     || (block.state == BlockState::Running && !block.has_output());
   let output: Option<Element<'a, Message>> = if pending {
-    Some(pending_card(block.born, o.now, t_out))
+    Some(pending_card(block.born, o.now, t_out, o.compact))
   } else if block.has_output() {
     Some(output_card(block, out_size, t_out, o))
   } else {

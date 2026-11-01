@@ -114,6 +114,7 @@ pub fn blocks_area<'a>(v: &SessionView<'a>) -> Element<'a, Message> {
       .map(|h| (h.block_id, h.line, h.start, h.end)),
     matches: v.matches,
     current_match: v.current_match,
+    compact: v.compact,
   };
   let mut log = v
     .session

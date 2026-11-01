@@ -82,6 +82,7 @@ impl Nova {
             height,
             font_size,
             timestamps,
+            crate::ui::theme::tokens::block::is_compact(width),
           )
         } else if i == 0 {
           (classic_left, classic_rows)

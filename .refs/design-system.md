@@ -213,3 +213,11 @@ renderer default). 256-color and truecolor values pass through.
 | hover background/color transitions (120–200 ms) | buttons, tabs, seg, list items | instant (gap): iced styles switch per status; animating them needs a stateful wrapper per widget |
 | tab close × opacity 120 ms | `tab_bar.rs` | instant (gap) |
 | input bar focus ring 200 ms | `input_bar.rs` / `ds/focus_within.rs` (`blend`) | done |
+
+## Compact layout (≤ 640 px window, `tokens::block::is_compact`)
+
+Matches the handoff's `@media (max-width:640px)`: the block log padding drops
+to 8/16/16, output cards to 12/16, the input bar hides the "Ask AI" label
+(icon only) and the title bar hides the cwd. `calc_block_grid` and the
+pointer-to-cell mapping use the same compact paddings, so the PTY width
+always matches the visible card.

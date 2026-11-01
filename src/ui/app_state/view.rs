@@ -10,7 +10,6 @@ use iced::{Border, Element, Length, Padding, Theme, border::Radius};
 use crate::core::router::Mode;
 use crate::ui::components;
 
-pub const COMPACT_WIDTH: f32 = 640.0;
 use crate::ui::theme;
 
 impl Nova {
@@ -278,7 +277,11 @@ impl Nova {
             window_width: self.window_size.width,
           })
         } else {
-          components::title(&active_tab.pwd, !self.bell_blink_visible)
+          components::title(
+            &active_tab.pwd,
+            !self.bell_blink_visible,
+            crate::ui::theme::tokens::block::is_compact(self.window_size.width),
+          )
         },
         tb_interaction,
         &self.settings.general.window_controls,
@@ -380,12 +383,12 @@ impl Nova {
           self.cursor_blink_visible,
         ))
         .padding(crate::ui::components::session::scroll_padding(
-          self.window_size.width <= COMPACT_WIDTH,
+          crate::ui::theme::tokens::block::is_compact(self.window_size.width),
         ))
         .into(),
       );
     }
-    let compact = self.window_size.width <= COMPACT_WIDTH;
+    let compact = crate::ui::theme::tokens::block::is_compact(self.window_size.width);
     let view = components::SessionView {
       pane_id: pane.id,
       session: pane.session,

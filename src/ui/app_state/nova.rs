@@ -21,22 +21,17 @@ pub const ANIM_TAIL: std::time::Duration = std::time::Duration::from_millis(400)
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum SettingsTab {
-  General,
-  Theme,
-  Keybindings,
+  Appearance,
+  Shell,
+  Keys,
   Ai,
-  Raw,
   About,
+  Raw,
 }
 
 #[derive(Debug, Clone)]
 pub enum ColorField {
-  Background,
-  Foreground,
   Accent,
-  ForegroundMuted,
-  Border,
-  Cursor,
 }
 
 pub struct Nova {

@@ -162,6 +162,8 @@ pub struct ThemeConfig {
   pub colors: ThemeColorsConfig,
   #[serde(default)]
   pub cursor: CursorConfig,
+  #[serde(default)]
+  pub timestamps: bool,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -436,10 +438,6 @@ pub fn save(config: &Config) -> anyhow::Result<()> {
   Ok(())
 }
 
-pub fn default_config_str() -> &'static str {
-  DEFAULT_CONFIG
-}
-
 pub fn reset_to_defaults() -> anyhow::Result<Config> {
   let path = config_path().ok_or_else(|| anyhow::anyhow!("cannot determine config path"))?;
   std::fs::write(&path, DEFAULT_CONFIG)?;
@@ -460,6 +458,12 @@ mod tests {
   #[test]
   fn default_config_parses() {
     toml::from_str::<Config>(DEFAULT_CONFIG).unwrap();
+  }
+
+  #[test]
+  fn timestamps_default_off_for_old_configs() {
+    let c: Config = toml::from_str(DEFAULT_CONFIG).unwrap();
+    assert!(!c.theme.timestamps);
   }
 
   #[test]

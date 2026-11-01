@@ -388,7 +388,6 @@ pub fn rebuild_runtime_theme(colors: &config::ThemeColorsConfig) {
     background: parse(&colors.background),
     foreground: parse(&colors.foreground),
     accent: parse(&colors.accent),
-    foreground_muted: parse(&colors.foreground_muted),
     border: parse(&colors.border),
     cursor: parse(&colors.cursor),
   });

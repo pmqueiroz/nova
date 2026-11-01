@@ -174,3 +174,20 @@ renderer default). 256-color and truecolor values pass through.
   right-click on the title bar `+` or the palette item "New tab with shell…"
   (only when more than one shell is available; otherwise it opens the
   default directly). ↑/↓ clamp, ↩ opens, esc / scrim close.
+- `src/ui/components/settings.rs` — settings sheet (`NvSettings`, 640 wide).
+  Head: "Settings" + seg [Appearance, Shell, Keys, AI, About]. Body: DS rows
+  in a scrollable capped to the window. Foot: config path in mono (click opens
+  the read-only raw view) + primary Done; esc / scrim close.
+  - Appearance: Text size stepper (14–20, step 2, `step_font`), Timestamps
+    toggle (`theme.timestamps`), Accent swatches (Blue/Mint/Amber/Rose, which
+    set accent and cursor), Font pick list, Cursor seg, Cursor blink.
+  - Shell: Editor seg nano/vim/code, Bell seg Off/Flash/Sound, Window controls
+    seg, shell list with remove buttons + add field, Initial command, Keep
+    finished tabs.
+  - Keys: one row per binding with kbd chips; click to re-record ("Press
+    keys…" in accent), click again or esc to cancel.
+  - AI: provider seg, model, API key (secure), base URL, auto-diagnose toggle.
+  - About: brand, version, "Reset to defaults".
+  Text fields use `field_style` (surface-1, r8, line edge, accent α .48 when
+  focused). The background/foreground/border color editors are gone (the DS
+  owns those); the fields stay in the config file for compatibility.

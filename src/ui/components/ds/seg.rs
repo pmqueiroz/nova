@@ -1,5 +1,5 @@
 use iced::widget::{Row, button, container, text};
-use iced::{Background, Border, Color, Element, Padding};
+use iced::{Background, Border, Color, Element, Length, Padding};
 
 use super::transform::press;
 use crate::ui::theme::tokens::{self, height, radius, space};
@@ -50,7 +50,7 @@ where
     .fold(Row::new().spacing(space::S4), |r, (v, label)| {
       let on = v == value;
       r.push(press(
-        button(text(*label).size(tokens::text::T14))
+        button(container(text(*label).size(tokens::text::T14)).center_y(Length::Fill))
           .height(height::H32)
           .padding(Padding::from([0.0, space::S16]))
           .style(move |_t, s| seg_button_style(on, s))

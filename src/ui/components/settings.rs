@@ -6,6 +6,7 @@ use iced::widget::{
 use iced::{Alignment, Background, Border, Color, ContentFit, Element, Length, Padding};
 
 use crate::core::config::{self, AiProvider, BellType, CursorStyle, WindowControls};
+use crate::core::update;
 use crate::ui::app_state::{ColorField, Message, SettingsTab};
 use crate::ui::components::ds::button::{IconSize, Variant, btn, icon_button};
 use crate::ui::components::ds::kbd::{binding_labels, keys};
@@ -394,25 +395,66 @@ fn ai_tab<'a>(s: &'a config::Config) -> Element<'a, Message> {
   ])
 }
 
-fn about<'a>() -> Element<'a, Message> {
-  container(
+pub fn update_line(status: &update::Status) -> Option<String> {
+  match status {
+    update::Status::Unknown => None,
+    update::Status::Checking => Some("Checking for updates…".into()),
+    update::Status::UpToDate => Some("You're on the latest version".into()),
+    update::Status::Available(r) => Some(format!("Version {} is available", r.version)),
+    update::Status::Failed(e) => Some(format!("Update check failed: {e}")),
+  }
+}
+
+fn update_button<'a>(status: &update::Status) -> Element<'a, Message> {
+  let check = btn::<Message>(Variant::Default).label("Check for updates");
+  match status {
+    update::Status::Available(r) => btn::<Message>(Variant::Primary)
+      .label(format!("Download {}", r.version))
+      .on_press(Message::OpenUpdatePage)
+      .into_element(),
+    update::Status::Checking => check.into_element(),
+    _ => check.on_press(Message::CheckForUpdates).into_element(),
+  }
+}
+
+fn about<'a>(s: &'a config::Config, status: &update::Status) -> Element<'a, Message> {
+  let header = container(
     column![
       image(BRAND_HANDLE.clone())
         .width(240)
         .content_fit(ContentFit::Contain),
-      text(format!("Version {}", env!("CARGO_PKG_VERSION")))
+      text(format!("Version {}", update::current_version()))
         .size(tokens::text::T14)
         .color(tokens::FG_3),
-      btn::<Message>(Variant::Ghost)
-        .label("Reset to defaults")
-        .on_press(Message::SettingsResetAll),
     ]
+    .push(update_line(status).map(|l| text(l).size(tokens::text::T14).color(tokens::FG_2)))
+    .push(
+      row![
+        update_button(status),
+        btn::<Message>(Variant::Ghost)
+          .label("Reset to defaults")
+          .on_press(Message::SettingsResetAll),
+      ]
+      .spacing(space::S8),
+    )
     .spacing(space::S16)
     .align_x(Alignment::Center),
   )
   .width(Length::Fill)
   .padding(Padding::from([space::S24, 0.0]))
-  .center_x(Length::Fill)
+  .center_x(Length::Fill);
+
+  column![
+    header,
+    rows(vec![(
+      "Check for updates".into(),
+      Some("On startup and once a day".into()),
+      toggle(
+        s.general.check_updates,
+        Message::SettingsCheckUpdatesToggled
+      ),
+    )]),
+  ]
   .into()
 }
 
@@ -438,6 +480,7 @@ pub struct SettingsView<'a> {
   pub timestamps: bool,
   pub progress: f32,
   pub window_height: f32,
+  pub update: &'a update::Status,
 }
 
 pub fn settings_modal<'a>(v: SettingsView<'a>) -> Element<'a, Message> {
@@ -457,7 +500,7 @@ pub fn settings_modal<'a>(v: SettingsView<'a>) -> Element<'a, Message> {
     SettingsTab::Shell => shell(v.settings, v.shell_input),
     SettingsTab::Keys => keys_tab(v.settings, v.recording),
     SettingsTab::Ai => ai_tab(v.settings),
-    SettingsTab::About => about(),
+    SettingsTab::About => about(v.settings, v.update),
     SettingsTab::Raw => raw(v.raw_content),
   };
   let max_body =

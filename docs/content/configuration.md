@@ -30,6 +30,7 @@ Non-macOS default excerpt:
 [general]
 editor = "nano"
 bell = "none"
+check-updates = true
 
 [theme.font]
 size = 16
@@ -75,6 +76,7 @@ api_key = ""
 - `wait-after-command` (bool): Wait for a key after the initial command exits.
 - `window-controls` (string): One of `traffic-lights` or `system`.
 - `scrollback` (integer, optional): Maximum scrollback lines per pane. Defaults to `10000`.
+- `check-updates` (bool): Check GitHub for a newer release on startup and once a day. Defaults to `true`. Turn it off if a package manager keeps Nova up to date. Also in Settings → About.
 
 Example:
 

@@ -98,6 +98,7 @@ pub struct Nova {
   pub(in crate::ui::app_state) block_pointer: Option<(usize, u64, (usize, usize))>,
   pub(in crate::ui::app_state) block_url: Option<crate::ui::components::session::BlockUrl>,
   pub(in crate::ui::app_state) window_pop: Animation<bool>,
+  pub(in crate::ui::app_state) update_status: crate::core::update::Status,
 }
 
 impl Nova {

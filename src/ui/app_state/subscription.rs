@@ -2,7 +2,7 @@ use super::helpers::matches_kb;
 use super::message::Message;
 use super::nova::{
   ACTIVE_KITTY_FLAGS, AI_OPEN, HAS_BLOCK_SELECTION, INPUT_OWNS_KEYS, KB_RECORDING, Nova,
-  PALETTE_OPEN, SEARCH_OPEN, SETTINGS_OPEN,
+  PALETTE_OPEN, PASTE_OPEN, SEARCH_OPEN, SETTINGS_OPEN,
 };
 
 use iced::keyboard::Key;
@@ -167,6 +167,13 @@ fn handle_key_pressed(
   if SETTINGS_OPEN.load(Ordering::SeqCst) {
     return match &key {
       Key::Named(Named::Escape) => Some(Message::CloseSettings),
+      _ => None,
+    };
+  }
+  if PASTE_OPEN.load(Ordering::Relaxed) {
+    return match &key {
+      Key::Named(Named::Escape) => Some(Message::PasteWarningCancel),
+      Key::Named(Named::Enter) => Some(Message::PasteWarningConfirm),
       _ => None,
     };
   }
@@ -480,6 +487,7 @@ impl Nova {
       pane.integration.is_blocks() && !pane.session.is_running()
     });
     INPUT_OWNS_KEYS.store(owns, Ordering::Relaxed);
+    PASTE_OPEN.store(self.paste_warning.is_some(), Ordering::Relaxed);
     HAS_BLOCK_SELECTION.store(
       self.block_selection.is_some_and(|s| !s.is_empty()),
       Ordering::Relaxed,

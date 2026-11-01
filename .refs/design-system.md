@@ -162,3 +162,10 @@ renderer default). 256-color and truecolor values pass through.
   label, the message (14 px, backtick code chips) and, when the model returned
   a fix, the `.nv-suggest` row with Run, which submits it in the pane. Classic
   panes show the same card above the bottom edge.
+- `src/ui/components/paste_warning.rs` — paste confirmation sheet for
+  multi-line or risky clipboard text (`is_dangerous_paste`). Head: red alert
+  icon + "Paste multiple lines?" / "Paste this command?"; body: reason (14 px
+  fg-3) and a surface-1 r8 preview (first 8 lines, "+N more lines"); foot:
+  Cancel (ghost) and Paste (primary). esc cancels, ↩ pastes. In block mode at
+  the prompt, pasted text goes into the input bar with lines joined by `; `;
+  otherwise it is written to the PTY (bracketed paste when enabled).

@@ -14,6 +14,7 @@ pub static AI_OPEN: AtomicBool = AtomicBool::new(false);
 pub static SEARCH_OPEN: AtomicBool = AtomicBool::new(false);
 pub static INPUT_OWNS_KEYS: AtomicBool = AtomicBool::new(false);
 pub static HAS_BLOCK_SELECTION: AtomicBool = AtomicBool::new(false);
+pub static PASTE_OPEN: AtomicBool = AtomicBool::new(false);
 
 pub const ANIM_TAIL: std::time::Duration = std::time::Duration::from_millis(400);
 

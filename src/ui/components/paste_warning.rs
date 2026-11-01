@@ -1,223 +1,156 @@
-use iced::{
-  Border, Color, Element, Length, Padding,
-  border::Radius,
-  mouse,
-  widget::{button, column, container, mouse_area, row, rule, scrollable, space, stack, text},
-};
+use iced::widget::{Column, Row, container, row, scrollable, text};
+use iced::{Background, Border, Element, Length, Padding};
 
-use crate::ui::{app_state::Message, theme};
+use crate::ui::app_state::Message;
+use crate::ui::components::ds::button::{Variant, btn};
+use crate::ui::components::ds::sheet::{self, Sheet};
+use crate::ui::icons::{Icon, icon};
+use crate::ui::theme::font;
+use crate::ui::theme::tokens::{self, radius, space};
 
-pub fn paste_warning_overlay<'a>(content: &'a str) -> Element<'a, Message> {
-  let rt = theme::color::runtime();
-  let fg = rt.foreground;
-  let fg_muted = rt.foreground_muted;
-  let bg = rt.background;
-  let border_c = rt.border;
-  drop(rt);
+pub const PREVIEW_MAX_LINES: usize = 8;
 
-  let red = Color {
-    r: 0.9,
-    g: 0.3,
-    b: 0.3,
-    a: 1.0,
-  };
-  let orange = Color {
-    r: 0.95,
-    g: 0.6,
-    b: 0.1,
-    a: 1.0,
-  };
-
-  let reason = if content.contains('\n') {
-    "Contains multiple lines. Pasting may execute unintended commands."
+pub fn paste_title(content: &str) -> &'static str {
+  if content.contains('\n') {
+    "Paste multiple lines?"
   } else {
-    "May contain dangerous commands."
-  };
+    "Paste this command?"
+  }
+}
 
-  let backdrop = mouse_area(
-    container(iced::widget::Space::new())
-      .width(Length::Fill)
-      .height(Length::Fill)
-      .style(|_| container::Style {
-        background: Some(
-          Color {
-            a: 0.55,
-            ..Color::BLACK
-          }
-          .into(),
-        ),
-        ..Default::default()
-      }),
-  )
-  .on_press(Message::PasteWarningCancel)
-  .interaction(mouse::Interaction::Idle);
+pub fn paste_reason(content: &str) -> &'static str {
+  if content.contains('\n') {
+    "Each line may run as a separate command."
+  } else {
+    "It looks like it could change or delete files."
+  }
+}
 
-  let header = container(
-    row![
-      text("Paste Warning")
-        .size(13)
-        .color(orange)
-        .font(theme::font::bold()),
-      space::horizontal(),
-      button(text("×").size(14).color(fg_muted))
-        .style(|_t, _s| button::Style {
-          background: Some(Color::TRANSPARENT.into()),
-          ..Default::default()
-        })
-        .on_press(Message::PasteWarningCancel)
-        .padding(Padding::from([2, 6])),
-    ]
-    .align_y(iced::alignment::Vertical::Center),
-  )
-  .padding(Padding {
-    top: 12.0,
-    bottom: 12.0,
-    left: 16.0,
-    right: 8.0,
-  })
-  .width(Length::Fill);
+pub fn preview_lines(content: &str) -> (Vec<&str>, usize) {
+  let all: Vec<&str> = content.lines().collect();
+  let extra = all.len().saturating_sub(PREVIEW_MAX_LINES);
+  (all.into_iter().take(PREVIEW_MAX_LINES).collect(), extra)
+}
 
-  let reason_row = container(
-    text(reason)
-      .size(12)
-      .color(fg_muted)
-      .font(theme::font::regular()),
-  )
-  .padding(Padding {
-    top: 10.0,
-    bottom: 6.0,
-    left: 16.0,
-    right: 16.0,
-  })
-  .width(Length::Fill);
-
-  let preview_box = container(
+pub fn paste_warning_overlay<'a>(
+  content: &'a str,
+  progress: f32,
+  window_height: f32,
+) -> Element<'a, Message> {
+  let head = sheet::head(row![
+    icon(Icon::Alert, 20.0, tokens::RED),
     container(
-      scrollable(
-        text(content)
-          .size(11)
-          .color(fg)
-          .font(theme::font::regular())
-          .width(Length::Fill),
-      )
-      .height(120)
-      .direction(scrollable::Direction::Vertical(
-        scrollable::Scrollbar::new()
-          .width(4)
-          .margin(4)
-          .scroller_width(4),
-      )),
+      text(paste_title(content))
+        .size(tokens::text::T16)
+        .font(font::semibold())
+        .color(tokens::FG_1)
     )
-    .padding(Padding::from([8, 10]))
-    .style(move |_| container::Style {
-      background: Some(Color { a: 0.06, ..fg }.into()),
-      border: Border {
-        color: border_c,
-        width: 1.0,
-        radius: Radius::new(4.0),
-      },
-      ..Default::default()
-    })
     .width(Length::Fill),
-  )
-  .padding(Padding {
-    top: 0.0,
-    bottom: 12.0,
-    left: 16.0,
-    right: 16.0,
-  })
-  .width(Length::Fill);
+  ]);
 
-  let actions = container(
-    row![
-      space::horizontal(),
-      button(text("Cancel").size(12).color(fg_muted))
-        .style(move |_t, status| button::Style {
-          background: Some(match status {
-            button::Status::Hovered => Color {
-              a: 0.08,
-              ..fg_muted
-            }
-            .into(),
-            _ => Color::TRANSPARENT.into(),
-          },),
-          border: Border {
-            color: border_c,
-            width: 1.0,
-            radius: Radius::new(4.0),
-          },
-          text_color: fg_muted,
-          ..Default::default()
-        })
-        .on_press(Message::PasteWarningCancel)
-        .padding(Padding {
-          top: 7.0,
-          bottom: 5.0,
-          left: 12.0,
-          right: 12.0
-        }),
-      button(text("Paste Anyway").size(12).color(red))
-        .style(move |_t, status| button::Style {
-          background: Some(match status {
-            button::Status::Hovered => Color { a: 0.12, ..red }.into(),
-            _ => Color::TRANSPARENT.into(),
-          },),
-          border: Border {
-            color: red,
-            width: 1.0,
-            radius: Radius::new(4.0),
-          },
-          text_color: red,
-          ..Default::default()
-        })
-        .on_press(Message::PasteWarningConfirm)
-        .padding(Padding {
-          top: 7.0,
-          bottom: 5.0,
-          left: 12.0,
-          right: 12.0
-        }),
-    ]
-    .spacing(8)
-    .align_y(iced::alignment::Vertical::Center),
-  )
-  .padding(Padding {
-    top: 0.0,
-    bottom: 14.0,
-    left: 16.0,
-    right: 16.0,
-  })
-  .width(Length::Fill);
-
-  let modal_col = column![
-    header,
-    rule::horizontal(1),
-    reason_row,
-    preview_box,
-    actions
-  ];
-
-  let modal = mouse_area(
-    container(
-      container(modal_col)
-        .style(move |_| container::Style {
-          background: Some(bg.into()),
-          border: Border {
-            color: border_c,
-            width: 1.0,
-            radius: Radius::new(8.0),
-          },
-          ..Default::default()
-        })
-        .width(520),
+  let (lines, extra) = preview_lines(content);
+  let mut preview = lines.into_iter().fold(Column::new(), |c, l| {
+    c.push(
+      text(l.to_string())
+        .size(tokens::text::T14)
+        .font(font::regular())
+        .color(tokens::FG_1),
     )
-    .center_x(Length::Fill)
-    .center_y(Length::Fill)
-    .width(Length::Fill)
-    .height(Length::Fill),
-  )
-  .on_press(Message::NoOp)
-  .interaction(mouse::Interaction::Idle);
+  });
+  if extra > 0 {
+    preview = preview.push(
+      text(format!("+{extra} more lines"))
+        .size(tokens::text::T12)
+        .color(tokens::FG_3),
+    );
+  }
 
-  stack![backdrop, modal].into()
+  let body = container(
+    Column::new()
+      .spacing(space::S16)
+      .push(
+        text(paste_reason(content))
+          .size(tokens::text::T14)
+          .color(tokens::FG_3),
+      )
+      .push(
+        container(scrollable(preview).height(Length::Shrink))
+          .width(Length::Fill)
+          .max_height(240)
+          .padding(Padding::from([space::S12, space::S16]))
+          .style(|_| container::Style {
+            background: Some(Background::Color(tokens::SURFACE_1)),
+            border: Border {
+              radius: radius::R8.into(),
+              ..Border::default()
+            },
+            ..container::Style::default()
+          }),
+      ),
+  )
+  .padding(space::S24)
+  .width(Length::Fill);
+
+  let foot = sheet::foot(
+    Row::new()
+      .push(container(text("")).width(Length::Fill))
+      .push(
+        btn::<Message>(Variant::Ghost)
+          .label("Cancel")
+          .on_press(Message::PasteWarningCancel),
+      )
+      .push(
+        btn::<Message>(Variant::Primary)
+          .label("Paste")
+          .on_press(Message::PasteWarningConfirm),
+      ),
+  );
+
+  sheet::sheet(
+    Sheet {
+      width: sheet::WIDTH,
+      head: Some(head),
+      body: body.into(),
+      foot: Some(foot),
+    },
+    progress,
+    window_height,
+    Message::PasteWarningCancel,
+  )
+}
+
+pub fn join_for_input(text: &str) -> String {
+  text
+    .lines()
+    .map(str::trim)
+    .filter(|l| !l.is_empty())
+    .collect::<Vec<_>>()
+    .join("; ")
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn titles_depend_on_lines() {
+    assert_eq!(paste_title("a\nb"), "Paste multiple lines?");
+    assert_eq!(paste_title("rm -rf x"), "Paste this command?");
+  }
+
+  #[test]
+  fn preview_caps_lines() {
+    let text = (0..12)
+      .map(|i| i.to_string())
+      .collect::<Vec<_>>()
+      .join("\n");
+    let (lines, extra) = preview_lines(&text);
+    assert_eq!(lines.len(), 8);
+    assert_eq!(extra, 4);
+  }
+
+  #[test]
+  fn multi_line_paste_joins_for_single_line_input() {
+    assert_eq!(join_for_input("cd x\r\n\nls\n"), "cd x; ls");
+  }
 }

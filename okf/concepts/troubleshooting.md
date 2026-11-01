@@ -7,7 +7,7 @@ path: /troubleshooting/
 updated: 2026-11-01
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-11-01T17:28:16.639Z"
+  generated_at: "2026-11-01T23:01:04.717Z"
 ---
 ---
 title: "Troubleshooting"
@@ -47,8 +47,10 @@ Run it inside Nova, or use the in-app command palette action.
 
 ## Pagers (`git log`, `man`) Stay Inside a Block
 
-Nova shows a program fullscreen only when it switches to the terminal's
-alternate screen. `less` skips that switch when its options contain `X`, and
+Nova shows a program fullscreen when it switches to the terminal's alternate
+screen, or when it turns on bracketed paste (interactive apps such as Claude
+Code, REPLs and nested shells over `ssh`). An app that does bracketed paste
+stays fullscreen until it exits. `less` skips that switch when its options contain `X`, and
 Git runs it with `LESS=FRX` when `LESS` is unset.
 
 Nova therefore starts its shells with `LESS=FR` (pager output that fits on one

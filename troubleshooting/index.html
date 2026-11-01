@@ -102,11 +102,11 @@
     
     
 
-    <link id="site-favicon" rel="icon" href="../assets/favicon.ico?v=mvy3stvu">
-    <link rel="stylesheet" href="../assets/css/docmd-main.css?v=mvy3stvu">
+    <link id="site-favicon" rel="icon" href="../assets/favicon.ico?v=mvyfotd7">
+    <link rel="stylesheet" href="../assets/css/docmd-main.css?v=mvyfotd7">
     
-    <link rel="stylesheet" href="../assets/css/docmd-highlight-light.css?v=mvy3stvu" id="hljs-light" disabled>
-    <link rel="stylesheet" href="../assets/css/docmd-highlight-dark.css?v=mvy3stvu" id="hljs-dark" >
+    <link rel="stylesheet" href="../assets/css/docmd-highlight-light.css?v=mvyfotd7" id="hljs-light" disabled>
+    <link rel="stylesheet" href="../assets/css/docmd-highlight-dark.css?v=mvyfotd7" id="hljs-dark" >
     
     
 <meta name="description" content="Common problems and fixes.">
@@ -134,9 +134,9 @@
 
 
 
-<link rel="stylesheet" href="../assets/css/docmd-git.css?v=mvy3stvu" >
-<link rel="stylesheet" href="../assets/css/docmd-openapi.css?v=mvy3stvu" >
-<link rel="stylesheet" href="../assets/css/docmd-ai.css?v=mvy3stvu" >
+<link rel="stylesheet" href="../assets/css/docmd-git.css?v=mvyfotd7" >
+<link rel="stylesheet" href="../assets/css/docmd-openapi.css?v=mvyfotd7" >
+<link rel="stylesheet" href="../assets/css/docmd-ai.css?v=mvyfotd7" >
 
     
     
@@ -823,7 +823,7 @@
             <div class="content-layout">
               <div class="main-content">
                 <div class="docmd-breadcrumbs-row">
-                  <div id="docmd-raw-markdown" data-content="---%0Atitle%3A%20%22Troubleshooting%22%0Adescription%3A%20%22Common%20problems%20and%20fixes.%22%0A---%0A%0A%23%23%20macOS%3A%20%22Nova%20is%20damaged%20and%20can&#039;t%20be%20opened%22%0A%0ANova%20is%20not%20notarized.%20macOS%20Gatekeeper%20may%20block%20it.%0A%0AIf%20you%20installed%20the%20app%20bundle%2C%20you%20can%20clear%20the%20quarantine%20attribute%3A%0A%0A%60%60%60bash%0Axattr%20-cr%20%2FApplications%2FNova.app%0A%60%60%60%0A%0A%23%23%20Settings%20Keep%20Resetting%0A%0ANova%20overwrites%20%60settings.toml%60%20with%20defaults%20if%20it%20fails%20to%20parse%20as%20TOML.%0A%0AIf%20your%20settings%20keep%20resetting%3A%0A%0A-%20Validate%20your%20TOML%20syntax%20(missing%20quotes%2C%20stray%20commas%2C%20etc.)%0A-%20Keep%20a%20backup%20copy%20while%20editing%0A%0A%23%23%20%60nova%20ask%60%20Must%20Be%20Run%20Inside%20Nova%0A%0A%60nova%20ask%60%20is%20an%20integration%20command%20that%20signals%20the%20running%20Nova%20app%20via%20OSC.%0A%0AIf%20you%20run%20it%20in%20another%20terminal%2C%20you&#039;ll%20get%3A%0A%0A%60%60%60text%0Aerror%3A%20&#039;nova%20ask&#039;%20must%20be%20run%20inside%20Nova%20terminal%0A%60%60%60%0A%0ARun%20it%20inside%20Nova%2C%20or%20use%20the%20in-app%20command%20palette%20action.%0A%0A%23%23%20Pagers%20(%60git%20log%60%2C%20%60man%60)%20Stay%20Inside%20a%20Block%0A%0ANova%20shows%20a%20program%20fullscreen%20only%20when%20it%20switches%20to%20the%20terminal&#039;s%0Aalternate%20screen.%20%60less%60%20skips%20that%20switch%20when%20its%20options%20contain%20%60X%60%2C%20and%0AGit%20runs%20it%20with%20%60LESS%3DFRX%60%20when%20%60LESS%60%20is%20unset.%0A%0ANova%20therefore%20starts%20its%20shells%20with%20%60LESS%3DFR%60%20(pager%20output%20that%20fits%20on%20one%0Ascreen%20still%20prints%20inline%20and%20exits).%20If%20you%20set%20%60LESS%60%20yourself%2C%20Nova%20leaves%0Ait%20alone%3A%20drop%20the%20%60X%60%20flag%20from%20it%20to%20get%20fullscreen%20pagers.%0A%0AIn%20PowerShell%2C%20%60help%60%20(and%20its%20alias%20%60man%60)%20normally%20pipes%20through%20Windows&#039;%0A%60more%60%2C%20which%20never%20goes%20fullscreen%20and%20waits%20for%20a%20key%20after%20every%20page.%0ANova&#039;s%20PowerShell%20session%20replaces%20%60help%60%3A%20it%20pages%20through%20%60less%60%20when%20one%20is%0Aon%20%60PATH%60%2C%20otherwise%20it%20prints%20the%20whole%20topic%20into%20the%20block%2C%20which%20you%20can%0Ascroll.%0A%0AWhile%20a%20program%20is%20fullscreen%2C%20the%20mouse%20wheel%20scrolls%20it%3A%20Nova%20sends%20arrow%0Akeys%2C%20or%20wheel%20events%20if%20the%20program%20asked%20for%20mouse%20reporting.%0A%0A%23%23%20AI%20Errors%0A%0A-%20Missing%20key%3A%20set%20%60%5Bai%5D.api_key%60.%0A-%20Wrong%20model%2Fprovider%3A%20ensure%20model%20name%20matches%20the%20selected%20provider.%0A-%20Proxy%20issues%3A%20verify%20%60%5Bai%5D.base_url%60%20is%20correct%20and%20reachable.%0A" style="display: none;"></div>
+                  <div id="docmd-raw-markdown" data-content="---%0Atitle%3A%20%22Troubleshooting%22%0Adescription%3A%20%22Common%20problems%20and%20fixes.%22%0A---%0A%0A%23%23%20macOS%3A%20%22Nova%20is%20damaged%20and%20can&#039;t%20be%20opened%22%0A%0ANova%20is%20not%20notarized.%20macOS%20Gatekeeper%20may%20block%20it.%0A%0AIf%20you%20installed%20the%20app%20bundle%2C%20you%20can%20clear%20the%20quarantine%20attribute%3A%0A%0A%60%60%60bash%0Axattr%20-cr%20%2FApplications%2FNova.app%0A%60%60%60%0A%0A%23%23%20Settings%20Keep%20Resetting%0A%0ANova%20overwrites%20%60settings.toml%60%20with%20defaults%20if%20it%20fails%20to%20parse%20as%20TOML.%0A%0AIf%20your%20settings%20keep%20resetting%3A%0A%0A-%20Validate%20your%20TOML%20syntax%20(missing%20quotes%2C%20stray%20commas%2C%20etc.)%0A-%20Keep%20a%20backup%20copy%20while%20editing%0A%0A%23%23%20%60nova%20ask%60%20Must%20Be%20Run%20Inside%20Nova%0A%0A%60nova%20ask%60%20is%20an%20integration%20command%20that%20signals%20the%20running%20Nova%20app%20via%20OSC.%0A%0AIf%20you%20run%20it%20in%20another%20terminal%2C%20you&#039;ll%20get%3A%0A%0A%60%60%60text%0Aerror%3A%20&#039;nova%20ask&#039;%20must%20be%20run%20inside%20Nova%20terminal%0A%60%60%60%0A%0ARun%20it%20inside%20Nova%2C%20or%20use%20the%20in-app%20command%20palette%20action.%0A%0A%23%23%20Pagers%20(%60git%20log%60%2C%20%60man%60)%20Stay%20Inside%20a%20Block%0A%0ANova%20shows%20a%20program%20fullscreen%20when%20it%20switches%20to%20the%20terminal&#039;s%20alternate%0Ascreen%2C%20or%20when%20it%20turns%20on%20bracketed%20paste%20(interactive%20apps%20such%20as%20Claude%0ACode%2C%20REPLs%20and%20nested%20shells%20over%20%60ssh%60).%20An%20app%20that%20does%20bracketed%20paste%0Astays%20fullscreen%20until%20it%20exits.%20%60less%60%20skips%20that%20switch%20when%20its%20options%20contain%20%60X%60%2C%20and%0AGit%20runs%20it%20with%20%60LESS%3DFRX%60%20when%20%60LESS%60%20is%20unset.%0A%0ANova%20therefore%20starts%20its%20shells%20with%20%60LESS%3DFR%60%20(pager%20output%20that%20fits%20on%20one%0Ascreen%20still%20prints%20inline%20and%20exits).%20If%20you%20set%20%60LESS%60%20yourself%2C%20Nova%20leaves%0Ait%20alone%3A%20drop%20the%20%60X%60%20flag%20from%20it%20to%20get%20fullscreen%20pagers.%0A%0AIn%20PowerShell%2C%20%60help%60%20(and%20its%20alias%20%60man%60)%20normally%20pipes%20through%20Windows&#039;%0A%60more%60%2C%20which%20never%20goes%20fullscreen%20and%20waits%20for%20a%20key%20after%20every%20page.%0ANova&#039;s%20PowerShell%20session%20replaces%20%60help%60%3A%20it%20pages%20through%20%60less%60%20when%20one%20is%0Aon%20%60PATH%60%2C%20otherwise%20it%20prints%20the%20whole%20topic%20into%20the%20block%2C%20which%20you%20can%0Ascroll.%0A%0AWhile%20a%20program%20is%20fullscreen%2C%20the%20mouse%20wheel%20scrolls%20it%3A%20Nova%20sends%20arrow%0Akeys%2C%20or%20wheel%20events%20if%20the%20program%20asked%20for%20mouse%20reporting.%0A%0A%23%23%20AI%20Errors%0A%0A-%20Missing%20key%3A%20set%20%60%5Bai%5D.api_key%60.%0A-%20Wrong%20model%2Fprovider%3A%20ensure%20model%20name%20matches%20the%20selected%20provider.%0A-%20Proxy%20issues%3A%20verify%20%60%5Bai%5D.base_url%60%20is%20correct%20and%20reachable.%0A" style="display: none;"></div>
                   
                     <nav aria-label="breadcrumb" class="docmd-breadcrumbs">
                       <ol>
@@ -913,8 +913,10 @@
 </code></pre>
 <p>Run it inside Nova, or use the in-app command palette action.</p>
 <h2 id="pagers-git-log-man-stay-inside-a-block" class="docmd-heading"><a href="#pagers-git-log-man-stay-inside-a-block" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Pagers (<code>git log</code>, <code>man</code>) Stay Inside a Block</h2>
-<p>Nova shows a program fullscreen only when it switches to the terminal’s<br>
-alternate screen. <code>less</code> skips that switch when its options contain <code>X</code>, and<br>
+<p>Nova shows a program fullscreen when it switches to the terminal’s alternate<br>
+screen, or when it turns on bracketed paste (interactive apps such as Claude<br>
+Code, REPLs and nested shells over <code>ssh</code>). An app that does bracketed paste<br>
+stays fullscreen until it exits. <code>less</code> skips that switch when its options contain <code>X</code>, and<br>
 Git runs it with <code>LESS=FRX</code> when <code>LESS</code> is unset.</p>
 <p>Nova therefore starts its shells with <code>LESS=FR</code> (pager output that fits on one<br>
 screen still prints inline and exits). If you set <code>LESS</code> yourself, Nova leaves<br>
@@ -1024,29 +1026,29 @@ keys, or wheel events if the program asked for mouse reporting.</p>
             <div class="page-footer-actions">
               
               
-                <span class="git-last-updated" data-timestamp="1793553898000">
+                <span class="git-last-updated" data-timestamp="1793573573000">
                   <svg class="git-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                   </svg>
                   <span class="git-label">Last updated:</span>
-                  <span class="git-time" data-timestamp="1793553898000"></span>
+                  <span class="git-time" data-timestamp="1793573573000"></span>
                   
                   <div class="git-commit-tooltip" role="tooltip">
                     <div class="git-tooltip-title">Recent commits</div>
                     <ul class="git-commit-list">
                       
                         <li class="git-commit-item">
-                          <div class="git-commit-avatar" title="Pedro Queiroz">
+                          <div class="git-commit-avatar" title="pmqueiroz">
                             
-                              <img src="https://www.gravatar.com/avatar/1f88fae02546de069b09be3251a7d08c?d=mp&amp;s=64" alt="Pedro Queiroz">
+                              <img src="https://www.gravatar.com/avatar/1f88fae02546de069b09be3251a7d08c?d=mp&amp;s=64" alt="pmqueiroz">
                             
                           </div>
                           <div class="git-commit-details">
-                            <div class="git-commit-message" title="chore(main): release 1.0.0">chore(main): release 1.0.0</div>
+                            <div class="git-commit-message" title="fix(blocks): keep finished fullscreen frames at full width and scroll them sideways while selecting">fix(blocks): keep finished fullscreen...</div>
                             <div class="git-commit-meta">
-                              <span class="git-commit-author">Pedro Queiroz</span>
-                              <span class="git-commit-date" data-timestamp="1793553898000"></span>
+                              <span class="git-commit-author">pmqueiroz</span>
+                              <span class="git-commit-date" data-timestamp="1793573573000"></span>
                             </div>
                           </div>
                         </li>
@@ -1077,15 +1079,15 @@ keys, or wheel events if the program asked for mouse reporting.</p>
         </div>
       </div>
       
-      <script src="../assets/js/docmd-main.js?v=mvy3stvu"></script>
+      <script src="../assets/js/docmd-main.js?v=mvyfotd7"></script>
       
-      <script src="../assets/js/docmd-git.js?v=mvy3stvu"></script>
-      <script src="../assets/js/docmd-image-lightbox.js?v=mvy3stvu" ></script>
+      <script src="../assets/js/docmd-git.js?v=mvyfotd7"></script>
+      <script src="../assets/js/docmd-image-lightbox.js?v=mvyfotd7" ></script>
 <script src="https://cdn.jsdelivr.net/npm/minisearch@7.2.0/dist/umd/index.min.js" ></script>
-<script src="../assets/js/docmd-search.js?v=mvy3stvu" ></script>
-<script src="../assets/js/init-mermaid.js?v=mvy3stvu" type="module"></script>
-<script src="../assets/js/docmd-git.js?v=mvy3stvu" ></script>
-<script src="../assets/js/docmd-ai.js?v=mvy3stvu" ></script>
+<script src="../assets/js/docmd-search.js?v=mvyfotd7" ></script>
+<script src="../assets/js/init-mermaid.js?v=mvyfotd7" type="module"></script>
+<script src="../assets/js/docmd-git.js?v=mvyfotd7" ></script>
+<script src="../assets/js/docmd-ai.js?v=mvyfotd7" ></script>
 
   <!-- Search Modal (Injected by @docmd/plugin-search) -->
   <div id="docmd-search-modal" class="docmd-search-modal" style="display: none;"

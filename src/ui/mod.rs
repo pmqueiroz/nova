@@ -16,10 +16,10 @@ const FIRA_CODE_SEMIBOLD_BYTES: &[u8] =
   include_bytes!("../../assets/fonts/FiraCodeNerdFont-SemiBold.ttf");
 
 #[cfg(target_os = "windows")]
-const ICON_BYTES: &[u8] = include_bytes!("../../assets/icons/windows/nova-win-256.png");
+const ICON_BYTES: &[u8] = include_bytes!("../../assets/icons/windows/nova-windows-256.png");
 
 #[cfg(target_os = "macos")]
-const ICON_BYTES: &[u8] = include_bytes!("../../assets/icons/macos/nova-mac-512.png");
+const ICON_BYTES: &[u8] = include_bytes!("../../assets/icons/macos/nova-macos-512.png");
 
 #[cfg(target_os = "linux")]
 const ICON_BYTES: &[u8] = include_bytes!("../../assets/icons/linux/nova-linux-256.png");

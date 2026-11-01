@@ -134,7 +134,15 @@ fn is_dangerous_paste(text: &str) -> bool {
 }
 
 impl Nova {
-  fn do_paste(&self, text: String) {
+  fn do_paste(&mut self, text: String) {
+    if let Some(tab) = self.tabs.get_mut(self.active_index) {
+      let pane = tab.active_pane_mut();
+      if pane.integration.is_blocks() && !pane.session.is_running() {
+        let joined = components::join_for_input(&text);
+        pane.input.text.push_str(&joined);
+        return;
+      }
+    }
     let Some(tab) = self.tabs.get(self.active_index) else {
       return;
     };
@@ -821,6 +829,8 @@ impl Nova {
       Message::ClipboardReceived(text) => {
         if let Some(text) = text {
           if is_dangerous_paste(&text) {
+            self.sheet_opened_at = Instant::now();
+            self.now = self.sheet_opened_at;
             self.paste_warning = Some(text);
           } else {
             self.do_paste(text);
@@ -832,11 +842,11 @@ impl Nova {
         if let Some(text) = self.paste_warning.take() {
           self.do_paste(text);
         }
-        iced::Task::none()
+        self.focus_input()
       }
       Message::PasteWarningCancel => {
         self.paste_warning = None;
-        iced::Task::none()
+        self.focus_input()
       }
       Message::PasteRequested => iced::clipboard::read().map(Message::ClipboardReceived),
       Message::CopySelection => {

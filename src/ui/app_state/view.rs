@@ -341,7 +341,8 @@ impl Nova {
       );
       components::app(stack![col, picker], self.window_maximized, pop)
     } else if let Some(ref pending) = self.paste_warning {
-      let overlay = components::paste_warning_overlay(pending);
+      let overlay =
+        components::paste_warning_overlay(pending, self.sheet_progress(), self.window_size.height);
       components::app(stack![col, overlay], self.window_maximized, pop)
     } else {
       components::app(col, self.window_maximized, pop)

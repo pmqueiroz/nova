@@ -391,12 +391,12 @@ change, a pane entering/leaving block mode, integration timeout):
 - Block/detecting panes: the PTY width equals the block output column, so
   programs wrap exactly at the card edge. Width = pane width − 2×32 (scroll
   padding) − 2×24 (output card padding) − 64 if timestamps are shown; height =
-  window − 56 (title bar) − 72 (input bar + margin) − scroll/card paddings.
+  window − 48 (title bar) − 72 (input bar + margin) − scroll/card paddings.
   Cell size uses the output font (`font size − 2`) and line height 1.5.
 - `apply_size` resizes the screen grid, every block grid (reflow via
   `Grid::resize`) and the PTY together.
 - Raw takeover (`Phase::Raw`, fullscreen TUIs) is sized separately by
-  `calc_raw_grid`: the whole pane below the 56 px title bar minus
+  `calc_raw_grid`: the whole pane below the 48 px title bar minus
   `session::raw_padding` (8/16, compact 4/8), measured with the `term`
   widget's own metrics. `term()` takes its padding as an argument: classic
   panes pass `CLASSIC_PADDING` (12/20/8/20), raw takeover passes
@@ -456,24 +456,27 @@ Text goes through `ui::typography::Typography`, fonts through
 
 ## Window chrome
 
-- `components/title_bar.rs`: 56 px bar, three columns. Traffic-light
+- `components/title_bar.rs`: 48 px bar (`TITLE_BAR_HEIGHT`, the single
+  source for every title-bar offset in `helpers.rs`), three columns. Traffic-light
   layout (macOS default): lights left (12 px, gap 8, padding-left 24), title
-  centered, actions right (`+` new tab, sliders = settings; 40 px icon
-  buttons, 20 px icons). `System` window controls (Windows/Linux default):
-  actions move left and 48×56 min/max/close buttons sit flush right (close
+  centered, actions right (`+` new tab, sliders = settings;
+  `IconSize::Sm` icon buttons: 32 px box, 16 px icons). `System` window controls (Windows/Linux default):
+  actions move left and 48×48 min/max/close buttons sit flush right (close
   hovers `LIGHT_CLOSE`). Title = "Nova" (14 semibold fg-2) + cwd (fg-3).
   The visual bell flashes "Nova" in the accent color.
 - Tabs (`components/tab_bar.rs`) replace the centered title whenever more than
   one tab is open: surface-1 r12 pill track (max `min(560, 50% window)`,
   horizontal scroll, hidden scrollbar), tabs h32, min-w 96, width computed from
   the monospace label (`tab_width`), active = surface-2/fg-1, close × (24 px)
-  shown only on the active or hovered tab. New tabs play the `pop` keyframe
+  shown only on the active or hovered tab. The hidden state renders a
+  12 px `Space`, not a transparent icon: iced's svg tint drops alpha, so a
+  `Color::TRANSPARENT` icon draws black. New tabs play the `pop` keyframe
   through `Tab.appear`. Drag-reorder is position-free: `TabPressed` arms a
   drag, the 6 px move threshold in `mouse.rs` starts it, and `TabHovered`
   over another tab swaps them. Middle-click closes. Right-click on the title
   bar `+` opens the shell picker.
 - The terminal area's pixel origin (`helpers::pixel_to_cell`, `calc_grid`
-  padding) still assumes the legacy layout below the 56 px bar. It goes away
+  padding) still assumes the legacy layout below the 48 px bar. It goes away
   with the block UI.
 
 ## Platform specifics

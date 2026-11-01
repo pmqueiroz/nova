@@ -1,10 +1,10 @@
 use iced::widget::{Row, container, text};
 use iced::{Alignment, Element};
 
-use super::button::icon_button;
+use super::button::{IconSize, icon_button};
 use super::seg::track_style;
 use crate::ui::icons::Icon;
-use crate::ui::theme::tokens::{self, height, space};
+use crate::ui::theme::tokens::{self, space};
 
 pub fn stepper<'a, Message: Clone + 'a>(
   value: impl ToString,
@@ -15,7 +15,7 @@ pub fn stepper<'a, Message: Clone + 'a>(
     Row::new()
       .spacing(space::S4)
       .align_y(Alignment::Center)
-      .push(icon_button(Icon::ZoomOut, 16.0, height::H32, on_dec))
+      .push(icon_button(Icon::ZoomOut, IconSize::Sm, on_dec))
       .push(
         container(
           text(value.to_string())
@@ -25,7 +25,7 @@ pub fn stepper<'a, Message: Clone + 'a>(
         .width(space::S48)
         .center_x(space::S48),
       )
-      .push(icon_button(Icon::ZoomIn, 16.0, height::H32, on_inc)),
+      .push(icon_button(Icon::ZoomIn, IconSize::Sm, on_inc)),
   )
   .padding(space::S4)
   .style(|_| track_style())

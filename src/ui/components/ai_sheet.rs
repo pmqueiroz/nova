@@ -8,12 +8,12 @@ use iced::{Alignment, Background, Border, Element, Length, Padding};
 use crate::ui::app_state::Message;
 use crate::ui::components::block::dots;
 use crate::ui::components::command_palette::sheet_input_style;
-use crate::ui::components::ds::button::{Variant, btn, icon_button};
+use crate::ui::components::ds::button::{IconSize, Variant, btn, icon_button};
 use crate::ui::components::ds::kbd::kbd;
 use crate::ui::components::ds::list_item::{ListItem, Tone, list_item};
 use crate::ui::components::ds::sheet::{self, Sheet};
 use crate::ui::icons::{Icon, icon};
-use crate::ui::theme::tokens::{self, height, radius, space};
+use crate::ui::theme::tokens::{self, radius, space};
 use crate::ui::theme::{color, font, motion};
 
 pub static AI_INPUT_ID: LazyLock<Id> = LazyLock::new(Id::unique);
@@ -278,7 +278,7 @@ pub fn ai_sheet<'a>(v: AiSheetView<'a>) -> Element<'a, Message> {
     match v.answer {
       Some(a) => (
         sheet::head(row![
-          icon_button(Icon::Back, 20.0, height::H40, Some(Message::AiBack)),
+          icon_button(Icon::Back, IconSize::Md, Some(Message::AiBack)),
           container(
             text(a.kind.title())
               .size(tokens::text::T16)

@@ -4,7 +4,7 @@ use iced::widget::{Id, container, row, text, text_input};
 use iced::{Alignment, Background, Border, Color, Element, Length, Padding, Shadow, Vector};
 
 use crate::ui::app_state::Message;
-use crate::ui::components::ds::button::icon_button;
+use crate::ui::components::ds::button::{IconSize, icon_button};
 use crate::ui::icons::{Icon, icon};
 use crate::ui::theme::font;
 use crate::ui::theme::tokens::{self, height, radius, space};
@@ -52,19 +52,9 @@ pub fn search_bar(
       text(count_label(query, match_index, match_count))
         .size(tokens::text::T12)
         .color(tokens::FG_3),
-      icon_button(
-        Icon::ChevronUp,
-        16.0,
-        height::H32,
-        Some(Message::SearchPrev)
-      ),
-      icon_button(
-        Icon::ChevronDown,
-        16.0,
-        height::H32,
-        Some(Message::SearchNext)
-      ),
-      icon_button(Icon::Close, 16.0, height::H32, Some(Message::SearchClose)),
+      icon_button(Icon::ChevronUp, IconSize::Sm, Some(Message::SearchPrev)),
+      icon_button(Icon::ChevronDown, IconSize::Sm, Some(Message::SearchNext)),
+      icon_button(Icon::Close, IconSize::Sm, Some(Message::SearchClose)),
     ]
     .spacing(space::S8)
     .align_y(Alignment::Center),

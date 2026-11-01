@@ -12,6 +12,14 @@ fn rgb8(r: u8, g: u8, b: u8) -> Color {
   Color::from_rgb(r as f32 / 255.0, g as f32 / 255.0, b as f32 / 255.0)
 }
 
+fn colon_rgb(param: &[u16]) -> Option<Color> {
+  match param {
+    [_, 2, _, r, g, b, ..] => Some(rgb8(*r as u8, *g as u8, *b as u8)),
+    [_, 2, r, g, b] => Some(rgb8(*r as u8, *g as u8, *b as u8)),
+    _ => None,
+  }
+}
+
 pub fn ansi_color(index: u16, bright: bool) -> Color {
   let _ = bright;
   match index {
@@ -332,8 +340,8 @@ impl<'a> Perform for AnsiExecutor<'a> {
             38 => {
               if param.len() >= 3 && param[1] == 5 {
                 self.grid.current_fg = Some(color_256(param[2] as u8));
-              } else if param.len() >= 5 && param[1] == 2 {
-                self.grid.current_fg = Some(rgb8(param[2] as u8, param[3] as u8, param[4] as u8));
+              } else if let Some(c) = colon_rgb(param) {
+                self.grid.current_fg = Some(c);
               } else {
                 let mode = iter
                   .next()
@@ -369,8 +377,8 @@ impl<'a> Perform for AnsiExecutor<'a> {
             48 => {
               if param.len() >= 3 && param[1] == 5 {
                 self.grid.current_bg = Some(color_256(param[2] as u8));
-              } else if param.len() >= 5 && param[1] == 2 {
-                self.grid.current_bg = Some(rgb8(param[2] as u8, param[3] as u8, param[4] as u8));
+              } else if let Some(c) = colon_rgb(param) {
+                self.grid.current_bg = Some(c);
               } else {
                 let mode = iter
                   .next()
@@ -856,6 +864,14 @@ mod tests {
     assert_eq!(grid.row(0)[9].bg, bg);
     assert_eq!(grid.row(1)[1].bg, bg);
     assert_eq!(grid.row(1)[2].bg, None);
+  }
+
+  #[test]
+  fn truecolor_colon_form_with_colorspace() {
+    let mut grid = make_grid(10, 1);
+    print_str(&mut grid, "\x1b[38:2::10:20:30mx\x1b[38:2:10:20:30my");
+    assert_eq!(grid.row(0)[0].fg, Some(rgb8(10, 20, 30)));
+    assert_eq!(grid.row(0)[1].fg, Some(rgb8(10, 20, 30)));
   }
 
   #[test]

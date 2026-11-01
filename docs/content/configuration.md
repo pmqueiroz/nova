@@ -71,6 +71,8 @@ api_key = ""
 - `editor` (string): External editor command.
 - `bell` (string): One of `none`, `audio`, `blink`.
 - `shells` (array of strings, optional): If set and non-empty, Nova uses this list instead of auto-detect.
+- `initial-command` (string, optional): Program each new pane runs instead of the shell, launched directly (not through a shell), so shell built-ins and aliases such as PowerShell's `ls` do not work. If it cannot be started, the pane shows why instead of a blank screen.
+- `wait-after-command` (bool): Wait for a key after the initial command exits.
 - `window-controls` (string): One of `traffic-lights` or `system`.
 - `scrollback` (integer, optional): Maximum scrollback lines per pane. Defaults to `10000`.
 

@@ -25,6 +25,8 @@ pub enum Icon {
   Terminal,
   Minimize,
   Maximize,
+  ChevronUp,
+  ChevronDown,
 }
 
 impl Icon {
@@ -48,6 +50,8 @@ impl Icon {
       Icon::Terminal => "M4 6l6 6-6 6M12 18h8",
       Icon::Minimize => "M6 12h12",
       Icon::Maximize => "M6 6h12v12H6z",
+      Icon::ChevronUp => "M6 15l6-6 6 6",
+      Icon::ChevronDown => "M6 9l6 6 6-6",
     }
   }
 
@@ -79,7 +83,7 @@ pub fn icon<'a>(name: Icon, size: f32, color: Color) -> Svg<'a> {
 mod tests {
   use super::*;
 
-  const ALL: [Icon; 16] = [
+  const ALL: [Icon; 18] = [
     Icon::Enter,
     Icon::Plus,
     Icon::Close,
@@ -96,6 +100,8 @@ mod tests {
     Icon::Terminal,
     Icon::Minimize,
     Icon::Maximize,
+    Icon::ChevronUp,
+    Icon::ChevronDown,
   ];
 
   #[test]

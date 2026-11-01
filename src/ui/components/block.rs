@@ -6,6 +6,7 @@ use iced::{Alignment, Background, Border, Color, Element, Font, Length, Padding}
 
 use crate::core::block::{Block, BlockId, BlockState};
 use crate::core::grid::{Cell, CellAttrs};
+use crate::core::search::BlockMatch;
 use crate::core::selection::BlockSelection;
 use crate::ui::app_state::Message;
 use crate::ui::components::ds::transform::Transform;
@@ -65,10 +66,11 @@ pub fn visible_len(cells: &[Cell]) -> usize {
     .unwrap_or(0)
 }
 
-#[derive(Clone, Copy, Default, Debug, PartialEq)]
+#[derive(Clone, Default, Debug, PartialEq)]
 pub struct LineMarks {
   pub selection: Option<(usize, usize)>,
   pub url: Option<(usize, usize)>,
+  pub matches: Vec<(usize, usize, bool)>,
 }
 
 pub fn runs(
@@ -84,6 +86,14 @@ pub fn runs(
       continue;
     }
     let mut st = cell_style(cell, default_fg);
+    if let Some(&(_, _, current)) = marks.matches.iter().find(|(a, b, _)| x >= *a && x < *b) {
+      if current {
+        st.fg = tokens::ON_ACCENT;
+        st.bg = Some(tokens::YELLOW);
+      } else {
+        st.bg = Some(tokens::with_alpha(tokens::YELLOW, 0.32));
+      }
+    }
     if marks.selection.is_some_and(|(a, b)| x >= a && x < b) {
       st.fg = tokens::FG_1;
       st.bg = Some(tokens::with_alpha(accent, 0.32));
@@ -248,7 +258,7 @@ pub fn output_card<'a>(
   block: &Block,
   size: f32,
   alpha: f32,
-  o: &EntryOptions,
+  o: &EntryOptions<'_>,
 ) -> Element<'a, Message> {
   let fg = default_output_color(block);
   let sel = o.selection.filter(|s| s.block_id == block.id);
@@ -258,6 +268,13 @@ pub fn output_card<'a>(
       let marks = LineMarks {
         selection: sel.and_then(|s| s.line_range(i, visible_len(cells))),
         url: url.filter(|(_, l, ..)| *l == i).map(|(_, _, a, b)| (a, b)),
+        matches: o
+          .matches
+          .iter()
+          .enumerate()
+          .filter(|(_, m)| m.block_id == block.id && m.line == i)
+          .map(|(k, m)| (m.start, m.end, o.current_match == Some(k)))
+          .collect(),
       };
       c.push(line(cells, fg, size, alpha, marks))
     }
@@ -296,16 +313,18 @@ pub fn is_animating(block: &Block, now: Instant) -> bool {
   showing_dots || now.saturating_duration_since(block.born) < duration::D2 + OUTPUT_DELAY
 }
 
-pub struct EntryOptions {
+pub struct EntryOptions<'a> {
   pub pane_id: usize,
   pub font_size: f32,
   pub timestamps: bool,
   pub now: Instant,
   pub selection: Option<BlockSelection>,
   pub hover_url: Option<(BlockId, usize, usize, usize)>,
+  pub matches: &'a [BlockMatch],
+  pub current_match: Option<usize>,
 }
 
-pub fn block_entry<'a>(block: &Block, o: &EntryOptions) -> Element<'a, Message> {
+pub fn block_entry<'a>(block: &Block, o: &EntryOptions<'_>) -> Element<'a, Message> {
   let t_in = entry_progress(block.born, o.now, Duration::ZERO);
   let t_out = entry_progress(block.born, o.now, OUTPUT_DELAY);
   let out_size = tokens::block::font_size(o.font_size);
@@ -386,7 +405,7 @@ mod tests {
       tokens::FG_2,
       LineMarks {
         selection: Some((1, 3)),
-        url: None,
+        ..LineMarks::default()
       },
     );
     assert_eq!(r.len(), 3);
@@ -397,12 +416,27 @@ mod tests {
       b.line(0).unwrap(),
       tokens::FG_2,
       LineMarks {
-        selection: None,
         url: Some((0, 1)),
+        ..LineMarks::default()
       },
     );
     assert_eq!(u[0].0, "ab");
     assert_eq!(u[0].3 & 4, 4);
+  }
+
+  #[test]
+  fn current_match_is_solid_others_tinted() {
+    let b = block_with("abab");
+    let r = runs(
+      b.line(0).unwrap(),
+      tokens::FG_2,
+      LineMarks {
+        matches: vec![(0, 2, true), (2, 4, false)],
+        ..LineMarks::default()
+      },
+    );
+    assert_eq!(r[0].2, Some(tokens::YELLOW));
+    assert_eq!(r[1].2, Some(tokens::with_alpha(tokens::YELLOW, 0.32)));
   }
 
   #[test]

@@ -139,8 +139,9 @@ next prompt is split correctly.
   mode go to the pane's screen grid (prompt drawing and echo stay hidden in
   block mode). `Running`/`Raw` go to the block's grid.
 - `Integration` per pane: `Detecting` until the first `prompt_ready` switches
-  it to `Blocks`; `expire()` after 4 s without one switches to `Classic`, the
-  old raw-terminal behavior. `enabled = false` (`tab::BLOCKS_ENABLED`) keeps
+  it to `Blocks`; `expire()` after 8 s without one switches to `Classic`, the
+  old raw-terminal behavior. A later `prompt_ready` (slow shell start) still
+  upgrades an idle classic pane to blocks. `enabled = false` (`tab::BLOCKS_ENABLED`) keeps
   every pane `Classic`; it is off until the block UI lands.
 - Shells without preexec: `on_submit` sets `awaiting_echo`, and the first
   `

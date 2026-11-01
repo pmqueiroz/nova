@@ -2,7 +2,9 @@ use crate::core::router::Mode;
 use crate::sys::pty::PtyCommand;
 use crate::ui::tab::PaneMut;
 
-use super::super::helpers::{calc_block_grid, calc_grid, calc_grid_split_ratio, split_widths};
+use super::super::helpers::{
+  calc_block_grid, calc_grid, calc_grid_split_ratio, calc_raw_grid, split_widths,
+};
 use super::super::message::Message;
 use super::super::nova::Nova;
 
@@ -37,19 +39,50 @@ impl Nova {
   }
 }
 
-fn apply_size(pane: &mut PaneMut<'_>, cols: usize, rows: usize) {
-  if pane.grid.cols != cols || pane.grid.rows != rows {
-    pane.grid.resize(cols, rows);
-  }
-  if pane.session.cols != cols || pane.session.rows != rows {
-    pane.session.resize(cols, rows);
-  }
+fn send_pty_size(pane: &PaneMut<'_>, cols: usize, rows: usize) {
   if let Some(tx) = pane.pty_tx {
     let _ = tx.send_blocking(PtyCommand::Resize {
       cols: cols as u16,
       rows: rows as u16,
     });
   }
+}
+
+fn active_block_size(pane: &PaneMut<'_>) -> Option<(usize, usize)> {
+  let id = pane.session.active_id()?;
+  pane
+    .session
+    .block(id)
+    .map(|b| (b.output.cols, b.output.rows))
+}
+
+fn needs_size(pane: &PaneMut<'_>, cols: usize, rows: usize) -> bool {
+  pane.grid.cols != cols
+    || pane.grid.rows != rows
+    || active_block_size(pane).is_some_and(|size| size != (cols, rows))
+}
+
+fn apply_size(pane: &mut PaneMut<'_>, cols: usize, rows: usize) {
+  if pane.grid.cols != cols || pane.grid.rows != rows {
+    pane.grid.resize(cols, rows);
+  }
+  pane.session.resize(cols, rows);
+  send_pty_size(pane, cols, rows);
+}
+
+fn apply_raw_size(pane: &mut PaneMut<'_>, cols: usize, rows: usize) {
+  let Some(block) = pane
+    .session
+    .active_id()
+    .and_then(|id| pane.session.block_mut(id))
+  else {
+    return;
+  };
+  if block.output.cols == cols && block.output.rows == rows {
+    return;
+  }
+  block.output.resize(cols, rows);
+  send_pty_size(pane, cols, rows);
 }
 
 impl Nova {
@@ -76,9 +109,20 @@ impl Nova {
       };
       for (i, mut pane) in tab.panes_mut().into_iter().enumerate() {
         let blocks = pane.integration.mode != Mode::Classic;
+        let pane_w = if i == 0 { left_w } else { right_w };
+        if blocks && pane.session.is_raw() {
+          let (cols, rows) = calc_raw_grid(
+            pane_w,
+            height,
+            font_size,
+            crate::ui::theme::tokens::block::is_compact(width),
+          );
+          apply_raw_size(&mut pane, cols, rows);
+          continue;
+        }
         let (cols, rows) = if blocks {
           calc_block_grid(
-            if i == 0 { left_w } else { right_w },
+            pane_w,
             height,
             font_size,
             timestamps,
@@ -89,7 +133,7 @@ impl Nova {
         } else {
           (classic_right, classic_rows)
         };
-        if pane.grid.cols != cols || pane.grid.rows != rows {
+        if needs_size(&pane, cols, rows) {
           apply_size(&mut pane, cols, rows);
         }
       }

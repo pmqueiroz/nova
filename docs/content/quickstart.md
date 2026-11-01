@@ -24,14 +24,22 @@ Important behavior:
 
 If you're experimenting, keep a backup of `settings.toml`.
 
+## Command blocks
+
+Nova runs your shell behind its own input bar. Type a command and press
+`Enter`: the command and its output appear as a block above the input. Failed
+commands show their output in red. Click inside an output card to select text,
+`Ctrl+click` a link to open it.
+
+Block mode needs Nova's shell integration (PowerShell, cmd, bash, zsh and Git
+Bash are set up automatically). Shells that don't report their prompt (for
+example fish, or WSL distributions) fall back to a classic terminal view.
+
 ## Command Palette
 
-Nova includes a command palette with actions like:
-
-- Ask AI
-- Explain Error
-- New Tab
-- Settings
+`Ctrl+P` (`Cmd+P` on macOS) opens the command palette: new or close tab,
+clear screen, Ask AI, larger/smaller text, toggle timestamps, settings,
+split pane, find and new tab with a specific shell. Type to filter.
 
 See [Keybindings](/keybindings) for changing the palette shortcut.
 

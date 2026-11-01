@@ -97,7 +97,7 @@ pub fn blocks_area<'a>(v: &SessionView<'a>) -> Element<'a, Message> {
       / tokens::duration::D4.as_secs_f32())
     .clamp(0.0, 1.0);
     return mouse_area(empty_state(crate::ui::theme::motion::ease(fade)))
-      .on_press(Message::FocusInput)
+      .on_press(Message::FocusPane(v.pane_id))
       .into();
   }
   let opts = EntryOptions {
@@ -133,7 +133,7 @@ pub fn blocks_area<'a>(v: &SessionView<'a>) -> Element<'a, Message> {
     .width(Length::Fill)
     .height(Length::Fill),
   )
-  .on_press(Message::FocusInput)
+  .on_press(Message::FocusPane(v.pane_id))
   .into()
 }
 

@@ -204,6 +204,14 @@ Next/prev snaps the log to the current match's relative position
 (`relative_position`, an approximation by line count). Classic panes keep
 the legacy grid search.
 
+### Split panes
+
+Each pane of a split is its own session (log + input bar). Panes are
+separated by a 1 px `LINE` divider (8 px drag handle) and each has a DS close
+icon button (32 px, top-right). There is no active-pane border: the focused
+input bar's ring marks the active pane. Clicking a pane's log sends
+`FocusPane(id)`, which makes it active and focuses its input.
+
 ### Raw takeover
 
 When the running block enters the alt screen (`Phase::Raw`),

@@ -762,7 +762,16 @@ impl Nova {
       }
       Message::InputChanged(text) => self.handle_input_changed(text),
       Message::BlocksScrolled(pane_id, pinned) => self.handle_blocks_scrolled(pane_id, pinned),
-      Message::FocusInput => self.focus_input(),
+      Message::FocusPane(pane_id) => {
+        if let Some(tab) = self.tabs.get_mut(self.active_index) {
+          if tab.split.as_ref().is_some_and(|s| s.id == pane_id) {
+            tab.active_pane_is_split = true;
+          } else if tab.id == pane_id {
+            tab.active_pane_is_split = false;
+          }
+        }
+        self.focus_input()
+      }
       Message::BlockPointer(pane_id, block_id, p) => {
         self.handle_block_pointer(pane_id, block_id, p)
       }

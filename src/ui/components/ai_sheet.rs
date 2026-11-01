@@ -144,7 +144,7 @@ fn foot<'a>(answer_view: bool) -> Element<'a, Message> {
   )
 }
 
-fn suggestion<'a>(cmd: &str) -> Element<'a, Message> {
+pub fn suggestion<'a>(cmd: &str, on_run: Message) -> Element<'a, Message> {
   let accent = color::runtime().accent;
   container(
     row![
@@ -159,7 +159,7 @@ fn suggestion<'a>(cmd: &str) -> Element<'a, Message> {
       btn::<Message>(Variant::Primary)
         .label("Run")
         .trailing(Icon::Enter)
-        .on_press(Message::AiRunSuggestion),
+        .on_press(on_run),
     ]
     .spacing(space::S12)
     .align_y(Alignment::Center),
@@ -214,12 +214,51 @@ fn answer_body<'a>(a: &AiAnswer, now: Instant) -> Element<'a, Message> {
     if a.is_done(now)
       && let Some(cmd) = &a.cmd
     {
-      col = col.push(suggestion(cmd));
+      col = col.push(suggestion(cmd, Message::AiRunSuggestion));
     }
   }
   container(col)
     .padding(space::S24)
     .width(Length::Fill)
+    .into()
+}
+
+pub fn inline_suggestion<'a>(message: &str, cmd: Option<&str>) -> Element<'a, Message> {
+  let accent = color::runtime().accent;
+  let mut col = Column::new().spacing(space::S12).push(
+    row![
+      icon(Icon::Sparkle, 16.0, accent),
+      text("Nova AI")
+        .size(tokens::text::T12)
+        .font(font::semibold())
+        .color(tokens::FG_3),
+    ]
+    .spacing(space::S8)
+    .align_y(Alignment::Center),
+  );
+  col = col.push(
+    rich_text::<(), Message, iced::Theme, iced::Renderer>(rich_spans(message, tokens::FG_2))
+      .size(tokens::text::T14)
+      .line_height(1.5)
+      .width(Length::Fill),
+  );
+  if let Some(c) = cmd {
+    col = col.push(suggestion(
+      c,
+      Message::DiagnosticBannerCommand(c.to_string()),
+    ));
+  }
+  container(col)
+    .width(Length::Fill)
+    .padding(Padding::from([space::S16, space::S24]))
+    .style(|_| container::Style {
+      background: Some(Background::Color(tokens::SURFACE_1)),
+      border: Border {
+        radius: radius::R8.into(),
+        ..Border::default()
+      },
+      ..container::Style::default()
+    })
     .into()
 }
 

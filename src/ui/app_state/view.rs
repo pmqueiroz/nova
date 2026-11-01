@@ -1,11 +1,11 @@
-use super::helpers::{dir_to_cursor, normalize_sel, resize_direction, strip_markdown};
+use super::helpers::{dir_to_cursor, normalize_sel, resize_direction};
 use super::message::Message;
 use super::nova::Nova;
 
 use iced::alignment::{Horizontal, Vertical};
 use iced::mouse;
-use iced::widget::{button, column, container, mouse_area, row, stack, text};
-use iced::{Border, Color, Element, Length, Padding, Theme, border::Radius};
+use iced::widget::{column, container, mouse_area, row, stack, text};
+use iced::{Border, Element, Length, Padding, Theme, border::Radius};
 
 use crate::core::router::Mode;
 use crate::ui::components;
@@ -286,8 +286,13 @@ impl Nova {
       term_area,
     ];
 
-    if let Some((_code, ref message, ref command)) = self.diagnostic_banner {
-      col = col.push(self.diagnostic_banner_widget(message, command.as_deref()));
+    if let Some((_code, ref message, ref command)) = self.diagnostic_banner
+      && active_tab.active_pane().integration.mode == Mode::Classic
+    {
+      col = col.push(
+        container(components::inline_suggestion(message, command.as_deref()))
+          .padding(Padding::from([0.0, crate::ui::theme::tokens::space::S16])),
+      );
     }
 
     let outer_interaction = if self.dragging_split {
@@ -393,6 +398,10 @@ impl Nova {
       },
       current_match: (self.search_active && !self.block_matches.is_empty())
         .then_some(self.search_match_index),
+      suggestion: (tab.active_pane().id == pane.id)
+        .then_some(self.diagnostic_banner.as_ref())
+        .flatten()
+        .map(|(_, m, c)| (m.as_str(), c.as_deref())),
     };
     Some(
       column![
@@ -425,76 +434,5 @@ impl Nova {
         danger: iced::Color::from_rgb(0.9, 0.3, 0.3),
       },
     )
-  }
-
-  fn diagnostic_banner_widget<'a>(
-    &self,
-    message: &'a str,
-    command: Option<&'a str>,
-  ) -> iced::Element<'a, Message> {
-    let rt = theme::color::runtime();
-    let bg = rt.background;
-    let accent = rt.accent;
-    let fg = rt.foreground;
-    drop(rt);
-
-    let mut inner = column![].spacing(6);
-    inner = inner.push(
-      text(" \u{2726} NOVA \u{00B7} AI ")
-        .font(theme::font::bold())
-        .size(12)
-        .color(accent),
-    );
-    inner = inner.push(
-      text(format!(" {}", strip_markdown(message)))
-        .font(theme::font::regular())
-        .size(12)
-        .color(fg),
-    );
-    if let Some(cmd) = command {
-      let cmd_text = cmd.to_string();
-      inner = inner.push(
-        button(
-          text(format!(" {} ", cmd_text))
-            .font(theme::font::regular())
-            .size(12)
-            .color(accent),
-        )
-        .on_press(Message::DiagnosticBannerCommand(cmd_text))
-        .padding(Padding::from([4, 10]))
-        .style(move |_t, _s| button::Style {
-          background: Some(Color { a: 0.08, ..accent }.into()),
-          border: Border {
-            color: accent,
-            radius: Radius::new(4.0),
-            width: 0.0,
-          },
-          text_color: accent,
-          ..Default::default()
-        }),
-      );
-    }
-
-    container(
-      container(inner)
-        .padding(Padding::from([8, 12]))
-        .style(move |_| container::Style {
-          background: Some(Color { a: 0.08, ..accent }.into()),
-          border: Border {
-            color: accent,
-            radius: Radius::new(8.0),
-            width: 1.0,
-          },
-          ..Default::default()
-        })
-        .width(Length::Fill),
-    )
-    .padding(Padding::from([8, 8]))
-    .style(move |_| container::Style {
-      background: Some(bg.into()),
-      ..Default::default()
-    })
-    .width(Length::Fill)
-    .into()
   }
 }

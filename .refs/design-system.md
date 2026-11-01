@@ -155,3 +155,10 @@ renderer default). 256-color and truecolor values pass through.
   (surface-1, r12, line edge) shows `$ cmd` + primary Run. Footer hints ↩
   Select/Run, esc Close/Back. Run closes the sheet and submits the command in
   the active session 120 ms later (`Message::RunCommand`).
+- Inline AI suggestion (`ai_sheet::inline_suggestion`): the automatic
+  diagnosis for a failed command (when `[ai] diagnostic-banner` is on) is no
+  longer a bottom banner. In block mode it renders as a card directly under the
+  failed block (surface-1, r8, padding 16/24): accent sparkle + "Nova AI"
+  label, the message (14 px, backtick code chips) and, when the model returned
+  a fix, the `.nv-suggest` row with Run, which submits it in the pane. Classic
+  panes show the same card above the bottom edge.

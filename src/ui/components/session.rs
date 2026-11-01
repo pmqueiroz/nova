@@ -79,6 +79,7 @@ pub struct SessionView<'a> {
   pub hover_url: Option<&'a BlockUrl>,
   pub matches: &'a [BlockMatch],
   pub current_match: Option<usize>,
+  pub suggestion: Option<(&'a str, Option<&'a str>)>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -114,13 +115,18 @@ pub fn blocks_area<'a>(v: &SessionView<'a>) -> Element<'a, Message> {
     matches: v.matches,
     current_match: v.current_match,
   };
-  let log = v
+  let mut log = v
     .session
     .blocks
     .iter()
     .fold(Column::new().spacing(space::S8), |c, b| {
       c.push(block::block_entry(b, &opts))
     });
+  if let Some((msg, cmd)) = v.suggestion
+    && v.session.blocks.last().is_some_and(|b| b.is_error())
+  {
+    log = log.push(crate::ui::components::inline_suggestion(msg, cmd));
+  }
   let pane_id = v.pane_id;
   mouse_area(
     scrollable(

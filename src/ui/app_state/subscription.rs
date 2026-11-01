@@ -11,7 +11,7 @@ use iced::{Event, Subscription, event, keyboard, mouse, stream, time, window};
 use std::sync::atomic::Ordering;
 
 use crate::core::config;
-use crate::sys::pty::{PtyBridge, PtyCommand};
+use crate::sys::pty::{PtyBridge, PtyCommand, spawn_error_message};
 
 struct PtyKey {
   tab_id: usize,
@@ -73,8 +73,15 @@ fn pty_worker(
           Some(initial_cwd.as_str())
         };
         let cmd = initial_command.as_deref();
-        let mut pty = PtyBridge::new(tx_out, cols, rows, &shell, cwd, cmd)
-          .expect("failed to create PTY bridge");
+        let mut pty = match PtyBridge::new(tx_out.clone(), cols, rows, &shell, cwd, cmd) {
+          Ok(pty) => pty,
+          Err(err) => {
+            let program = cmd.unwrap_or(&shell);
+            let _ = tx_out.send_blocking(spawn_error_message(program, &err));
+            return;
+          }
+        };
+        drop(tx_out);
 
         while let Ok(command) = rx_in.recv_blocking() {
           match command {

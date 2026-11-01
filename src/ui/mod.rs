@@ -57,6 +57,7 @@ fn window_settings() -> window::Settings {
 
 pub fn start() -> Result {
   theme::font::set_family(&crate::core::config::get().theme.font.family);
+  theme::font::prewarm_installed_fonts();
   iced::application(
     app_state::Nova::default,
     app_state::Nova::update,

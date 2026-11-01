@@ -29,7 +29,9 @@ next-tab = "ctrl+tab"
 prev-tab = "ctrl+shift+tab"
 copy = "ctrl+shift+c"
 paste = "ctrl+v"
-open-palette = "ctrl+k"
+open-palette = "ctrl+p"
+ask-ai = "ctrl+k"
+settings = "ctrl+,"
 ```
 
 ## Actions
@@ -43,6 +45,8 @@ These keys live under `[keybindings]` in `settings.toml`:
 - `copy`
 - `paste`
 - `open-palette`
+- `ask-ai`
+- `settings`
 
 ## Defaults
 
@@ -58,7 +62,9 @@ next-tab = "ctrl+tab"
 prev-tab = "ctrl+shift+tab"
 paste = "ctrl+v"
 copy = "ctrl+shift+c"
-open-palette = "ctrl+k"
+open-palette = "ctrl+p"
+ask-ai = "ctrl+k"
+settings = "ctrl+,"
 ```
 
 macOS (defaults):
@@ -71,7 +77,9 @@ next-tab = "ctrl+tab"
 prev-tab = "ctrl+shift+tab"
 paste = "cmd+v"
 copy = "cmd+c"
-open-palette = "cmd+k"
+open-palette = "cmd+p"
+ask-ai = "cmd+k"
+settings = "cmd+,"
 ```
 
 ## Fixed Shortcuts
@@ -112,4 +120,5 @@ Search is case-insensitive and covers both the scrollback buffer and the visible
 
 ## Notes
 
-- If `open-palette` is invalid, Nova falls back to `ctrl+k`.
+- If `open-palette`, `ask-ai` or `settings` is invalid, Nova falls back to its default (`ctrl+p`, `ctrl+k`, `ctrl+,`; `cmd` on macOS).
+- Configs still using the old default palette binding (`ctrl+k` / `cmd+k`) or the old default accent (`#3ECF8E`) are migrated to the new defaults on startup.

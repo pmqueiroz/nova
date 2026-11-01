@@ -35,6 +35,8 @@ impl Nova {
         4 => self.settings.keybindings.paste = s,
         5 => self.settings.keybindings.copy = s,
         6 => self.settings.keybindings.open_palette = s,
+        7 => self.settings.keybindings.ask_ai = s,
+        8 => self.settings.keybindings.settings = s,
         _ => {}
       }
       let _ = config::save(&self.settings);

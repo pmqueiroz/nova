@@ -268,6 +268,12 @@ fn handle_key_pressed(
   if matches_kb(&kb.open_palette, &key, modifiers) {
     return Some(Message::OpenCommandPalette);
   }
+  if matches_kb(&kb.ask_ai, &key, modifiers) {
+    return Some(Message::OpenAskAi);
+  }
+  if matches_kb(&kb.settings, &key, modifiers) {
+    return Some(Message::OpenSettings);
+  }
   drop(kb);
 
   if INPUT_OWNS_KEYS.load(Ordering::Relaxed) {

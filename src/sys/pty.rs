@@ -94,6 +94,7 @@ pub fn spawn_error_message(program: &str, err: &anyhow::Error) -> Vec<u8> {
   format!("\x1b[31mnova: could not start `{program}`: {reason}\x1b[0m\r\n").into_bytes()
 }
 
+#[cfg(target_os = "windows")]
 pub const CMD_PROMPT: &str = "\u{F8F0}$P$G";
 
 pub const POSIX_PROMPT_HOOK: &str = r#"__nova_exit_code=$?

@@ -41,6 +41,7 @@ pub const BG: Hue = Hue {
   b: 0x22,
   a: 1.0,
 };
+#[cfg(not(any(target_os = "macos", target_os = "linux")))]
 pub const BG_DEEP: Hue = Hue {
   r: 0x14,
   g: 0x14,

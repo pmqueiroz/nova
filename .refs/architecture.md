@@ -181,6 +181,12 @@ Every supported shell emits private OSC 777 marks (parsed in
   `NOVA_TERMINAL`/`TERM_PROGRAM`) sets `LESS=FR` unless the user already has
   `LESS`. `F` keeps short output inline: less >= 530 skips the alt screen
   when the text fits.
+- PowerShell's `help` (alias `man`) pipes to `more.com`, which has no alt
+  screen and blocks on `-- More --`, so the block looked hung until `q`. The
+  PowerShell integration script defines `global:help`: `Get-Help @args`
+  piped through `Out-String -Stream | less` when `less` is on `PATH`
+  (fullscreen via the `LESS=FR` above), otherwise printed straight into the
+  block. `@args` splatting keeps switches (`-Full`, `-Examples`) working.
 - Wheel in raw takeover (`update/mouse.rs::scroll_raw_pane`): if the raw
   grid has mouse reporting on, a wheel report (`helpers::wheel_report`, SGR
   or X10) at the cell under the pointer (`raw_pixel_to_cell`, raw padding

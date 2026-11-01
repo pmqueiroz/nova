@@ -3,6 +3,7 @@ pub mod ai;
 pub mod block;
 pub mod completion;
 pub mod config;
+pub mod glyph;
 pub mod grid;
 #[allow(dead_code)]
 pub mod router;

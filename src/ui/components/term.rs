@@ -9,9 +9,48 @@ use iced::{
 };
 
 use crate::core::config::CursorStyle;
+use crate::core::glyph::{BlockGlyph, block_glyph};
 use crate::core::grid::Grid;
 use crate::core::url::detect_urls;
 use crate::ui::{app_state::Message, theme};
+
+fn single_char(text: &str) -> Option<char> {
+  let mut chars = text.chars();
+  let c = chars.next()?;
+  chars.next().is_none().then_some(c)
+}
+
+fn block_cell(
+  glyph: &BlockGlyph,
+  color: Color,
+  width: f32,
+  height: f32,
+) -> Element<'static, Message> {
+  let color = Color {
+    a: color.a * glyph.alpha,
+    ..color
+  };
+  let mut layers = stack![].width(width).height(height);
+  for rect in &glyph.rects {
+    let x0 = width * f32::from(rect.x0) / 8.0;
+    let x1 = width * f32::from(rect.x1) / 8.0;
+    let y0 = height * f32::from(rect.y0) / 8.0;
+    let y1 = height * f32::from(rect.y1) / 8.0;
+    let fill = container(Space::new())
+      .width(x1 - x0)
+      .height(y1 - y0)
+      .style(move |_| container::Style {
+        background: Some(color.into()),
+        ..Default::default()
+      });
+    layers = layers.push(container(fill).padding(Padding {
+      top: y0,
+      left: x0,
+      ..Padding::ZERO
+    }));
+  }
+  layers.into()
+}
 
 fn in_selection(x: usize, y: usize, sel: Option<(usize, usize, usize, usize)>) -> bool {
   let (sc, sr, ec, er) = match sel {
@@ -244,17 +283,26 @@ pub fn term<'a>(
 
   let line_height = font_size * 1.29;
   let cursor_color = theme::color::runtime().cursor;
+  let default_fg = theme::color::runtime().foreground;
   let render_row = |cells: Vec<(Span<'static>, Option<Background>, u8, Option<Color>)>| {
     let mut r = row![].spacing(0);
     for (span, bg, col_width, beam_color) in cells {
-      let content = container(
-        rich_text([span])
+      let cell_width = char_width * col_width as f32;
+      let glyph = single_char(&span.text).and_then(block_glyph);
+      let inner: Element<'static, Message> = match glyph {
+        Some(glyph) => block_cell(
+          &glyph,
+          span.color.unwrap_or(default_fg),
+          cell_width,
+          line_height,
+        ),
+        None => rich_text([span])
           .size(font_size)
           .font(theme::font::regular())
-          .wrapping(text::Wrapping::None),
-      )
-      .width(char_width * col_width as f32)
-      .height(line_height);
+          .wrapping(text::Wrapping::None)
+          .into(),
+      };
+      let content = container(inner).width(cell_width).height(line_height);
       let cell = if let Some(beam) = beam_color {
         let bar = container(Space::new())
           .width(2.0)

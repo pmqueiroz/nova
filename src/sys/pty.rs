@@ -209,6 +209,11 @@ fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder
                   return $line
               }}
           }}
+          function global:help {{
+              $__nova_help = Get-Help @args
+              $__nova_less = Get-Command less -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+              if ($__nova_less) {{ $__nova_help | Out-String -Stream | & $__nova_less.Source }} else {{ $__nova_help }}
+          }}
           if (-not (Get-Command ssh -CommandType Function -ErrorAction SilentlyContinue)) {{
               function global:ssh {{
                   $fwa = 'b','c','D','E','e','F','I','i','J','L','l','m','o','p','Q','R','S','W','w'

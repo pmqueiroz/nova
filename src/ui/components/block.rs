@@ -1,11 +1,12 @@
 use std::time::{Duration, Instant};
 
 use iced::widget::text::{Span, Wrapping};
-use iced::widget::{Column, Row, column, container, rich_text, row, text};
+use iced::widget::{Column, Row, column, container, mouse_area, rich_text, row, text};
 use iced::{Alignment, Background, Border, Color, Element, Font, Length, Padding};
 
-use crate::core::block::{Block, BlockState};
+use crate::core::block::{Block, BlockId, BlockState};
 use crate::core::grid::{Cell, CellAttrs};
+use crate::core::selection::BlockSelection;
 use crate::ui::app_state::Message;
 use crate::ui::components::ds::transform::Transform;
 use crate::ui::theme::motion::{self, lerp};
@@ -64,13 +65,32 @@ pub fn visible_len(cells: &[Cell]) -> usize {
     .unwrap_or(0)
 }
 
-pub fn runs(cells: &[Cell], default_fg: Color) -> Vec<(String, Color, Option<Color>, u8)> {
+#[derive(Clone, Copy, Default, Debug, PartialEq)]
+pub struct LineMarks {
+  pub selection: Option<(usize, usize)>,
+  pub url: Option<(usize, usize)>,
+}
+
+pub fn runs(
+  cells: &[Cell],
+  default_fg: Color,
+  marks: LineMarks,
+) -> Vec<(String, Color, Option<Color>, u8)> {
+  let accent = color::runtime().accent;
   let mut out: Vec<(String, Style)> = Vec::new();
-  for cell in &cells[..visible_len(cells)] {
+  let len = visible_len(cells).max(marks.selection.map_or(0, |(_, e)| e.min(cells.len())));
+  for (x, cell) in cells[..len].iter().enumerate() {
     if cell.width == 0 {
       continue;
     }
-    let st = cell_style(cell, default_fg);
+    let mut st = cell_style(cell, default_fg);
+    if marks.selection.is_some_and(|(a, b)| x >= a && x < b) {
+      st.fg = tokens::FG_1;
+      st.bg = Some(tokens::with_alpha(accent, 0.32));
+    }
+    if marks.url.is_some_and(|(a, b)| x >= a && x <= b) {
+      st.underline = true;
+    }
     match out.last_mut() {
       Some((t, s)) if *s == st => t.push_str(&cell.c),
       _ => out.push((cell.c.to_string(), st)),
@@ -88,9 +108,15 @@ pub fn runs(cells: &[Cell], default_fg: Color) -> Vec<(String, Color, Option<Col
     .collect()
 }
 
-pub fn line<'a>(cells: &[Cell], default_fg: Color, size: f32, alpha: f32) -> Element<'a, Message> {
+pub fn line<'a>(
+  cells: &[Cell],
+  default_fg: Color,
+  size: f32,
+  alpha: f32,
+  marks: LineMarks,
+) -> Element<'a, Message> {
   let line_h = size * tokens::block::LINE_HEIGHT;
-  let spans: Vec<Span<'a>> = runs(cells, default_fg)
+  let spans: Vec<Span<'a>> = runs(cells, default_fg, marks)
     .into_iter()
     .map(|(t, fg, bg, flags)| {
       let st = Style {
@@ -218,17 +244,40 @@ pub fn default_output_color(block: &Block) -> Color {
   }
 }
 
-pub fn output_card<'a>(block: &Block, size: f32, alpha: f32) -> Element<'a, Message> {
+pub fn output_card<'a>(
+  block: &Block,
+  size: f32,
+  alpha: f32,
+  o: &EntryOptions,
+) -> Element<'a, Message> {
   let fg = default_output_color(block);
+  let sel = o.selection.filter(|s| s.block_id == block.id);
+  let url = o.hover_url.filter(|(id, ..)| *id == block.id);
   let lines = (0..block.line_count()).fold(Column::new(), |c, i| match block.line(i) {
-    Some(cells) => c.push(line(cells, fg, size, alpha)),
+    Some(cells) => {
+      let marks = LineMarks {
+        selection: sel.and_then(|s| s.line_range(i, visible_len(cells))),
+        url: url.filter(|(_, l, ..)| *l == i).map(|(_, _, a, b)| (a, b)),
+      };
+      c.push(line(cells, fg, size, alpha, marks))
+    }
     None => c,
   });
-  container(lines)
+  let card = container(lines)
     .width(Length::Fill)
     .padding(card_padding())
     .clip(true)
-    .style(move |_| card_style(alpha))
+    .style(move |_| card_style(alpha));
+  let (pane_id, block_id) = (o.pane_id, block.id);
+  mouse_area(card)
+    .on_move(move |p| Message::BlockPointer(pane_id, block_id, p))
+    .on_press(Message::BlockPress(pane_id, block_id))
+    .on_release(Message::BlockRelease)
+    .interaction(if url.is_some() {
+      iced::mouse::Interaction::Pointer
+    } else {
+      iced::mouse::Interaction::Text
+    })
     .into()
 }
 
@@ -248,9 +297,12 @@ pub fn is_animating(block: &Block, now: Instant) -> bool {
 }
 
 pub struct EntryOptions {
+  pub pane_id: usize,
   pub font_size: f32,
   pub timestamps: bool,
   pub now: Instant,
+  pub selection: Option<BlockSelection>,
+  pub hover_url: Option<(BlockId, usize, usize, usize)>,
 }
 
 pub fn block_entry<'a>(block: &Block, o: &EntryOptions) -> Element<'a, Message> {
@@ -263,7 +315,7 @@ pub fn block_entry<'a>(block: &Block, o: &EntryOptions) -> Element<'a, Message> 
   let output: Option<Element<'a, Message>> = if pending {
     Some(pending_card(block.born, o.now, t_out))
   } else if block.has_output() {
-    Some(output_card(block, out_size, t_out))
+    Some(output_card(block, out_size, t_out, o))
   } else {
     None
   };
@@ -318,7 +370,7 @@ mod tests {
   #[test]
   fn runs_merge_same_style_and_trim_trailing_space() {
     let b = block_with("ab\x1b[31mcd\x1b[0m  ");
-    let r = runs(b.line(0).unwrap(), tokens::FG_2);
+    let r = runs(b.line(0).unwrap(), tokens::FG_2, LineMarks::default());
     assert_eq!(r.len(), 2);
     assert_eq!(r[0].0, "ab");
     assert_eq!(r[0].1, tokens::FG_2);
@@ -327,9 +379,36 @@ mod tests {
   }
 
   #[test]
+  fn selection_and_url_marks_restyle_cells() {
+    let b = block_with("abcdef");
+    let r = runs(
+      b.line(0).unwrap(),
+      tokens::FG_2,
+      LineMarks {
+        selection: Some((1, 3)),
+        url: None,
+      },
+    );
+    assert_eq!(r.len(), 3);
+    assert_eq!(r[1].0, "bc");
+    assert_eq!(r[1].1, tokens::FG_1);
+    assert!(r[1].2.is_some());
+    let u = runs(
+      b.line(0).unwrap(),
+      tokens::FG_2,
+      LineMarks {
+        selection: None,
+        url: Some((0, 1)),
+      },
+    );
+    assert_eq!(u[0].0, "ab");
+    assert_eq!(u[0].3 & 4, 4);
+  }
+
+  #[test]
   fn reverse_swaps_colors() {
     let b = block_with("\x1b[7mX");
-    let r = runs(b.line(0).unwrap(), tokens::FG_2);
+    let r = runs(b.line(0).unwrap(), tokens::FG_2, LineMarks::default());
     assert_eq!(r[0].1, tokens::WIN_BOT);
     assert_eq!(r[0].2, Some(tokens::FG_2));
   }

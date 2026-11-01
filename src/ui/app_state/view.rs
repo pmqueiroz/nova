@@ -444,6 +444,8 @@ impl Nova {
       now: self.now,
       shown_at: pane.integration.spawned_at,
       compact,
+      selection: self.block_selection,
+      hover_url: self.block_url.as_ref(),
     };
     Some(
       column![

@@ -13,10 +13,8 @@ use crate::ui::theme::tokens::{self, height, radius, space};
 pub const TAB_MIN_WIDTH: f32 = 96.0;
 pub const TRACK_MAX_WIDTH: f32 = 560.0;
 
-pub const CHAR_WIDTH_RATIO: f32 = 0.62;
-
 pub fn tab_width(label: &str) -> f32 {
-  let text_w = label.chars().count() as f32 * tokens::text::T14 * CHAR_WIDTH_RATIO;
+  let text_w = label.chars().count() as f32 * tokens::text::T14 * tokens::block::CHAR_WIDTH_RATIO;
   (space::S12 + text_w + space::S8 + height::H24 + space::S8)
     .ceil()
     .max(TAB_MIN_WIDTH)

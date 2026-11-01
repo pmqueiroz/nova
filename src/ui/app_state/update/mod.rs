@@ -119,6 +119,9 @@ impl Default for Nova {
       drag_pending_pos: None,
       paste_warning: None,
       now: Instant::now(),
+      block_selection: None,
+      block_pointer: None,
+      block_url: None,
       window_pop: motion::slow(false),
     };
     nova.load_command_history();
@@ -759,6 +762,11 @@ impl Nova {
       Message::InputChanged(text) => self.handle_input_changed(text),
       Message::BlocksScrolled(pane_id, pinned) => self.handle_blocks_scrolled(pane_id, pinned),
       Message::FocusInput => self.focus_input(),
+      Message::BlockPointer(pane_id, block_id, p) => {
+        self.handle_block_pointer(pane_id, block_id, p)
+      }
+      Message::BlockPress(pane_id, block_id) => self.handle_block_press(pane_id, block_id),
+      Message::BlockRelease => self.handle_block_release(),
       Message::InputSubmit => self.handle_input_submit(),
       Message::InputHistory(delta) => self.handle_input_history(delta),
       Message::ClearBlocks => self.handle_clear_blocks(),
@@ -811,6 +819,9 @@ impl Nova {
       }
       Message::PasteRequested => iced::clipboard::read().map(Message::ClipboardReceived),
       Message::CopySelection => {
+        if let Some(text) = self.block_selection_text() {
+          return iced::clipboard::write(text);
+        }
         if let (Some(start), Some(end)) = (self.selection_start, self.selection_end)
           && let Some(active_tab) = self.tabs.get(self.active_index)
         {

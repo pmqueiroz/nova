@@ -100,10 +100,18 @@ renderer default). 256-color and truecolor values pass through.
   mouse, as in `useNvList`.
   `sheet.rs`: modal sheet (`.nv-scrim` + `.nv-sheet`). Scrim fills the window
   and closes on press; the panel (576 wide, 640 for settings, r16, gradient,
-  1 px line-2 edge, 0/32/64 black .48 shadow) sits `min(16vh, 128)` from the
-  top and is wrapped in `opaque` so clicks inside never reach the scrim.
+  1 px line-2 edge, 0/32/64 black .48 shadow) is top-aligned and centered
+  horizontally only: it sits `min(16vh, 128)` from the top and keeps the same
+  gap at the bottom (`max_height` = window − 2 × `top_offset`; tall bodies
+  scroll inside that cap instead of running to the window edge). It is
+  wrapped in `opaque` so clicks inside never reach the scrim.
   `progress` (0→1, driven by the caller's spring animation) maps to the `pop`
-  keyframe: scale .96→1, translateY 8→0, scrim/shadow alpha 0→1. `head`
+  keyframe: translateY 8→0 (`pop_offset`, snapped to whole px), scrim/shadow
+  alpha 0→1. **Deviation:** the handoff's scale .96→1 is dropped for sheets.
+  iced_wgpu passes the transformation scale to glyphon, so every frame at a
+  new scale re-rasterizes every glyph in the sheet (text-heavy sheets like
+  settings dropped frames); fractional translation likewise misses the glyph
+  cache's subpixel bins, hence the rounding. `head`
   (h64, padding 0/16/0/24) and `foot` (min-h 56, padding 8/16/8/24) add the
   1 px line separators.
 - `src/ui/components/block.rs` — one command block (`.nv-entry`). Command
@@ -177,11 +185,14 @@ renderer default). 256-color and truecolor values pass through.
   default directly). ↑/↓ clamp, ↩ opens, esc / scrim close.
 - `src/ui/components/settings.rs` — settings sheet (`NvSettings`, 640 wide).
   Head: "Settings" + seg [Appearance, Shell, Keys, AI, About]. Body: DS rows
-  in a scrollable capped to the window. Foot: config path in mono (click opens
+  in a scrollable capped to `sheet::max_height` minus head/foot. Foot: config path in mono (click opens
   the read-only raw view) + primary Done; esc / scrim close.
   - Appearance: Text size stepper (14–20, step 2, `step_font`), Timestamps
     toggle (`theme.timestamps`), Accent swatches (Blue/Mint/Amber/Rose, which
-    set accent and cursor), Font pick list, Cursor seg, Cursor blink.
+    set accent and cursor), Font pick list, Cursor seg, Cursor blink. The
+    pick list's system font scan (`font::installed_fonts`, font-kit) is
+    prewarmed on a background thread at startup (`prewarm_installed_fonts`)
+    so the first open doesn't block a frame on it.
   - Shell: Editor seg nano/vim/code, Bell seg Off/Flash/Sound, Window controls
     seg, shell list with remove buttons + add field, Initial command, Keep
     finished tabs.
@@ -199,7 +210,7 @@ renderer default). 256-color and truecolor values pass through.
 | Handoff | Where | Status |
 |---|---|---|
 | `pop` 400 ms ease (window) | `components/app.rs`, `Nova.window_pop` | done |
-| `pop` 200 ms spring (sheets) | `ds/sheet.rs`, `Nova::sheet_progress` | done (opacity → scrim/shadow alpha) |
+| `pop` 200 ms spring (sheets) | `ds/sheet.rs`, `Nova::sheet_progress` | done (opacity → scrim/shadow alpha; scale dropped for perf, see `sheet.rs`) |
 | `pop` 200 ms ease (new tab) | `tab_bar.rs`, `Tab.appear` | done |
 | `in` 200 ms (entry, output +60 ms) | `components/block.rs` | done (opacity via color alpha) |
 | `fade` 400 ms (empty state) | `components/session.rs` | done |

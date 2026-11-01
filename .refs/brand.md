@@ -1,7 +1,6 @@
 # Brand assets (v2)
 
-Source: the brand-v2 handoff export (`exports/brand-v2/`). Blue brand,
-replaces the original green (#3ECF8E) set.
+Source: the brand-v2 handoff export (`exports/brand-v2/`).
 
 Colors: accent `#82baff` · accent on light `#3a81d7` · ink `#11161f` ·
 white `#f0f2f5`.

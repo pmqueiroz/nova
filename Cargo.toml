@@ -41,9 +41,6 @@ windows-sys = { version = "0.59", features = [
 winreg = "0.52"
 tauri-winrt-notification = "0.7"
 
-[build-dependencies]
-ico = "0.3"
-
 [target.'cfg(windows)'.build-dependencies]
 winres = "0.1"
 
@@ -56,13 +53,9 @@ homepage = "https://github.com/pmqueiroz/nova"
 license_file = "LICENSE"
 formats = ["app", "dmg", "nsis", "deb", "appimage"]
 icons = [
-  "assets/icons/macos/nova-mac-16.png",
-  "assets/icons/macos/nova-mac-32.png",
-  "assets/icons/macos/nova-mac-128.png",
-  "assets/icons/macos/nova-mac-256.png",
-  "assets/icons/macos/nova-mac-512.png",
-  "assets/icons/macos/nova-mac-512@2x.png",
+  "assets/icons/macos/nova.icns",
   "assets/icons/linux/nova-linux-16.png",
+  "assets/icons/linux/nova-linux-22.png",
   "assets/icons/linux/nova-linux-24.png",
   "assets/icons/linux/nova-linux-32.png",
   "assets/icons/linux/nova-linux-48.png",

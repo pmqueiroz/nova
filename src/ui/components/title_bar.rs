@@ -11,17 +11,21 @@ use crate::ui::icons::Icon;
 use crate::ui::theme::font;
 use crate::ui::theme::tokens::{self, height, space};
 
-pub fn title<'a>(pwd: &str, flash: bool) -> Element<'a, Message> {
+pub fn title<'a>(pwd: &str, flash: bool, compact: bool) -> Element<'a, Message> {
   let accent = crate::ui::theme::color::runtime().accent;
   row![
     text("Nova")
       .size(tokens::text::T14)
       .font(font::semibold())
       .color(if flash { accent } else { tokens::FG_2 }),
-    text(til_home(pwd))
-      .size(tokens::text::T14)
-      .font(font::regular())
-      .color(tokens::FG_3),
+    text(if compact {
+      String::new()
+    } else {
+      til_home(pwd)
+    })
+    .size(tokens::text::T14)
+    .font(font::regular())
+    .color(tokens::FG_3),
   ]
   .spacing(space::S8)
   .align_y(Alignment::Center)

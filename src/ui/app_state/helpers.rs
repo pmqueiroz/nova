@@ -251,10 +251,11 @@ pub fn calc_grid_split_ratio(
   )
 }
 
-pub fn block_output_width(pane_width: f32, timestamps: bool) -> f32 {
+pub fn block_output_width(pane_width: f32, timestamps: bool, compact: bool) -> f32 {
   use tokens::space::{S16, S24, S32, S48};
   let ts = if timestamps { S48 + S16 } else { 0.0 };
-  (pane_width - 2.0 * S32 - 2.0 * S24 - ts).max(0.0)
+  let (scroll, card) = if compact { (S16, S16) } else { (S32, S24) };
+  (pane_width - 2.0 * scroll - 2.0 * card - ts).max(0.0)
 }
 
 pub fn block_viewport_height(window_height: f32) -> f32 {
@@ -268,10 +269,11 @@ pub fn calc_block_grid(
   window_height: f32,
   font_size: f32,
   timestamps: bool,
+  compact: bool,
 ) -> (usize, usize) {
   let fs = tokens::block::font_size(font_size);
-  let cols =
-    (block_output_width(pane_width, timestamps) / (fs * CHAR_WIDTH_RATIO)).floor() as usize;
+  let cols = (block_output_width(pane_width, timestamps, compact) / (fs * CHAR_WIDTH_RATIO)).floor()
+    as usize;
   let rows =
     (block_viewport_height(window_height) / (fs * tokens::block::LINE_HEIGHT)).floor() as usize;
   (cols.max(MIN_COLS), rows.max(MIN_ROWS))
@@ -415,22 +417,29 @@ mod block_grid_tests {
 
   #[test]
   fn block_grid_uses_smaller_output_font() {
-    let (c16, _) = calc_block_grid(1024.0, 768.0, 16.0, false);
+    let (c16, _) = calc_block_grid(1024.0, 768.0, 16.0, false, false);
     let expected = ((1024.0 - 64.0 - 48.0) / (14.0 * CHAR_WIDTH_RATIO)).floor() as usize;
     assert_eq!(c16, expected);
   }
 
   #[test]
   fn timestamps_column_narrows_output() {
-    let (a, _) = calc_block_grid(1024.0, 768.0, 16.0, false);
-    let (b, _) = calc_block_grid(1024.0, 768.0, 16.0, true);
+    let (a, _) = calc_block_grid(1024.0, 768.0, 16.0, false, false);
+    let (b, _) = calc_block_grid(1024.0, 768.0, 16.0, true, false);
     assert!(b < a);
+  }
+
+  #[test]
+  fn compact_layout_gains_columns() {
+    let (wide, _) = calc_block_grid(600.0, 768.0, 16.0, false, false);
+    let (compact, _) = calc_block_grid(600.0, 768.0, 16.0, false, true);
+    assert!(compact > wide);
   }
 
   #[test]
   fn tiny_window_keeps_minimums() {
     assert_eq!(
-      calc_block_grid(10.0, 10.0, 16.0, false),
+      calc_block_grid(10.0, 10.0, 16.0, false, false),
       (MIN_COLS, MIN_ROWS)
     );
   }

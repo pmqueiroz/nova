@@ -116,11 +116,13 @@ impl Nova {
     p: iced::Point,
   ) -> iced::Task<Message> {
     let fs = tokens::block::font_size(self.settings.theme.font.size);
+    let pad =
+      crate::ui::components::block::card_padding(tokens::block::is_compact(self.window_size.width));
     let cell = cell_at(
       p.x,
       p.y,
-      tokens::space::S24,
-      tokens::space::S16,
+      pad.left,
+      pad.top,
       fs * tokens::block::CHAR_WIDTH_RATIO,
       fs * tokens::block::LINE_HEIGHT,
     );

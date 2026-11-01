@@ -47,6 +47,12 @@ pub mod duration {
 }
 
 pub mod block {
+  pub const COMPACT_WIDTH: f32 = 640.0;
+
+  pub fn is_compact(window_width: f32) -> bool {
+    window_width <= COMPACT_WIDTH
+  }
+
   pub const LINE_HEIGHT: f32 = 1.5;
   pub const CHAR_WIDTH_RATIO: f32 = 0.62;
 

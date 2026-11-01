@@ -55,6 +55,24 @@ Code is the truth. This file explains the *why* behind the shape it takes.
   hidden attribute in `CellAttrs`.
 - `MouseMode` maps to DEC private modes: `Normal` = `?1000`, `Button` =
   `?1002`, `AnyEvent` = `?1003`.
+- Erases (`EL`, `ED`, `ECH`, `ICH`, `DCH`) and lines exposed by scrolling
+  are filled with `Grid::blank_cell()`, which carries the current background
+  (BCE, as xterm). ConPTY depends on it: it paints row-filling backgrounds as
+  `SGR bg` + `EL` instead of spaces, so without BCE full-width highlights
+  (diff lines, status bars in fullscreen TUIs) disappear.
+- Truecolor SGR accepts both `38;2;r;g;b` and the colon forms
+  `38:2:r:g:b` / `38:2:<colorspace>:r:g:b` (`colon_rgb`).
+- `Grid::resize` while on the alt screen reflows the saved primary buffer to
+  the new size and crops the alt buffer (the app redraws after the resize);
+  otherwise leaving the alt screen would restore a buffer of the old size.
+  Reflow never paints with the pen's background.
+- Block elements U+2580–259F (halves, eighths, quadrants, shades) are not
+  drawn from the font: `core::glyph::block_glyph` maps each to rectangles in
+  eighths of the cell, and `term`'s `block_cell` paints them in the cell's
+  fg color (shades as fg at α .25/.5/.75). Font glyphs don't fill the 0.62 ×
+  1.29 cell, so pixel art (e.g. the Claude Code logo) showed gaps; Windows
+  Terminal draws these procedurally too. Box drawing (U+2500–257F) still
+  comes from the font.
 
 ## Assets and credits
 
@@ -306,6 +324,19 @@ change, a pane entering/leaving block mode, integration timeout):
   Cell size uses the output font (`font size − 2`) and line height 1.5.
 - `apply_size` resizes the screen grid, every block grid (reflow via
   `Grid::resize`) and the PTY together.
+- Raw takeover (`Phase::Raw`, fullscreen TUIs) is sized separately by
+  `calc_raw_grid`: the whole pane below the 56 px title bar minus
+  `session::raw_padding` (8/16, compact 4/8), measured with the `term`
+  widget's own metrics. `term()` takes its padding as an argument: classic
+  panes pass `CLASSIC_PADDING` (12/20/8/20), raw takeover passes
+  `raw_padding` and nothing else wraps it, so the sizing math and the
+  rendered area agree (char 0.62, line 1.29 × output font). Only the running
+  block's grid and the PTY are resized (`apply_raw_size`); other blocks keep
+  the card width. `update` (`PtyOutputReceived`) compares `raw_panes()` before
+  and after routing and calls `resize_all_grids` when it changed, so
+  entering the alt screen grows the PTY and leaving it shrinks it back
+  (`needs_size` also checks the running block's grid, since the screen grid
+  never changed size).
 
 ## Shared state
 

@@ -33,6 +33,20 @@ pub struct Cell {
   pub uri: Option<Arc<str>>,
 }
 
+impl Cell {
+  pub fn is_blank(&self) -> bool {
+    &*self.c == " " && self.bg.is_none()
+  }
+}
+
+fn without_trailing_blanks(cells: &[Cell]) -> &[Cell] {
+  let len = cells
+    .iter()
+    .rposition(|c| !c.is_blank())
+    .map_or(0, |i| i + 1);
+  &cells[..len]
+}
+
 impl Default for Cell {
   fn default() -> Self {
     Self {
@@ -384,7 +398,7 @@ impl Grid {
     self.row_continuation = vec![false; new_rows];
 
     for line in &logical_lines {
-      self.write_line(line);
+      self.write_line(without_trailing_blanks(line));
     }
   }
 

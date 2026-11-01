@@ -1,4 +1,4 @@
-use iced::widget::{Row, button, container, mouse_area, row, scrollable, text};
+use iced::widget::{Row, Space, button, container, mouse_area, row, scrollable, text};
 use iced::{Alignment, Background, Border, Color, Element, Length, Padding, mouse};
 
 use crate::ui::app_state::Message;
@@ -44,13 +44,13 @@ pub fn tab_text_color(active: bool, hovered: bool) -> Color {
 }
 
 fn close_button<'a>(index: usize, visible: bool) -> Element<'a, Message> {
-  let color = if visible {
-    tokens::FG_2
+  let glyph: Element<'a, Message> = if visible {
+    icon(Icon::Close, 12.0, tokens::FG_2).into()
   } else {
-    Color::TRANSPARENT
+    Space::new().width(12).height(12).into()
   };
   button(
-    container(icon(Icon::Close, 12.0, color))
+    container(glyph)
       .center_x(Length::Fill)
       .center_y(Length::Fill),
   )

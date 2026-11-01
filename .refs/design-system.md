@@ -135,3 +135,12 @@ renderer default). 256-color and truecolor values pass through.
   mode is at the prompt `INPUT_OWNS_KEYS` is set: ↑/↓ walk history, Ctrl+C
   clears the input, Ctrl+L clears blocks; nothing is forwarded to the PTY.
   Block mode is on (`tab::BLOCKS_ENABLED`).
+- `src/ui/components/command_palette.rs` — palette sheet (`NvPalette`). Head:
+  20 px search icon + 18 px "Search commands" input. Items in design order
+  (New tab ⌘T, Close tab ⌘W, Clear screen ⌃L, Ask AI ⌘K, Larger text ⌘+,
+  Smaller text ⌘−, Toggle timestamps, Settings ⌘,) plus Split pane and Find;
+  Ctrl replaces ⌘ off macOS. Case-insensitive substring filter; no match shows
+  "Nothing matches “q”". ↑/↓ clamp (no wrap), ↩ runs, esc / scrim click
+  close, hovering selects. Pressing the palette shortcut again closes it.
+  The sheet pops with `Nova::sheet_progress` (200 ms spring from
+  `sheet_opened_at`).

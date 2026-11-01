@@ -60,7 +60,7 @@ impl Nova {
     banner_visible: bool,
     font_size: f32,
   ) {
-    let timestamps = false;
+    let timestamps = self.timestamps;
     for tab in self.tabs.iter_mut() {
       let has_split = tab.split.is_some();
       let (classic_left, classic_right, classic_rows) = if has_split {

@@ -75,8 +75,9 @@ renderer default). 256-color and truecolor values pass through.
   spring curve (traffic lights: hover 1.16, press .84).
   `button.rs`: `btn(Variant)` builder (default/ghost/primary, h40, r8,
   padding 0/16, gap 8, 14 px semibold; primary bold on accent with
-  on-accent text, hover brightness 1.08) and `icon_button` (transparent,
-  hover surface-2, fg-2 → fg-1). Both are wrapped in `press`. CSS hover
+  on-accent text, hover brightness 1.08) and `icon_button(icon, IconSize, on_press)` (transparent,
+  hover surface-2, fg-2 → fg-1; `IconSize::Md` = 40 box/20 icon,
+  `IconSize::Sm` = 32 box/16 icon — title bar, search bar, stepper, closes). Both are wrapped in `press`. CSS hover
   color transitions (120 ms) are not animated yet; tracked for the motion audit.
   `kbd.rs`: `kbd`/`keys` chips (h24, r4, surface-2, 12 px) and
   `binding_labels`, which renders a parsed keybinding with ⌘/⌃/⌥/⇧ on macOS

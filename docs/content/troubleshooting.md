@@ -34,6 +34,19 @@ error: 'nova ask' must be run inside Nova terminal
 
 Run it inside Nova, or use the in-app command palette action.
 
+## Pagers (`git log`, `man`) Stay Inside a Block
+
+Nova shows a program fullscreen only when it switches to the terminal's
+alternate screen. `less` skips that switch when its options contain `X`, and
+Git runs it with `LESS=FRX` when `LESS` is unset.
+
+Nova therefore starts its shells with `LESS=FR` (pager output that fits on one
+screen still prints inline and exits). If you set `LESS` yourself, Nova leaves
+it alone: drop the `X` flag from it to get fullscreen pagers.
+
+While a program is fullscreen, the mouse wheel scrolls it: Nova sends arrow
+keys, or wheel events if the program asked for mouse reporting.
+
 ## AI Errors
 
 - Missing key: set `[ai].api_key`.

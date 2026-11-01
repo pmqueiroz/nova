@@ -287,6 +287,10 @@ impl Nova {
         },
         tb_interaction,
         &self.settings.general.window_controls,
+        match &self.update_status {
+          crate::core::update::Status::Available(r) => Some(r.version.as_str()),
+          _ => None,
+        },
       ),
       term_area,
     ];
@@ -320,6 +324,7 @@ impl Nova {
         timestamps: self.timestamps,
         progress: self.sheet_progress(),
         window_height: self.window_size.height,
+        update: &self.update_status,
       });
       components::app(stack![col, modal], self.window_maximized, pop)
     } else if self.command_palette_open {

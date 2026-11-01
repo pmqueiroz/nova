@@ -103,6 +103,8 @@ pub struct GeneralConfig {
   pub initial_command: Option<String>,
   #[serde(rename = "wait-after-command", default)]
   pub wait_after_command: bool,
+  #[serde(rename = "check-updates", default = "default_true")]
+  pub check_updates: bool,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
@@ -558,6 +560,18 @@ mod tests {
   fn timestamps_default_off_for_old_configs() {
     let c: Config = toml::from_str(DEFAULT_CONFIG).unwrap();
     assert!(!c.theme.timestamps);
+  }
+
+  #[test]
+  fn update_check_defaults_on_for_old_configs() {
+    let legacy: String = DEFAULT_CONFIG
+      .lines()
+      .filter(|l| !l.starts_with("check-updates"))
+      .map(|l| format!("{l}\n"))
+      .collect();
+    assert!(!legacy.contains("check-updates"));
+    let c: Config = toml::from_str(&legacy).unwrap();
+    assert!(c.general.check_updates);
   }
 
   #[test]

@@ -124,9 +124,20 @@ impl Default for Nova {
       block_pointer: None,
       block_url: None,
       window_pop: motion::slow(false),
+      update_status: crate::core::update::Status::Unknown,
     };
     nova.load_command_history();
     nova
+  }
+}
+
+impl Nova {
+  fn check_for_updates(&mut self) -> iced::Task<Message> {
+    if self.update_status == crate::core::update::Status::Checking {
+      return iced::Task::none();
+    }
+    self.update_status = crate::core::update::Status::Checking;
+    iced::Task::perform(crate::sys::update::check(), Message::UpdateChecked)
   }
 }
 
@@ -550,11 +561,28 @@ impl Nova {
         self.window_pop.go_mut(true, self.now);
         let fit = fit_window(id);
         #[cfg(target_os = "windows")]
-        {
-          fit.chain(iced::window::set_mode(id, iced::window::Mode::Windowed))
+        let fit = fit.chain(iced::window::set_mode(id, iced::window::Mode::Windowed));
+        if self.settings.general.check_updates {
+          iced::Task::batch([fit, self.check_for_updates()])
+        } else {
+          fit
         }
-        #[cfg(not(target_os = "windows"))]
-        fit
+      }
+      Message::CheckForUpdates => self.check_for_updates(),
+      Message::UpdateChecked(result) => {
+        self.update_status = crate::core::update::status_from(result);
+        iced::Task::none()
+      }
+      Message::OpenUpdatePage => {
+        if let crate::core::update::Status::Available(r) = &self.update_status {
+          let _ = open::that_detached(&r.url);
+        }
+        iced::Task::none()
+      }
+      Message::SettingsCheckUpdatesToggled(enabled) => {
+        self.settings.general.check_updates = enabled;
+        let _ = config::save(&self.settings);
+        iced::Task::none()
       }
       Message::MinimizeWindow => {
         if let Some(window_id) = self.window_id {

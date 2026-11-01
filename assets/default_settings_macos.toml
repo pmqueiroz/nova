@@ -1,6 +1,7 @@
 [general]
 editor = "nano"
 bell = "none"
+check-updates = true
 
 [theme.font]
 size = 16

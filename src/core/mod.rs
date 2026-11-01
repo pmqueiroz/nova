@@ -9,4 +9,5 @@ pub mod grid;
 pub mod router;
 pub mod search;
 pub mod selection;
+pub mod update;
 pub mod url;

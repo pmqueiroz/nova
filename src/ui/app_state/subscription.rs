@@ -509,6 +509,10 @@ impl Nova {
     subs.push(Subscription::run(notification_click_stream));
     subs.push(time::every(std::time::Duration::from_millis(500)).map(|_| Message::CursorBlinkTick));
 
+    if self.settings.general.check_updates {
+      subs.push(time::every(crate::core::update::CHECK_INTERVAL).map(|_| Message::CheckForUpdates));
+    }
+
     if self.is_animating() {
       subs.push(window::frames().map(Message::Frame));
     }

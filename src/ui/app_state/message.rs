@@ -127,4 +127,8 @@ pub enum Message {
   Osc52ReadResponse(usize, Option<String>),
   PasteWarningConfirm,
   PasteWarningCancel,
+  CheckForUpdates,
+  UpdateChecked(Result<Option<crate::core::update::Release>, String>),
+  OpenUpdatePage,
+  SettingsCheckUpdatesToggled(bool),
 }

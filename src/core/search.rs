@@ -26,8 +26,9 @@ pub fn search_session(session: &Session, query: &str) -> Vec<BlockMatch> {
   let q: Vec<char> = query.chars().map(|c| c.to_ascii_lowercase()).collect();
   let mut out = Vec::new();
   for b in &session.blocks {
-    for line in 0..b.line_count() {
-      if let Some(cells) = b.line(line) {
+    let lines = b.lines();
+    for line in 0..lines.len() {
+      if let Some(cells) = lines.get(line) {
         for (start, end) in line_matches(cells, &q) {
           out.push(BlockMatch {
             block_id: b.id,

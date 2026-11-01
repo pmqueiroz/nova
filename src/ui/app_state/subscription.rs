@@ -164,6 +164,18 @@ fn handle_key_pressed(
       }),
     };
   }
+  {
+    let kb = config::keybindings();
+    if matches_kb(&kb.open_palette, &key, modifiers) {
+      return Some(Message::OpenCommandPalette);
+    }
+    if matches_kb(&kb.ask_ai, &key, modifiers) {
+      return Some(Message::OpenAskAi);
+    }
+    if matches_kb(&kb.settings, &key, modifiers) {
+      return Some(Message::OpenSettings);
+    }
+  }
   if SETTINGS_OPEN.load(Ordering::SeqCst) {
     return match &key {
       Key::Named(Named::Escape) => Some(Message::CloseSettings),

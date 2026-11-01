@@ -234,6 +234,17 @@ and takes the first fenced code block's first line as the runnable command.
 `nova ask "q"` (OSC 777 `ask_ai`) opens the sheet and runs Generate;
 `nova explain` runs Diagnose when there is a failure, else Explain.
 
+### Global shortcuts
+
+Palette (mod+P), Ask AI (mod+K) and Settings (mod+,) are checked before any
+open sheet captures keys: the same shortcut closes its sheet, a different one
+switches sheets (`dismiss_sheets` closes the others first), matching
+`setSheet(s => s === a ? null : a)` in the handoff. mod+T opens a tab, mod+W
+closes one, but the last tab with a live shell cannot be closed by shortcut
+or tab × (`is_last_live_tab`; the window close button still quits, and a
+tab whose shell exited can still be dismissed). mod+= / mod+− step the text
+size by 2 within 14–20. Ctrl+L clears the blocks.
+
 ### Raw takeover
 
 When the running block enters the alt screen (`Phase::Raw`),

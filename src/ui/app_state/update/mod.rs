@@ -249,6 +249,9 @@ impl Nova {
         iced::Task::none()
       }
       Message::CloseTab(index) => {
+        if self.is_last_live_tab(index) {
+          return iced::Task::none();
+        }
         self.handle_close_tab(index);
         self.hovered_tab = None;
         iced::Task::none()
@@ -340,6 +343,9 @@ impl Nova {
         iced::Task::none()
       }
       Message::CloseActiveTab => {
+        if self.is_last_live_tab(self.active_index) {
+          return iced::Task::none();
+        }
         if let Some(tab) = self.tabs.get(self.active_index)
           && tab.split.is_some()
         {
@@ -416,6 +422,7 @@ impl Nova {
         if self.settings_open {
           return self.update(Message::CloseSettings);
         }
+        self.dismiss_sheets();
         self.sheet_opened_at = Instant::now();
         self.now = self.sheet_opened_at;
         self.settings_open = true;
@@ -582,6 +589,7 @@ impl Nova {
           self.close_palette();
           return self.focus_input();
         }
+        self.dismiss_sheets();
         self.sheet_opened_at = Instant::now();
         self.now = self.sheet_opened_at;
         self.command_palette_open = true;
@@ -619,6 +627,7 @@ impl Nova {
         if self.ai_overlay_open {
           return self.close_ai_sheet();
         }
+        self.dismiss_sheets();
         self.ai_input.clear();
         self.open_ai_sheet()
       }

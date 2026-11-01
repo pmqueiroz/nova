@@ -162,6 +162,11 @@ next prompt is split correctly.
   a command is running, or outside block mode, only pulse.
 - `InputHistory(-1/+1)` walks the deduplicated session history; the draft
   comes back when walking past the newest entry.
+- While a block-mode command runs (`Phase::Running`), `INPUT_OWNS_KEYS` is
+  off: the input bar shows as disabled and every key goes through the legacy
+  encoder in `subscription.rs` to the PTY. That covers passwords, `Read-Host`,
+  REPLs and Ctrl+C (``). If the platform reports Ctrl+letter as the control
+  character itself, it is forwarded unchanged.
 - `Tick` (1 s) calls `Integration::expire` on every pane.
 - History: `Session.history` is the block-mode source of truth. It is
   loaded from `command_history.bin` (bincode, `helpers::command_history_path`)

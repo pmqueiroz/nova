@@ -23,6 +23,7 @@ pub struct Integration {
   pub awaiting_echo: bool,
   pub pending_exit: Option<i32>,
   pub spawned_at: Instant,
+  pub readline: bool,
 }
 
 impl Integration {
@@ -38,7 +39,25 @@ impl Integration {
       awaiting_echo: false,
       pending_exit: None,
       spawned_at: Instant::now(),
+      readline: false,
     }
+  }
+
+  pub fn for_shell(enabled: bool, shell_cmd: &str) -> Self {
+    Self {
+      readline: is_readline_shell(shell_cmd),
+      ..Self::new(enabled)
+    }
+  }
+
+  pub fn submit_bytes(&self, command: &str) -> Vec<u8> {
+    let mut bytes = Vec::with_capacity(command.len() + 2);
+    if self.readline {
+      bytes.push(0x15);
+    }
+    bytes.extend_from_slice(command.as_bytes());
+    bytes.push(b'\r');
+    bytes
   }
 
   pub fn is_blocks(&self) -> bool {
@@ -56,6 +75,15 @@ impl Integration {
   pub fn on_submit(&mut self) {
     self.awaiting_echo = !self.preexec;
   }
+}
+
+pub fn is_readline_shell(shell_cmd: &str) -> bool {
+  let name = std::path::Path::new(shell_cmd)
+    .file_stem()
+    .and_then(|n| n.to_str())
+    .unwrap_or(shell_cmd)
+    .to_lowercase();
+  matches!(name.as_str(), "bash" | "zsh" | "git-bash" | "sh")
 }
 
 #[derive(Default, Debug)]
@@ -245,6 +273,26 @@ mod tests {
   const READY_PREEXEC: &str = "\x1b]777;prompt_ready;preexec\x07";
   const READY: &str = "\x1b]777;prompt_ready\x07";
   const START: &str = "\x1b]777;command_start\x07";
+
+  #[test]
+  fn readline_shells_get_kill_line_prefix() {
+    assert_eq!(
+      Integration::for_shell(true, "git-bash").submit_bytes("ls"),
+      b"\x15ls\r"
+    );
+    assert_eq!(
+      Integration::for_shell(true, "/bin/zsh").submit_bytes("ls"),
+      b"\x15ls\r"
+    );
+    assert_eq!(
+      Integration::for_shell(true, "powershell").submit_bytes("ls"),
+      b"ls\r"
+    );
+    assert_eq!(
+      Integration::for_shell(true, "cmd").submit_bytes("ls"),
+      b"ls\r"
+    );
+  }
 
   #[test]
   fn disabled_integration_stays_classic() {

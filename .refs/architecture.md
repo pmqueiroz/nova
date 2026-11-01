@@ -166,6 +166,10 @@ next prompt is split correctly.
   `Integration::on_submit`, then writes `command + 
 ` to the PTY. Submits while
   a command is running, or outside block mode, only pulse.
+- Readline shells (bash, zsh, git-bash, sh; `router::is_readline_shell`)
+  get a Ctrl+U prefix on every submit (`Integration::submit_bytes`): a no-op
+  on an empty line that absorbs the byte readline can swallow while starting
+  up (seen as the first command losing its first character in Git Bash).
 - `InputHistory(-1/+1)` walks the deduplicated session history; the draft
   comes back when walking past the newest entry.
 - While a block-mode command runs (`Phase::Running`), `INPUT_OWNS_KEYS` is

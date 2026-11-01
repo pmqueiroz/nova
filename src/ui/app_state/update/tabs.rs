@@ -116,7 +116,7 @@ impl Nova {
       pty_alive: true,
       ansi_parser: Parser::new(),
       session: Session::new(initial_cwd.clone(), cols, rows),
-      integration: Integration::new(BLOCKS_ENABLED),
+      integration: Integration::for_shell(BLOCKS_ENABLED, &shell_cmd),
       input: InputBox::default(),
       shell_cmd,
       pwd: initial_cwd.clone(),

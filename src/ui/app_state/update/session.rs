@@ -39,8 +39,7 @@ impl Nova {
       pane.session.clear();
     } else if pane.session.submit(trimmed).is_some() {
       pane.integration.on_submit();
-      let mut bytes = trimmed.as_bytes().to_vec();
-      bytes.push(b'\r');
+      let bytes = pane.integration.submit_bytes(trimmed);
       pane.write(bytes);
     }
     self.save_session_history();

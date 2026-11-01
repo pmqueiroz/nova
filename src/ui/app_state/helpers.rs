@@ -279,6 +279,21 @@ pub fn calc_block_grid(
   (cols.max(MIN_COLS), rows.max(MIN_ROWS))
 }
 
+pub fn calc_raw_grid(
+  pane_width: f32,
+  window_height: f32,
+  font_size: f32,
+  compact: bool,
+) -> (usize, usize) {
+  let fs = tokens::block::font_size(font_size);
+  let pad = crate::ui::components::session::raw_padding(compact);
+  let width = (pane_width - pad.left - pad.right).max(0.0);
+  let height = (window_height - tokens::height::H56 - pad.top - pad.bottom).max(0.0);
+  let cols = (width / (fs * CHAR_WIDTH_RATIO)).floor() as usize;
+  let rows = (height / (fs * CHAR_HEIGHT_RATIO)).floor() as usize;
+  (cols.max(MIN_COLS), rows.max(MIN_ROWS))
+}
+
 pub fn split_widths(total_width: f32, ratio: f32) -> (f32, f32) {
   let avail = (total_width - SPLIT_DIVIDER_WIDTH).max(0.0);
   (avail * ratio, avail * (1.0 - ratio))

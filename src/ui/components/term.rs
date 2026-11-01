@@ -208,6 +208,13 @@ fn row_spans(
   cells
 }
 
+pub const CLASSIC_PADDING: Padding = Padding {
+  top: 12.0,
+  right: 20.0,
+  bottom: 8.0,
+  left: 20.0,
+};
+
 #[allow(clippy::too_many_arguments)]
 pub fn term<'a>(
   grid: &Grid,
@@ -220,6 +227,7 @@ pub fn term<'a>(
   search_current: Option<usize>,
   cursor_style: CursorStyle,
   cursor_blink_visible: bool,
+  padding: Padding,
 ) -> Element<'a, Message> {
   let mut grid_ui = column![].spacing(0);
   let char_width = font_size * 0.62;
@@ -356,12 +364,7 @@ pub fn term<'a>(
   }
 
   container(grid_ui)
-    .padding(Padding {
-      top: 12.0,
-      right: 20.0,
-      bottom: 8.0,
-      left: 20.0,
-    })
+    .padding(padding)
     .height(Length::Fill)
     .width(Length::Fill)
     .clip(true)

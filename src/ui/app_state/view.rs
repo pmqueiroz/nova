@@ -106,6 +106,7 @@ impl Nova {
               search_current,
               cursor_style,
               cursor_blink,
+              components::CLASSIC_PADDING,
             )),
           make_close_btn(Message::CloseLeftPane),
         ])
@@ -145,6 +146,7 @@ impl Nova {
               None,
               cursor_style,
               cursor_blink,
+              components::CLASSIC_PADDING,
             )),
           make_close_btn(Message::CloseSplitPane),
         ])
@@ -194,6 +196,7 @@ impl Nova {
           search_current,
           cursor_style,
           cursor_blink,
+          components::CLASSIC_PADDING,
         ))
         .interaction(term_interaction)
         .into(),
@@ -369,24 +372,21 @@ impl Nova {
     }
     let font_size = self.settings.theme.font.size;
     if let Some(grid) = pane.raw_grid() {
-      return Some(
-        container(components::term(
-          grid,
-          None,
-          crate::ui::theme::tokens::block::font_size(font_size),
-          0,
-          None,
-          None,
-          &[],
-          None,
-          self.settings.theme.cursor.style,
-          self.cursor_blink_visible,
-        ))
-        .padding(crate::ui::components::session::scroll_padding(
-          crate::ui::theme::tokens::block::is_compact(self.window_size.width),
-        ))
-        .into(),
-      );
+      return Some(components::term(
+        grid,
+        None,
+        crate::ui::theme::tokens::block::font_size(font_size),
+        0,
+        None,
+        None,
+        &[],
+        None,
+        self.settings.theme.cursor.style,
+        self.cursor_blink_visible,
+        crate::ui::components::session::raw_padding(crate::ui::theme::tokens::block::is_compact(
+          self.window_size.width,
+        )),
+      ));
     }
     let compact = crate::ui::theme::tokens::block::is_compact(self.window_size.width);
     let view = components::SessionView {

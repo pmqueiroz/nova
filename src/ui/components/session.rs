@@ -47,6 +47,14 @@ pub fn scroll_padding(compact: bool) -> Padding {
   }
 }
 
+pub fn raw_padding(compact: bool) -> Padding {
+  if compact {
+    Padding::from([space::S4, space::S8])
+  } else {
+    Padding::from([space::S8, space::S16])
+  }
+}
+
 pub fn empty_state<'a>(alpha: f32) -> Element<'a, Message> {
   let dim = tokens::with_alpha(tokens::FG_3, alpha);
   let msg = rich_text::<(), Message, iced::Theme, iced::Renderer>([

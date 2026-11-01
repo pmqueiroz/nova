@@ -86,26 +86,31 @@ impl Block {
       .map_or(0, |i| i + 1)
   }
 
-  pub fn first_line(&self) -> usize {
-    let end = self.raw_end();
+  fn first_line(&self, end: usize) -> usize {
     (0..end)
       .find(|&i| self.raw_line(i).is_some_and(|l| !row_is_blank(l)))
       .unwrap_or(end)
   }
 
+  pub fn lines(&self) -> Lines<'_> {
+    let end = self.raw_end();
+    Lines {
+      block: self,
+      first: self.first_line(end),
+      end,
+    }
+  }
+
   pub fn line_count(&self) -> usize {
-    self.raw_end().saturating_sub(self.first_line())
+    self.lines().len()
   }
 
   pub fn has_output(&self) -> bool {
-    self.line_count() > 0
+    !self.lines().is_empty()
   }
 
   pub fn line(&self, i: usize) -> Option<&[Cell]> {
-    if i >= self.line_count() {
-      return None;
-    }
-    self.raw_line(self.first_line() + i)
+    self.lines().get(i)
   }
 
   pub fn line_text(&self, i: usize) -> String {
@@ -128,6 +133,30 @@ impl Block {
       .map(|i| self.line_text(i))
       .collect::<Vec<_>>()
       .join("\n")
+  }
+}
+
+#[derive(Clone, Copy)]
+pub struct Lines<'a> {
+  block: &'a Block,
+  first: usize,
+  end: usize,
+}
+
+impl<'a> Lines<'a> {
+  pub fn len(&self) -> usize {
+    self.end.saturating_sub(self.first)
+  }
+
+  pub fn is_empty(&self) -> bool {
+    self.len() == 0
+  }
+
+  pub fn get(&self, i: usize) -> Option<&'a [Cell]> {
+    if i >= self.len() {
+      return None;
+    }
+    self.block.raw_line(self.first + i)
   }
 }
 

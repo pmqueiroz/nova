@@ -193,7 +193,7 @@ pub fn route(
   for &byte in bytes {
     let was_raw = session.is_raw();
     let target = target(session, integ);
-    let (bell, mut responses, controls, in_alt, on_block) = {
+    let (bell, mut responses, controls, in_alt, interactive, on_block) = {
       let (grid, on_block): (&mut Grid, bool) = match target {
         Target::Block(id) if session.block(id).is_some() => {
           (&mut session.block_mut(id).unwrap().output, true)
@@ -209,14 +209,29 @@ pub fn route(
       let grid = exec.grid;
       let responses = std::mem::take(&mut grid.output_queue);
       let controls = std::mem::take(&mut grid.control_queue);
-      (bell, responses, controls, grid.in_alt_screen(), on_block)
+      (
+        bell,
+        responses,
+        controls,
+        grid.in_alt_screen(),
+        grid.bracketed_paste,
+        on_block,
+      )
     };
     out.bell |= bell;
     out.responses.append(&mut responses);
     if on_block {
-      if in_alt && !session.is_raw() {
+      let takeover = match session.active_mut() {
+        Some(b) => {
+          b.takeover |= interactive;
+          b.takeover
+        }
+        None => false,
+      };
+      let want_raw = in_alt || takeover;
+      if want_raw && !session.is_raw() {
         session.enter_raw();
-      } else if !in_alt && session.is_raw() {
+      } else if !want_raw && session.is_raw() {
         session.leave_raw();
         keep_last_frame(session);
       }
@@ -413,6 +428,34 @@ mod tests {
     assert_eq!(r.session.phase, Phase::Raw(id));
     let out = r.feed("\x1b[?1049l");
     assert!(out.raw_changed);
+    assert_eq!(r.session.phase, Phase::Running(id));
+  }
+
+  #[test]
+  fn bracketed_paste_takes_over_until_command_ends() {
+    let mut r = Rig::new();
+    r.feed(READY_PREEXEC);
+    let id = r.submit("claude");
+    let out = r.feed(&format!("{START}\x1b[?2004h\x1b[?1004h> hi"));
+    assert!(out.raw_changed);
+    assert_eq!(r.session.phase, Phase::Raw(id));
+    let out = r.feed("\x1b[?2004lbye\r\n");
+    assert!(!out.raw_changed);
+    assert_eq!(r.session.phase, Phase::Raw(id));
+    let out = r.feed(&format!("\x1b]777;command_complete;0\x07{READY_PREEXEC}"));
+    assert!(out.raw_changed);
+    assert_eq!(out.finished, vec![(id, 0)]);
+    assert_eq!(r.session.phase, Phase::Prompt);
+    assert!(r.session.block(id).unwrap().text().contains("bye"));
+  }
+
+  #[test]
+  fn plain_output_stays_in_block() {
+    let mut r = Rig::new();
+    r.feed(READY_PREEXEC);
+    let id = r.submit("ls");
+    let out = r.feed(&format!("{START}\x1b[?25la.txt\r\n\x1b[?25h"));
+    assert!(!out.raw_changed);
     assert_eq!(r.session.phase, Phase::Running(id));
   }
 

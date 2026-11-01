@@ -26,6 +26,7 @@ pub struct Block {
   pub output: Grid,
   pub state: BlockState,
   pub born: std::time::Instant,
+  pub takeover: bool,
 }
 
 impl Block {
@@ -42,6 +43,7 @@ impl Block {
       output,
       state: BlockState::Pending,
       born: std::time::Instant::now(),
+      takeover: false,
     }
   }
 

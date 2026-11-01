@@ -1,4 +1,4 @@
-use iced::{Size, window};
+use iced::window;
 
 pub mod app_state;
 pub mod components;
@@ -34,7 +34,8 @@ fn app_icon() -> Option<window::Icon> {
 fn window_settings() -> window::Settings {
   #[allow(unused_mut)]
   let mut settings = window::Settings {
-    size: Size::new(1024.0, 768.0),
+    size: app_state::INITIAL_WINDOW_SIZE,
+    position: window::Position::Centered,
     transparent: true,
     decorations: false,
     icon: app_icon(),

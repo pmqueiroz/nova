@@ -29,9 +29,10 @@ Code is the truth. This file explains the *why* behind the shape it takes.
   `view.rs`, `subscription.rs`; `tab.rs` holds `Tab`/`SplitPane`;
   `components/` the widgets; `theme/` colors and fonts; `typography.rs`
   text styling.
-- `assets/` — embedded fonts (Fira Code Nerd Font), icons, sounds, and the
-  default `settings.toml` (separate macOS variant).
-- `build.rs` — Windows icon/resource embedding.
+- `assets/` — embedded fonts (Fira Code Nerd Font), icons, brand images,
+  sounds, and the default `settings.toml` (separate macOS variant). See
+  [brand.md](./brand.md).
+- `build.rs` — embeds the prebuilt `assets/icons/windows/nova.ico` via winres.
 - `docs/` — user docs site (docmd, Bun), deployed to GitHub Pages.
 - `packaging/` — NSIS installer template, AUR PKGBUILD.
 
@@ -500,5 +501,3 @@ Text goes through `ui::typography::Typography`, fonts through
   instant (see the motion audit in `design-system.md`).
 - Block mode has only been exercised on Windows (PowerShell, cmd, Git Bash);
   the zsh/bash hooks on macOS/Linux are untested.
-- The handoff's PNG icons/banner were not re-compared (only `nova-mark.svg`,
-  which matches).

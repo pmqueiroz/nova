@@ -44,6 +44,10 @@ pub fn top_offset(window_height: f32) -> f32 {
   (window_height * TOP_OFFSET_VH).min(TOP_OFFSET_MAX)
 }
 
+pub fn pop_offset(t: f32) -> f32 {
+  lerp(space::S8, 0.0, t).round()
+}
+
 pub fn head<'a, Message: 'a>(content: Row<'a, Message>) -> Element<'a, Message> {
   column![
     container(content.spacing(space::S12).align_y(Alignment::Center))
@@ -116,9 +120,7 @@ pub fn sheet<'a, Message: Clone + 'a>(
     .max_width(s.width)
     .clip(true)
     .style(move |_| sheet_style(fade));
-  let popped = Transform::new(opaque(panel))
-    .scale(lerp(0.96, 1.0, t))
-    .offset(0.0, lerp(space::S8, 0.0, t));
+  let popped = Transform::new(opaque(panel)).offset(0.0, pop_offset(t));
   let scrim = mouse_area(
     container(iced::widget::Space::new())
       .width(Length::Fill)
@@ -151,6 +153,13 @@ mod tests {
   fn top_offset_caps_at_128() {
     assert_eq!(top_offset(400.0), 64.0);
     assert_eq!(top_offset(2000.0), 128.0);
+  }
+
+  #[test]
+  fn pop_offset_snaps_to_whole_pixels() {
+    assert_eq!(pop_offset(0.0), 8.0);
+    assert_eq!(pop_offset(1.0), 0.0);
+    assert_eq!(pop_offset(0.53).fract(), 0.0);
   }
 
   #[test]

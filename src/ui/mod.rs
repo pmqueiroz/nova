@@ -68,7 +68,7 @@ pub fn start() -> Result {
   .window(window_settings())
   .style(|_s, _t| iced::theme::Style {
     #[cfg(any(target_os = "macos", target_os = "linux"))]
-    background_color: theme::color::TRANSPARENT.as_color(),
+    background_color: iced::Color::TRANSPARENT,
     #[cfg(not(any(target_os = "macos", target_os = "linux")))]
     background_color: theme::color::BG_DEEP.as_color(),
     text_color: theme::color::runtime().foreground,

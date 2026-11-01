@@ -212,6 +212,17 @@ icon button (32 px, top-right). There is no active-pane border: the focused
 input bar's ring marks the active pane. Clicking a pane's log sends
 `FocusPane(id)`, which makes it active and focuses its input.
 
+### AI (`update/ai.rs`, `core/ai.rs`)
+
+`start_ai(kind)` builds one prompt per kind (`question_for`): Generate uses
+the typed query; Diagnose uses the last failed block's command and exit code;
+Explain the last finished command. The context is that block's output (classic
+panes fall back to `extract_last_output`). With no previous command, Explain
+answers locally. Replies go through `split_answer`, which flattens the prose
+and takes the first fenced code block's first line as the runnable command.
+`nova ask "q"` (OSC 777 `ask_ai`) opens the sheet and runs Generate;
+`nova explain` runs Diagnose when there is a failure, else Explain.
+
 ### Raw takeover
 
 When the running block enters the alt screen (`Phase::Raw`),

@@ -1,19 +1,17 @@
 #[cfg(target_os = "windows")]
 use std::io::Write;
-use std::sync::atomic::Ordering;
 
 use crate::core::grid::ControlCommand;
 use crate::core::router::route;
 use crate::sys::pty::PtyCommand;
-use crate::ui::components;
 
 use super::super::helpers::{command_history_path, os_name};
 use super::super::message::Message;
-use super::super::nova::{AI_OPEN, Nova};
+use super::super::nova::Nova;
 
 impl Nova {
   pub(super) fn handle_type_input(&mut self, bytes: Vec<u8>) -> iced::Task<Message> {
-    if self.settings_open || self.command_palette_open || self.ai_overlay_open || self.ai_loading {
+    if self.settings_open || self.command_palette_open || self.ai_overlay_open {
       return iced::Task::none();
     }
 
@@ -375,31 +373,19 @@ impl Nova {
       }
 
       if open_ask_ai || open_explain_ai {
-        self.ai_overlay_open = true;
-        AI_OPEN.store(true, Ordering::SeqCst);
-
-        if open_explain_ai {
-          self.ai_input = ai_preset
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| "Explain any errors in the terminal output above.".to_string());
+        self.ai_input = ai_preset.map(|s| s.to_string()).unwrap_or_default();
+        let msg = if open_explain_ai {
+          Message::ExplainError
+        } else if !self.ai_input.trim().is_empty() {
+          Message::AiSubmit
         } else {
-          self.ai_input = ai_preset.map(|s| s.to_string()).unwrap_or_default();
+          Message::OpenAskAi
+        };
+        if matches!(msg, Message::OpenAskAi) {
+          extra_tasks.push(self.open_ai_sheet());
+        } else {
+          extra_tasks.push(self.update(msg));
         }
-
-        self.ai_response = None;
-        self.ai_is_error = false;
-        self.ai_loading = false;
-
-        let focus_task = iced::widget::operation::focus(components::AI_INPUT_ID.clone());
-        if !self.ai_input.trim().is_empty() {
-          extra_tasks.push(focus_task);
-          extra_tasks.push(self.update(Message::AiSubmit));
-          return iced::Task::batch(extra_tasks);
-        }
-        if extra_tasks.is_empty() {
-          return focus_task;
-        }
-        extra_tasks.push(focus_task);
         return iced::Task::batch(extra_tasks);
       }
 

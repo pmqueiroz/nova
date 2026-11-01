@@ -84,7 +84,12 @@ Code is the truth. This file explains the *why* behind the shape it takes.
   fg color (shades as fg at α .25/.5/.75). Font glyphs don't fill the 0.62 ×
   1.29 cell, so pixel art (e.g. the Claude Code logo) showed gaps; Windows
   Terminal draws these procedurally too. Box drawing (U+2500–257F) still
-  comes from the font.
+  comes from the font. Block cards do the same in `output_lines.rs`:
+  `shape` blanks block elements to spaces (`without_block_glyphs`) and
+  `draw_block_glyphs` fills their rects over the full `LINE_HEIGHT`, with
+  the column width taken from the run's `span_bounds`. Without it the gaps
+  let explicit cell backgrounds (Claude's logo paints `48;2;0;0;0`) show as
+  black bars on the lighter card.
 
 ## Assets and credits
 

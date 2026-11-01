@@ -85,6 +85,15 @@ impl PtyBridge {
   }
 }
 
+pub fn spawn_error_message(program: &str, err: &anyhow::Error) -> Vec<u8> {
+  let reason = err
+    .chain()
+    .find_map(|cause| cause.downcast_ref::<std::io::Error>())
+    .map(|io| io.to_string())
+    .unwrap_or_else(|| err.to_string().replace('\0', ""));
+  format!("\x1b[31mnova: could not start `{program}`: {reason}\x1b[0m\r\n").into_bytes()
+}
+
 pub const CMD_PROMPT: &str = "\u{F8F0}$P$G";
 
 pub const POSIX_PROMPT_HOOK: &str = r#"__nova_exit_code=$?
@@ -481,6 +490,24 @@ fn find_git_bash_exe() -> Option<String> {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[test]
+  fn spawn_error_names_program_and_os_reason() {
+    let io = std::io::Error::from(std::io::ErrorKind::NotFound);
+    let expected = io.to_string();
+    let err = anyhow::Error::new(io).context("CreateProcessW `\"ls\0\"` failed");
+    let msg = String::from_utf8(spawn_error_message("ls", &err)).unwrap();
+    assert!(msg.contains("could not start `ls`"));
+    assert!(msg.contains(&expected));
+    assert!(!msg.contains('\0'));
+  }
+
+  #[test]
+  fn spawn_error_without_io_cause_strips_nul_bytes() {
+    let err = anyhow::anyhow!("CreateProcessW `\"ls\0\"` failed");
+    let msg = String::from_utf8(spawn_error_message("ls", &err)).unwrap();
+    assert!(msg.contains("CreateProcessW `\"ls\"` failed"));
+  }
 
   #[test]
   fn hook_has_no_raw_control_bytes() {

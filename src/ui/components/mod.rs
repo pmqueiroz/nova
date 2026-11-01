@@ -5,6 +5,7 @@ pub mod command_palette;
 #[allow(dead_code)]
 pub mod ds;
 mod input_bar;
+pub mod output_lines;
 mod paste_warning;
 mod search_bar;
 pub mod session;

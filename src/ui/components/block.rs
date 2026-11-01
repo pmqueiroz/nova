@@ -1,15 +1,16 @@
 use std::time::{Duration, Instant};
 
 use iced::widget::text::{Span, Wrapping};
-use iced::widget::{Column, Row, column, container, mouse_area, rich_text, row, text};
+use iced::widget::{Row, column, container, mouse_area, rich_text, row, text};
 use iced::{Alignment, Background, Border, Color, Element, Font, Length, Padding};
 
-use crate::core::block::{Block, BlockId, BlockState};
+use crate::core::block::{Block, BlockId, BlockState, Lines};
 use crate::core::grid::{Cell, CellAttrs};
 use crate::core::search::BlockMatch;
 use crate::core::selection::BlockSelection;
 use crate::ui::app_state::Message;
 use crate::ui::components::ds::transform::Transform;
+use crate::ui::components::output_lines::output_lines;
 use crate::ui::theme::motion::{self, lerp};
 use crate::ui::theme::tokens::{self, duration, radius, space};
 use crate::ui::theme::{color, font};
@@ -49,8 +50,8 @@ fn cell_style(cell: &Cell, default_fg: Color) -> Style {
   }
 }
 
-fn style_font(st: &Style) -> Font {
-  match (st.bold, st.italic) {
+pub fn run_font(flags: u8) -> Font {
+  match (flags & 1 != 0, flags & 2 != 0) {
     (true, true) => font::bold_italic(),
     (true, false) => font::bold(),
     (false, true) => font::italic(),
@@ -73,11 +74,9 @@ pub struct LineMarks {
   pub matches: Vec<(usize, usize, bool)>,
 }
 
-pub fn runs(
-  cells: &[Cell],
-  default_fg: Color,
-  marks: LineMarks,
-) -> Vec<(String, Color, Option<Color>, u8)> {
+pub type Run = (String, Color, Option<Color>, u8);
+
+pub fn runs(cells: &[Cell], default_fg: Color, marks: LineMarks) -> Vec<Run> {
   let accent = color::runtime().accent;
   let mut out: Vec<(String, Style)> = Vec::new();
   let len = visible_len(cells).max(marks.selection.map_or(0, |(_, e)| e.min(cells.len())));
@@ -116,44 +115,6 @@ pub fn runs(
       (t, s.fg, s.bg, flags)
     })
     .collect()
-}
-
-pub fn line<'a>(
-  cells: &[Cell],
-  default_fg: Color,
-  size: f32,
-  alpha: f32,
-  marks: LineMarks,
-) -> Element<'a, Message> {
-  let line_h = size * tokens::block::LINE_HEIGHT;
-  let spans: Vec<Span<'a>> = runs(cells, default_fg, marks)
-    .into_iter()
-    .map(|(t, fg, bg, flags)| {
-      let st = Style {
-        fg,
-        bg,
-        bold: flags & 1 != 0,
-        italic: flags & 2 != 0,
-        underline: flags & 4 != 0,
-        strike: flags & 8 != 0,
-      };
-      Span::new(t)
-        .color(tokens::with_alpha(fg, alpha))
-        .background_maybe(bg.map(|b| Background::Color(tokens::with_alpha(b, alpha))))
-        .font(style_font(&st))
-        .size(size)
-        .underline(st.underline)
-        .strikethrough(st.strike)
-    })
-    .collect();
-  container(
-    rich_text::<(), Message, iced::Theme, iced::Renderer>(spans)
-      .size(size)
-      .line_height(tokens::block::LINE_HEIGHT)
-      .wrapping(Wrapping::None),
-  )
-  .height(line_h)
-  .into()
 }
 
 pub fn timestamp<'a>(block: &Block, font_size: f32) -> Element<'a, Message> {
@@ -264,7 +225,8 @@ pub fn default_output_color(block: &Block) -> Color {
 }
 
 pub fn output_card<'a>(
-  block: &Block,
+  block: &'a Block,
+  lines: Lines<'a>,
   size: f32,
   alpha: f32,
   o: &EntryOptions<'_>,
@@ -272,24 +234,23 @@ pub fn output_card<'a>(
   let fg = default_output_color(block);
   let sel = o.selection.filter(|s| s.block_id == block.id);
   let url = o.hover_url.filter(|(id, ..)| *id == block.id);
-  let lines = (0..block.line_count()).fold(Column::new(), |c, i| match block.line(i) {
-    Some(cells) => {
-      let marks = LineMarks {
-        selection: sel.and_then(|s| s.line_range(i, visible_len(cells))),
-        url: url.filter(|(_, l, ..)| *l == i).map(|(_, _, a, b)| (a, b)),
-        matches: o
-          .matches
-          .iter()
-          .enumerate()
-          .filter(|(_, m)| m.block_id == block.id && m.line == i)
-          .map(|(k, m)| (m.start, m.end, o.current_match == Some(k)))
-          .collect(),
-      };
-      c.push(line(cells, fg, size, alpha, marks))
-    }
-    None => c,
-  });
-  let card = container(lines)
+  let matches: Vec<(usize, usize, usize, bool)> = o
+    .matches
+    .iter()
+    .enumerate()
+    .filter(|(_, m)| m.block_id == block.id)
+    .map(|(k, m)| (m.line, m.start, m.end, o.current_match == Some(k)))
+    .collect();
+  let marks = move |i: usize, cells: &[Cell]| LineMarks {
+    selection: sel.and_then(|s| s.line_range(i, visible_len(cells))),
+    url: url.filter(|(_, l, ..)| *l == i).map(|(_, _, a, b)| (a, b)),
+    matches: matches
+      .iter()
+      .filter(|(l, ..)| *l == i)
+      .map(|&(_, a, b, current)| (a, b, current))
+      .collect(),
+  };
+  let card = container(output_lines(lines, fg, size, alpha, Box::new(marks)))
     .width(Length::Fill)
     .padding(card_padding(o.compact))
     .clip(true)
@@ -334,17 +295,19 @@ pub struct EntryOptions<'a> {
   pub compact: bool,
 }
 
-pub fn block_entry<'a>(block: &Block, o: &EntryOptions<'_>) -> Element<'a, Message> {
+pub fn block_entry<'a>(block: &'a Block, o: &EntryOptions<'_>) -> Element<'a, Message> {
   let t_in = entry_progress(block.born, o.now, Duration::ZERO);
   let t_out = entry_progress(block.born, o.now, OUTPUT_DELAY);
   let out_size = tokens::block::font_size(o.font_size);
+  let lines = block.lines();
+  let has_output = !lines.is_empty();
 
-  let pending = block.state == BlockState::Pending
-    || (block.state == BlockState::Running && !block.has_output());
+  let pending =
+    block.state == BlockState::Pending || (block.state == BlockState::Running && !has_output);
   let output: Option<Element<'a, Message>> = if pending {
     Some(pending_card(block.born, o.now, t_out, o.compact))
-  } else if block.has_output() {
-    Some(output_card(block, out_size, t_out, o))
+  } else if has_output {
+    Some(output_card(block, lines, out_size, t_out, o))
   } else {
     None
   };
@@ -364,7 +327,7 @@ pub fn block_entry<'a>(block: &Block, o: &EntryOptions<'_>) -> Element<'a, Messa
     body.into()
   };
 
-  let has_out = pending || block.has_output();
+  let has_out = pending || has_output;
   let entry = container(content).padding(Padding {
     bottom: if has_out { space::S8 } else { 0.0 },
     ..Padding::default()

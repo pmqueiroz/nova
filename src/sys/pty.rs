@@ -133,6 +133,14 @@ fn accent_rgb() -> (u8, u8, u8) {
   }
 }
 
+fn nova_env(c: &mut CommandBuilder) {
+  c.env("NOVA_TERMINAL", "1");
+  c.env("TERM_PROGRAM", "Nova");
+  if std::env::var_os("LESS").is_none() {
+    c.env("LESS", "FR");
+  }
+}
+
 fn build_direct_command(cmd: &str, initial_cwd: Option<&str>) -> CommandBuilder {
   let mut parts = cmd.split_whitespace();
   let exe = parts.next().unwrap_or(cmd);
@@ -143,8 +151,7 @@ fn build_direct_command(cmd: &str, initial_cwd: Option<&str>) -> CommandBuilder 
   }
   c.env("TERM", "xterm-256color");
   c.env("COLORTERM", "truecolor");
-  c.env("NOVA_TERMINAL", "1");
-  c.env("TERM_PROGRAM", "Nova");
+  nova_env(&mut c);
   c
 }
 
@@ -170,8 +177,7 @@ fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder
       }
       c.env("TERM", "xterm-256color");
       c.env("COLORTERM", "truecolor");
-      c.env("NOVA_TERMINAL", "1");
-      c.env("TERM_PROGRAM", "Nova");
+      nova_env(&mut c);
       let (ar, ag, ab) = accent_rgb();
       let ps_prompt_script = format!(
         r#"
@@ -235,8 +241,7 @@ fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder
         c.cwd(dir);
       }
       c.env("PROMPT", CMD_PROMPT);
-      c.env("NOVA_TERMINAL", "1");
-      c.env("TERM_PROGRAM", "Nova");
+      nova_env(&mut c);
       c
     } else if is_wsl {
       let mut c = CommandBuilder::new("wsl.exe");
@@ -245,8 +250,7 @@ fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder
       }
       c.env("TERM", "xterm-256color");
       c.env("COLORTERM", "truecolor");
-      c.env("NOVA_TERMINAL", "1");
-      c.env("TERM_PROGRAM", "Nova");
+      nova_env(&mut c);
       let (ar, ag, ab) = accent_rgb();
       c.env(
         "PS1",
@@ -266,8 +270,7 @@ fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder
       c.env("NOVA_TEXT_MARKS", "1");
       c.env("TERM", "xterm-256color");
       c.env("COLORTERM", "truecolor");
-      c.env("NOVA_TERMINAL", "1");
-      c.env("TERM_PROGRAM", "Nova");
+      nova_env(&mut c);
       let (ar, ag, ab) = accent_rgb();
       c.env(
         "NOVA_PS1",
@@ -290,8 +293,7 @@ fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder
       if let Some(dir) = initial_cwd {
         c.cwd(dir);
       }
-      c.env("NOVA_TERMINAL", "1");
-      c.env("TERM_PROGRAM", "Nova");
+      nova_env(&mut c);
       c
     }
   }
@@ -328,8 +330,7 @@ fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder
 
     c.env("TERM", "xterm-256color");
     c.env("COLORTERM", "truecolor");
-    c.env("NOVA_TERMINAL", "1");
-    c.env("TERM_PROGRAM", "Nova");
+    nova_env(&mut c);
     if shell_name != "fish" {
       let (ar, ag, ab) = accent_rgb();
       c.env(

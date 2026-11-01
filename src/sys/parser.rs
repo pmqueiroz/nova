@@ -875,6 +875,18 @@ mod tests {
   }
 
   #[test]
+  fn resize_in_alt_screen_keeps_primary_consistent() {
+    let mut grid = make_grid(10, 4);
+    print_str(&mut grid, "hello\x1b[?1049h");
+    grid.resize(20, 8);
+    print_str(&mut grid, "\x1b[8;20Hz");
+    assert_eq!(&*grid.row(7)[19].c, "z");
+    print_str(&mut grid, "\x1b[?1049l");
+    assert_eq!(grid.cells.len(), 20 * 8);
+    assert_eq!(&*grid.row(0)[0].c, "h");
+  }
+
+  #[test]
   fn ansi_palette_maps_to_design_tokens() {
     assert_eq!(ansi_color(1, false), tokens::RED);
     assert_eq!(ansi_color(1, true), tokens::RED);

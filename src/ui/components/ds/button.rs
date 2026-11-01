@@ -13,6 +13,28 @@ pub enum Variant {
   Primary,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum IconSize {
+  Md,
+  Sm,
+}
+
+impl IconSize {
+  pub fn icon(self) -> f32 {
+    match self {
+      IconSize::Md => 20.0,
+      IconSize::Sm => 16.0,
+    }
+  }
+
+  pub fn r#box(self) -> f32 {
+    match self {
+      IconSize::Md => height::H40,
+      IconSize::Sm => height::H32,
+    }
+  }
+}
+
 pub fn accent() -> Color {
   color::runtime().accent
 }
@@ -171,13 +193,13 @@ impl<'a, Message: Clone + 'a> From<Btn<'a, Message>> for Element<'a, Message> {
 
 pub fn icon_button<'a, Message: Clone + 'a>(
   i: Icon,
-  icon_size: f32,
-  box_size: f32,
+  size: IconSize,
   on_press: Option<Message>,
 ) -> Element<'a, Message> {
   let fg = tokens::FG_2;
+  let box_size = size.r#box();
   let b = button(
-    container(icon(i, icon_size, fg))
+    container(icon(i, size.icon(), fg))
       .width(Length::Fill)
       .height(Length::Fill)
       .align_x(Alignment::Center)
@@ -216,6 +238,13 @@ mod tests {
       style(Variant::Primary, button::Status::Active).text_color,
       tokens::ON_ACCENT
     );
+  }
+
+  #[test]
+  fn small_icon_button_is_h32() {
+    assert_eq!(IconSize::Sm.r#box(), height::H32);
+    assert_eq!(IconSize::Sm.icon(), 16.0);
+    assert_eq!(IconSize::Md.r#box(), height::H40);
   }
 
   #[test]

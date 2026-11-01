@@ -3,7 +3,7 @@ use iced::{Alignment, Background, Border, Color, Element, Length, Padding};
 
 use crate::core::config::WindowControls;
 use crate::ui::app_state::Message;
-use crate::ui::components::ds::button::icon_button;
+use crate::ui::components::ds::button::{IconSize, icon_button};
 use crate::ui::components::ds::transform::Transform;
 use crate::ui::components::traffic_lights::{system_controls, traffic_lights};
 use crate::ui::helpers::til_home;
@@ -37,18 +37,12 @@ pub fn actions<'a>() -> Element<'a, Message> {
     .spacing(space::S4)
     .align_y(Alignment::Center)
     .push(
-      mouse_area(icon_button(
-        Icon::Plus,
-        20.0,
-        height::H40,
-        Some(Message::NewTab),
-      ))
-      .on_right_press(Message::OpenShellPicker),
+      mouse_area(icon_button(Icon::Plus, IconSize::Md, Some(Message::NewTab)))
+        .on_right_press(Message::OpenShellPicker),
     )
     .push(icon_button(
       Icon::Sliders,
-      20.0,
-      height::H40,
+      IconSize::Md,
       Some(Message::OpenSettings),
     ))
     .into()

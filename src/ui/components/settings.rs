@@ -7,7 +7,7 @@ use iced::{Alignment, Background, Border, Color, ContentFit, Element, Length, Pa
 
 use crate::core::config::{self, AiProvider, BellType, CursorStyle, WindowControls};
 use crate::ui::app_state::{ColorField, Message, SettingsTab};
-use crate::ui::components::ds::button::{Variant, btn, icon_button};
+use crate::ui::components::ds::button::{IconSize, Variant, btn, icon_button};
 use crate::ui::components::ds::kbd::{binding_labels, keys};
 use crate::ui::components::ds::row::row as setting_row;
 use crate::ui::components::ds::seg::seg;
@@ -208,8 +208,7 @@ fn shell<'a>(s: &'a config::Config, shell_input: &'a str) -> Element<'a, Message
           text(sh.clone()).size(tokens::text::T14).color(tokens::FG_1),
           icon_button(
             Icon::Close,
-            16.0,
-            height::H32,
+            IconSize::Sm,
             Some(Message::SettingsRemoveShell(i))
           ),
         ]

@@ -62,8 +62,7 @@ impl Nova {
       let make_close_btn = move |msg: Message| {
         container(crate::ui::components::ds::button::icon_button(
           crate::ui::icons::Icon::Close,
-          16.0,
-          crate::ui::theme::tokens::height::H32,
+          crate::ui::components::ds::button::IconSize::Sm,
           Some(msg),
         ))
         .align_x(Horizontal::Right)

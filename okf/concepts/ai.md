@@ -7,7 +7,7 @@ path: /ai/
 updated: 2026-11-01
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-11-01T17:18:21.661Z"
+  generated_at: "2026-11-01T17:24:44.470Z"
 ---
 ---
 title: "AI"

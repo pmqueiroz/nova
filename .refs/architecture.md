@@ -173,6 +173,42 @@ next prompt is split correctly.
   up (seen as the first command losing its first character in Git Bash).
 - `InputHistory(-1/+1)` walks the deduplicated session history; the draft
   comes back when walking past the newest entry.
+- Tab / Shift+Tab send `InputComplete(+1/-1)` (only while the input owns
+  keys; Ctrl/Alt+Tab stay with the tab keybindings).
+
+### Tab completion (`core/completion.rs`)
+
+The shell never sees the input bar's text until submit, so it cannot
+complete; Nova completes locally instead.
+
+- Always works on the **last word** of the input (iced's `text_input` does
+  not expose the cursor position), then moves the cursor to the end
+  (`operation::move_cursor_to_end`). `current_word` splits at the last
+  unquoted whitespace; a word is in command position when nothing (or `|`,
+  `;`, `&`, `(`) precedes it.
+- Command position without a separator: first words of the session history +
+  executables on `PATH` (Windows: `PATHEXT` extensions, shown without the
+  extension; Unix: any exec bit). Empty word → nothing (no 3000-entry cycle).
+  Anything else: entries of the word's directory, resolved against
+  `Session.cwd`; `~` is the home dir, and in readline shells on Windows
+  (Git Bash) `/c/...` maps to `C:\...`.
+- Separator: the last one typed in the word, else `/` for readline shells /
+  non-Windows and `\` for PowerShell/cmd. `\` only counts as a separator on
+  Windows outside readline shells (it's an escape in bash).
+- Matching is a prefix match, case-insensitive on Windows only. Dotfiles are
+  hidden unless the prefix starts with `.`. Sorted case-insensitively,
+  deduplicated.
+- One match: inserted, dirs get the separator, everything else a trailing
+  space. Several: if their common prefix is longer than what's typed, insert
+  it (quote left open if it needs one); otherwise the first match. The
+  candidate list is kept in `InputBox.completion` (`Completion { head,
+  options, index }`) and further Tabs cycle it (`step(±1)`, wraps). Any
+  edit, history walk or submit drops it (`InputBox::set/take/history_*`).
+- Quoting: names with whitespace or `& ( ) ; | < > ' ` $` are wrapped in
+  `"` (or the quote the user opened), which every supported shell accepts.
+- Runs synchronously in `update`: PATH is scanned on each first Tab (cycling
+  reuses the list). Fine on local disks; a slow network drive in PATH would
+  stall the UI.
 - While a block-mode command runs (`Phase::Running`), `INPUT_OWNS_KEYS` is
   off: the input bar shows as disabled and every key goes through the legacy
   encoder in `subscription.rs` to the PTY. That covers passwords, `Read-Host`,
@@ -346,8 +382,11 @@ Text goes through `ui::typography::Typography`, fonts through
 ## Known gaps
 
 - Unit tests only (`cargo test`, e.g. `sys/parser.rs`); UI verification is manual (`cargo run`).
-- Tab completion: the shell cannot complete inside Nova's input bar (the
-  handoff does not cover it).
+- Tab completion is local (paths, PATH commands, history), not the shell's:
+  no git branches, cmdlets, flags or custom completers; it ignores the
+  cursor position (always the last word); no candidate list UI (the handoff
+  does not cover one), only cycling. cmd panes never report cwd changes, so
+  paths there resolve against the starting directory.
 - Mouse reporting is not forwarded in raw takeover (vim/htop mouse mode).
 - cmd has no exit codes in block mode (all blocks finish as 0), and a window
   resize during a long cmd command can end its block early (ConPTY replays

@@ -162,10 +162,13 @@ impl Nova {
       Message::Type(bytes) => self.handle_type_input(bytes),
       Message::PtyOutputReceived(tab_id, bytes) => {
         let before = self.block_mode_panes();
+        let raw_before = self.raw_panes();
         let task = self.handle_pty_output(tab_id, bytes);
         let mut tasks = vec![task, self.follow_output(tab_id)];
         if self.block_mode_panes() != before {
           self.resize_all_grids();
+          tasks.push(self.focus_input());
+        } else if self.raw_panes() < raw_before {
           tasks.push(self.focus_input());
         }
         iced::Task::batch(tasks)

@@ -465,17 +465,7 @@ impl Nova {
     let kitty_flags = self
       .tabs
       .get(self.active_index)
-      .map(|tab| {
-        if tab.active_pane_is_split {
-          tab
-            .split
-            .as_ref()
-            .map(|s| s.grid.kitty_keyboard_flags())
-            .unwrap_or(0)
-        } else {
-          tab.grid.kitty_keyboard_flags()
-        }
-      })
+      .map(|tab| tab.active_pane().input_grid().kitty_keyboard_flags())
       .unwrap_or(0);
     ACTIVE_KITTY_FLAGS.store(kitty_flags, Ordering::Relaxed);
     let owns = self.tabs.get(self.active_index).is_some_and(|t| {

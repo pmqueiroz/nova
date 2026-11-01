@@ -97,6 +97,17 @@ impl Nova {
     iced::Task::none()
   }
 
+  pub(super) fn raw_panes(&self) -> usize {
+    self
+      .tabs
+      .iter()
+      .map(|t| {
+        usize::from(t.pane(false).raw_grid().is_some())
+          + usize::from(t.split.is_some() && t.pane(true).raw_grid().is_some())
+      })
+      .sum()
+  }
+
   pub(super) fn block_mode_panes(&self) -> usize {
     self
       .tabs

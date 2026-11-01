@@ -415,6 +415,26 @@ impl Nova {
       return None;
     }
     let font_size = self.settings.theme.font.size;
+    if let Some(grid) = pane.raw_grid() {
+      return Some(
+        container(components::term(
+          grid,
+          None,
+          crate::ui::theme::tokens::block::font_size(font_size),
+          0,
+          None,
+          None,
+          &[],
+          None,
+          self.settings.theme.cursor.style,
+          self.cursor_blink_visible,
+        ))
+        .padding(crate::ui::components::session::scroll_padding(
+          self.window_size.width <= COMPACT_WIDTH,
+        ))
+        .into(),
+      );
+    }
     let compact = self.window_size.width <= COMPACT_WIDTH;
     let view = components::SessionView {
       pane_id: pane.id,

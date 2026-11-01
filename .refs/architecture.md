@@ -174,6 +174,18 @@ next prompt is split correctly.
   splits, and saved after every submit. Classic panes keep using
   `Grid.command_history` for the legacy inline ghost suggestion.
 
+### Raw takeover
+
+When the running block enters the alt screen (`Phase::Raw`),
+`Nova::pane_body` swaps the block log and input bar for the legacy
+`components::term` widget showing that block's own grid at the output font
+size, inside the log padding. `PaneRef::input_grid` makes the kitty keyboard
+flags come from that grid; keys reach the program through the running-command
+path. Leaving the alt screen restores the log (the alt-screen content is not
+kept in the block) and refocuses the input. Mouse reporting in raw mode is
+not wired yet (known gap). `term` no longer paints a background, so classic
+and raw panes sit on the window gradient.
+
 ### Sizing (`helpers::calc_block_grid`, `update/window.rs`)
 
 Panes are sized per mode by `Nova::resize_panes` (window resize, font

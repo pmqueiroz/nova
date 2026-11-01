@@ -355,13 +355,7 @@ pub fn term<'a>(
     viewport_y += 1;
   }
 
-  let term_bg = theme::color::runtime().background;
-
   container(grid_ui)
-    .style(move |_| container::Style {
-      background: Some(term_bg.into()),
-      ..Default::default()
-    })
     .padding(Padding {
       top: 12.0,
       right: 20.0,

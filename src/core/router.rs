@@ -6,7 +6,7 @@ use crate::core::block::{BlockId, BlockState, Phase, Session};
 use crate::core::grid::{ControlCommand, Grid};
 use crate::sys::parser::AnsiExecutor;
 
-pub const INTEGRATION_TIMEOUT: Duration = Duration::from_secs(4);
+pub const INTEGRATION_TIMEOUT: Duration = Duration::from_secs(8);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mode {
@@ -148,7 +148,7 @@ fn handle_control(
   match cmd {
     ControlCommand::PromptReady { preexec } if integ.enabled => {
       integ.preexec = preexec;
-      if integ.mode == Mode::Detecting {
+      if integ.mode == Mode::Detecting || (integ.mode == Mode::Classic && !session.is_running()) {
         integ.mode = Mode::Blocks;
         out.entered_blocks = true;
       }
@@ -424,6 +424,17 @@ mod tests {
       "\x1b]7;file://host/home/me/proj\x1b\\{READY_PREEXEC}"
     ));
     assert!(r.session.cwd.ends_with("proj"));
+  }
+
+  #[test]
+  fn late_prompt_upgrades_classic_to_blocks() {
+    let mut r = Rig::new();
+    let later = r.integ.spawned_at + INTEGRATION_TIMEOUT;
+    r.integ.expire(later);
+    assert_eq!(r.integ.mode, Mode::Classic);
+    let out = r.feed(READY_PREEXEC);
+    assert!(out.entered_blocks);
+    assert!(r.integ.is_blocks());
   }
 
   #[test]

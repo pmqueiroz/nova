@@ -1,6 +1,209 @@
-/*!
- * docmd (v0.8.4)
- * Copyright (c) 2025-present docmd.io
- * License: MIT
+/**
+ * --------------------------------------------------------------------
+ * docmd : the zero-config documentation engine.
+ *
+ * @package     @docmd/core (and ecosystem)
+ * @website     https://docmd.io
+ * @repository  https://github.com/docmd-io/docmd
+ * @license     MIT
+ * @copyright   Copyright (c) 2025 docmd.io
+ *
+ * [docmd-source] - Please do not remove this header.
+ * --------------------------------------------------------------------
  */
-(function(){if(typeof window>"u"||window.docmd&&window.docmd.call)return;const i=window.docmd||{};window.docmd=i;const m=sessionStorage.getItem("docmd:scrollY");m&&(sessionStorage.removeItem("docmd:scrollY"),requestAnimationFrame(()=>{window.scrollTo(0,parseInt(m,10))}));let n=null,f=0;const d=new Map,c=new Map;function w(){if(n&&(n.readyState===0||n.readyState===1))return;n=new WebSocket("ws://"+window.location.host);let o=0;const t=50;n.onopen=()=>{console.log("\u26A1 docmd connected"),o=0},n.onmessage=s=>{if(s.data==="reload"){sessionStorage.setItem("docmd:scrollY",String(window.scrollY)),window.location.reload();return}let e;try{e=JSON.parse(s.data)}catch{return}if(e.type==="response"&&e.id){const r=d.get(e.id);r&&(d.delete(e.id),e.error?r.reject(new Error(e.error)):r.resolve({result:e.result,reload:e.reload}))}else if(e.type==="event"&&e.name){const r=c.get(e.name);r&&r.forEach(a=>{try{a(e.data)}catch(l){console.error(l)}})}},n.onclose=()=>{o<t&&(o++,setTimeout(w,Math.min(1e3*1.5**o,5e3)))}}function u(){return n&&n.readyState===1?Promise.resolve():new Promise((o,t)=>{const s=setTimeout(()=>t(new Error("docmd: WebSocket connection timeout")),5e3);function e(){n&&n.readyState===1?(clearTimeout(s),o()):setTimeout(e,50)}e()})}i.call=async function(o,t){return await u(),new Promise((s,e)=>{const r=String(++f);d.set(r,{resolve:({result:a,reload:l})=>{s(a),l&&(sessionStorage.setItem("docmd:scrollY",String(window.scrollY)),queueMicrotask(()=>window.location.reload()))},reject:e}),n.send(JSON.stringify({id:r,type:"call",action:o,payload:t}))})},i.send=async function(o,t){await u(),n.send(JSON.stringify({type:"event",name:o,data:t}))},i.on=function(o,t){return c.has(o)||c.set(o,new Set),c.get(o).add(t),()=>c.get(o).delete(t)},i.afterReload=function(o,t){const s="docmd:reload:"+o,e=sessionStorage.getItem(s);if(e){sessionStorage.removeItem(s);try{const r=JSON.parse(e);t(r)}catch(r){console.error("docmd.afterReload["+o+"] error:",r)}}},i.scheduleReload=function(o,t){const s="docmd:reload:"+o;sessionStorage.setItem(s,JSON.stringify(t||{}))},setTimeout(w,100)})();
+
+/**
+ * Browser API for docmd plugin communication.
+ *
+ * Provides docmd.call(), docmd.send(), docmd.on(), docmd.afterReload(),
+ * and docmd.scheduleReload() over a WebSocket connection.
+ * Injected automatically by the dev server.
+ */
+
+/* global WebSocket, sessionStorage, queueMicrotask */
+
+(function() {
+  if (typeof window === 'undefined') return;
+  if (window.docmd && window.docmd.call) return; // already initialized
+
+  const docmd = window.docmd || {};
+  window.docmd = docmd;
+
+  /**
+   * Returns true if the WebSocket connection to the live dev server is currently active.
+   */
+  docmd.isLive = function() {
+    return socket !== null && socket.readyState === 1;
+  };
+
+  /**
+   * Ping the live dev server RPC bridge. Resolves true if connected and responsive.
+   */
+  docmd.ping = async function(timeoutMs = 2000) {
+    if (!docmd.isLive()) return false;
+    try {
+      const timer = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), timeoutMs));
+      const res = await Promise.race([docmd.call('system:ping', {}), timer]);
+      return !!(res && res.ok);
+    } catch {
+      return false;
+    }
+  };
+
+  // Restore scroll position after reload
+  const savedScroll = sessionStorage.getItem('docmd:scrollY');
+  if (savedScroll) {
+    sessionStorage.removeItem('docmd:scrollY');
+    requestAnimationFrame(() => {
+      window.scrollTo(0, parseInt(savedScroll, 10));
+    });
+  }
+
+  let socket = null;
+  let messageId = 0;
+  const pendingCalls = new Map(); // id → { resolve, reject }
+  const eventListeners = new Map(); // name → Set<callback>
+
+  // retryCount lives outside connect() so it persists across reconnect calls.
+  // This ensures maxRetries is actually enforced — previously it reset to 0
+  // on every invocation, causing infinite reconnection loops on static servers.
+  let retryCount = 0;
+  const maxRetries = 5;
+
+  function connect() {
+    if (socket && (socket.readyState === 0 || socket.readyState === 1)) return;
+    if (retryCount >= maxRetries) return; // give up — not a dev server
+
+    socket = new WebSocket('ws://' + window.location.host);
+
+    socket.onopen = () => {
+      console.log('⚡ docmd connected');
+      retryCount = 0; // reset on successful connection
+    };
+
+    socket.onmessage = (e) => {
+      if (e.data === 'reload') {
+        sessionStorage.setItem('docmd:scrollY', String(window.scrollY));
+        window.location.reload();
+        return;
+      }
+      let msg;
+      try { msg = JSON.parse(e.data); } catch { return; }
+
+      if (msg.type === 'response' && msg.id) {
+        const pending = pendingCalls.get(msg.id);
+        if (pending) {
+          pendingCalls.delete(msg.id);
+          if (msg.error) {
+            pending.reject(new Error(msg.error));
+          } else {
+            pending.resolve({ result: msg.result, reload: msg.reload });
+          }
+        }
+      } else if (msg.type === 'event' && msg.name) {
+        const listeners = eventListeners.get(msg.name);
+        if (listeners) {
+          listeners.forEach(cb => { try { cb(msg.data); } catch (e) { console.error(e); } });
+        }
+      }
+    };
+
+    // Suppress the browser's default connection-refused error in the console.
+    socket.onerror = () => { /* handled via onclose */ };
+
+    socket.onclose = () => {
+      retryCount++;
+      if (retryCount < maxRetries) {
+        setTimeout(connect, Math.min(1000 * (1.5 ** retryCount), 5000));
+      }
+      // No log on final failure — this is expected when serving a static build.
+    };
+  }
+
+  function waitForConnection() {
+    if (socket && socket.readyState === 1) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('docmd: WebSocket connection timeout')), 5000);
+      function check() {
+        if (socket && socket.readyState === 1) {
+          clearTimeout(timeout);
+          resolve();
+        } else {
+          setTimeout(check, 50);
+        }
+      }
+      check();
+    });
+  }
+
+  /**
+   * Call a server-side action and return the result.
+   * If the action modifies files, the page reloads automatically after
+   * the promise resolves and the current microtask completes.
+   */
+  docmd.call = async function(action, payload) {
+    await waitForConnection();
+    return new Promise((resolve, reject) => {
+      const id = String(++messageId);
+      pendingCalls.set(id, {
+        resolve: ({ result, reload }) => {
+          resolve(result);
+          if (reload) {
+            sessionStorage.setItem('docmd:scrollY', String(window.scrollY));
+            queueMicrotask(() => window.location.reload());
+          }
+        },
+        reject
+      });
+      socket.send(JSON.stringify({ id, type: 'call', action, payload }));
+    });
+  };
+
+  /**
+   * Send a fire-and-forget event to the server.
+   */
+  docmd.send = async function(name, data) {
+    await waitForConnection();
+    socket.send(JSON.stringify({ type: 'event', name, data }));
+  };
+
+  /**
+   * Subscribe to server-pushed events. Returns an unsubscribe function.
+   */
+  docmd.on = function(name, callback) {
+    if (!eventListeners.has(name)) eventListeners.set(name, new Set());
+    eventListeners.get(name).add(callback);
+    return () => eventListeners.get(name).delete(callback);
+  };
+
+  /**
+   * Declare a named reload handler. Runs on every page load.
+   * If sessionStorage has stashed context for this name, calls the
+   * callback immediately with that context and clears the stash.
+   */
+  docmd.afterReload = function(name, callback) {
+    const key = 'docmd:reload:' + name;
+    const raw = sessionStorage.getItem(key);
+    if (raw) {
+      sessionStorage.removeItem(key);
+      try {
+        const context = JSON.parse(raw);
+        callback(context);
+      } catch (e) {
+        console.error('docmd.afterReload[' + name + '] error:', e);
+      }
+    }
+  };
+
+  /**
+   * Stash context for a named reload handler. The matching afterReload
+   * handler will fire with this context after the next page reload.
+   */
+  docmd.scheduleReload = function(name, context) {
+    const key = 'docmd:reload:' + name;
+    sessionStorage.setItem(key, JSON.stringify(context || {}));
+  };
+
+  // Connect
+  setTimeout(connect, 100);
+})();

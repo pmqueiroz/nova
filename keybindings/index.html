@@ -10,8 +10,23 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <meta name="generator" content="docmd v0.5.x">
+    <meta name="generator" content="docmd v0.9.8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <script>
+      var root = "../";
+      if (root && !root.endsWith('/')) root += '/';
+      if (root === '') root = './';
+      window.DOCMD_ROOT = root;
+
+      window.DOCMD_SITE_ROOT = "/";
+
+      window.DOCMD_APPEARANCE = "dark";
+      window.DOCMD_VERSION_ROOT = "/";
+      window.DOCMD_BASE = "/";
+      window.DOCMD_LOCALE = "";
+      window.DOCMD_DEFAULT_LOCALE = "";
+    </script>
     <script>/**
  * --------------------------------------------------------------------
  * docmd : the zero-config documentation engine.
@@ -29,9 +44,27 @@
 (function () {
   try {
     // 1. Determine Theme
+    //
+    // Resolve from three sources, in priority order:
+    //   1. localStorage explicit user choice (light / dark)
+    //   2. window.DOCMD_APPEARANCE  (current canonical name, set by EJS templates)
+    //   3. window.DOCMD_DEFAULT_MODE (legacy alias kept for pre-0.8.7 outputs)
+    //   4. 'light' as the final fallback
+    //
+    // Note: localStorage is only honoured when it holds an explicit
+    // 'light' or 'dark' value. A stored 'system' value (from a prior
+    // session where the user picked "follow system") must NOT win over
+    // a freshly resolved config value — the resolved value will itself
+    // be 'system' in that case and the OS preference check below takes
+    // over, so this is a no-op for the in-session behaviour but keeps
+    // any future storage migration simple.
     var localValue = localStorage.getItem('docmd-theme');
-    var configValue = window.DOCMD_DEFAULT_MODE || 'light';
-    var theme = localValue ? localValue : configValue;
+    var configValue = window.DOCMD_APPEARANCE
+      || window.DOCMD_DEFAULT_MODE
+      || 'light';
+    var theme = (localValue === 'light' || localValue === 'dark')
+      ? localValue
+      : configValue;
 
     if (theme === 'system') {
       theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -65,34 +98,15 @@
         visibility: hidden;
       }
     </style>
+    <title>Keybindings - A terminal that burns bright</title>
     
-    <script>
-      var root = "../";
-      if (root && !root.endsWith('/')) root += '/';
-      if (root === '') root = './';
-      window.DOCMD_ROOT = root;
+    
 
-      var siteRoot = "../";
-      if (siteRoot && !siteRoot.endsWith('/')) siteRoot += '/';
-      if (siteRoot === '') siteRoot = './';
-      window.DOCMD_SITE_ROOT = siteRoot;
-
-      window.DOCMD_APPEARANCE = "dark";
-      window.DOCMD_VERSION_ROOT = "/";
-      window.DOCMD_BASE = "/";
-      window.DOCMD_LOCALE = "";
-      window.DOCMD_DEFAULT_LOCALE = "";
-    </script>
-    <title>
-      Keybindings : A terminal that burns bright
-    </title>
-    <link id="site-favicon" rel="icon" href="../assets/favicon.ico?v=mpcta9oa">
-    <link rel="stylesheet" href="../assets/css/docmd-main.css?v=mpcta9oa">
+    <link id="site-favicon" rel="icon" href="../assets/favicon.ico?v=mvy3g2qx">
+    <link rel="stylesheet" href="../assets/css/docmd-main.css?v=mvy3g2qx">
     
-    <link rel="stylesheet" href="../assets/css/docmd-git.css?v=mpcta9oa">
-    
-    <link rel="stylesheet" href="../assets/css/docmd-highlight-light.css?v=mpcta9oa" id="hljs-light" disabled>
-    <link rel="stylesheet" href="../assets/css/docmd-highlight-dark.css?v=mpcta9oa" id="hljs-dark" >
+    <link rel="stylesheet" href="../assets/css/docmd-highlight-light.css?v=mvy3g2qx" id="hljs-light" disabled>
+    <link rel="stylesheet" href="../assets/css/docmd-highlight-dark.css?v=mvy3g2qx" id="hljs-dark" >
     
     
 <meta name="description" content="Keybinding syntax, defaults, and action reference.">
@@ -104,90 +118,53 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Keybindings - A terminal that burns bright">
 <meta name="twitter:description" content="Keybinding syntax, defaults, and action reference.">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"A terminal that burns bright","item":"https://nova.pmqueiroz.dev/"},{"@type":"ListItem","position":2,"name":"Reference"},{"@type":"ListItem","position":3,"name":"Keybindings","item":"https://nova.pmqueiroz.dev/keybindings/"}]}
+</script>
 
 
     <!-- GA4 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-X9WTDL262N"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id="G-X9WTDL262N""></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-X9WTDL262N');
+      gtag('config', "G-X9WTDL262N");
     </script>
 
 
-<link rel="stylesheet" href="../assets/css/docmd-git.css?v=mpcta9oa" >
-<link rel="stylesheet" href="../assets/css/docmd-openapi.css?v=mpcta9oa" >
+
+<link rel="stylesheet" href="../assets/css/docmd-git.css?v=mvy3g2qx" >
+<link rel="stylesheet" href="../assets/css/docmd-openapi.css?v=mvy3g2qx" >
+<link rel="stylesheet" href="../assets/css/docmd-ai.css?v=mvy3g2qx" >
 
     
-    <script>/**
- * --------------------------------------------------------------------
- * docmd : the zero-config documentation engine.
- *
- * @package     @docmd/core (and ecosystem)
- * @website     https://docmd.io
- * @repository  https://github.com/docmd-io/docmd
- * @license     MIT
- * @copyright   Copyright (c) 2025-present docmd.io
- *
- * [docmd-source] - Please do not remove this header.
- * --------------------------------------------------------------------
- */
-
-(function () {
-  try {
-    // 1. Determine Theme
-    var localValue = localStorage.getItem('docmd-theme');
-    var configValue = window.DOCMD_DEFAULT_MODE || 'light';
-    var theme = localValue ? localValue : configValue;
-
-    if (theme === 'system') {
-      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-
-    // 2. Apply to Root
-    document.documentElement.setAttribute('data-theme', theme);
-
-    // 3. Highlight.js Toggle Strategy
-    var lightLink = document.getElementById('hljs-light');
-    var darkLink = document.getElementById('hljs-dark');
-
-    if (lightLink && darkLink) {
-      if (theme === 'dark') {
-        lightLink.disabled = true;
-        darkLink.disabled = false;
-      } else {
-        lightLink.disabled = false;
-        darkLink.disabled = true;
-      }
-    }
-
-    document.documentElement.style.visibility = "visible";
-  } catch (e) {
-    document.documentElement.style.visibility = "visible";
-    console.error('Theme init failed', e);
-  }
-})();</script>
+    
   </head>
   <body
     class="sidebar-collapsible"
     data-default-collapsed="false"
     data-copy-code-enabled="true" data-spa-enabled="true" data-source-file="content/keybindings.md">
 
-    <a href="#main-content" class="skip-link">skipToContent</a>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    
+    
+
+    
 
     
     
       <aside class="sidebar">
         <div class="sidebar-header">
           
-            <a href="/" class="logo-link">
+<a href="../" class="logo-link">
               <img
                 src="../assets/images/nova-logo-dark.png"
-                alt="Nova Logo" class="logo-light" >
+                alt="Nova Logo" class="logo logo-light light-logo" >
               <img
                 src="../assets/images/nova-logo-light.png"
-                alt="Nova Logo" class="logo-dark" >
+                alt="Nova Logo" class="logo logo-dark dark-logo" >
             </a>
           
           <span class="mobile-view sidebar-menu-button float-right">
@@ -214,13 +191,14 @@
         <div class="sidebar-top-group">
           
           
+          
             <div class="sidebar-options-wrapper">
               
 
 
 <div class="docmd-options-menu">
     
-    <button class="docmd-search-trigger" aria-label="search">
+    <button class="docmd-search-trigger" aria-label="Search">
         
 <svg class="lucide-icon icon-search " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
   class="lucide lucide-search"
@@ -238,7 +216,7 @@
   <circle cx="11" cy="11" r="8" />
 </svg>
 
-        <span class="search-label">search</span>
+        <span class="search-label">Search</span>
         <span class="search-keys"><kbd class="docmd-kbd">⌘</kbd><kbd class="docmd-kbd">K</kbd></span>
     </button>
     
@@ -248,7 +226,7 @@
     
 
     
-    <button class="theme-toggle-button" aria-label="toggleTheme">
+    <button class="theme-toggle-button" aria-label="Toggle theme" title="Toggle theme">
         
 <svg class="lucide-icon icon-sun icon-sun" width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
   class="lucide lucide-sun"
@@ -292,6 +270,8 @@
     
 
     
+
+    
 </div>
 
             </div>
@@ -301,7 +281,7 @@
         </div>
         
 
-<nav class="sidebar-nav" aria-label="mainNavigation">
+<nav class="sidebar-nav" aria-label="Main Navigation">
   <ul>
     
       <li class="" >
@@ -757,24 +737,8 @@
       <li class="" >
       
         <a href="https://github.com/pmqueiroz/nova" class=" "
-          target=&quot;_blank&quot; rel=&quot;noopener&quot;>
+          target="_blank" rel="noopener">
            
-<svg class="lucide-icon icon-github " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-github"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
-  <path d="M9 18c-4.51 2-5-2-7-2" />
-</svg>
-
           
           <span class="nav-item-title">
             GitHub
@@ -812,17 +776,19 @@
           
           
           
+          
         </div>
       </aside>
       
       <div class="main-content-wrapper">
         
         
+        
           <header class="page-header">
             <div class="header-left">
               
                 <button id="sidebar-toggle-button" class="sidebar-toggle-button"
-                  aria-label="toggleSidebar">
+                  aria-label="Toggle Sidebar">
                   
 <svg class="lucide-icon icon-chevron-left " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
   class="lucide lucide-chevron-left"
@@ -856,17 +822,19 @@
           <main class="content-area" id="main-content">
             <div class="content-layout">
               <div class="main-content">
-                
-                  <nav aria-label="breadcrumb" class="docmd-breadcrumbs">
-                    <ol>
-                      
-                      
-                        <li class="breadcrumb-item " >
-                          
-                            <span>Reference</span>
-                          
-                          
-                            <span class="breadcrumb-separator">
+                <div class="docmd-breadcrumbs-row">
+                  <div id="docmd-raw-markdown" data-content="---%0Atitle%3A%20%22Keybindings%22%0Adescription%3A%20%22Keybinding%20syntax%2C%20defaults%2C%20and%20action%20reference.%22%0A---%0A%0A%23%23%20Binding%20Syntax%0A%0ABindings%20are%20strings%20like%20%60ctrl%2Bt%60%20or%20%60ctrl%2Bshift%2Btab%60.%0A%0ASupported%20modifiers%3A%0A%0A-%20%60ctrl%60%0A-%20%60shift%60%0A-%20%60alt%60%20(alias%3A%20%60option%60)%0A-%20%60cmd%60%20(aliases%3A%20%60command%60%2C%20%60meta%60%2C%20%60super%60)%0A%0ASupported%20keys%3A%0A%0A-%20%60tab%60%0A-%20Any%20single%20character%20(like%20%60t%60%2C%20%60w%60%2C%20%60c%60%2C%20%60v%60%2C%20%60k%60)%0A%0AExamples%3A%0A%0A%60%60%60toml%0A%5Bkeybindings%5D%0Anew-tab%20%3D%20%22ctrl%2Bt%22%0Aclose-tab%20%3D%20%22ctrl%2Bw%22%0Anext-tab%20%3D%20%22ctrl%2Btab%22%0Aprev-tab%20%3D%20%22ctrl%2Bshift%2Btab%22%0Acopy%20%3D%20%22ctrl%2Bshift%2Bc%22%0Apaste%20%3D%20%22ctrl%2Bv%22%0Aopen-palette%20%3D%20%22ctrl%2Bp%22%0Aask-ai%20%3D%20%22ctrl%2Bk%22%0Asettings%20%3D%20%22ctrl%2B%2C%22%0A%60%60%60%0A%0A%23%23%20Actions%0A%0AThese%20keys%20live%20under%20%60%5Bkeybindings%5D%60%20in%20%60settings.toml%60%3A%0A%0A-%20%60new-tab%60%0A-%20%60close-tab%60%0A-%20%60next-tab%60%0A-%20%60prev-tab%60%0A-%20%60copy%60%0A-%20%60paste%60%0A-%20%60open-palette%60%0A-%20%60ask-ai%60%0A-%20%60settings%60%0A%0A%23%23%20Defaults%0A%0ADefaults%20differ%20on%20macOS%20vs%20other%20platforms.%0A%0ANon-macOS%20(defaults)%3A%0A%0A%60%60%60toml%0A%5Bkeybindings%5D%0Anew-tab%20%3D%20%22ctrl%2Bt%22%0Aclose-tab%20%3D%20%22ctrl%2Bw%22%0Anext-tab%20%3D%20%22ctrl%2Btab%22%0Aprev-tab%20%3D%20%22ctrl%2Bshift%2Btab%22%0Apaste%20%3D%20%22ctrl%2Bv%22%0Acopy%20%3D%20%22ctrl%2Bshift%2Bc%22%0Aopen-palette%20%3D%20%22ctrl%2Bp%22%0Aask-ai%20%3D%20%22ctrl%2Bk%22%0Asettings%20%3D%20%22ctrl%2B%2C%22%0A%60%60%60%0A%0AmacOS%20(defaults)%3A%0A%0A%60%60%60toml%0A%5Bkeybindings%5D%0Anew-tab%20%3D%20%22cmd%2Bt%22%0Aclose-tab%20%3D%20%22cmd%2Bw%22%0Anext-tab%20%3D%20%22ctrl%2Btab%22%0Aprev-tab%20%3D%20%22ctrl%2Bshift%2Btab%22%0Apaste%20%3D%20%22cmd%2Bv%22%0Acopy%20%3D%20%22cmd%2Bc%22%0Aopen-palette%20%3D%20%22cmd%2Bp%22%0Aask-ai%20%3D%20%22cmd%2Bk%22%0Asettings%20%3D%20%22cmd%2B%2C%22%0A%60%60%60%0A%0A%23%23%20Fixed%20Shortcuts%0A%0AThese%20shortcuts%20are%20hardcoded%20and%20cannot%20be%20changed%20via%20%60settings.toml%60.%0A%0A%23%23%23%20Split%20Pane%0A%0A%7C%20Action%20%7C%20macOS%20%7C%20Other%20%7C%0A%7C---%7C---%7C---%7C%0A%7C%20Open%20split%20pane%20%7C%20%60Cmd%2BShift%2BT%60%20%7C%20%60Ctrl%2BShift%2BT%60%20%7C%0A%7C%20Close%20split%20pane%20%7C%20%60Cmd%2BShift%2BW%60%20%7C%20%60Ctrl%2BShift%2BW%60%20%7C%0A%0AWhen%20a%20split%20pane%20is%20open%2C%20%60close-tab%60%20(%60Cmd%2BW%60%20%2F%20%60Ctrl%2BW%60)%20closes%20the%20**active%20pane**%20instead%20of%20the%20entire%20tab.%0A%0AThe%20divider%20between%20panes%20is%20draggable.%20Hover%20over%20it%20to%20see%20a%20resize%20cursor%2C%20then%20click%20and%20drag%20to%20adjust%20the%20split%20ratio.%20Grids%20resize%20when%20you%20release%20the%20mouse.%20The%20ratio%20is%20clamped%20to%2010%25%E2%80%9390%25.%0A%0A%23%23%23%20Font%20Size%0A%0A%7C%20Action%20%7C%20macOS%20%7C%20Other%20%7C%0A%7C---%7C---%7C---%7C%0A%7C%20Increase%20font%20size%20%7C%20%60Cmd%2B%3D%60%20or%20%60Cmd%2B%2B%60%20%7C%20%60Ctrl%2B%3D%60%20or%20%60Ctrl%2B%2B%60%20%7C%0A%7C%20Decrease%20font%20size%20%7C%20%60Cmd%2B-%60%20%7C%20%60Ctrl%2B-%60%20%7C%0A%7C%20Reset%20font%20size%20%7C%20%60Cmd%2B0%60%20%7C%20%60Ctrl%2B0%60%20%7C%0A%0AFont%20size%20steps%20by%202%20within%2014%E2%80%9320%20(odd%20sizes%20snap%20to%20the%20next%20even%20step).%20Reset%20returns%20to%20the%20size%20that%20was%20configured%20at%20app%20start.%0A%0A%23%23%23%20Block%20input%0A%0A%7C%20Action%20%7C%20Key%20%7C%0A%7C---%7C---%7C%0A%7C%20Run%20the%20command%20in%20the%20input%20bar%20%7C%20%60Enter%60%20%7C%0A%7C%20Previous%20%2F%20next%20history%20entry%20%7C%20%60Up%60%20%2F%20%60Down%60%20%7C%0A%7C%20Complete%20the%20word%20at%20the%20end%20%2F%20cycle%20back%20%7C%20%60Tab%60%20%2F%20%60Shift%2BTab%60%20%7C%0A%7C%20Clear%20the%20input%20(or%20copy%20the%20selection%2C%20when%20text%20is%20selected)%20%7C%20%60Ctrl%2BC%60%20%7C%0A%7C%20Clear%20all%20blocks%20%7C%20%60Ctrl%2BL%60%20%7C%0A%0A%60Tab%60%20completes%20the%20last%20word%20of%20the%20input.%20Nova%20does%20this%20itself%2C%20not%20the%20shell%3A%20the%20first%20word%20completes%20to%20commands%20from%20your%20%60PATH%60%20and%20history%2C%20any%20other%20word%20(or%20one%20with%20a%20%60%2F%60)%20to%20files%20and%20folders%20relative%20to%20the%20pane&#039;s%20current%20directory%20(%60~%60%20is%20your%20home).%20One%20match%20is%20inserted%20outright%20(folders%20end%20in%20%60%2F%60%2C%20everything%20else%20gets%20a%20trailing%20space)%3B%20several%20matches%20first%20fill%20in%20their%20common%20prefix%2C%20then%20each%20further%20%60Tab%60%20cycles%20through%20them%20(%60Shift%2BTab%60%20goes%20backwards).%20Names%20with%20spaces%20are%20quoted.%20Shell-specific%20completions%20(git%20branches%2C%20PowerShell%20cmdlets%2C%20option%20flags)%20are%20not%20available.%0A%0AWhile%20a%20command%20runs%2C%20every%20key%20goes%20to%20that%20program%20(%60Ctrl%2BC%60%20interrupts%20it).%0AFull-screen%20programs%20(vim%2C%20htop%2C%20less)%20take%20over%20the%20whole%20pane%20until%20they%20exit.%0A%0A%23%23%23%20Search%0A%0A%7C%20Action%20%7C%20macOS%20%7C%20Other%20%7C%0A%7C---%7C---%7C---%7C%0A%7C%20Open%20search%20bar%20%7C%20%60Cmd%2BF%60%20%7C%20%60Ctrl%2BF%60%20%7C%0A%7C%20Next%20match%20%7C%20%60Enter%60%20%7C%20%60Enter%60%20%7C%0A%7C%20Previous%20match%20%7C%20%60Shift%2BEnter%60%20%7C%20%60Shift%2BEnter%60%20%7C%0A%7C%20Close%20search%20%7C%20%60Escape%60%20%7C%20%60Escape%60%20%7C%0A%0ASearch%20is%20case-insensitive%20and%20covers%20the%20output%20of%20every%20block%20in%20the%20active%20pane%20(or%20the%20scrollback%20and%20visible%20rows%20in%20classic%20mode).%20The%20current%20match%20is%20highlighted%20in%20yellow%3B%20other%20matches%20are%20dimly%20highlighted.%20The%20match%20count%20is%20shown%20in%20the%20search%20bar%20(e.g.%20%603%20%2F%2015%60).%20Searching%20closes%20automatically%20when%20switching%20tabs.%0A%0A%23%23%20Notes%0A%0A-%20If%20%60open-palette%60%2C%20%60ask-ai%60%20or%20%60settings%60%20is%20invalid%2C%20Nova%20falls%20back%20to%20its%20default%20(%60ctrl%2Bp%60%2C%20%60ctrl%2Bk%60%2C%20%60ctrl%2B%2C%60%3B%20%60cmd%60%20on%20macOS).%0A-%20Configs%20still%20using%20the%20old%20default%20palette%20binding%20(%60ctrl%2Bk%60%20%2F%20%60cmd%2Bk%60)%20or%20the%20old%20default%20accent%20(%60%233ECF8E%60)%20are%20migrated%20to%20the%20new%20defaults%20on%20startup.%0A" style="display: none;"></div>
+                  
+                    <nav aria-label="breadcrumb" class="docmd-breadcrumbs">
+                      <ol>
+                        
+                        
+                          <li class="breadcrumb-item " >
+                            
+                              <span>Reference</span>
+                            
+                            
+                              <span class="breadcrumb-separator">
 <svg class="lucide-icon icon-chevron-right " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
   class="lucide lucide-chevron-right"
   xmlns="http://www.w3.org/2000/svg"
@@ -882,19 +850,73 @@
   <path d="m9 18 6-6-6-6" />
 </svg>
 </span>
-                          
-                        </li>
+                            
+                          </li>
+                        
+                          <li class="breadcrumb-item active" aria-current=&quot;page&quot;>
+                            
+                              <span>Keybindings</span>
+                            
+                            
+                          </li>
+                        
+                      </ol>
+                    </nav>
+                  
+
+                  
+                  
+                    <div class="docmd-copy-widgets">
                       
-                        <li class="breadcrumb-item active" aria-current=&quot;page&quot;>
-                          
-                            <span>Keybindings</span>
-                          
-                          
-                        </li>
+                        <button class="docmd-copy-btn docmd-copy-raw-btn" data-copied="Copied!" title="Copy Markdown" aria-label="Copy Markdown">
+                          <span class="docmd-btn-icon">
+<svg class="lucide-icon icon-copy " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
+  class="lucide lucide-copy"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+</svg>
+</span>
+                        </button>
                       
-                    </ol>
-                  </nav>
+                      
+                        <button class="docmd-copy-btn docmd-copy-context-btn" data-copied="Copied!" title="Copy Context">
+                          <span class="docmd-btn-icon">
+<svg class="lucide-icon icon-message-square " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
+  class="lucide lucide-message-square"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z" />
+</svg>
+</span>
+                          <span class="docmd-btn-text">Copy Context</span>
+                        </button>
+                      
+                      
+                    </div>
+                  
+                </div>
                 
+                  <h1 class="docmd-focus-title">
+                    Keybindings
+                  </h1>
                 
                 <h2 id="binding-syntax" class="docmd-heading"><a href="#binding-syntax" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Binding Syntax</h2>
 <p>Bindings are strings like <code>ctrl+t</code> or <code>ctrl+shift+tab</code>.</p>
@@ -911,14 +933,16 @@
 <li>Any single character (like <code>t</code>, <code>w</code>, <code>c</code>, <code>v</code>, <code>k</code>)</li>
 </ul>
 <p>Examples:</p>
-<pre class="hljs"><code>[keybindings]
-<span class="hljs-keyword">new</span><span class="hljs-punctuation">-</span>tab <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+t&quot;</span>
-close<span class="hljs-punctuation">-</span>tab <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+w&quot;</span>
-next<span class="hljs-punctuation">-</span>tab <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+tab&quot;</span>
-prev<span class="hljs-punctuation">-</span>tab <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+shift+tab&quot;</span>
-copy <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+shift+c&quot;</span>
-paste <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+v&quot;</span>
-open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+k&quot;</span>
+<pre class="hljs"><code class="language-toml">[keybindings]
+<span class="hljs-keyword">new</span><span class="hljs-operator">-</span>tab <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+t&quot;</span>
+close<span class="hljs-operator">-</span>tab <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+w&quot;</span>
+next<span class="hljs-operator">-</span>tab <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+tab&quot;</span>
+prev<span class="hljs-operator">-</span>tab <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+shift+tab&quot;</span>
+copy <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+shift+c&quot;</span>
+paste <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+v&quot;</span>
+open<span class="hljs-operator">-</span>palette <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+p&quot;</span>
+ask<span class="hljs-operator">-</span>ai <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+k&quot;</span>
+settings <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+,&quot;</span>
 </code></pre>
 <h2 id="actions" class="docmd-heading"><a href="#actions" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Actions</h2>
 <p>These keys live under <code>[keybindings]</code> in <code>settings.toml</code>:</p>
@@ -930,28 +954,34 @@ open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation
 <li><code>copy</code></li>
 <li><code>paste</code></li>
 <li><code>open-palette</code></li>
+<li><code>ask-ai</code></li>
+<li><code>settings</code></li>
 </ul>
 <h2 id="defaults" class="docmd-heading"><a href="#defaults" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Defaults</h2>
 <p>Defaults differ on macOS vs other platforms.</p>
 <p>Non-macOS (defaults):</p>
-<pre class="hljs"><code>[keybindings]
-<span class="hljs-keyword">new</span><span class="hljs-punctuation">-</span>tab <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+t&quot;</span>
-close<span class="hljs-punctuation">-</span>tab <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+w&quot;</span>
-next<span class="hljs-punctuation">-</span>tab <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+tab&quot;</span>
-prev<span class="hljs-punctuation">-</span>tab <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+shift+tab&quot;</span>
-paste <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+v&quot;</span>
-copy <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+shift+c&quot;</span>
-open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+k&quot;</span>
+<pre class="hljs"><code class="language-toml">[keybindings]
+<span class="hljs-keyword">new</span><span class="hljs-operator">-</span>tab <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+t&quot;</span>
+close<span class="hljs-operator">-</span>tab <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+w&quot;</span>
+next<span class="hljs-operator">-</span>tab <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+tab&quot;</span>
+prev<span class="hljs-operator">-</span>tab <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+shift+tab&quot;</span>
+paste <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+v&quot;</span>
+copy <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+shift+c&quot;</span>
+open<span class="hljs-operator">-</span>palette <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+p&quot;</span>
+ask<span class="hljs-operator">-</span>ai <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+k&quot;</span>
+settings <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+,&quot;</span>
 </code></pre>
 <p>macOS (defaults):</p>
-<pre class="hljs"><code>[keybindings]
-<span class="hljs-keyword">new</span><span class="hljs-punctuation">-</span>tab <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;cmd+t&quot;</span>
-close<span class="hljs-punctuation">-</span>tab <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;cmd+w&quot;</span>
-next<span class="hljs-punctuation">-</span>tab <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+tab&quot;</span>
-prev<span class="hljs-punctuation">-</span>tab <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+shift+tab&quot;</span>
-paste <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;cmd+v&quot;</span>
-copy <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;cmd+c&quot;</span>
-open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;cmd+k&quot;</span>
+<pre class="hljs"><code class="language-toml">[keybindings]
+<span class="hljs-keyword">new</span><span class="hljs-operator">-</span>tab <span class="hljs-operator">=</span> <span class="hljs-string">&quot;cmd+t&quot;</span>
+close<span class="hljs-operator">-</span>tab <span class="hljs-operator">=</span> <span class="hljs-string">&quot;cmd+w&quot;</span>
+next<span class="hljs-operator">-</span>tab <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+tab&quot;</span>
+prev<span class="hljs-operator">-</span>tab <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+shift+tab&quot;</span>
+paste <span class="hljs-operator">=</span> <span class="hljs-string">&quot;cmd+v&quot;</span>
+copy <span class="hljs-operator">=</span> <span class="hljs-string">&quot;cmd+c&quot;</span>
+open<span class="hljs-operator">-</span>palette <span class="hljs-operator">=</span> <span class="hljs-string">&quot;cmd+p&quot;</span>
+ask<span class="hljs-operator">-</span>ai <span class="hljs-operator">=</span> <span class="hljs-string">&quot;cmd+k&quot;</span>
+settings <span class="hljs-operator">=</span> <span class="hljs-string">&quot;cmd+,&quot;</span>
 </code></pre>
 <h2 id="fixed-shortcuts" class="docmd-heading"><a href="#fixed-shortcuts" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Fixed Shortcuts</h2>
 <p>These shortcuts are hardcoded and cannot be changed via <code>settings.toml</code>.</p>
@@ -1006,7 +1036,41 @@ open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation
 </tr>
 </tbody>
 </table>
-</div><p>Font size steps snap to even numbers (e.g. 15 → 16 → 18 → 20). Range: 8–72. Reset returns to the size that was configured at app start.</p>
+</div><p>Font size steps by 2 within 14–20 (odd sizes snap to the next even step). Reset returns to the size that was configured at app start.</p>
+<h3 id="fixed-shortcuts-block-input" class="docmd-heading"><a href="#fixed-shortcuts-block-input" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Block input</h3>
+<div class="table-wrapper"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Key</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Run the command in the input bar</td>
+<td><code>Enter</code></td>
+</tr>
+<tr>
+<td>Previous / next history entry</td>
+<td><code>Up</code> / <code>Down</code></td>
+</tr>
+<tr>
+<td>Complete the word at the end / cycle back</td>
+<td><code>Tab</code> / <code>Shift+Tab</code></td>
+</tr>
+<tr>
+<td>Clear the input (or copy the selection, when text is selected)</td>
+<td><code>Ctrl+C</code></td>
+</tr>
+<tr>
+<td>Clear all blocks</td>
+<td><code>Ctrl+L</code></td>
+</tr>
+</tbody>
+</table>
+</div><p><code>Tab</code> completes the last word of the input. Nova does this itself, not the shell: the first word completes to commands from your <code>PATH</code> and history, any other word (or one with a <code>/</code>) to files and folders relative to the pane’s current directory (<code>~</code> is your home). One match is inserted outright (folders end in <code>/</code>, everything else gets a trailing space); several matches first fill in their common prefix, then each further <code>Tab</code> cycles through them (<code>Shift+Tab</code> goes backwards). Names with spaces are quoted. Shell-specific completions (git branches, PowerShell cmdlets, option flags) are not available.</p>
+<p>While a command runs, every key goes to that program (<code>Ctrl+C</code> interrupts it).<br>
+Full-screen programs (vim, htop, less) take over the whole pane until they exit.</p>
 <h3 id="fixed-shortcuts-search" class="docmd-heading"><a href="#fixed-shortcuts-search" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Search</h3>
 <div class="table-wrapper"><table>
 <thead>
@@ -1039,10 +1103,11 @@ open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation
 </tr>
 </tbody>
 </table>
-</div><p>Search is case-insensitive and covers both the scrollback buffer and the visible terminal rows. The current match is highlighted in yellow; other matches are dimly highlighted. The match count is shown in the search bar (e.g. <code>3 / 15</code>). Searching closes automatically when switching tabs.</p>
+</div><p>Search is case-insensitive and covers the output of every block in the active pane (or the scrollback and visible rows in classic mode). The current match is highlighted in yellow; other matches are dimly highlighted. The match count is shown in the search bar (e.g. <code>3 / 15</code>). Searching closes automatically when switching tabs.</p>
 <h2 id="notes" class="docmd-heading"><a href="#notes" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Notes</h2>
 <ul>
-<li>If <code>open-palette</code> is invalid, Nova falls back to <code>ctrl+k</code>.</li>
+<li>If <code>open-palette</code>, <code>ask-ai</code> or <code>settings</code> is invalid, Nova falls back to its default (<code>ctrl+p</code>, <code>ctrl+k</code>, <code>ctrl+,</code>; <code>cmd</code> on macOS).</li>
+<li>Configs still using the old default palette binding (<code>ctrl+k</code> / <code>cmd+k</code>) or the old default accent (<code>#3ECF8E</code>) are migrated to the new defaults on startup.</li>
 </ul>
 
                 
@@ -1066,14 +1131,14 @@ open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation
   <path d="M19 12H5" />
 </svg>
 
-                        <span><small>previous</small><strong>
+                        <span><small>Previous</small><strong>
                             Configuration
                           </strong></span>
                       </a>
                     
                     
                       <a href="../ai/" class="next-page">
-                        <span><small>next</small>
+                        <span><small>Next</small>
                           <strong>
                             AI
                           </strong></span>
@@ -1099,12 +1164,16 @@ open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation
                   </div>
                 
               </div>
+              
+              
               <div class="toc-sidebar">
                 
+                
+                  
 
 
   <div class="toc-container">
-    <h2 class="toc-title">onThisPage<span class="mobile-view toc-menu-button float-right">
+    <h2 class="toc-title">On This Page<span class="mobile-view toc-menu-button float-right">
 <svg class="lucide-icon icon-chevron-down " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
   class="lucide lucide-chevron-down"
   xmlns="http://www.w3.org/2000/svg"
@@ -1147,6 +1216,10 @@ open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation
         </li>
       
         <li class="toc-item toc-level-3">
+          <a href="#fixed-shortcuts-block-input" class="toc-link">Block input</a>
+        </li>
+      
+        <li class="toc-item toc-level-3">
           <a href="#fixed-shortcuts-search" class="toc-link">Search</a>
         </li>
       
@@ -1157,34 +1230,37 @@ open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation
     </ul>
   </div>
 
+                
+                
               </div>
+              
             </div>
             <div class="page-footer-actions">
               
               
-                <span class="git-last-updated" data-timestamp="1779205732000">
+                <span class="git-last-updated" data-timestamp="1793553285000">
                   <svg class="git-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                   </svg>
                   <span class="git-label">Last updated:</span>
-                  <span class="git-time" data-timestamp="1779205732000"></span>
+                  <span class="git-time" data-timestamp="1793553285000"></span>
                   
                   <div class="git-commit-tooltip" role="tooltip">
                     <div class="git-tooltip-title">Recent commits</div>
                     <ul class="git-commit-list">
                       
                         <li class="git-commit-item">
-                          <div class="git-commit-avatar" title="Pedro Queiroz">
+                          <div class="git-commit-avatar" title="pmqueiroz">
                             
-                              <img src="https://www.gravatar.com/avatar/1f88fae02546de069b09be3251a7d08c?d=mp&amp;s=64" alt="Pedro Queiroz">
+                              <img src="https://www.gravatar.com/avatar/1f88fae02546de069b09be3251a7d08c?d=mp&amp;s=64" alt="pmqueiroz">
                             
                           </div>
                           <div class="git-commit-details">
-                            <div class="git-commit-message" title="chore(main): release 0.24.0">chore(main): release 0.24.0</div>
+                            <div class="git-commit-message" title="fix: gate windows-only constants to silence dead code on unix">fix: gate windows-only constants to s...</div>
                             <div class="git-commit-meta">
-                              <span class="git-commit-author">Pedro Queiroz</span>
-                              <span class="git-commit-date" data-timestamp="1779205732000"></span>
+                              <span class="git-commit-author">pmqueiroz</span>
+                              <span class="git-commit-date" data-timestamp="1793553285000"></span>
                             </div>
                           </div>
                         </li>
@@ -1206,7 +1282,7 @@ open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation
     <div class="user-footer">© 2026 Nova.</div>
     
       <div class="branding-footer">
-        builtWith <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.79 0l2.96 2.66"></path><path d="m18 15-2-2"></path><path d="m15 18-2-2"></path></svg> <a href="https://docmd.io" target="_blank" rel="noopener">docmd.</a>
+        Built with <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.79 0l2.96 2.66"></path><path d="m18 15-2-2"></path><path d="m15 18-2-2"></path></svg> <a href="https://docmd.io" target="_blank" rel="noopener">docmd.</a>
       </div>
     
   </div>
@@ -1215,14 +1291,15 @@ open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation
         </div>
       </div>
       
-      <script src="../assets/js/docmd-main.js?v=mpcta9oa"></script>
+      <script src="../assets/js/docmd-main.js?v=mvy3g2qx"></script>
       
-      <script src="../assets/js/docmd-git.js?v=mpcta9oa"></script>
-      <script src="../assets/js/docmd-image-lightbox.js?v=mpcta9oa" ></script>
+      <script src="../assets/js/docmd-git.js?v=mvy3g2qx"></script>
+      <script src="../assets/js/docmd-image-lightbox.js?v=mvy3g2qx" ></script>
 <script src="https://cdn.jsdelivr.net/npm/minisearch@7.2.0/dist/umd/index.min.js" ></script>
-<script src="../assets/js/docmd-search.js?v=mpcta9oa" ></script>
-<script src="../assets/js/init-mermaid.js?v=mpcta9oa" type="module"></script>
-<script src="../assets/js/docmd-git.js?v=mpcta9oa" type="module"></script>
+<script src="../assets/js/docmd-search.js?v=mvy3g2qx" ></script>
+<script src="../assets/js/init-mermaid.js?v=mvy3g2qx" type="module"></script>
+<script src="../assets/js/docmd-git.js?v=mvy3g2qx" ></script>
+<script src="../assets/js/docmd-ai.js?v=mvy3g2qx" ></script>
 
   <!-- Search Modal (Injected by @docmd/plugin-search) -->
   <div id="docmd-search-modal" class="docmd-search-modal" style="display: none;"
@@ -1296,6 +1373,9 @@ open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation
     </script>
 
 <script>window.__git_config={"repo":"https://github.com/pmqueiroz/nova/edit/main/docs","branch":"main","editLink":true,"lastUpdated":true,"commitHistory":true,"maxCommits":5,"dateFormat":"relative"};window.__git_i18n={"lastUpdated":"Last updated","recentCommits":"Recent commits","viewCommitHistory":"View commit history","editOnGitHub":"Edit on GitHub","editOnGitLab":"Edit on GitLab","editOnBitbucket":"Edit on Bitbucket","editThisPage":"Edit this page","justNow":"just now","minutesAgo":"{n}m ago","hoursAgo":"{n}h ago","daysAgo":"{n}d ago"}</script>
+<div id="docmd-ai-root"></div><script>window.__docmd_ai_config={"endpoint":"","cloud":{},"captcha":true,"position":"bottom-center","siteTitle":"A terminal that burns bright","siteBase":"/","siteUrl":"https://nova.pmqueiroz.dev","versions":null,"i18n":null,"navigation":[{"title":"Introduction","path":"/","icon":"home"},{"title":"Getting Started","icon":"rocket","collapsible":false,"children":[{"title":"Installation","path":"/installation/","icon":"download"},{"title":"Quickstart","path":"/quickstart/","icon":"sparkles"}]},{"title":"Reference","icon":"book","collapsible":false,"children":[{"title":"Configuration","path":"/configuration/","icon":"cog"},{"title":"Keybindings","path":"/keybindings/","icon":"keyboard"},{"title":"AI","path":"/ai/","icon":"bot"},{"title":"CLI","path":"/cli/","icon":"terminal"}]},{"title":"Internals","icon":"code","collapsible":false,"children":[{"title":"OSC Integration","path":"/internals-osc/","icon":"link"},{"title":"Development","path":"/development/","icon":"tool"}]},{"title":"Troubleshooting","path":"/troubleshooting/","icon":"life-buoy"},{"title":"GitHub","path":"https://github.com/pmqueiroz/nova","icon":"github","external":true}],"searchCapabilities":{"keyword":true,"semantic":false},"isWorkspace":false,"workspaceProjects":[],"messageActions":false,"contextLimit":5};</script>
+      
+      
       
   </body>
 </html>

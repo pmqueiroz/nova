@@ -10,8 +10,23 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <meta name="generator" content="docmd v0.5.x">
+    <meta name="generator" content="docmd v0.9.8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <script>
+      var root = "../";
+      if (root && !root.endsWith('/')) root += '/';
+      if (root === '') root = './';
+      window.DOCMD_ROOT = root;
+
+      window.DOCMD_SITE_ROOT = "/";
+
+      window.DOCMD_APPEARANCE = "dark";
+      window.DOCMD_VERSION_ROOT = "/";
+      window.DOCMD_BASE = "/";
+      window.DOCMD_LOCALE = "";
+      window.DOCMD_DEFAULT_LOCALE = "";
+    </script>
     <script>/**
  * --------------------------------------------------------------------
  * docmd : the zero-config documentation engine.
@@ -29,9 +44,27 @@
 (function () {
   try {
     // 1. Determine Theme
+    //
+    // Resolve from three sources, in priority order:
+    //   1. localStorage explicit user choice (light / dark)
+    //   2. window.DOCMD_APPEARANCE  (current canonical name, set by EJS templates)
+    //   3. window.DOCMD_DEFAULT_MODE (legacy alias kept for pre-0.8.7 outputs)
+    //   4. 'light' as the final fallback
+    //
+    // Note: localStorage is only honoured when it holds an explicit
+    // 'light' or 'dark' value. A stored 'system' value (from a prior
+    // session where the user picked "follow system") must NOT win over
+    // a freshly resolved config value — the resolved value will itself
+    // be 'system' in that case and the OS preference check below takes
+    // over, so this is a no-op for the in-session behaviour but keeps
+    // any future storage migration simple.
     var localValue = localStorage.getItem('docmd-theme');
-    var configValue = window.DOCMD_DEFAULT_MODE || 'light';
-    var theme = localValue ? localValue : configValue;
+    var configValue = window.DOCMD_APPEARANCE
+      || window.DOCMD_DEFAULT_MODE
+      || 'light';
+    var theme = (localValue === 'light' || localValue === 'dark')
+      ? localValue
+      : configValue;
 
     if (theme === 'system') {
       theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -65,34 +98,15 @@
         visibility: hidden;
       }
     </style>
+    <title>Configuration - A terminal that burns bright</title>
     
-    <script>
-      var root = "../";
-      if (root && !root.endsWith('/')) root += '/';
-      if (root === '') root = './';
-      window.DOCMD_ROOT = root;
+    
 
-      var siteRoot = "../";
-      if (siteRoot && !siteRoot.endsWith('/')) siteRoot += '/';
-      if (siteRoot === '') siteRoot = './';
-      window.DOCMD_SITE_ROOT = siteRoot;
-
-      window.DOCMD_APPEARANCE = "dark";
-      window.DOCMD_VERSION_ROOT = "/";
-      window.DOCMD_BASE = "/";
-      window.DOCMD_LOCALE = "";
-      window.DOCMD_DEFAULT_LOCALE = "";
-    </script>
-    <title>
-      Configuration : A terminal that burns bright
-    </title>
-    <link id="site-favicon" rel="icon" href="../assets/favicon.ico?v=mpcta9oa">
-    <link rel="stylesheet" href="../assets/css/docmd-main.css?v=mpcta9oa">
+    <link id="site-favicon" rel="icon" href="../assets/favicon.ico?v=mvy3g2qx">
+    <link rel="stylesheet" href="../assets/css/docmd-main.css?v=mvy3g2qx">
     
-    <link rel="stylesheet" href="../assets/css/docmd-git.css?v=mpcta9oa">
-    
-    <link rel="stylesheet" href="../assets/css/docmd-highlight-light.css?v=mpcta9oa" id="hljs-light" disabled>
-    <link rel="stylesheet" href="../assets/css/docmd-highlight-dark.css?v=mpcta9oa" id="hljs-dark" >
+    <link rel="stylesheet" href="../assets/css/docmd-highlight-light.css?v=mvy3g2qx" id="hljs-light" disabled>
+    <link rel="stylesheet" href="../assets/css/docmd-highlight-dark.css?v=mvy3g2qx" id="hljs-dark" >
     
     
 <meta name="description" content="Config file location, behavior, and full settings reference.">
@@ -104,90 +118,53 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Configuration - A terminal that burns bright">
 <meta name="twitter:description" content="Config file location, behavior, and full settings reference.">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"A terminal that burns bright","item":"https://nova.pmqueiroz.dev/"},{"@type":"ListItem","position":2,"name":"Reference"},{"@type":"ListItem","position":3,"name":"Configuration","item":"https://nova.pmqueiroz.dev/configuration/"}]}
+</script>
 
 
     <!-- GA4 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-X9WTDL262N"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id="G-X9WTDL262N""></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-X9WTDL262N');
+      gtag('config', "G-X9WTDL262N");
     </script>
 
 
-<link rel="stylesheet" href="../assets/css/docmd-git.css?v=mpcta9oa" >
-<link rel="stylesheet" href="../assets/css/docmd-openapi.css?v=mpcta9oa" >
+
+<link rel="stylesheet" href="../assets/css/docmd-git.css?v=mvy3g2qx" >
+<link rel="stylesheet" href="../assets/css/docmd-openapi.css?v=mvy3g2qx" >
+<link rel="stylesheet" href="../assets/css/docmd-ai.css?v=mvy3g2qx" >
 
     
-    <script>/**
- * --------------------------------------------------------------------
- * docmd : the zero-config documentation engine.
- *
- * @package     @docmd/core (and ecosystem)
- * @website     https://docmd.io
- * @repository  https://github.com/docmd-io/docmd
- * @license     MIT
- * @copyright   Copyright (c) 2025-present docmd.io
- *
- * [docmd-source] - Please do not remove this header.
- * --------------------------------------------------------------------
- */
-
-(function () {
-  try {
-    // 1. Determine Theme
-    var localValue = localStorage.getItem('docmd-theme');
-    var configValue = window.DOCMD_DEFAULT_MODE || 'light';
-    var theme = localValue ? localValue : configValue;
-
-    if (theme === 'system') {
-      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-
-    // 2. Apply to Root
-    document.documentElement.setAttribute('data-theme', theme);
-
-    // 3. Highlight.js Toggle Strategy
-    var lightLink = document.getElementById('hljs-light');
-    var darkLink = document.getElementById('hljs-dark');
-
-    if (lightLink && darkLink) {
-      if (theme === 'dark') {
-        lightLink.disabled = true;
-        darkLink.disabled = false;
-      } else {
-        lightLink.disabled = false;
-        darkLink.disabled = true;
-      }
-    }
-
-    document.documentElement.style.visibility = "visible";
-  } catch (e) {
-    document.documentElement.style.visibility = "visible";
-    console.error('Theme init failed', e);
-  }
-})();</script>
+    
   </head>
   <body
     class="sidebar-collapsible"
     data-default-collapsed="false"
     data-copy-code-enabled="true" data-spa-enabled="true" data-source-file="content/configuration.md">
 
-    <a href="#main-content" class="skip-link">skipToContent</a>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    
+    
+
+    
 
     
     
       <aside class="sidebar">
         <div class="sidebar-header">
           
-            <a href="/" class="logo-link">
+<a href="../" class="logo-link">
               <img
                 src="../assets/images/nova-logo-dark.png"
-                alt="Nova Logo" class="logo-light" >
+                alt="Nova Logo" class="logo logo-light light-logo" >
               <img
                 src="../assets/images/nova-logo-light.png"
-                alt="Nova Logo" class="logo-dark" >
+                alt="Nova Logo" class="logo logo-dark dark-logo" >
             </a>
           
           <span class="mobile-view sidebar-menu-button float-right">
@@ -214,13 +191,14 @@
         <div class="sidebar-top-group">
           
           
+          
             <div class="sidebar-options-wrapper">
               
 
 
 <div class="docmd-options-menu">
     
-    <button class="docmd-search-trigger" aria-label="search">
+    <button class="docmd-search-trigger" aria-label="Search">
         
 <svg class="lucide-icon icon-search " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
   class="lucide lucide-search"
@@ -238,7 +216,7 @@
   <circle cx="11" cy="11" r="8" />
 </svg>
 
-        <span class="search-label">search</span>
+        <span class="search-label">Search</span>
         <span class="search-keys"><kbd class="docmd-kbd">⌘</kbd><kbd class="docmd-kbd">K</kbd></span>
     </button>
     
@@ -248,7 +226,7 @@
     
 
     
-    <button class="theme-toggle-button" aria-label="toggleTheme">
+    <button class="theme-toggle-button" aria-label="Toggle theme" title="Toggle theme">
         
 <svg class="lucide-icon icon-sun icon-sun" width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
   class="lucide lucide-sun"
@@ -292,6 +270,8 @@
     
 
     
+
+    
 </div>
 
             </div>
@@ -301,7 +281,7 @@
         </div>
         
 
-<nav class="sidebar-nav" aria-label="mainNavigation">
+<nav class="sidebar-nav" aria-label="Main Navigation">
   <ul>
     
       <li class="" >
@@ -757,24 +737,8 @@
       <li class="" >
       
         <a href="https://github.com/pmqueiroz/nova" class=" "
-          target=&quot;_blank&quot; rel=&quot;noopener&quot;>
+          target="_blank" rel="noopener">
            
-<svg class="lucide-icon icon-github " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-github"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
-  <path d="M9 18c-4.51 2-5-2-7-2" />
-</svg>
-
           
           <span class="nav-item-title">
             GitHub
@@ -812,17 +776,19 @@
           
           
           
+          
         </div>
       </aside>
       
       <div class="main-content-wrapper">
         
         
+        
           <header class="page-header">
             <div class="header-left">
               
                 <button id="sidebar-toggle-button" class="sidebar-toggle-button"
-                  aria-label="toggleSidebar">
+                  aria-label="Toggle Sidebar">
                   
 <svg class="lucide-icon icon-chevron-left " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
   class="lucide lucide-chevron-left"
@@ -856,17 +822,19 @@
           <main class="content-area" id="main-content">
             <div class="content-layout">
               <div class="main-content">
-                
-                  <nav aria-label="breadcrumb" class="docmd-breadcrumbs">
-                    <ol>
-                      
-                      
-                        <li class="breadcrumb-item " >
-                          
-                            <span>Reference</span>
-                          
-                          
-                            <span class="breadcrumb-separator">
+                <div class="docmd-breadcrumbs-row">
+                  <div id="docmd-raw-markdown" data-content="---%0Atitle%3A%20%22Configuration%22%0Adescription%3A%20%22Config%20file%20location%2C%20behavior%2C%20and%20full%20settings%20reference.%22%0A---%0A%0A%23%23%20Location%0A%0ANova%20stores%20settings%20at%20%60settings.toml%60%20under%20your%20OS%20config%20directory%3A%0A%0A-%20Windows%3A%20%60%25APPDATA%25%5Cnova%5Csettings.toml%60%0A-%20macOS%3A%20%60~%2FLibrary%2FApplication%20Support%2Fnova%2Fsettings.toml%60%0A-%20Linux%3A%20%60~%2F.config%2Fnova%2Fsettings.toml%60%0A%0AInternally%2C%20this%20is%20%60dirs%3A%3Aconfig_dir().join(%22nova%22).join(%22settings.toml%22)%60.%0A%0A%23%23%20File%20Lifecycle%0A%0A-%20If%20%60settings.toml%60%20does%20not%20exist%2C%20Nova%20writes%20an%20embedded%20default%20config.%0A-%20If%20%60settings.toml%60%20exists%20but%20TOML%20parsing%20fails%2C%20Nova%20overwrites%20it%20with%20defaults.%0A%0AThis%20means%20a%20malformed%20edit%20can%20be%20%22repaired%22%20by%20reset-to-default%20(but%20you%20may%20lose%20changes).%0A%0A%23%23%20Defaults%0A%0ANova%20ships%20embedded%20defaults%20(slightly%20different%20on%20macOS).%0A%0ANon-macOS%20default%20excerpt%3A%0A%0A%60%60%60toml%0A%5Bgeneral%5D%0Aeditor%20%3D%20%22nano%22%0Abell%20%3D%20%22none%22%0A%0A%5Btheme.font%5D%0Asize%20%3D%2016%0Afamily%20%3D%20%22FiraCode%20Nerd%20Font%22%0A%0A%5Btheme.colors%5D%0Abackground%20%3D%20%22%230D0D0D%22%0Aforeground%20%3D%20%22%23E5E5E5%22%0Aaccent%20%3D%20%22%2382BAFF%22%0Aforeground-muted%20%3D%20%22%23666666%22%0Aborder%20%3D%20%22%23FFFFFF12%22%0Acursor%20%3D%20%22%2382BAFF%22%0A%0A%5Btheme.cursor%5D%0Astyle%20%3D%20%22underline%22%0Ablink%20%3D%20false%0A%0A%5Bkeybindings%5D%0Anew-tab%20%3D%20%22ctrl%2Bt%22%0Aclose-tab%20%3D%20%22ctrl%2Bw%22%0Anext-tab%20%3D%20%22ctrl%2Btab%22%0Aprev-tab%20%3D%20%22ctrl%2Bshift%2Btab%22%0Apaste%20%3D%20%22ctrl%2Bv%22%0Acopy%20%3D%20%22ctrl%2Bshift%2Bc%22%0Aopen-palette%20%3D%20%22ctrl%2Bp%22%0Aask-ai%20%3D%20%22ctrl%2Bk%22%0Asettings%20%3D%20%22ctrl%2B%2C%22%0A%0A%5Bai%5D%0Aprovider%20%3D%20%22anthropic%22%0Amodel%20%3D%20%22claude-haiku-4-5-20251001%22%0Aapi_key%20%3D%20%22%22%0A%60%60%60%0A%0A%23%23%20Reference%0A%0A%23%23%23%20%60%5Bgeneral%5D%60%0A%0A-%20%60editor%60%20(string)%3A%20External%20editor%20command.%0A-%20%60bell%60%20(string)%3A%20One%20of%20%60none%60%2C%20%60audio%60%2C%20%60blink%60.%0A-%20%60shells%60%20(array%20of%20strings%2C%20optional)%3A%20If%20set%20and%20non-empty%2C%20Nova%20uses%20this%20list%20instead%20of%20auto-detect.%0A-%20%60initial-command%60%20(string%2C%20optional)%3A%20Program%20each%20new%20pane%20runs%20instead%20of%20the%20shell%2C%20launched%20directly%20(not%20through%20a%20shell)%2C%20so%20shell%20built-ins%20and%20aliases%20such%20as%20PowerShell&#039;s%20%60ls%60%20do%20not%20work.%20If%20it%20cannot%20be%20started%2C%20the%20pane%20shows%20why%20instead%20of%20a%20blank%20screen.%0A-%20%60wait-after-command%60%20(bool)%3A%20Wait%20for%20a%20key%20after%20the%20initial%20command%20exits.%0A-%20%60window-controls%60%20(string)%3A%20One%20of%20%60traffic-lights%60%20or%20%60system%60.%0A-%20%60scrollback%60%20(integer%2C%20optional)%3A%20Maximum%20scrollback%20lines%20per%20pane.%20Defaults%20to%20%6010000%60.%0A%0AExample%3A%0A%0A%60%60%60toml%0A%5Bgeneral%5D%0Aeditor%20%3D%20%22code%20-w%22%0Abell%20%3D%20%22none%22%0Ashells%20%3D%20%5B%22zsh%22%2C%20%22bash%22%5D%0Awindow-controls%20%3D%20%22system%22%0A%60%60%60%0A%0A%23%23%23%20%60%5Btheme%5D%60%0A%0A-%20%60timestamps%60%20(bool%2C%20default%20%60false%60)%3A%20show%20the%20%60HH%3AMM%60%20each%20command%20ran%20next%20to%20its%20block.%0A%0A%23%23%23%20%60%5Btheme.font%5D%60%0A%0A-%20%60size%60%20(number)%0A-%20%60family%60%20(string)%0A%0AExample%3A%0A%0A%60%60%60toml%0A%5Btheme.font%5D%0Asize%20%3D%2015%0Afamily%20%3D%20%22FiraCode%20Nerd%20Font%22%0A%60%60%60%0A%0A%23%23%23%20%60%5Btheme.colors%5D%60%0A%0AAll%20values%20are%20hex%20strings.%0A%0A-%20%60%23RRGGBB%60%20is%20supported.%0A-%20%60%23RRGGBBAA%60%20is%20supported%20(alpha%20channel).%0A%0AKeys%3A%0A%0A-%20%60background%60%0A-%20%60foreground%60%0A-%20%60accent%60%20(the%20settings%20sheet%20offers%20Blue%20%60%2382BAFF%60%2C%20Mint%20%60%2365DFAF%60%2C%20Amber%20%60%23FCBE62%60%2C%20Rose%20%60%23FC899D%60)%0A-%20%60foreground-muted%60%0A-%20%60border%60%0A-%20%60cursor%60%0A%0AExample%3A%0A%0A%60%60%60toml%0A%5Btheme.colors%5D%0Abackground%20%3D%20%22%230D0D0D%22%0Aforeground%20%3D%20%22%23E5E5E5%22%0Aaccent%20%3D%20%22%2382BAFF%22%0Aforeground-muted%20%3D%20%22%23666666%22%0Aborder%20%3D%20%22%23FFFFFF12%22%0Acursor%20%3D%20%22%2382BAFF%22%0A%0A%5Btheme.cursor%5D%0Astyle%20%3D%20%22underline%22%0Ablink%20%3D%20true%0A%0A%5Bai%5D%0Aprovider%20%3D%20%22anthropic%22%0Amodel%20%3D%20%22claude-haiku-4-5-20251001%22%0Aapi_key%20%3D%20%22%22%0A%60%60%60%0A%0A%23%23%23%20%60%5Btheme.cursor%5D%60%0A%0A-%20%60style%60%20(string)%3A%20Cursor%20shape.%20One%20of%20%60block%60%2C%20%60beam%60%2C%20%60underline%60.%0A-%20%60blink%60%20(bool)%3A%20Whether%20the%20cursor%20blinks.%0A%0AExample%3A%0A%0A%60%60%60toml%0A%5Btheme.cursor%5D%0Astyle%20%3D%20%22underline%22%0Ablink%20%3D%20true%0A%60%60%60%0A%0A%23%23%23%20%60%5Bkeybindings%5D%60%0A%0ASee%20%5BKeybindings%5D(%2Fkeybindings)%20for%20syntax%20and%20examples.%0A%0AKeys%3A%0A%0A-%20%60new-tab%60%0A-%20%60close-tab%60%0A-%20%60next-tab%60%0A-%20%60prev-tab%60%0A-%20%60paste%60%0A-%20%60copy%60%0A-%20%60open-palette%60%0A-%20%60ask-ai%60%0A-%20%60settings%60%0A%0A%23%23%23%20%60%5Bai%5D%60%0A%0ASee%20%5BAI%5D(%2Fai)%20for%20behavior%20and%20troubleshooting.%0A%0A-%20%60provider%60%20(string)%3A%20%60anthropic%60%20or%20%60openai%60%0A-%20%60model%60%20(string)%0A-%20%60api_key%60%20(string)%0A-%20%60base_url%60%20(string%2C%20optional)%3A%20Override%20API%20base%20URL%20(useful%20for%20proxies).%0A%0AExample%3A%0A%0A%60%60%60toml%0A%5Bai%5D%0Aprovider%20%3D%20%22openai%22%0Amodel%20%3D%20%22gpt-4.1-mini%22%0Aapi_key%20%3D%20%22...%22%0Abase_url%20%3D%20%22https%3A%2F%2Fapi.openai.com%2Fv1%2F%22%0A%60%60%60%0A" style="display: none;"></div>
+                  
+                    <nav aria-label="breadcrumb" class="docmd-breadcrumbs">
+                      <ol>
+                        
+                        
+                          <li class="breadcrumb-item " >
+                            
+                              <span>Reference</span>
+                            
+                            
+                              <span class="breadcrumb-separator">
 <svg class="lucide-icon icon-chevron-right " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
   class="lucide lucide-chevron-right"
   xmlns="http://www.w3.org/2000/svg"
@@ -882,19 +850,73 @@
   <path d="m9 18 6-6-6-6" />
 </svg>
 </span>
-                          
-                        </li>
+                            
+                          </li>
+                        
+                          <li class="breadcrumb-item active" aria-current=&quot;page&quot;>
+                            
+                              <span>Configuration</span>
+                            
+                            
+                          </li>
+                        
+                      </ol>
+                    </nav>
+                  
+
+                  
+                  
+                    <div class="docmd-copy-widgets">
                       
-                        <li class="breadcrumb-item active" aria-current=&quot;page&quot;>
-                          
-                            <span>Configuration</span>
-                          
-                          
-                        </li>
+                        <button class="docmd-copy-btn docmd-copy-raw-btn" data-copied="Copied!" title="Copy Markdown" aria-label="Copy Markdown">
+                          <span class="docmd-btn-icon">
+<svg class="lucide-icon icon-copy " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
+  class="lucide lucide-copy"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+</svg>
+</span>
+                        </button>
                       
-                    </ol>
-                  </nav>
+                      
+                        <button class="docmd-copy-btn docmd-copy-context-btn" data-copied="Copied!" title="Copy Context">
+                          <span class="docmd-btn-icon">
+<svg class="lucide-icon icon-message-square " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
+  class="lucide lucide-message-square"
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z" />
+</svg>
+</span>
+                          <span class="docmd-btn-text">Copy Context</span>
+                        </button>
+                      
+                      
+                    </div>
+                  
+                </div>
                 
+                  <h1 class="docmd-focus-title">
+                    Configuration
+                  </h1>
                 
                 <h2 id="location" class="docmd-heading"><a href="#location" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Location</h2>
 <p>Nova stores settings at <code>settings.toml</code> under your OS config directory:</p>
@@ -913,44 +935,41 @@
 <h2 id="defaults" class="docmd-heading"><a href="#defaults" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Defaults</h2>
 <p>Nova ships embedded defaults (slightly different on macOS).</p>
 <p>Non-macOS default excerpt:</p>
-<pre class="hljs"><code>[general]
-editor <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;nano&quot;</span>
-bell <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;none&quot;</span>
-
-[status<span class="hljs-punctuation">-</span>bar]
-visible <span class="hljs-punctuation">=</span> <span class="hljs-keyword">true</span>
-date<span class="hljs-punctuation">-</span>format <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;%b %d&quot;</span>
-time<span class="hljs-punctuation">-</span>format <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;%H:%M:%S&quot;</span>
+<pre class="hljs"><code class="language-toml">[general]
+editor <span class="hljs-operator">=</span> <span class="hljs-string">&quot;nano&quot;</span>
+bell <span class="hljs-operator">=</span> <span class="hljs-string">&quot;none&quot;</span>
 
 [theme.<span class="hljs-attr">font</span>]
-size <span class="hljs-punctuation">=</span> <span class="hljs-number">16</span>
-family <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;FiraCode Nerd Font&quot;</span>
+size <span class="hljs-operator">=</span> <span class="hljs-number">16</span>
+family <span class="hljs-operator">=</span> <span class="hljs-string">&quot;FiraCode Nerd Font&quot;</span>
 
 [theme.<span class="hljs-attr">colors</span>]
-background <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;#0D0D0D&quot;</span>
-foreground <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;#E5E5E5&quot;</span>
-accent <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;#3ECF8E&quot;</span>
-foreground<span class="hljs-punctuation">-</span>muted <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;#666666&quot;</span>
-border <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;#FFFFFF12&quot;</span>
-cursor <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;#3ECF8E&quot;</span>
+background <span class="hljs-operator">=</span> <span class="hljs-string">&quot;#0D0D0D&quot;</span>
+foreground <span class="hljs-operator">=</span> <span class="hljs-string">&quot;#E5E5E5&quot;</span>
+accent <span class="hljs-operator">=</span> <span class="hljs-string">&quot;#82BAFF&quot;</span>
+foreground<span class="hljs-operator">-</span>muted <span class="hljs-operator">=</span> <span class="hljs-string">&quot;#666666&quot;</span>
+border <span class="hljs-operator">=</span> <span class="hljs-string">&quot;#FFFFFF12&quot;</span>
+cursor <span class="hljs-operator">=</span> <span class="hljs-string">&quot;#82BAFF&quot;</span>
 
 [theme.<span class="hljs-attr">cursor</span>]
-style <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;underline&quot;</span>
-blink <span class="hljs-punctuation">=</span> <span class="hljs-keyword">false</span>
+style <span class="hljs-operator">=</span> <span class="hljs-string">&quot;underline&quot;</span>
+blink <span class="hljs-operator">=</span> <span class="hljs-literal">false</span>
 
 [keybindings]
-<span class="hljs-keyword">new</span><span class="hljs-punctuation">-</span>tab <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+t&quot;</span>
-close<span class="hljs-punctuation">-</span>tab <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+w&quot;</span>
-next<span class="hljs-punctuation">-</span>tab <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+tab&quot;</span>
-prev<span class="hljs-punctuation">-</span>tab <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+shift+tab&quot;</span>
-paste <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+v&quot;</span>
-copy <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+shift+c&quot;</span>
-open<span class="hljs-punctuation">-</span>palette <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;ctrl+k&quot;</span>
+<span class="hljs-keyword">new</span><span class="hljs-operator">-</span>tab <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+t&quot;</span>
+close<span class="hljs-operator">-</span>tab <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+w&quot;</span>
+next<span class="hljs-operator">-</span>tab <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+tab&quot;</span>
+prev<span class="hljs-operator">-</span>tab <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+shift+tab&quot;</span>
+paste <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+v&quot;</span>
+copy <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+shift+c&quot;</span>
+open<span class="hljs-operator">-</span>palette <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+p&quot;</span>
+ask<span class="hljs-operator">-</span>ai <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+k&quot;</span>
+settings <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ctrl+,&quot;</span>
 
 [ai]
-provider <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;anthropic&quot;</span>
-model <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;claude-haiku-4-5-20251001&quot;</span>
-api_key <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;&quot;</span>
+provider <span class="hljs-operator">=</span> <span class="hljs-string">&quot;anthropic&quot;</span>
+model <span class="hljs-operator">=</span> <span class="hljs-string">&quot;claude-haiku-4-5-20251001&quot;</span>
+api_key <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&quot;</span>
 </code></pre>
 <h2 id="reference" class="docmd-heading"><a href="#reference" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Reference</h2>
 <h3 id="reference-general" class="docmd-heading"><a href="#reference-general" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a><code>[general]</code></h3>
@@ -958,37 +977,31 @@ api_key <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;
 <li><code>editor</code> (string): External editor command.</li>
 <li><code>bell</code> (string): One of <code>none</code>, <code>audio</code>, <code>blink</code>.</li>
 <li><code>shells</code> (array of strings, optional): If set and non-empty, Nova uses this list instead of auto-detect.</li>
+<li><code>initial-command</code> (string, optional): Program each new pane runs instead of the shell, launched directly (not through a shell), so shell built-ins and aliases such as PowerShell’s <code>ls</code> do not work. If it cannot be started, the pane shows why instead of a blank screen.</li>
+<li><code>wait-after-command</code> (bool): Wait for a key after the initial command exits.</li>
 <li><code>window-controls</code> (string): One of <code>traffic-lights</code> or <code>system</code>.</li>
 <li><code>scrollback</code> (integer, optional): Maximum scrollback lines per pane. Defaults to <code>10000</code>.</li>
 </ul>
 <p>Example:</p>
-<pre class="hljs"><code>[general]
-editor <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;code -w&quot;</span>
-bell <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;none&quot;</span>
-shells <span class="hljs-punctuation">=</span> [<span class="hljs-string">&quot;zsh&quot;</span>, <span class="hljs-string">&quot;bash&quot;</span>]
-window<span class="hljs-punctuation">-</span>controls <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;system&quot;</span>
+<pre class="hljs"><code class="language-toml">[general]
+editor <span class="hljs-operator">=</span> <span class="hljs-string">&quot;code -w&quot;</span>
+bell <span class="hljs-operator">=</span> <span class="hljs-string">&quot;none&quot;</span>
+shells <span class="hljs-operator">=</span> [<span class="hljs-string">&quot;zsh&quot;</span>, <span class="hljs-string">&quot;bash&quot;</span>]
+window<span class="hljs-operator">-</span>controls <span class="hljs-operator">=</span> <span class="hljs-string">&quot;system&quot;</span>
 </code></pre>
-<h3 id="reference-status-bar" class="docmd-heading"><a href="#reference-status-bar" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a><code>[status-bar]</code></h3>
+<h3 id="reference-theme" class="docmd-heading"><a href="#reference-theme" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a><code>[theme]</code></h3>
 <ul>
-<li><code>visible</code> (bool)</li>
-<li><code>date-format</code> (string)</li>
-<li><code>time-format</code> (string)</li>
+<li><code>timestamps</code> (bool, default <code>false</code>): show the <code>HH:MM</code> each command ran next to its block.</li>
 </ul>
-<p>Example:</p>
-<pre class="hljs"><code>[status<span class="hljs-punctuation">-</span>bar]
-visible <span class="hljs-punctuation">=</span> <span class="hljs-keyword">true</span>
-date<span class="hljs-punctuation">-</span>format <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;%Y-%m-%d&quot;</span>
-time<span class="hljs-punctuation">-</span>format <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;%H:%M&quot;</span>
-</code></pre>
 <h3 id="reference-themefont" class="docmd-heading"><a href="#reference-themefont" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a><code>[theme.font]</code></h3>
 <ul>
 <li><code>size</code> (number)</li>
 <li><code>family</code> (string)</li>
 </ul>
 <p>Example:</p>
-<pre class="hljs"><code>[theme.<span class="hljs-attr">font</span>]
-size <span class="hljs-punctuation">=</span> <span class="hljs-number">15</span>
-family <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;FiraCode Nerd Font&quot;</span>
+<pre class="hljs"><code class="language-toml">[theme.<span class="hljs-attr">font</span>]
+size <span class="hljs-operator">=</span> <span class="hljs-number">15</span>
+family <span class="hljs-operator">=</span> <span class="hljs-string">&quot;FiraCode Nerd Font&quot;</span>
 </code></pre>
 <h3 id="reference-themecolors" class="docmd-heading"><a href="#reference-themecolors" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a><code>[theme.colors]</code></h3>
 <p>All values are hex strings.</p>
@@ -1000,28 +1013,28 @@ family <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;F
 <ul>
 <li><code>background</code></li>
 <li><code>foreground</code></li>
-<li><code>accent</code></li>
+<li><code>accent</code> (the settings sheet offers Blue <code>#82BAFF</code>, Mint <code>#65DFAF</code>, Amber <code>#FCBE62</code>, Rose <code>#FC899D</code>)</li>
 <li><code>foreground-muted</code></li>
 <li><code>border</code></li>
 <li><code>cursor</code></li>
 </ul>
 <p>Example:</p>
-<pre class="hljs"><code>[theme.<span class="hljs-attr">colors</span>]
-background <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;#0D0D0D&quot;</span>
-foreground <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;#E5E5E5&quot;</span>
-accent <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;#3ECF8E&quot;</span>
-foreground<span class="hljs-punctuation">-</span>muted <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;#666666&quot;</span>
-border <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;#FFFFFF12&quot;</span>
-cursor <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;#3ECF8E&quot;</span>
+<pre class="hljs"><code class="language-toml">[theme.<span class="hljs-attr">colors</span>]
+background <span class="hljs-operator">=</span> <span class="hljs-string">&quot;#0D0D0D&quot;</span>
+foreground <span class="hljs-operator">=</span> <span class="hljs-string">&quot;#E5E5E5&quot;</span>
+accent <span class="hljs-operator">=</span> <span class="hljs-string">&quot;#82BAFF&quot;</span>
+foreground<span class="hljs-operator">-</span>muted <span class="hljs-operator">=</span> <span class="hljs-string">&quot;#666666&quot;</span>
+border <span class="hljs-operator">=</span> <span class="hljs-string">&quot;#FFFFFF12&quot;</span>
+cursor <span class="hljs-operator">=</span> <span class="hljs-string">&quot;#82BAFF&quot;</span>
 
 [theme.<span class="hljs-attr">cursor</span>]
-style <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;underline&quot;</span>
-blink <span class="hljs-punctuation">=</span> <span class="hljs-keyword">true</span>
+style <span class="hljs-operator">=</span> <span class="hljs-string">&quot;underline&quot;</span>
+blink <span class="hljs-operator">=</span> <span class="hljs-literal">true</span>
 
 [ai]
-provider <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;anthropic&quot;</span>
-model <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;claude-haiku-4-5-20251001&quot;</span>
-api_key <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;&quot;</span>
+provider <span class="hljs-operator">=</span> <span class="hljs-string">&quot;anthropic&quot;</span>
+model <span class="hljs-operator">=</span> <span class="hljs-string">&quot;claude-haiku-4-5-20251001&quot;</span>
+api_key <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&quot;</span>
 </code></pre>
 <h3 id="reference-themecursor" class="docmd-heading"><a href="#reference-themecursor" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a><code>[theme.cursor]</code></h3>
 <ul>
@@ -1029,12 +1042,12 @@ api_key <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;
 <li><code>blink</code> (bool): Whether the cursor blinks.</li>
 </ul>
 <p>Example:</p>
-<pre class="hljs"><code>[theme.<span class="hljs-attr">cursor</span>]
-style <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;underline&quot;</span>
-blink <span class="hljs-punctuation">=</span> <span class="hljs-keyword">true</span>
+<pre class="hljs"><code class="language-toml">[theme.<span class="hljs-attr">cursor</span>]
+style <span class="hljs-operator">=</span> <span class="hljs-string">&quot;underline&quot;</span>
+blink <span class="hljs-operator">=</span> <span class="hljs-literal">true</span>
 </code></pre>
 <h3 id="reference-keybindings" class="docmd-heading"><a href="#reference-keybindings" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a><code>[keybindings]</code></h3>
-<p>See <a href="/keybindings/">Keybindings</a> for syntax and examples.</p>
+<p>See <a href="../keybindings/">Keybindings</a> for syntax and examples.</p>
 <p>Keys:</p>
 <ul>
 <li><code>new-tab</code></li>
@@ -1044,9 +1057,11 @@ blink <span class="hljs-punctuation">=</span> <span class="hljs-keyword">true</s
 <li><code>paste</code></li>
 <li><code>copy</code></li>
 <li><code>open-palette</code></li>
+<li><code>ask-ai</code></li>
+<li><code>settings</code></li>
 </ul>
 <h3 id="reference-ai" class="docmd-heading"><a href="#reference-ai" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a><code>[ai]</code></h3>
-<p>See <a href="/ai/">AI</a> for behavior and troubleshooting.</p>
+<p>See <a href="../ai/">AI</a> for behavior and troubleshooting.</p>
 <ul>
 <li><code>provider</code> (string): <code>anthropic</code> or <code>openai</code></li>
 <li><code>model</code> (string)</li>
@@ -1054,11 +1069,11 @@ blink <span class="hljs-punctuation">=</span> <span class="hljs-keyword">true</s
 <li><code>base_url</code> (string, optional): Override API base URL (useful for proxies).</li>
 </ul>
 <p>Example:</p>
-<pre class="hljs"><code>[ai]
-provider <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;openai&quot;</span>
-model <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;gpt-4.1-mini&quot;</span>
-api_key <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;...&quot;</span>
-base_url <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot;https://api.openai.com/v1/&quot;</span>
+<pre class="hljs"><code class="language-toml">[ai]
+provider <span class="hljs-operator">=</span> <span class="hljs-string">&quot;openai&quot;</span>
+model <span class="hljs-operator">=</span> <span class="hljs-string">&quot;gpt-4.1-mini&quot;</span>
+api_key <span class="hljs-operator">=</span> <span class="hljs-string">&quot;...&quot;</span>
+base_url <span class="hljs-operator">=</span> <span class="hljs-string">&quot;https://api.openai.com/v1/&quot;</span>
 </code></pre>
 
                 
@@ -1082,14 +1097,14 @@ base_url <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot
   <path d="M19 12H5" />
 </svg>
 
-                        <span><small>previous</small><strong>
+                        <span><small>Previous</small><strong>
                             Quickstart
                           </strong></span>
                       </a>
                     
                     
                       <a href="../keybindings/" class="next-page">
-                        <span><small>next</small>
+                        <span><small>Next</small>
                           <strong>
                             Keybindings
                           </strong></span>
@@ -1115,12 +1130,16 @@ base_url <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot
                   </div>
                 
               </div>
+              
+              
               <div class="toc-sidebar">
                 
+                
+                  
 
 
   <div class="toc-container">
-    <h2 class="toc-title">onThisPage<span class="mobile-view toc-menu-button float-right">
+    <h2 class="toc-title">On This Page<span class="mobile-view toc-menu-button float-right">
 <svg class="lucide-icon icon-chevron-down " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
   class="lucide lucide-chevron-down"
   xmlns="http://www.w3.org/2000/svg"
@@ -1159,7 +1178,7 @@ base_url <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot
         </li>
       
         <li class="toc-item toc-level-3">
-          <a href="#reference-status-bar" class="toc-link">[status-bar]</a>
+          <a href="#reference-theme" class="toc-link">[theme]</a>
         </li>
       
         <li class="toc-item toc-level-3">
@@ -1185,34 +1204,37 @@ base_url <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot
     </ul>
   </div>
 
+                
+                
               </div>
+              
             </div>
             <div class="page-footer-actions">
               
               
-                <span class="git-last-updated" data-timestamp="1779205732000">
+                <span class="git-last-updated" data-timestamp="1793553285000">
                   <svg class="git-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                   </svg>
                   <span class="git-label">Last updated:</span>
-                  <span class="git-time" data-timestamp="1779205732000"></span>
+                  <span class="git-time" data-timestamp="1793553285000"></span>
                   
                   <div class="git-commit-tooltip" role="tooltip">
                     <div class="git-tooltip-title">Recent commits</div>
                     <ul class="git-commit-list">
                       
                         <li class="git-commit-item">
-                          <div class="git-commit-avatar" title="Pedro Queiroz">
+                          <div class="git-commit-avatar" title="pmqueiroz">
                             
-                              <img src="https://www.gravatar.com/avatar/1f88fae02546de069b09be3251a7d08c?d=mp&amp;s=64" alt="Pedro Queiroz">
+                              <img src="https://www.gravatar.com/avatar/1f88fae02546de069b09be3251a7d08c?d=mp&amp;s=64" alt="pmqueiroz">
                             
                           </div>
                           <div class="git-commit-details">
-                            <div class="git-commit-message" title="chore(main): release 0.24.0">chore(main): release 0.24.0</div>
+                            <div class="git-commit-message" title="fix: gate windows-only constants to silence dead code on unix">fix: gate windows-only constants to s...</div>
                             <div class="git-commit-meta">
-                              <span class="git-commit-author">Pedro Queiroz</span>
-                              <span class="git-commit-date" data-timestamp="1779205732000"></span>
+                              <span class="git-commit-author">pmqueiroz</span>
+                              <span class="git-commit-date" data-timestamp="1793553285000"></span>
                             </div>
                           </div>
                         </li>
@@ -1234,7 +1256,7 @@ base_url <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot
     <div class="user-footer">© 2026 Nova.</div>
     
       <div class="branding-footer">
-        builtWith <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.79 0l2.96 2.66"></path><path d="m18 15-2-2"></path><path d="m15 18-2-2"></path></svg> <a href="https://docmd.io" target="_blank" rel="noopener">docmd.</a>
+        Built with <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.79 0l2.96 2.66"></path><path d="m18 15-2-2"></path><path d="m15 18-2-2"></path></svg> <a href="https://docmd.io" target="_blank" rel="noopener">docmd.</a>
       </div>
     
   </div>
@@ -1243,14 +1265,15 @@ base_url <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot
         </div>
       </div>
       
-      <script src="../assets/js/docmd-main.js?v=mpcta9oa"></script>
+      <script src="../assets/js/docmd-main.js?v=mvy3g2qx"></script>
       
-      <script src="../assets/js/docmd-git.js?v=mpcta9oa"></script>
-      <script src="../assets/js/docmd-image-lightbox.js?v=mpcta9oa" ></script>
+      <script src="../assets/js/docmd-git.js?v=mvy3g2qx"></script>
+      <script src="../assets/js/docmd-image-lightbox.js?v=mvy3g2qx" ></script>
 <script src="https://cdn.jsdelivr.net/npm/minisearch@7.2.0/dist/umd/index.min.js" ></script>
-<script src="../assets/js/docmd-search.js?v=mpcta9oa" ></script>
-<script src="../assets/js/init-mermaid.js?v=mpcta9oa" type="module"></script>
-<script src="../assets/js/docmd-git.js?v=mpcta9oa" type="module"></script>
+<script src="../assets/js/docmd-search.js?v=mvy3g2qx" ></script>
+<script src="../assets/js/init-mermaid.js?v=mvy3g2qx" type="module"></script>
+<script src="../assets/js/docmd-git.js?v=mvy3g2qx" ></script>
+<script src="../assets/js/docmd-ai.js?v=mvy3g2qx" ></script>
 
   <!-- Search Modal (Injected by @docmd/plugin-search) -->
   <div id="docmd-search-modal" class="docmd-search-modal" style="display: none;"
@@ -1324,6 +1347,9 @@ base_url <span class="hljs-punctuation">=</span> <span class="hljs-string">&quot
     </script>
 
 <script>window.__git_config={"repo":"https://github.com/pmqueiroz/nova/edit/main/docs","branch":"main","editLink":true,"lastUpdated":true,"commitHistory":true,"maxCommits":5,"dateFormat":"relative"};window.__git_i18n={"lastUpdated":"Last updated","recentCommits":"Recent commits","viewCommitHistory":"View commit history","editOnGitHub":"Edit on GitHub","editOnGitLab":"Edit on GitLab","editOnBitbucket":"Edit on Bitbucket","editThisPage":"Edit this page","justNow":"just now","minutesAgo":"{n}m ago","hoursAgo":"{n}h ago","daysAgo":"{n}d ago"}</script>
+<div id="docmd-ai-root"></div><script>window.__docmd_ai_config={"endpoint":"","cloud":{},"captcha":true,"position":"bottom-center","siteTitle":"A terminal that burns bright","siteBase":"/","siteUrl":"https://nova.pmqueiroz.dev","versions":null,"i18n":null,"navigation":[{"title":"Introduction","path":"/","icon":"home"},{"title":"Getting Started","icon":"rocket","collapsible":false,"children":[{"title":"Installation","path":"/installation/","icon":"download"},{"title":"Quickstart","path":"/quickstart/","icon":"sparkles"}]},{"title":"Reference","icon":"book","collapsible":false,"children":[{"title":"Configuration","path":"/configuration/","icon":"cog"},{"title":"Keybindings","path":"/keybindings/","icon":"keyboard"},{"title":"AI","path":"/ai/","icon":"bot"},{"title":"CLI","path":"/cli/","icon":"terminal"}]},{"title":"Internals","icon":"code","collapsible":false,"children":[{"title":"OSC Integration","path":"/internals-osc/","icon":"link"},{"title":"Development","path":"/development/","icon":"tool"}]},{"title":"Troubleshooting","path":"/troubleshooting/","icon":"life-buoy"},{"title":"GitHub","path":"https://github.com/pmqueiroz/nova","icon":"github","external":true}],"searchCapabilities":{"keyword":true,"semantic":false},"isWorkspace":false,"workspaceProjects":[],"messageActions":false,"contextLimit":5};</script>
+      
+      
       
   </body>
 </html>

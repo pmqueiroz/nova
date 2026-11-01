@@ -13,10 +13,16 @@ description: "Providers, configuration, and how Nova builds AI requests."
 
 ## Overview
 
-Nova's AI features live in the UI (Ask AI and Explain Error). They use:
+Press `Ctrl+K` (`Cmd+K` on macOS) or click **Ask AI** in the input bar. The AI
+sheet offers:
 
-- Your question
-- Terminal context extracted from the last command output
+- **Suggest a command for “…”**: describe what you want in plain words.
+- **Fix “cmd”**: shown after a command fails; diagnoses it and proposes a fix.
+- **Explain last command**: explains what the last command did.
+
+Answers type in; when the reply contains a command, a card with a **Run**
+button (or `Enter`) runs it in the current tab. Requests use your question
+plus the output of the relevant block as context.
 
 AI is optional. If `api_key` is empty, requests fail with a clear error.
 
@@ -145,11 +151,6 @@ Non-macOS default excerpt:
 editor = "nano"
 bell = "none"
 
-[status-bar]
-visible = true
-date-format = "%b %d"
-time-format = "%H:%M:%S"
-
 [theme.font]
 size = 16
 family = "FiraCode Nerd Font"
@@ -157,10 +158,10 @@ family = "FiraCode Nerd Font"
 [theme.colors]
 background = "#0D0D0D"
 foreground = "#E5E5E5"
-accent = "#3ECF8E"
+accent = "#82BAFF"
 foreground-muted = "#666666"
 border = "#FFFFFF12"
-cursor = "#3ECF8E"
+cursor = "#82BAFF"
 
 [theme.cursor]
 style = "underline"
@@ -173,7 +174,9 @@ next-tab = "ctrl+tab"
 prev-tab = "ctrl+shift+tab"
 paste = "ctrl+v"
 copy = "ctrl+shift+c"
-open-palette = "ctrl+k"
+open-palette = "ctrl+p"
+ask-ai = "ctrl+k"
+settings = "ctrl+,"
 
 [ai]
 provider = "anthropic"
@@ -188,6 +191,8 @@ api_key = ""
 - `editor` (string): External editor command.
 - `bell` (string): One of `none`, `audio`, `blink`.
 - `shells` (array of strings, optional): If set and non-empty, Nova uses this list instead of auto-detect.
+- `initial-command` (string, optional): Program each new pane runs instead of the shell, launched directly (not through a shell), so shell built-ins and aliases such as PowerShell's `ls` do not work. If it cannot be started, the pane shows why instead of a blank screen.
+- `wait-after-command` (bool): Wait for a key after the initial command exits.
 - `window-controls` (string): One of `traffic-lights` or `system`.
 - `scrollback` (integer, optional): Maximum scrollback lines per pane. Defaults to `10000`.
 
@@ -201,20 +206,9 @@ shells = ["zsh", "bash"]
 window-controls = "system"
 ```
 
-### `[status-bar]`
+### `[theme]`
 
-- `visible` (bool)
-- `date-format` (string)
-- `time-format` (string)
-
-Example:
-
-```toml
-[status-bar]
-visible = true
-date-format = "%Y-%m-%d"
-time-format = "%H:%M"
-```
+- `timestamps` (bool, default `false`): show the `HH:MM` each command ran next to its block.
 
 ### `[theme.font]`
 
@@ -240,7 +234,7 @@ Keys:
 
 - `background`
 - `foreground`
-- `accent`
+- `accent` (the settings sheet offers Blue `#82BAFF`, Mint `#65DFAF`, Amber `#FCBE62`, Rose `#FC899D`)
 - `foreground-muted`
 - `border`
 - `cursor`
@@ -251,10 +245,10 @@ Example:
 [theme.colors]
 background = "#0D0D0D"
 foreground = "#E5E5E5"
-accent = "#3ECF8E"
+accent = "#82BAFF"
 foreground-muted = "#666666"
 border = "#FFFFFF12"
-cursor = "#3ECF8E"
+cursor = "#82BAFF"
 
 [theme.cursor]
 style = "underline"
@@ -292,6 +286,8 @@ Keys:
 - `paste`
 - `copy`
 - `open-palette`
+- `ask-ai`
+- `settings`
 
 ### `[ai]`
 
@@ -580,7 +576,9 @@ next-tab = "ctrl+tab"
 prev-tab = "ctrl+shift+tab"
 copy = "ctrl+shift+c"
 paste = "ctrl+v"
-open-palette = "ctrl+k"
+open-palette = "ctrl+p"
+ask-ai = "ctrl+k"
+settings = "ctrl+,"
 ```
 
 ## Actions
@@ -594,6 +592,8 @@ These keys live under `[keybindings]` in `settings.toml`:
 - `copy`
 - `paste`
 - `open-palette`
+- `ask-ai`
+- `settings`
 
 ## Defaults
 
@@ -609,7 +609,9 @@ next-tab = "ctrl+tab"
 prev-tab = "ctrl+shift+tab"
 paste = "ctrl+v"
 copy = "ctrl+shift+c"
-open-palette = "ctrl+k"
+open-palette = "ctrl+p"
+ask-ai = "ctrl+k"
+settings = "ctrl+,"
 ```
 
 macOS (defaults):
@@ -622,7 +624,9 @@ next-tab = "ctrl+tab"
 prev-tab = "ctrl+shift+tab"
 paste = "cmd+v"
 copy = "cmd+c"
-open-palette = "cmd+k"
+open-palette = "cmd+p"
+ask-ai = "cmd+k"
+settings = "cmd+,"
 ```
 
 ## Fixed Shortcuts
@@ -648,7 +652,22 @@ The divider between panes is draggable. Hover over it to see a resize cursor, th
 | Decrease font size | `Cmd+-` | `Ctrl+-` |
 | Reset font size | `Cmd+0` | `Ctrl+0` |
 
-Font size steps snap to even numbers (e.g. 15 → 16 → 18 → 20). Range: 8–72. Reset returns to the size that was configured at app start.
+Font size steps by 2 within 14–20 (odd sizes snap to the next even step). Reset returns to the size that was configured at app start.
+
+### Block input
+
+| Action | Key |
+|---|---|
+| Run the command in the input bar | `Enter` |
+| Previous / next history entry | `Up` / `Down` |
+| Complete the word at the end / cycle back | `Tab` / `Shift+Tab` |
+| Clear the input (or copy the selection, when text is selected) | `Ctrl+C` |
+| Clear all blocks | `Ctrl+L` |
+
+`Tab` completes the last word of the input. Nova does this itself, not the shell: the first word completes to commands from your `PATH` and history, any other word (or one with a `/`) to files and folders relative to the pane's current directory (`~` is your home). One match is inserted outright (folders end in `/`, everything else gets a trailing space); several matches first fill in their common prefix, then each further `Tab` cycles through them (`Shift+Tab` goes backwards). Names with spaces are quoted. Shell-specific completions (git branches, PowerShell cmdlets, option flags) are not available.
+
+While a command runs, every key goes to that program (`Ctrl+C` interrupts it).
+Full-screen programs (vim, htop, less) take over the whole pane until they exit.
 
 ### Search
 
@@ -659,11 +678,12 @@ Font size steps snap to even numbers (e.g. 15 → 16 → 18 → 20). Range: 8–
 | Previous match | `Shift+Enter` | `Shift+Enter` |
 | Close search | `Escape` | `Escape` |
 
-Search is case-insensitive and covers both the scrollback buffer and the visible terminal rows. The current match is highlighted in yellow; other matches are dimly highlighted. The match count is shown in the search bar (e.g. `3 / 15`). Searching closes automatically when switching tabs.
+Search is case-insensitive and covers the output of every block in the active pane (or the scrollback and visible rows in classic mode). The current match is highlighted in yellow; other matches are dimly highlighted. The match count is shown in the search bar (e.g. `3 / 15`). Searching closes automatically when switching tabs.
 
 ## Notes
 
-- If `open-palette` is invalid, Nova falls back to `ctrl+k`.
+- If `open-palette`, `ask-ai` or `settings` is invalid, Nova falls back to its default (`ctrl+p`, `ctrl+k`, `ctrl+,`; `cmd` on macOS).
+- Configs still using the old default palette binding (`ctrl+k` / `cmd+k`) or the old default accent (`#3ECF8E`) are migrated to the new defaults on startup.
 
 
 ---
@@ -696,14 +716,22 @@ Important behavior:
 
 If you're experimenting, keep a backup of `settings.toml`.
 
+## Command blocks
+
+Nova runs your shell behind its own input bar. Type a command and press
+`Enter`: the command and its output appear as a block above the input. Failed
+commands show their output in red. Click inside an output card to select text,
+`Ctrl+click` a link to open it.
+
+Block mode needs Nova's shell integration (PowerShell, cmd, bash, zsh and Git
+Bash are set up automatically). Shells that don't report their prompt (for
+example fish, or WSL distributions) fall back to a classic terminal view.
+
 ## Command Palette
 
-Nova includes a command palette with actions like:
-
-- Ask AI
-- Explain Error
-- New Tab
-- Settings
+`Ctrl+P` (`Cmd+P` on macOS) opens the command palette: new or close tab,
+clear screen, Ask AI, larger/smaller text, toggle timestamps, settings,
+split pane, find and new tab with a specific shell. Type to filter.
 
 See [Keybindings](/keybindings) for changing the palette shortcut.
 
@@ -753,6 +781,25 @@ error: 'nova ask' must be run inside Nova terminal
 ```
 
 Run it inside Nova, or use the in-app command palette action.
+
+## Pagers (`git log`, `man`) Stay Inside a Block
+
+Nova shows a program fullscreen only when it switches to the terminal's
+alternate screen. `less` skips that switch when its options contain `X`, and
+Git runs it with `LESS=FRX` when `LESS` is unset.
+
+Nova therefore starts its shells with `LESS=FR` (pager output that fits on one
+screen still prints inline and exits). If you set `LESS` yourself, Nova leaves
+it alone: drop the `X` flag from it to get fullscreen pagers.
+
+In PowerShell, `help` (and its alias `man`) normally pipes through Windows'
+`more`, which never goes fullscreen and waits for a key after every page.
+Nova's PowerShell session replaces `help`: it pages through `less` when one is
+on `PATH`, otherwise it prints the whole topic into the block, which you can
+scroll.
+
+While a program is fullscreen, the mouse wheel scrolls it: Nova sends arrow
+keys, or wheel events if the program asked for mouse reporting.
 
 ## AI Errors
 

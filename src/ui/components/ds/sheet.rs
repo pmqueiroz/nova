@@ -44,6 +44,10 @@ pub fn top_offset(window_height: f32) -> f32 {
   (window_height * TOP_OFFSET_VH).min(TOP_OFFSET_MAX)
 }
 
+pub fn max_height(window_height: f32) -> f32 {
+  window_height - 2.0 * top_offset(window_height)
+}
+
 pub fn pop_offset(t: f32) -> f32 {
   lerp(space::S8, 0.0, t).round()
 }
@@ -131,15 +135,16 @@ pub fn sheet<'a, Message: Clone + 'a>(
       }),
   )
   .on_press(on_close);
+  let gap = top_offset(window_height);
   let placed = container(popped)
     .width(Length::Fill)
     .height(Length::Fill)
     .align_x(Alignment::Center)
     .align_y(Alignment::Start)
     .padding(Padding {
-      top: top_offset(window_height),
+      top: gap,
       right: space::S16,
-      bottom: space::S16,
+      bottom: gap,
       left: space::S16,
     });
   stack![scrim, placed].into()
@@ -153,6 +158,12 @@ mod tests {
   fn top_offset_caps_at_128() {
     assert_eq!(top_offset(400.0), 64.0);
     assert_eq!(top_offset(2000.0), 128.0);
+  }
+
+  #[test]
+  fn max_height_leaves_top_gap_at_bottom() {
+    assert_eq!(max_height(400.0), 272.0);
+    assert_eq!(max_height(2000.0), 1744.0);
   }
 
   #[test]

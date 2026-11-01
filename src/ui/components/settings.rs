@@ -460,13 +460,8 @@ pub fn settings_modal<'a>(v: SettingsView<'a>) -> Element<'a, Message> {
     SettingsTab::About => about(),
     SettingsTab::Raw => raw(v.raw_content),
   };
-  let max_body = (v.window_height
-    - sheet::top_offset(v.window_height)
-    - space::S16
-    - height::H64
-    - height::H56
-    - 2.0)
-    .max(height::H64);
+  let max_body =
+    (sheet::max_height(v.window_height) - height::H64 - height::H56 - 2.0).max(height::H64);
   let body = container(
     scrollable(container(content).padding(Padding::from([space::S8, space::S24])))
       .height(Length::Shrink),

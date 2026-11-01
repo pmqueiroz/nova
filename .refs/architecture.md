@@ -409,6 +409,17 @@ change, a pane entering/leaving block mode, integration timeout):
   (`needs_size` also checks the running block's grid, since the screen grid
   never changed size).
 
+### Initial window size (`helpers::fit_window_size`, `update/mod.rs`)
+
+The window opens centered at `INITIAL_WINDOW_SIZE` (1200×750), then
+`WindowOpened` runs `fit_window`: `monitor_size` (logical px, so display
+scaling is accounted for) → `fit_window_size` (16:10, 65% of monitor width,
+capped at 80% of its height) → `resize` + `move_to` shifted by half the size
+delta (`recenter`) so it stays centered on whichever monitor it opened on.
+A fixed logical size overflowed scaled screens (1080p @150% is 1280×720
+logical). On Windows the window starts hidden and `set_mode(Windowed)` is
+chained after the fit, so the resize isn't visible.
+
 ## Shared state
 
 - Config: `core::config` keeps a `OnceLock<Config>` (`config::get()`) plus a

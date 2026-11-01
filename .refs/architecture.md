@@ -183,7 +183,14 @@ Every supported shell emits private OSC 777 marks (parsed in
 
 ### Pagers and the wheel in raw takeover
 
-- Raw takeover is driven only by the alt screen (`?1049`/`?47`/`?1047`).
+- Raw takeover is driven by the alt screen (`?1049`/`?47`/`?1047`) or by
+  the command enabling bracketed paste (`?2004h`). Inline TUIs such as
+  Claude Code (Ink) never use the alt screen; under ConPTY they send
+  `?2004h`, `?1004h`, `?2026` and `?25l` on the primary buffer. Bracketed
+  paste sets the sticky `Block::takeover`, so the block stays `Raw` until
+  the command finishes (REPLs toggle `?2004` per input line and would
+  otherwise flicker). The block grid only sees modes set after
+  `command_start`, so the shell's own prompt-time `?2004h` never counts.
   `less` skips it when its options contain `X`, and Git exports
   `LESS=FRX` when `LESS` is unset, so `git log` used to page inside a block.
   `sys/pty.rs::nova_env` (shared by every shell branch, with
@@ -224,7 +231,7 @@ next prompt is split correctly.
 - ConPTY positions its cursor absolutely, so a block's grid starts at the
   screen grid's cursor row and `Block::first_line` trims the blank lines
   above the first output.
-- Alt screen inside a block → `Phase::Raw` (the block grid itself is shown
+- Alt screen or bracketed paste inside a block → `Phase::Raw` (the block grid itself is shown
   full-size); leaving it → back to `Running`, and the alt screen's last frame
   is kept in the block (`keep_last_frame`). `Grid::leave_alt_screen`
   snapshots the visible rows with trailing blank cells and rows trimmed (so

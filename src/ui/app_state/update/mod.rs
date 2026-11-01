@@ -631,12 +631,8 @@ impl Nova {
       Message::AiRunSuggestion => self.handle_ai_run(),
       Message::RunCommand(cmd) => self.handle_run_command(cmd),
       Message::DiagnosticBannerCommand(cmd) => {
-        if let Some(tab) = self.tabs.get(self.active_index)
-          && let Some(tx) = &tab.pty_tx
-        {
-          let _ = tx.try_send(PtyCommand::Input(cmd.into_bytes()));
-        }
-        iced::Task::none()
+        self.diagnostic_banner = None;
+        self.handle_run_command(cmd)
       }
       Message::SettingsDiagnosticBannerToggled(enabled) => {
         if !enabled {

@@ -410,21 +410,6 @@ pub fn os_name() -> String {
   }
 }
 
-pub fn strip_markdown(text: &str) -> String {
-  text
-    .replace("**", "")
-    .replace("__", "")
-    .replace("```", "")
-    .replace("`", "")
-    .lines()
-    .map(|l| l.trim().to_string())
-    .collect::<Vec<_>>()
-    .join(" ")
-    .replace("  ", " ")
-    .trim()
-    .to_string()
-}
-
 #[cfg(test)]
 mod block_grid_tests {
   use super::*;

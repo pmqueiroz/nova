@@ -108,6 +108,7 @@ pub struct Grid {
   alt_cursor: Option<(usize, usize)>,
   alt_scrollback: Option<VecDeque<(Vec<Cell>, bool)>>,
   alt_row_continuation: Option<Vec<bool>>,
+  alt_snapshot: Option<Vec<Vec<Cell>>>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -158,6 +159,7 @@ impl Grid {
       alt_cursor: None,
       alt_scrollback: None,
       alt_row_continuation: None,
+      alt_snapshot: None,
     }
   }
 
@@ -209,6 +211,7 @@ impl Grid {
 
   pub fn leave_alt_screen(&mut self) {
     if let Some(cells) = self.alt_cells.take() {
+      self.alt_snapshot = Some(self.visible_lines());
       self.cells = cells;
     }
     if let Some((x, y)) = self.alt_cursor.take() {
@@ -227,6 +230,45 @@ impl Grid {
     self.current_bg = None;
     self.current_uri = None;
     self.current_attrs = CellAttrs::empty();
+    self.wrap_next = false;
+  }
+
+  fn visible_lines(&self) -> Vec<Vec<Cell>> {
+    let mut lines: Vec<Vec<Cell>> = (0..self.rows)
+      .map(|r| without_trailing_blanks(self.row(r)).to_vec())
+      .collect();
+    while lines.last().is_some_and(Vec::is_empty) {
+      lines.pop();
+    }
+    lines
+  }
+
+  pub fn take_alt_snapshot(&mut self) -> Option<Vec<Vec<Cell>>> {
+    self.alt_snapshot.take()
+  }
+
+  pub fn keep_frame(&mut self, lines: &[Vec<Cell>]) {
+    let used = (0..self.rows)
+      .rev()
+      .find(|&r| self.row(r).iter().any(|c| !c.is_blank()))
+      .map_or(0, |r| r + 1);
+    for r in 0..used {
+      let row = self.row(r).to_vec();
+      let cont = self.row_continuation[r];
+      self.scrollback.push_back((row, cont));
+    }
+    for line in lines {
+      let mut row = line.clone();
+      row.resize(self.cols.max(row.len()), Cell::default());
+      self.scrollback.push_back((row, false));
+    }
+    while self.scrollback.len() > self.scrollback_limit {
+      self.scrollback.pop_front();
+    }
+    self.cells.fill(Cell::default());
+    self.row_continuation.fill(false);
+    self.cursor_x = 0;
+    self.cursor_y = 0;
     self.wrap_next = false;
   }
 

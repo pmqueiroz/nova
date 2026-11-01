@@ -131,6 +131,14 @@ fn begin_output(session: &mut Session, screen: &Grid) {
   }
 }
 
+fn keep_last_frame(session: &mut Session) {
+  if let Some(b) = session.active_mut()
+    && let Some(lines) = b.output.take_alt_snapshot()
+  {
+    b.output.keep_frame(&lines);
+  }
+}
+
 fn finish(session: &mut Session, integ: &mut Integration, code: i32, out: &mut Routed) {
   if let Some(id) = session.finish(code) {
     out.finished.push((id, code));
@@ -210,6 +218,7 @@ pub fn route(
         session.enter_raw();
       } else if !in_alt && session.is_raw() {
         session.leave_raw();
+        keep_last_frame(session);
       }
     }
     for c in controls {
@@ -405,6 +414,41 @@ mod tests {
     let out = r.feed("\x1b[?1049l");
     assert!(out.raw_changed);
     assert_eq!(r.session.phase, Phase::Running(id));
+  }
+
+  #[test]
+  fn leaving_alt_screen_keeps_its_last_frame() {
+    let mut r = Rig::new();
+    r.feed(READY_PREEXEC);
+    let id = r.submit("git log");
+    r.feed(&format!(
+      "{START}\x1b[?1049hcommit abc\r\nAuthor: me\r\n\x1b[?1049l"
+    ));
+    assert_eq!(r.session.phase, Phase::Running(id));
+    assert_eq!(
+      r.session.block(id).unwrap().text(),
+      "commit abc\nAuthor: me"
+    );
+    let rows = r.session.rows;
+    r.session.resize(20, rows);
+    assert_eq!(
+      r.session.block(id).unwrap().text(),
+      "commit abc\nAuthor: me"
+    );
+  }
+
+  #[test]
+  fn kept_frame_survives_conpty_repaint_and_follows_earlier_output() {
+    let mut r = Rig::new();
+    r.feed(READY_PREEXEC);
+    let id = r.submit("git log");
+    r.feed(&format!(
+      "{START}before\r\n\x1b[?1049hcommit abc\r\nAuthor: me\x1b[?1049l\x1b[H\x1b[K\r\n\x1b[K\r\n\x1b[K"
+    ));
+    assert_eq!(
+      r.session.block(id).unwrap().text(),
+      "before\ncommit abc\nAuthor: me"
+    );
   }
 
   #[test]

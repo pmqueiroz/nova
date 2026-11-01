@@ -85,7 +85,7 @@ impl PtyBridge {
   }
 }
 
-pub const CMD_PROMPT: &str = "$E]777;prompt_ready$E\\$P$G";
+pub const CMD_PROMPT: &str = "\u{F8F0}$P$G";
 
 pub const POSIX_PROMPT_HOOK: &str = r#"__nova_exit_code=$?
 if ! declare -f __nova_ssh > /dev/null 2>&1; then
@@ -105,12 +105,19 @@ if [ "$__nova_exit_code" -ne 0 ]; then
   printf "\033]777;command_failure;$__nova_exit_code\a"
 fi
 if [ -n "${ZSH_VERSION:-}" ]; then
-  printf "]777;prompt_ready;preexec"
+  printf "\033]777;prompt_ready;preexec\a"
 elif [ "${BASH_VERSINFO[0]:-0}" -gt 4 ] || { [ "${BASH_VERSINFO[0]:-0}" -eq 4 ] && [ "${BASH_VERSINFO[1]:-0}" -ge 4 ]; }; then
-  PS0="$(printf ']777;command_start')"
-  printf "]777;prompt_ready;preexec"
+  if [ -n "${NOVA_TEXT_MARKS:-}" ]; then
+    PS0=$'\e[H\e[2J\e[3J\357\243\262\r\n'
+    printf '\357\243\261'
+  else
+    PS0="$(printf '\033]777;command_start\a')"
+    printf "\033]777;prompt_ready;preexec\a"
+  fi
+elif [ -n "${NOVA_TEXT_MARKS:-}" ]; then
+  printf '\357\243\260'
 else
-  printf "]777;prompt_ready"
+  printf "\033]777;prompt_ready\a"
 fi"#;
 
 fn accent_rgb() -> (u8, u8, u8) {
@@ -256,6 +263,7 @@ fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder
       if let Some(dir) = initial_cwd {
         c.cwd(dir);
       }
+      c.env("NOVA_TEXT_MARKS", "1");
       c.env("TERM", "xterm-256color");
       c.env("COLORTERM", "truecolor");
       c.env("NOVA_TERMINAL", "1");
@@ -462,4 +470,24 @@ fn find_git_bash_exe() -> Option<String> {
     .iter()
     .find(|p| std::path::Path::new(p).exists())
     .map(|p| p.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn hook_has_no_raw_control_bytes() {
+    assert!(!POSIX_PROMPT_HOOK.contains('\x1b'));
+    assert!(!POSIX_PROMPT_HOOK.contains('\x07'));
+  }
+
+  #[test]
+  fn text_mark_octals_match_mark_chars() {
+    let bytes = |s: &str| s.as_bytes().to_vec();
+    assert_eq!(bytes("\u{F8F0}"), vec![0o357, 0o243, 0o260]);
+    assert_eq!(bytes("\u{F8F1}"), vec![0o357, 0o243, 0o261]);
+    assert_eq!(bytes("\u{F8F2}"), vec![0o357, 0o243, 0o262]);
+    assert!(POSIX_PROMPT_HOOK.contains("\\357\\243\\262"));
+  }
 }

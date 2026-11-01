@@ -115,9 +115,15 @@ Every supported shell emits private OSC 777 marks (parsed in
   `command_complete` only records the exit code; the block ends at the next
   `prompt_ready`. A replayed `command_start` is a no-op (`begin_output` only
   moves `Pending` blocks).
-- cmd: `PROMPT=$E]777;prompt_ready$E\$P$G` (ST-terminated). No exit codes,
-  no preexec: a `prompt_ready` while a command runs ends it with code 0, and the
-  echoed command line is skipped.
+- cmd: `PROMPT=<U+F8F0>$P$G` (text mark, for the same ConPTY ordering reason).
+  No exit codes and no preexec: the mark ends the running block with code 0,
+  and the echoed command line is skipped. ConPTY replays its buffer on a full
+  repaint (window resize), so resizing during a long cmd command can end its
+  block early (known gap).
+- Git Bash runs under ConPTY too: Nova sets `NOVA_TEXT_MARKS=1`, which makes
+  the POSIX hook print the UTF-8 bytes of the text marks instead of OSC, and
+  `PS0` clear the console (`\e[H\e[2J\e[3J`) before `command_start`, the
+  bash counterpart of the PowerShell `Clear()`.
 - Shells that never send `prompt_ready` (fish, WSL distros where the env
   does not cross `wsl.exe`, custom shells) fall back to the classic raw terminal.
 

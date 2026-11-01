@@ -305,14 +305,17 @@ impl Nova {
       let config_path_str = crate::core::config::config_path()
         .map(|p| p.display().to_string())
         .unwrap_or_default();
-      let modal = components::settings_modal(
-        &self.settings,
-        &self.settings_tab,
-        &self.settings_shell_input,
-        self.settings_recording_index,
-        &self.raw_config_content,
-        config_path_str,
-      );
+      let modal = components::settings_modal(components::SettingsView {
+        settings: &self.settings,
+        tab: &self.settings_tab,
+        shell_input: &self.settings_shell_input,
+        recording: self.settings_recording_index,
+        raw_content: &self.raw_config_content,
+        config_path: config_path_str,
+        timestamps: self.timestamps,
+        progress: self.sheet_progress(),
+        window_height: self.window_size.height,
+      });
       components::app(stack![col, modal], self.window_maximized, pop)
     } else if self.command_palette_open {
       let palette = components::command_palette(

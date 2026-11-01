@@ -1,22 +1,14 @@
 mod ai_sheet;
 mod app;
 pub mod block;
-mod color_row;
 pub mod command_palette;
 #[allow(dead_code)]
 pub mod ds;
 mod input_bar;
 mod paste_warning;
 mod search_bar;
-mod section_label;
 pub mod session;
-mod setting_row;
 mod settings;
-mod settings_about;
-mod settings_ai;
-mod settings_general;
-mod settings_keybindings;
-mod settings_theme;
 mod shell_picker;
 mod tab_bar;
 mod term;
@@ -25,14 +17,11 @@ mod traffic_lights;
 
 pub use ai_sheet::*;
 pub use app::*;
-pub use color_row::*;
 pub use command_palette::*;
 pub use input_bar::*;
 pub use paste_warning::*;
 pub use search_bar::*;
-pub use section_label::*;
 pub use session::{SessionView, blocks_area};
-pub use setting_row::*;
 pub use settings::*;
 pub use shell_picker::*;
 pub use tab_bar::*;

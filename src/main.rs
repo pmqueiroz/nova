@@ -21,8 +21,6 @@ pub fn main() -> ui::Result {
     background: config::parse_hex_color(&c.background).expect("invalid theme.colors.background"),
     foreground: config::parse_hex_color(&c.foreground).expect("invalid theme.colors.foreground"),
     accent: config::parse_hex_color(&c.accent).expect("invalid theme.colors.accent"),
-    foreground_muted: config::parse_hex_color(&c.foreground_muted)
-      .expect("invalid theme.colors.foreground-muted"),
     border: config::parse_hex_color(&c.border).expect("invalid theme.colors.border"),
     cursor: config::parse_hex_color(&c.cursor).expect("invalid theme.colors.cursor"),
   });

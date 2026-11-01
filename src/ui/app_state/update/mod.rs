@@ -84,7 +84,7 @@ impl Default for Nova {
       shell_picker_selected: 0,
       available_shells,
       settings_open: false,
-      settings_tab: SettingsTab::General,
+      settings_tab: SettingsTab::Appearance,
       settings: config::get().clone(),
       settings_shell_input: String::new(),
       settings_recording_index: None,
@@ -118,7 +118,7 @@ impl Default for Nova {
       paste_warning: None,
       now: Instant::now(),
       sheet_opened_at: Instant::now(),
-      timestamps: false,
+      timestamps: cfg.theme.timestamps,
       block_selection: None,
       block_pointer: None,
       block_url: None,
@@ -246,10 +246,6 @@ impl Nova {
       }
       Message::SettingsRecordKb { key, modifiers } => {
         self.handle_settings_record_kb(key, modifiers);
-        iced::Task::none()
-      }
-      Message::SettingsResetKb(idx) => {
-        self.handle_settings_reset_kb(idx);
         iced::Task::none()
       }
       Message::CloseTab(index) => {
@@ -417,8 +413,13 @@ impl Nova {
         iced::Task::none()
       }
       Message::OpenSettings => {
+        if self.settings_open {
+          return self.update(Message::CloseSettings);
+        }
+        self.sheet_opened_at = Instant::now();
+        self.now = self.sheet_opened_at;
         self.settings_open = true;
-        self.settings_tab = SettingsTab::General;
+        self.settings_tab = SettingsTab::Appearance;
         self.settings_shell_input = String::new();
         self.settings_recording_index = None;
         SETTINGS_OPEN.store(true, Ordering::SeqCst);
@@ -429,7 +430,7 @@ impl Nova {
         self.settings_recording_index = None;
         KB_RECORDING.store(false, Ordering::SeqCst);
         SETTINGS_OPEN.store(false, Ordering::SeqCst);
-        iced::Task::none()
+        self.focus_input()
       }
       Message::SettingsTabSelected(tab) => {
         if tab == SettingsTab::Raw {
@@ -485,15 +486,13 @@ impl Nova {
         iced::Task::none()
       }
       Message::FontSizeUp => {
-        let cur = self.settings.theme.font.size.round() as i32;
-        let next = if cur % 2 == 0 { cur + 2 } else { cur + 1 };
-        self.settings.theme.font.size = (next as f32).clamp(8.0, 72.0);
+        self.settings.theme.font.size = components::step_font(self.settings.theme.font.size, 2.0);
+        let _ = config::save(&self.settings);
         self.debounce_font_resize()
       }
       Message::FontSizeDown => {
-        let cur = self.settings.theme.font.size.round() as i32;
-        let next = if cur % 2 == 0 { cur - 2 } else { cur - 1 };
-        self.settings.theme.font.size = (next as f32).clamp(8.0, 72.0);
+        self.settings.theme.font.size = components::step_font(self.settings.theme.font.size, -2.0);
+        let _ = config::save(&self.settings);
         self.debounce_font_resize()
       }
       Message::FontSizeReset => {
@@ -507,7 +506,7 @@ impl Nova {
         iced::Task::none()
       }
       Message::SettingsFontSizeChanged(size) => {
-        let size = size.clamp(8.0, 72.0);
+        let size = components::step_font(size, 0.0);
         self.settings.theme.font.size = size;
         self.default_font_size = size;
         let _ = config::save(&self.settings);
@@ -601,6 +600,8 @@ impl Nova {
       }
       Message::ToggleTimestamps => {
         self.timestamps = !self.timestamps;
+        self.settings.theme.timestamps = self.timestamps;
+        let _ = config::save(&self.settings);
         self.resize_all_grids();
         iced::Task::none()
       }
@@ -839,7 +840,6 @@ impl Nova {
         }
         iced::Task::none()
       }
-      Message::NoOp => iced::Task::none(),
       Message::Frame(now) => {
         self.now = now;
         iced::Task::none()

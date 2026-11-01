@@ -5,7 +5,6 @@ pub struct RuntimeTheme {
   pub background: Color,
   pub foreground: Color,
   pub accent: Color,
-  pub foreground_muted: Color,
   pub border: Color,
   pub cursor: Color,
 }
@@ -23,7 +22,6 @@ pub fn runtime() -> std::sync::MutexGuard<'static, RuntimeTheme> {
         background: BG.as_color(),
         foreground: FG.as_color(),
         accent: ACCENT.as_color(),
-        foreground_muted: FG_MUTED.as_color(),
         border: BORDER.as_color(),
         cursor: ACCENT.as_color(),
       })
@@ -49,22 +47,10 @@ pub const BG_DEEP: Hue = Hue {
   b: 0x14,
   a: 1.0,
 };
-pub const BG_HIGH: Hue = Hue {
-  r: 0xFF,
-  g: 0xFF,
-  b: 0xFF,
-  a: 0.05,
-};
 pub const ACCENT: Hue = Hue {
   r: 0x3E,
   g: 0xCF,
   b: 0x8E,
-  a: 1.0,
-};
-pub const RED: Hue = Hue {
-  r: 0xFD,
-  g: 0x73,
-  b: 0x6D,
   a: 1.0,
 };
 pub const FG: Hue = Hue {
@@ -73,23 +59,11 @@ pub const FG: Hue = Hue {
   b: 0xE5,
   a: 1.0,
 };
-pub const FG_MUTED: Hue = Hue {
-  r: 0x66,
-  g: 0x66,
-  b: 0x66,
-  a: 1.0,
-};
 pub const BORDER: Hue = Hue {
   r: 0xFF,
   g: 0xFF,
   b: 0xFF,
   a: 0.07,
-};
-pub const TRANSPARENT: Hue = Hue {
-  r: 0x00,
-  g: 0x00,
-  b: 0x00,
-  a: 0.0,
 };
 
 pub struct Hue {

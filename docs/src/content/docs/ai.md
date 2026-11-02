@@ -16,6 +16,14 @@ Answers type in; when the reply contains a command, a card with a **Run**
 button (or `Enter`) runs it in the current tab. Requests use your question
 plus the output of the relevant block as context.
 
+### Failure hints
+
+When a command fails, Nova can show a short **Nova AI** hint under it with a
+fix you can run. Hints stay quiet when they would not help: failures with no
+output, "nothing found" exits (such as `grep` or `diff` returning 1), failures
+that look intentional, and errors that already explain themselves. Turn hints
+off in Settings → AI.
+
 AI is optional. If `api_key` is empty, requests fail with a clear error.
 
 ## Configuration

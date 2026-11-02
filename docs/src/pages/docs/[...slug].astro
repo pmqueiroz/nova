@@ -1,0 +1,79 @@
+---
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import Icon from '../../components/Icon.astro';
+import CopyButton from '../../components/CopyButton.astro';
+import SearchModal from '../../components/SearchModal.astro';
+import DocsSidebar from '../../components/DocsSidebar.astro';
+import Toc from '../../components/Toc.astro';
+import Pager from '../../components/Pager.astro';
+import '../../styles/docs.css';
+import { DOCS_SRC, REPO, docHref, findPage, flat } from '../../lib/nav';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('docs');
+  const rendered = await Promise.all(entries.map(async (entry) => ({ entry, headings: (await render(entry)).headings })));
+  const clean = (t: string) => t.replace(/^#/, '');
+  const search = flat
+    .map((p) => {
+      const r = rendered.find((x) => x.entry.id === p.slug);
+      return {
+        title: p.title,
+        group: p.group,
+        href: docHref(p.slug),
+        h: (r?.headings ?? []).filter((h) => h.depth <= 3).map((h) => [clean(h.text), h.slug]),
+      };
+    });
+  return entries.map((entry) => ({
+    params: { slug: entry.id === 'index' ? undefined : entry.id },
+    props: { entry, search },
+  }));
+}
+
+const { entry, search } = Astro.props;
+const { Content, headings } = await render(entry);
+const page = findPage(entry.id);
+const group = page?.group ?? '';
+const title = page?.title ?? entry.data.title;
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3).map((h) => ({ ...h, text: h.text.replace(/^#/, '') }));
+const showToc = toc.length >= 4;
+const file = `${DOCS_SRC}/${entry.id}.md`;
+const version = readFileSync(join(process.cwd(), '..', '.release-please-manifest.json'), 'utf8').match(/"\.":\s*"([^"]+)"/)?.[1];
+---
+<Base title={`${title} · Nova docs`} description={entry.data.description}>
+<script is:inline slot="head" set:html={`window.NOVA_SEARCH=${JSON.stringify(search)};`} />
+<Header variant="docs" />
+<div class="docs-bar"><button data-side-toggle=""><Icon name="sidebar" />Menu</button><span class="sep">/</span><span>{group}</span><span class="sep">/</span><span class="here">{title}</span></div>
+<div class="side-scrim"></div>
+
+<div class:list={['docs', { 'no-toc': !showToc }]}>
+<DocsSidebar current={entry.id} />
+
+<main class="docs-main">
+<article class="article">
+<div class="crumbs"><span>{group}</span><span>/</span><span>{title}</span></div>
+<h1>{title}</h1>
+{entry.data.description && <p class="lead">{entry.data.description}</p>}
+<div class="page-actions">
+<a class="btn btn-outline" href={`${REPO}/blob/main/${file}`}><Icon name="edit" />Edit on GitHub</a>
+<CopyButton class="btn btn-outline" target="#md-src" text="Copy as Markdown" />
+<span id="md-src" hidden="" data-copy-text={entry.body}></span>
+</div>
+
+<Content />
+
+<Pager slug={entry.id} />
+<div class="edit-row"><a href={`${REPO}/blob/main/${file}`}>{file}</a>{version && <span>Updated with release {version}</span>}</div>
+</article>
+</main>
+
+{showToc && <Toc headings={toc} />}
+</div>
+
+<Footer full />
+<SearchModal />
+</Base>

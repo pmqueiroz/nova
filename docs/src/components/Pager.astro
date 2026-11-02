@@ -1,0 +1,13 @@
+---
+import { docHref, neighbours } from '../lib/nav';
+
+interface Props {
+  slug: string;
+}
+
+const { prev, next } = neighbours(Astro.props.slug);
+---
+<nav class="pager" aria-label="Pagination">
+{prev && <a href={docHref(prev.slug)}><small>← Previous</small><b>{prev.title}</b></a>}
+{next && <a class="next" href={docHref(next.slug)}><small>Next →</small><b>{next.title}</b></a>}
+</nav>

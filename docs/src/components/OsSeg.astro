@@ -1,0 +1,10 @@
+---
+import { OSES } from '../lib/os';
+
+interface Props {
+  label?: string;
+}
+
+const { label } = Astro.props;
+---
+<div class="seg" role="tablist" aria-label={label}>{OSES.map((o) => <button role="tab" data-os={o.id}>{o.label}</button>)}</div>

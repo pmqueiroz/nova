@@ -7,9 +7,23 @@ description: "Config file location, behavior, and full settings reference."
 
 Nova stores settings at `settings.toml` under your OS config directory:
 
-- Windows: `%APPDATA%\nova\settings.toml`
-- macOS: `~/Library/Application Support/nova/settings.toml`
-- Linux: `~/.config/nova/settings.toml`
+::::os-tabs
+:::mac
+```text
+~/Library/Application Support/nova/settings.toml
+```
+:::
+:::win
+```text
+%APPDATA%\nova\settings.toml
+```
+:::
+:::linux
+```text
+~/.config/nova/settings.toml
+```
+:::
+::::
 
 Internally, this is `dirs::config_dir().join("nova").join("settings.toml")`.
 
@@ -18,7 +32,9 @@ Internally, this is `dirs::config_dir().join("nova").join("settings.toml")`.
 - If `settings.toml` does not exist, Nova writes an embedded default config.
 - If `settings.toml` exists but TOML parsing fails, Nova overwrites it with defaults.
 
+:::warning[A malformed edit resets everything]
 This means a malformed edit can be "repaired" by reset-to-default (but you may lose changes).
+:::
 
 ## Defaults
 
@@ -157,7 +173,7 @@ blink = true
 
 ### `[keybindings]`
 
-See [Keybindings](/keybindings) for syntax and examples.
+See [Keybindings](/docs/keybindings/) for syntax and examples.
 
 Keys:
 
@@ -173,7 +189,7 @@ Keys:
 
 ### `[ai]`
 
-See [AI](/ai) for behavior and troubleshooting.
+See [AI](/docs/ai/) for behavior and troubleshooting.
 
 - `provider` (string): `anthropic` or `openai`
 - `model` (string)

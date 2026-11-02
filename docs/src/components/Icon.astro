@@ -1,0 +1,16 @@
+---
+import { icons, type IconName } from '../lib/icons';
+
+interface Props {
+  name: IconName;
+  class?: string;
+  size?: number;
+}
+
+const { name, class: cls, size } = Astro.props;
+const [attrs, inner] = icons[name];
+const extra = [cls ? `class="${cls}"` : '', size ? `width="${size}" height="${size}"` : '', 'aria-hidden="true"']
+  .filter(Boolean)
+  .join(' ');
+---
+<Fragment set:html={`<svg ${extra} ${attrs}>${inner}</svg>`} />

@@ -1,0 +1,11 @@
+---
+interface Props {
+  headings: { depth: number; slug: string; text: string }[];
+}
+
+const { headings } = Astro.props;
+---
+<aside class="toc" aria-label="On this page">
+<h4>On this page</h4>
+<nav>{headings.map((h) => <a class:list={{ sub: h.depth === 3 }} href={`#${h.slug}`}>{h.text}</a>)}</nav>
+</aside>

@@ -66,4 +66,4 @@ error: 'nova ask' must be run inside Nova terminal
 
 The CLI emits a private OSC sequence that Nova's terminal parser understands.
 
-Details are documented in [OSC Integration](/internals-osc).
+Details are documented in [OSC Integration](/docs/internals-osc/).

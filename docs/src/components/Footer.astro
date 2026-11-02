@@ -1,0 +1,17 @@
+---
+import Logo from './Logo.astro';
+import { RELEASES, REPO, SPONSORS } from '../lib/nav';
+
+interface Props {
+  full?: boolean;
+}
+
+const { full } = Astro.props;
+---
+<footer class:list={['site-footer', { full }]}>
+<div class="wrap">
+<Logo href={full ? '/' : '#top'} />
+<nav class="foot-links"><a href="/docs/">Docs</a><a href={REPO}>GitHub</a><a href={RELEASES}>Releases</a><a href={SPONSORS}>Sponsors</a></nav>
+<p class="foot-meta">MIT licensed · made by pmqueiroz</p>
+</div>
+</footer>

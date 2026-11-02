@@ -1,45 +1,43 @@
 ---
-title: "Nova Docs"
-description: ""
+title: "Installation"
+description: "Package managers, direct downloads, and building from source."
 ---
 
+## Homebrew
 
-## Installation
-
-### Homebrew
-
-::: tabs
-== tab "macOS"
+::::os-tabs
+:::mac
 ```sh
 brew install --cask pmqueiroz/tap/nova
 ```
-
-== tab "Linux"
+:::
+:::linux
 ```sh
 brew install pmqueiroz/tap/nova
 ```
 :::
+::::
 
-### Winget (Windows)
+## Winget (Windows)
 
 ```sh
 winget install pmqueiroz.Nova
 ```
 
-### Scoop (Windows)
+## Scoop (Windows)
 
 ```sh
 scoop bucket add pmqueiroz https://github.com/pmqueiroz/scoop-bucket
 scoop install nova
 ```
 
-### AUR (Arch Linux)
+## AUR (Arch Linux)
 
 ```sh
 yay -S nova-bin
 ```
 
-### APT (Debian/Ubuntu)
+## APT (Debian/Ubuntu)
 
 ```sh
 curl -fsSL https://pmqueiroz.github.io/apt-repo/KEY.gpg | sudo gpg --dearmor -o /etc/apt/keyrings/nova.gpg
@@ -48,7 +46,7 @@ echo "deb [trusted=yes arch=amd64] https://pmqueiroz.github.io/apt-repo stable m
 sudo apt update && sudo apt install nova
 ```
 
-### DNF/RPM (Fedora/RHEL)
+## DNF/RPM (Fedora/RHEL)
 
 ```sh
 sudo curl -fsSL https://pmqueiroz.github.io/rpm-repo/nova.repo \

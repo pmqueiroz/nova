@@ -1,14 +1,21 @@
 {
-  "name": "my-docs",
+  "name": "nova-site",
   "version": "0.0.1",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "docmd dev",
-    "build": "docmd build",
-    "preview": "npx serve site"
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
   },
   "dependencies": {
-    "@docmd/core": "^0.7.9"
+    "@astrojs/markdown-remark": "^7.3.5",
+    "@astrojs/sitemap": "^3.7.4",
+    "astro": "^7.4.4",
+    "github-slugger": "^2.0.0",
+    "hastscript": "^9.0.3",
+    "mdast-util-to-string": "^4.0.0",
+    "remark-directive": "^4.0.0",
+    "unist-util-visit": "^5.2.0"
   }
 }

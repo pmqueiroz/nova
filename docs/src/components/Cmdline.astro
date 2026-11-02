@@ -1,0 +1,13 @@
+---
+import CopyButton from './CopyButton.astro';
+
+interface Props {
+  lines: string[];
+  os?: string;
+  hidden?: boolean;
+  copyLabel?: boolean;
+}
+
+const { lines, os, hidden, copyLabel = true } = Astro.props;
+---
+<div class="cmdline" data-os-panel={os} hidden={hidden}><div class="lines">{lines.map((l) => <div>{l}</div>)}<slot /></div><CopyButton label={copyLabel} /></div>

@@ -9,9 +9,23 @@ On first launch, Nova creates a settings file if it doesn't exist.
 
 Config file path is:
 
-- Windows: `%APPDATA%\nova\settings.toml`
-- macOS: `~/Library/Application Support/nova/settings.toml`
-- Linux: `~/.config/nova/settings.toml`
+::::os-tabs
+:::mac
+```text
+~/Library/Application Support/nova/settings.toml
+```
+:::
+:::win
+```text
+%APPDATA%\nova\settings.toml
+```
+:::
+:::linux
+```text
+~/.config/nova/settings.toml
+```
+:::
+::::
 
 ## Editing Settings
 
@@ -22,7 +36,9 @@ Important behavior:
 - If the file is missing, Nova writes an embedded default config.
 - If the file exists but fails to parse as TOML, Nova overwrites it with defaults.
 
+:::tip
 If you're experimenting, keep a backup of `settings.toml`.
+:::
 
 ## Command blocks
 
@@ -41,10 +57,10 @@ example fish, or WSL distributions) fall back to a classic terminal view.
 clear screen, Ask AI, larger/smaller text, toggle timestamps, settings,
 split pane, find and new tab with a specific shell. Type to filter.
 
-See [Keybindings](/keybindings) for changing the palette shortcut.
+See [Keybindings](/docs/keybindings/) for changing the palette shortcut.
 
 ## AI Overlay
 
 If enabled, AI uses your question plus terminal context from the last command output.
 
-See [AI](/ai) for providers, privacy notes, and troubleshooting.
+See [AI](/docs/ai/) for providers, privacy notes, and troubleshooting.

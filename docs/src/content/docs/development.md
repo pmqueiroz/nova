@@ -35,7 +35,7 @@ High-level ownership:
 
 ## Build The Docs Site
 
-Docs live in `docs/` and are built with `@docmd/core`.
+The site and docs live in `docs/` and are built with Astro. Pages are Markdown in `docs/src/content/docs/`.
 
 From the repo root:
 

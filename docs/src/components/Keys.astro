@@ -1,0 +1,8 @@
+---
+interface Props {
+  keys: string[];
+}
+
+const { keys } = Astro.props;
+---
+<span class="keys">{keys.map((k) => (k === 'Mod' ? <span class="kbd" data-mod="">⌘</span> : k === 'Alt' ? <span class="kbd" data-alt="">⌥</span> : <span class="kbd">{k}</span>))}</span>

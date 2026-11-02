@@ -1,0 +1,36 @@
+---
+import Icon from './Icon.astro';
+import Keys from './Keys.astro';
+import Logo from './Logo.astro';
+import { REPO } from '../lib/nav';
+
+interface Props {
+  variant: 'landing' | 'docs';
+}
+
+const { variant } = Astro.props;
+const docs = variant === 'docs';
+const home = docs ? '/' : '#top';
+const anchor = (id: string) => (docs ? `/#${id}` : `#${id}`);
+const current = docs ? 'page' : undefined;
+---
+<header class:list={['site-header', { full: docs }]}>
+<div class="wrap">
+<Logo href={home} label="Nova home" />
+<nav class="nav" aria-label="Main"><a href={anchor('features')}>Features</a><a href="/docs/" aria-current={current}>Docs</a><a href={anchor('support')}>Support</a></nav>
+<div class="header-end">
+{docs ? (
+  <>
+  <button class="search-trigger" data-search-open="" aria-label="Search docs"><Icon name="search" /><span>Search docs</span><Keys keys={['Mod', 'K']} /></button>
+  <a class="icon-btn hide-sm" href={REPO} aria-label="GitHub"><Icon name="github" /></a>
+  </>
+) : (
+  <a class="btn btn-ghost gh-btn hide-sm" href={REPO}><Icon name="github" size={16} />GitHub</a>
+)}
+<button class="icon-btn" data-theme-toggle="" aria-label="Toggle theme"><Icon name="sun" class="i-sun" /><Icon name="moon" class="i-moon" /></button>
+{!docs && <a class="btn btn-primary hide-sm" href="#install">Install</a>}
+<button class="icon-btn menu-btn" aria-label="Menu" aria-expanded="false"><Icon name="menu" /></button>
+</div>
+</div>
+</header>
+<nav class="mobile-nav" aria-label="Mobile"><a href={anchor('features')}>Features</a><a href="/docs/" aria-current={current}>Docs</a><a href={anchor('support')}>Support</a>{!docs && <a href="#install">Install</a>}<a href={REPO}>GitHub</a></nav>

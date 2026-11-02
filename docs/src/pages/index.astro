@@ -1,0 +1,228 @@
+---
+import Base from '../layouts/Base.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Icon from '../components/Icon.astro';
+import Keys from '../components/Keys.astro';
+import Cmdline from '../components/Cmdline.astro';
+import CopyButton from '../components/CopyButton.astro';
+import OsSeg from '../components/OsSeg.astro';
+import '../styles/landing.css';
+import { LATEST, REPO, SPONSORS } from '../lib/nav';
+
+const brewCask = 'brew install --cask pmqueiroz/tap/nova';
+const brew = 'brew install pmqueiroz/tap/nova';
+const scoop = ['scoop bucket add pmqueiroz https://github.com/pmqueiroz/scoop-bucket', 'scoop install nova'];
+const settingsToml = `[theme.colors]
+accent = "#82BAFF"
+
+[theme.cursor]
+style = "underline"
+blink = true`;
+const paletteItems = [
+  { icon: 'plus', pre: '', post: ' tab', keys: ['Mod', 'T'], sel: true },
+  { icon: 'shell', pre: '', post: ' tab with zsh' },
+  { icon: 'shell', pre: '', post: ' tab with bash' },
+  { icon: 'shell', pre: '', post: ' tab with PowerShell' },
+  { icon: 'split', pre: 'Split pane (', post: ' shell)' },
+] as const;
+---
+<Base title="Nova: a terminal where every command is a block" description="Nova is a free, open-source, GPU-accelerated terminal for Windows, macOS and Linux. Every command and its output is a block you can select, search and copy.">
+<Header variant="landing" />
+
+<main id="top">
+<section class="hero" data-screen-label="Hero">
+<div class="wrap">
+<div class="hero-copy">
+<h1>AI powered terminal</h1>
+<p class="lead"><b>Nova</b> is a GPU-accelerated terminal written in Rust. Each command and its output land in blocks where you can select, search and copy, so the line you need never gets lost in the scroll.</p>
+<div class="hero-ctas">
+<a class="btn btn-primary btn-lg" href="#install">Install Nova</a>
+<a class="btn btn-outline btn-lg" href={REPO}><Icon name="github" size={16} />View source</a>
+</div>
+<div class="install">
+<div class="install-head">
+<OsSeg label="Operating system" />
+<a href={LATEST}>Or download .dmg, .exe, .deb, .rpm, .AppImage →</a>
+</div>
+<Cmdline os="mac" lines={[brewCask]} />
+<Cmdline os="win" hidden lines={scoop} />
+<Cmdline os="linux" hidden lines={[brew]}><div class="note">On Arch: <code>yay -S nova-bin</code>. apt and dnf in <a href="#install">all install options</a>.</div></Cmdline>
+</div>
+</div>
+<div class="hero-shot">
+<div class="tw" role="img" aria-label="Nova window with three command blocks; the second one failed and is marked in red.">
+<div class="tw-bar">
+<div class="tw-lights"><i></i><i></i><i></i></div>
+<div class="tw-tabs"><span class="tw-tab on">zsh <small>~/code/nova</small></span><span class="tw-tab">bash</span><span class="tw-tab">pwsh</span></div>
+<div class="tw-actions"><i><Icon name="plus" /></i><i><Icon name="split" /></i></div>
+</div>
+<div class="tw-body no-ts">
+<div class="blk"><div class="cmd"><span><b>cargo</b> build --release</span></div><div class="out">{`   Compiling nova v1.0.0 (~/code/nova)
+    Finished \`release\` profile [optimized] target(s) in 41.2s`}</div></div>
+<div class="blk err"><div class="cmd"><span><b>gti</b> push origin main</span><span class="grow"></span><span class="exit">exit 127</span></div><div class="out">zsh: command not found: gti</div></div>
+<div class="ai-sug"><span class="ai-h"><Icon name="sparkle" />Looks like a typo. Did you mean:</span><div class="run-card"><span class="sig">❯</span><code>git push origin main</code><span class="btn btn-primary">Run<span class="kbd run-key">↵</span></span></div></div>
+</div>
+<div class="tw-input"><span class="pr"><span>~/code/nova</span><b>❯</b></span><span class="typed" id="typed"></span><span class="caret"></span><span class="ask"><Keys keys={['Mod', 'K']} />Ask AI</span></div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="features" data-screen-label="Features">
+<div class="wrap">
+<div class="sec-head">
+<div class="eyebrow"><b>Features</b></div>
+<h2>Built around the block.</h2>
+<p class="lead">Scrollback is a wall of text. Nova splits it at every prompt, so each command, its output and its exit status stay together.</p>
+</div>
+<div class="feat-rows">
+
+<div class="feat-row">
+<div class="feat-copy">
+<div class="eyebrow"><b>01</b><span>Command blocks</span></div>
+<h3>Select, search and copy one command at a time.</h3>
+<p class="body">Each command and its output is a card. Click to select it, copy just the command or just the output, or search inside it. Failed commands are marked in red with their exit code.</p>
+<ul><li>Full-screen apps like vim and htop take over the pane until they exit.</li><li>Optional timestamps show when each command ran.</li></ul>
+</div>
+<div class="stage">
+<div class="tw">
+<div class="tw-body no-ts">
+<div class="blk" style="animation:none"><div class="cmd"><span><b>ls</b> src</span></div><div class="out">ai/  blocks/  pty/  render/  settings/  main.rs</div></div>
+<div class="blk sel" style="animation:none"><div class="cmd"><span><b>rg</b> -n "fn render" src</span><div class="blk-tools"><span><Icon name="copy" /><b>Output</b></span><span><b>Command</b></span><span><Icon name="search" /><b>Find</b></span></div></div><div class="out">src/render/mod.rs:12:pub fn <mark>render</mark>(frame: &amp;mut Frame) {'{'}
+src/blocks/view.rs:48:fn <mark>render</mark>_block(b: &amp;Block) -&gt; Element {'{'}
+src/blocks/view.rs:96:fn <mark>render</mark>_output(lines: &amp;[Line]) {'{'}</div></div>
+<div class="findbar"><Icon name="search" /><span class="grow">render</span><small>3 of 3</small></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="feat-row flip">
+<div class="feat-copy">
+<div class="eyebrow"><b>02</b><span>Ask AI</span></div>
+<h3>Fix the last failed command without leaving the prompt.</h3>
+<p class="body">Describe what you want in plain words and get a command back. Ask it to fix the command that just failed, or explain the output you're looking at. Replies that contain a command get a Run button.</p>
+<ul><li>Works with Anthropic or OpenAI, using your own API key.</li><li>Off until you set a key. Nothing is sent otherwise.</li></ul>
+<div class="shortcut"><Keys keys={['Mod', 'K']} />opens the Ask AI sheet</div>
+</div>
+<div class="stage">
+<div class="stage-sheet tw bare">
+<div class="mock-sheet">
+<div class="ms-head"><Icon name="sparkles" /><span class="grow">Fix <code>git pushh origin main</code></span><span class="kbd">esc</span></div>
+<div class="ms-body">
+<div class="ms-chips"><span class="on">Fix last command</span><span>Explain output</span><span>Suggest a command</span></div>
+<p><code>pushh</code> is a typo. Git suggested <code>push</code>, which is what you meant:</p>
+<div class="run-card"><span class="sig">❯</span><code>git push origin main</code><span class="btn btn-primary">Run<span class="kbd run-key">↵</span></span></div>
+</div>
+<div class="ms-foot"><span>anthropic · claude-haiku-4-5</span><span class="grow"></span><span><span class="kbd">↵</span>run</span><span><span class="kbd" data-mod="">⌘</span><span class="kbd">C</span>copy</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="feat-row">
+<div class="feat-copy">
+<div class="eyebrow"><b>03</b><span>Command palette</span></div>
+<h3>Every action, two keys away.</h3>
+<p class="body">New tab, split pane, find, Ask AI, text size, timestamps, settings. Or open a new tab with a specific shell. Start typing and the list filters as you go.</p>
+<div class="shortcut"><Keys keys={['Mod', 'P']} />opens the palette</div>
+</div>
+<div class="stage">
+<div class="stage-sheet tw bare">
+<div class="mock-sheet">
+<div class="ms-head palette-head"><Icon name="search-lg" /><span class="grow mono">new<span class="caret"></span></span></div>
+<div class="sheet-list">
+{paletteItems.map((it) => (
+  <div class:list={['sheet-item', { 'is-sel': 'sel' in it }]}><Icon name={it.icon} /><span class="lbl"><span>{it.pre}<mark>{it.pre ? 'new' : 'New'}</mark>{it.post}</span></span>{'keys' in it && <Keys keys={[...it.keys]} />}</div>
+))}
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="cards">
+<div class="card wide">
+<div class="card-vis"><div class="mini-tabs tw bare"><div class="tw-tabs"><span class="tw-tab on">pwsh</span><span class="tw-tab">cmd</span><span class="tw-tab">Git Bash</span><span class="tw-tab">wsl</span></div><div class="mini-split"><i><b>❯</b> npm run dev</i><i><b>❯</b> cargo test</i></div></div></div>
+<div class="card-copy"><h3>Tabs and split panes</h3><p>Several shells in one window. Pick PowerShell, cmd, bash, zsh or Git Bash per tab, and split any pane in two.</p></div>
+</div>
+<div class="card wide">
+<div class="card-vis code-vis"><div class="code"><div class="code-head"><span>settings.toml</span></div><pre><code data-lang="toml">{settingsToml}</code></pre></div></div>
+<div class="card-copy"><h3>One TOML file</h3><p>Theme, accent color, cursor, keybindings and AI all live in <code>settings.toml</code>. Edit it by hand or from the settings sheet.</p></div>
+</div>
+<div class="card">
+<div class="card-vis"><div class="specs"><div><b>wgpu</b><small>GPU rendering</small></div><div><b>Rust</b><small>with iced</small></div><div><b>ANSI / VTE</b><small>full escape codes</small></div><div><b>24-bit</b><small>256-color + truecolor</small></div><span class="truecolor"></span></div></div>
+<div class="card-copy"><h3>Fast rendering</h3><p>Drawn on the GPU, with full ANSI and VTE support so colors and cursor movement look the way the program meant.</p></div>
+</div>
+<div class="card">
+<div class="card-vis"><div class="lig"><div class="row"><span>=&gt;</span><span>!=</span><span>&gt;=</span><span>-&gt;</span></div><div class="row"><span>|&gt;</span><span>===</span><span>::</span><span>&lt;=</span></div><small>Fira Code Nerd Font, built in</small></div></div>
+<div class="card-copy"><h3>Built-in font</h3><p>Ships with Fira Code Nerd Font, so ligatures and prompt icons work with no setup.</p></div>
+</div>
+<div class="card">
+<div class="card-vis"><div class="upd-bar tw"><div class="tw-bar"><div class="tw-lights"><i></i><i></i><i></i></div><span class="tw-title">zsh</span><span class="upd-btn"><Icon name="download" />Update</span></div><div class="upd-note"><b>✓</b> checksum verified</div></div></div>
+<div class="card-copy"><h3>Updates itself</h3><p>Checks GitHub once a day. Updates through your package manager or in place, verified by checksum.</p></div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="install" class="install-sec" data-screen-label="Install">
+<div class="wrap install-grid">
+<div class="sec-head">
+<div class="eyebrow"><b>Install</b></div>
+<h2>Installs the way you install everything else.</h2>
+<p class="lead">Windows, macOS on Intel and Apple Silicon, and Linux. Use your package manager or grab a build from GitHub Releases.</p>
+<ul class="pm-list"><li>Homebrew</li><li>Scoop</li><li>winget</li><li>AUR</li><li>apt</li><li>dnf</li></ul>
+</div>
+<div class="inst-card">
+<OsSeg label="Operating system" />
+<div data-os-panel="mac">
+<div class="method"><div class="method-h">Homebrew <small>also puts <code>nova</code> on your PATH</small></div><Cmdline lines={[brewCask]} /></div>
+<div class="method"><div class="method-h">Download</div><div class="dl-row"><a class="btn btn-outline" href={LATEST}>.dmg Apple Silicon</a><a class="btn btn-outline" href={LATEST}>.dmg Intel</a></div></div>
+<div class="callout warn"><Icon name="warn" /><div><b>“Nova is damaged and can't be opened”</b>Nova isn't notarized yet. Run this once after installing:<Cmdline lines={['xattr -cr /Applications/Nova.app']} copyLabel={false} /></div></div>
+</div>
+<div data-os-panel="win" hidden>
+<div class="method"><div class="method-h">Scoop</div><Cmdline lines={scoop} /></div>
+<div class="method"><div class="method-h">winget</div><Cmdline lines={['winget install pmqueiroz.Nova']} /></div>
+<div class="method"><div class="method-h">Download</div><div class="dl-row"><a class="btn btn-outline" href={LATEST}>.exe installer</a><a class="btn btn-outline" href={LATEST}>portable .zip</a></div></div>
+</div>
+<div data-os-panel="linux" hidden>
+<div class="method"><div class="method-h">Homebrew</div><Cmdline lines={[brew]} /></div>
+<div class="method"><div class="method-h">AUR <small>Arch Linux</small></div><Cmdline lines={['yay -S nova-bin']} /></div>
+<div class="method"><div class="method-h">apt and dnf <small>Debian, Ubuntu, Fedora, RHEL</small></div><p class="body">Repository setup takes three commands. See <a href="/docs/installation/#apt-debianubuntu">Installation</a> in the docs.</p></div>
+<div class="method"><div class="method-h">Download</div><div class="dl-row"><a class="btn btn-outline" href={LATEST}>.deb</a><a class="btn btn-outline" href={LATEST}>.rpm</a><a class="btn btn-outline" href={LATEST}>.AppImage</a></div></div>
+</div>
+</div>
+</div>
+</section>
+
+<section id="support" data-screen-label="Support">
+<div class="wrap support-grid">
+<div class="sec-head">
+<div class="eyebrow"><b>Support</b></div>
+<h2>Free forever. Kept alive by the people who use it.</h2>
+<p class="lead">Nova has no paid tier and no investors. It's built and maintained by one developer, <a href="https://github.com/pmqueiroz">pmqueiroz</a>.</p>
+</div>
+<div>
+<div class="sponsor">
+<div class="sponsor-top"><span class="sponsor-ic"><Icon name="heart" /></span><div><h3>GitHub Sponsors</h3><p>Monthly or one-time</p></div></div>
+<p>Sponsorships pay for maintenance time and, eventually, a signed and notarized macOS build. GitHub takes no fees on sponsorships from personal accounts.</p>
+<a class="btn btn-primary" href={SPONSORS}>Sponsor on GitHub</a>
+</div>
+<div class="alt-links">
+<a href={REPO}><Icon name="star" />Star the repo<small>Helps others find it</small></a>
+<a href={`${REPO}/issues`}><Icon name="issue" />Report a bug<small>Open an issue</small></a>
+<a href={`${REPO}/blob/main/CONTRIBUTING.md`}><Icon name="code" />Contribute<small>Read the guide</small></a>
+</div>
+</div>
+</div>
+</section>
+</main>
+
+<Footer />
+<script>
+import '../scripts/typed.js';
+</script>
+</Base>

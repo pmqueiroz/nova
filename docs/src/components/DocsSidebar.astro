@@ -1,0 +1,15 @@
+---
+import { docHref, groups, RELEASES, REPO } from '../lib/nav';
+
+interface Props {
+  current: string;
+}
+
+const { current } = Astro.props;
+---
+<aside class="docs-side" aria-label="Docs navigation">
+{groups.map((g) => (
+  <div class="side-group"><h4>{g.title}</h4>{g.pages.map((p) => <a href={docHref(p.slug)} aria-current={p.slug === current ? 'page' : undefined}>{p.title}</a>)}</div>
+))}
+<div class="side-meta"><a href={RELEASES}>Latest release ↗</a><a href={REPO}>GitHub ↗</a></div>
+</aside>

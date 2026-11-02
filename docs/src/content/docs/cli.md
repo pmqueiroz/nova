@@ -29,7 +29,7 @@ run 'nova update --install' to update
 | Portable ZIP | Downloads it and replaces `nova.exe` in place |
 | DMG (macOS) | Downloads it and replaces `Nova.app` in place |
 | AppImage | Downloads it and replaces the AppImage in place |
-| Scoop | `scoop update nova` |
+| Scoop | `scoop update nova` (Scoop refuses while Nova is open, so run it from another terminal; in the app use *Restart to update*) |
 | Homebrew | `brew upgrade --cask nova` (macOS) / `brew upgrade nova` (Linux) |
 | apt / .deb | Downloads the `.deb`, then `sudo apt install <file>` |
 | dnf / .rpm | Downloads the `.rpm`, then `sudo dnf install <file>` (or `sudo rpm -U`) |
@@ -38,7 +38,7 @@ run 'nova update --install' to update
 
 Every download is checked against the release's `checksums.txt` before anything is replaced. Builds Nova can't classify (e.g. `target/release`) just print the release page. Exits `1` if the check or update fails.
 
-In the app, the same thing is behind the orange **Update** button in the title bar (next to settings) and Settings → About: package-manager updates open in a new tab, and other installs download in the background and then offer **Restart to update**.
+In the app, the same thing is behind the orange **Update** button in the title bar (next to settings) and Settings → About: Scoop offers **Restart to update** (Nova closes, `scoop update nova` runs, Nova reopens), other package-manager updates open in a new tab, and the remaining installs download in the background and then offer **Restart to update**.
 
 ## `nova ask`
 

@@ -16,27 +16,46 @@ const UR: Rect8 = r(4, 0, 8, 4);
 const LL: Rect8 = r(0, 4, 4, 8);
 const LR: Rect8 = r(4, 4, 8, 8);
 
-#[derive(Debug, Clone, PartialEq)]
+const NONE: Rect8 = r(0, 0, 0, 0);
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct BlockGlyph {
-  pub rects: Vec<Rect8>,
+  rects: [Rect8; 3],
+  len: u8,
   pub alpha: f32,
 }
 
+impl BlockGlyph {
+  pub fn rects(&self) -> &[Rect8] {
+    &self.rects[..self.len as usize]
+  }
+}
+
 fn solid(rects: &[Rect8]) -> BlockGlyph {
+  let mut out = [NONE; 3];
+  out[..rects.len()].copy_from_slice(rects);
   BlockGlyph {
-    rects: rects.to_vec(),
+    rects: out,
+    len: rects.len() as u8,
     alpha: 1.0,
   }
 }
 
 fn shade(alpha: f32) -> BlockGlyph {
   BlockGlyph {
-    rects: vec![FULL],
     alpha,
+    ..solid(&[FULL])
   }
 }
 
+pub fn is_block_glyph(c: char) -> bool {
+  matches!(c as u32, 0x2580..=0x259F)
+}
+
 pub fn block_glyph(c: char) -> Option<BlockGlyph> {
+  if !is_block_glyph(c) {
+    return None;
+  }
   let code = c as u32;
   Some(match code {
     0x2580 => solid(&[r(0, 0, 8, 4)]),
@@ -75,17 +94,17 @@ mod tests {
 
   #[test]
   fn eighth_blocks_grow_from_their_edge() {
-    assert_eq!(block_glyph('▁').unwrap().rects, vec![r(0, 7, 8, 8)]);
-    assert_eq!(block_glyph('▇').unwrap().rects, vec![r(0, 1, 8, 8)]);
-    assert_eq!(block_glyph('▉').unwrap().rects, vec![r(0, 0, 7, 8)]);
-    assert_eq!(block_glyph('▏').unwrap().rects, vec![r(0, 0, 1, 8)]);
+    assert_eq!(block_glyph('▁').unwrap().rects(), [r(0, 7, 8, 8)]);
+    assert_eq!(block_glyph('▇').unwrap().rects(), [r(0, 1, 8, 8)]);
+    assert_eq!(block_glyph('▉').unwrap().rects(), [r(0, 0, 7, 8)]);
+    assert_eq!(block_glyph('▏').unwrap().rects(), [r(0, 0, 1, 8)]);
   }
 
   #[test]
   fn halves_quadrants_and_shades() {
-    assert_eq!(block_glyph('▀').unwrap().rects, vec![r(0, 0, 8, 4)]);
-    assert_eq!(block_glyph('▐').unwrap().rects, vec![r(4, 0, 8, 8)]);
-    assert_eq!(block_glyph('▟').unwrap().rects, vec![UR, LL, LR]);
+    assert_eq!(block_glyph('▀').unwrap().rects(), [r(0, 0, 8, 4)]);
+    assert_eq!(block_glyph('▐').unwrap().rects(), [r(4, 0, 8, 8)]);
+    assert_eq!(block_glyph('▟').unwrap().rects(), [UR, LL, LR]);
     assert_eq!(block_glyph('▒').unwrap().alpha, 0.5);
     assert_eq!(block_glyph('a'), None);
     assert_eq!(block_glyph('─'), None);

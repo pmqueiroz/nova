@@ -1,10 +1,8 @@
-use iced::widget::{Column, Row, container, row, scrollable, text};
+use iced::widget::{Column, container, scrollable, text};
 use iced::{Background, Border, Element, Length, Padding};
 
 use crate::ui::app_state::Message;
-use crate::ui::components::ds::button::{Variant, btn};
-use crate::ui::components::ds::sheet::{self, Sheet};
-use crate::ui::icons::{Icon, icon};
+use crate::ui::components::confirm::{ConfirmView, confirm_sheet};
 use crate::ui::theme::font;
 use crate::ui::theme::tokens::{self, radius, space};
 
@@ -37,17 +35,6 @@ pub fn paste_warning_overlay<'a>(
   progress: f32,
   window_height: f32,
 ) -> Element<'a, Message> {
-  let head = sheet::head(row![
-    icon(Icon::Alert, 20.0, tokens::RED),
-    container(
-      text(paste_title(content))
-        .size(tokens::text::T16)
-        .font(font::semibold())
-        .color(tokens::FG_1)
-    )
-    .width(Length::Fill),
-  ]);
-
   let (lines, extra) = preview_lines(content);
   let mut preview = lines.into_iter().fold(Column::new(), |c, l| {
     c.push(
@@ -65,57 +52,28 @@ pub fn paste_warning_overlay<'a>(
     );
   }
 
-  let body = container(
-    Column::new()
-      .spacing(space::S16)
-      .push(
-        text(paste_reason(content))
-          .size(tokens::text::T14)
-          .color(tokens::FG_3),
-      )
-      .push(
-        container(scrollable(preview).height(Length::Shrink))
-          .width(Length::Fill)
-          .max_height(240)
-          .padding(Padding::from([space::S12, space::S16]))
-          .style(|_| container::Style {
-            background: Some(Background::Color(tokens::SURFACE_1)),
-            border: Border {
-              radius: radius::R8.into(),
-              ..Border::default()
-            },
-            ..container::Style::default()
-          }),
-      ),
-  )
-  .padding(space::S24)
-  .width(Length::Fill);
+  let detail = container(scrollable(preview).height(Length::Shrink))
+    .width(Length::Fill)
+    .max_height(240)
+    .padding(Padding::from([space::S12, space::S16]))
+    .style(|_| container::Style {
+      background: Some(Background::Color(tokens::SURFACE_1)),
+      border: Border {
+        radius: radius::R8.into(),
+        ..Border::default()
+      },
+      ..container::Style::default()
+    });
 
-  let foot = sheet::foot(
-    Row::new()
-      .push(container(text("")).width(Length::Fill))
-      .push(
-        btn::<Message>(Variant::Ghost)
-          .label("Cancel")
-          .on_press(Message::PasteWarningCancel),
-      )
-      .push(
-        btn::<Message>(Variant::Primary)
-          .label("Paste")
-          .on_press(Message::PasteWarningConfirm),
-      ),
-  );
-
-  sheet::sheet(
-    Sheet {
-      width: sheet::WIDTH,
-      head: Some(head),
-      body: body.into(),
-      foot: Some(foot),
+  confirm_sheet(
+    ConfirmView {
+      title: paste_title(content).into(),
+      reason: paste_reason(content).into(),
+      detail: Some(detail.into()),
+      confirm_label: "Paste",
     },
     progress,
     window_height,
-    Message::PasteWarningCancel,
   )
 }
 

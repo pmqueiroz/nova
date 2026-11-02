@@ -35,6 +35,15 @@ Locally, `lefthook.yml` runs `cargo clippy --fix` and `cargo fmt` on staged
   **`publish-aur`**, **`publish-apt`**, **`publish-rpm`** — each pushes to
   its own external repo.
 
+**Asset names are a contract.** `core::install::asset_name` builds the
+filenames the updater downloads (`nova_V_x64-setup.exe`,
+`nova_V_x64_portable.zip`, `nova_V_{x64,aarch64}.dmg`,
+`nova_V_x86_64.AppImage`, `nova_V_amd64.deb`, `nova-V-1.x86_64.rpm`), and it
+verifies them against `checksums.txt`. The portable ZIP must keep `nova.exe` at
+its root. Renaming an artifact here breaks in-app updates; the
+`asset_names_match_release_files` test pins the list. See
+[updates.md](./updates.md).
+
 ## Not set up yet
 
 - No test job: unit tests (`cargo test`) exist but CI does not run them.

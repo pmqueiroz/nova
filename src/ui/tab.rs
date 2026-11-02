@@ -168,7 +168,8 @@ pub struct Tab {
   pub last_command_elapsed: Option<Duration>,
   pub last_pty_output: Option<Instant>,
   pub waiting_after_exit: bool,
-  pub initial_command: Option<String>,
+  pub initial_command: Option<Vec<String>>,
+  pub wait_after_exit: bool,
 }
 
 impl Tab {
@@ -213,8 +214,25 @@ impl Tab {
       last_command_elapsed: None,
       last_pty_output: None,
       waiting_after_exit: false,
-      initial_command: config::get().general.initial_command.clone(),
+      initial_command: config::initial_argv(),
+      wait_after_exit: config::get().general.wait_after_command,
     }
+  }
+
+  pub fn for_command(
+    id: usize,
+    cols: usize,
+    rows: usize,
+    title: &str,
+    argv: Vec<String>,
+    initial_cwd: String,
+  ) -> Self {
+    let mut tab = Self::new(id, cols, rows, title.to_string(), initial_cwd);
+    tab.shell = title.to_string();
+    tab.initial_command = Some(argv);
+    tab.wait_after_exit = true;
+    tab.integration = Integration::new(false);
+    tab
   }
 }
 

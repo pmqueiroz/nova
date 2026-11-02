@@ -11,6 +11,7 @@ pub enum Variant {
   Default,
   Ghost,
   Primary,
+  Orange,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -74,6 +75,10 @@ pub fn style(variant: Variant, status: button::Status) -> button::Style {
         tokens::ON_ACCENT,
       )
     }
+    Variant::Orange => (
+      tokens::with_alpha(tokens::ORANGE, if hovered { 0.24 } else { 0.16 }),
+      tokens::ORANGE,
+    ),
   };
   button::Style {
     background: Some(Background::Color(bg)),
@@ -238,6 +243,18 @@ mod tests {
       style(Variant::Primary, button::Status::Active).text_color,
       tokens::ON_ACCENT
     );
+  }
+
+  #[test]
+  fn orange_is_a_tint_with_orange_text() {
+    let idle = style(Variant::Orange, button::Status::Active);
+    let hover = style(Variant::Orange, button::Status::Hovered);
+    assert_eq!(idle.text_color, tokens::ORANGE);
+    assert_eq!(
+      idle.background,
+      Some(Background::Color(tokens::with_alpha(tokens::ORANGE, 0.16)))
+    );
+    assert_ne!(idle.background, hover.background);
   }
 
   #[test]

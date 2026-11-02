@@ -3,7 +3,7 @@ use iced::{Alignment, Background, Border, Color, Element, Length, Padding};
 
 use crate::core::config::WindowControls;
 use crate::ui::app_state::Message;
-use crate::ui::components::ds::button::{IconSize, Variant, btn, icon_button};
+use crate::ui::components::ds::button::{IconSize, icon_button};
 use crate::ui::components::ds::transform::Transform;
 use crate::ui::components::traffic_lights::{system_controls, traffic_lights};
 use crate::ui::helpers::til_home;
@@ -34,16 +34,10 @@ pub fn title<'a>(pwd: &str, flash: bool, compact: bool) -> Element<'a, Message> 
   .into()
 }
 
-pub fn actions<'a>(update: Option<&str>) -> Element<'a, Message> {
+pub fn actions<'a>(update: Option<Element<'a, Message>>) -> Element<'a, Message> {
   Row::new()
     .spacing(space::S4)
     .align_y(Alignment::Center)
-    .push(update.map(|v| {
-      btn::<Message>(Variant::Ghost)
-        .label(format!("Update to {v}"))
-        .on_press(Message::OpenUpdatePage)
-        .into_element()
-    }))
     .push(
       mouse_area(icon_button(Icon::Plus, IconSize::Sm, Some(Message::NewTab)))
         .on_right_press(Message::OpenShellPicker),
@@ -53,6 +47,7 @@ pub fn actions<'a>(update: Option<&str>) -> Element<'a, Message> {
       IconSize::Sm,
       Some(Message::OpenSettings),
     ))
+    .push(update)
     .into()
 }
 
@@ -60,7 +55,7 @@ pub fn title_bar<'a>(
   center: Element<'a, Message>,
   cursor_interaction: iced::mouse::Interaction,
   window_controls: &WindowControls,
-  update: Option<&str>,
+  update: Option<Element<'a, Message>>,
 ) -> Element<'a, Message> {
   let system = *window_controls == WindowControls::System;
   let (left, right): (Element<'a, Message>, Element<'a, Message>) = if system {

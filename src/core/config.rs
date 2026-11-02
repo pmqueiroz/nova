@@ -410,6 +410,17 @@ pub fn update_keybindings(new: ParsedKeybindings) {
   }
 }
 
+pub fn initial_argv() -> Option<Vec<String>> {
+  let argv: Vec<String> = get()
+    .general
+    .initial_command
+    .as_deref()?
+    .split_whitespace()
+    .map(String::from)
+    .collect();
+  (!argv.is_empty()).then_some(argv)
+}
+
 pub fn available_shells() -> Vec<String> {
   if let Some(shells) = &get().general.shells
     && !shells.is_empty()

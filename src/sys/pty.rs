@@ -22,7 +22,7 @@ impl PtyBridge {
     rows: u16,
     shell: &str,
     initial_cwd: Option<&str>,
-    initial_command: Option<&str>,
+    initial_command: Option<&[String]>,
   ) -> anyhow::Result<Self> {
     let pty_system = NativePtySystem::default();
 
@@ -151,11 +151,13 @@ fn nova_env(c: &mut CommandBuilder) {
   }
 }
 
-fn build_direct_command(cmd: &str, initial_cwd: Option<&str>) -> CommandBuilder {
-  let mut parts = cmd.split_whitespace();
-  let exe = parts.next().unwrap_or(cmd);
+fn build_direct_command(argv: &[String], initial_cwd: Option<&str>) -> CommandBuilder {
+  let (exe, args) = argv
+    .split_first()
+    .map(|(e, a)| (e.as_str(), a))
+    .unwrap_or(("", &[]));
   let mut c = CommandBuilder::new(exe);
-  c.args(parts);
+  c.args(args);
   if let Some(dir) = initial_cwd {
     c.cwd(dir);
   }

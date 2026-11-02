@@ -1,23 +1,49 @@
 use semver::Version;
 use serde::Deserialize;
 
+use crate::core::install::{Install, UpdatePlan};
+
 pub const LATEST_RELEASE_API: &str = "https://api.github.com/repos/pmqueiroz/nova/releases/latest";
 pub const RELEASES_PAGE: &str = "https://github.com/pmqueiroz/nova/releases/latest";
 pub const CHECK_INTERVAL: std::time::Duration = std::time::Duration::from_secs(24 * 60 * 60);
+
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+pub struct Asset {
+  pub name: String,
+  #[serde(rename = "browser_download_url")]
+  pub url: String,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Release {
   pub version: String,
   pub url: String,
+  pub assets: Vec<Asset>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Offer {
+  pub release: Release,
+  pub install: Install,
+  pub plan: UpdatePlan,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum Status {
   Unknown,
   Checking,
   UpToDate,
-  Available(Release),
+  Available(Offer),
+  Downloading(Offer, f32),
+  Ready(Offer),
+  Delegated(Offer),
   Failed(String),
+}
+
+impl Status {
+  pub fn is_busy(&self) -> bool {
+    matches!(self, Status::Checking | Status::Downloading(..))
+  }
 }
 
 #[derive(Deserialize)]
@@ -28,6 +54,8 @@ struct GithubRelease {
   draft: bool,
   #[serde(default)]
   prerelease: bool,
+  #[serde(default)]
+  assets: Vec<Asset>,
 }
 
 pub fn current_version() -> &'static str {
@@ -37,6 +65,13 @@ pub fn current_version() -> &'static str {
 pub fn parse_version(tag: &str) -> Option<Version> {
   let t = tag.trim();
   Version::parse(t.strip_prefix('v').unwrap_or(t)).ok()
+}
+
+pub fn is_newer(candidate: &str, current: &str) -> bool {
+  match (parse_version(candidate), parse_version(current)) {
+    (Some(a), Some(b)) => a > b,
+    _ => false,
+  }
 }
 
 pub fn newer_release(body: &str, current: &str) -> Result<Option<Release>, String> {
@@ -56,12 +91,13 @@ pub fn newer_release(body: &str, current: &str) -> Result<Option<Release>, Strin
     url: release
       .html_url
       .unwrap_or_else(|| RELEASES_PAGE.to_string()),
+    assets: release.assets,
   }))
 }
 
-pub fn status_from(result: Result<Option<Release>, String>) -> Status {
+pub fn status_from(result: Result<Option<Offer>, String>) -> Status {
   match result {
-    Ok(Some(r)) => Status::Available(r),
+    Ok(Some(o)) => Status::Available(o),
     Ok(None) => Status::UpToDate,
     Err(e) => Status::Failed(e),
   }
@@ -115,6 +151,26 @@ mod tests {
   fn bad_payloads_are_errors() {
     assert!(newer_release("not json", "1.0.0").is_err());
     assert!(newer_release(r#"{"tag_name":"nightly"}"#, "1.0.0").is_err());
+  }
+
+  #[test]
+  fn assets_are_parsed() {
+    let b = r#"{"tag_name":"v2.0.0","assets":[{"name":"checksums.txt","browser_download_url":"https://x/c"}]}"#;
+    let r = newer_release(b, "1.0.0").unwrap().unwrap();
+    assert_eq!(
+      r.assets,
+      vec![Asset {
+        name: "checksums.txt".into(),
+        url: "https://x/c".into()
+      }]
+    );
+  }
+
+  #[test]
+  fn is_newer_compares_semver() {
+    assert!(is_newer("1.10.0", "1.9.0"));
+    assert!(!is_newer("1.0.0", "1.0.0"));
+    assert!(!is_newer("garbage", "1.0.0"));
   }
 
   #[test]

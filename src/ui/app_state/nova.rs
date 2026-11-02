@@ -14,7 +14,7 @@ pub static AI_OPEN: AtomicBool = AtomicBool::new(false);
 pub static SEARCH_OPEN: AtomicBool = AtomicBool::new(false);
 pub static INPUT_OWNS_KEYS: AtomicBool = AtomicBool::new(false);
 pub static HAS_BLOCK_SELECTION: AtomicBool = AtomicBool::new(false);
-pub static PASTE_OPEN: AtomicBool = AtomicBool::new(false);
+pub static CONFIRM_OPEN: AtomicBool = AtomicBool::new(false);
 pub static SHELL_PICKER_OPEN: AtomicBool = AtomicBool::new(false);
 
 pub const ANIM_TAIL: std::time::Duration = std::time::Duration::from_millis(400);
@@ -27,6 +27,12 @@ pub enum SettingsTab {
   Ai,
   About,
   Raw,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Confirm {
+  Paste(String),
+  Restart,
 }
 
 #[derive(Debug, Clone)]
@@ -90,7 +96,7 @@ pub struct Nova {
   pub(in crate::ui::app_state) hovered_tab: Option<usize>,
   pub(in crate::ui::app_state) drag_pending_tab: Option<usize>,
   pub(in crate::ui::app_state) drag_pending_pos: Option<Point>,
-  pub(in crate::ui::app_state) paste_warning: Option<String>,
+  pub(in crate::ui::app_state) confirm: Option<Confirm>,
   pub(in crate::ui::app_state) now: Instant,
   pub(in crate::ui::app_state) sheet_opened_at: Instant,
   pub(in crate::ui::app_state) timestamps: bool,
@@ -125,7 +131,7 @@ impl Nova {
       || self.settings_open
       || self.ai_overlay_open
       || self.shell_picker_open
-      || self.paste_warning.is_some()
+      || self.confirm.is_some()
   }
 
   pub(in crate::ui::app_state) fn sheet_progress(&self) -> f32 {

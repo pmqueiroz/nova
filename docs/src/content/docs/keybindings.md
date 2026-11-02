@@ -97,6 +97,8 @@ When a split pane is open, `close-tab` (`Cmd+W` / `Ctrl+W`) closes the **active 
 
 The divider between panes is draggable. Hover over it to see a resize cursor, then click and drag to adjust the split ratio. Grids resize when you release the mouse. The ratio is clamped to 10%–90%.
 
+You can also drag a tab into a split. Drag it out of the tab bar (a small preview of the tab follows the pointer) towards the left or right edge of the window: the tab you were on before the drag stays in view, and the half where the tab will land is highlighted. Release to put the dragged tab on that side, at a 50/50 split. Dropping in the middle cancels. A tab that already has a split can't be dragged into another one, and can't receive one either.
+
 ### Font Size
 
 | Action | macOS | Other |

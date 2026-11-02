@@ -64,6 +64,120 @@ pub fn split_answer(text: &str) -> (String, Option<String>) {
   (body.replace("**", ""), cmd)
 }
 
+const DIAGNOSE_MAX_LINES: usize = 60;
+const DIAGNOSE_MAX_CHARS: usize = 4000;
+const NO_MATCH_PROGRAMS: &[&str] = &[
+  "grep",
+  "egrep",
+  "fgrep",
+  "rg",
+  "ag",
+  "diff",
+  "cmp",
+  "test",
+  "[",
+  "[[",
+  "false",
+  "which",
+  "where",
+  "where.exe",
+  "command",
+  "type",
+  "pgrep",
+  "findstr",
+];
+
+#[derive(Debug, PartialEq)]
+pub struct Diagnosis {
+  pub message: String,
+  pub command: Option<String>,
+}
+
+fn program_of(cmd: &str) -> &str {
+  let first = cmd.split_whitespace().next().unwrap_or("");
+  first.rsplit(['/', '\\']).next().unwrap_or(first)
+}
+
+pub fn should_diagnose(cmd: Option<&str>, code: i32, output: &str) -> bool {
+  if code == 0 || output.trim().is_empty() {
+    return false;
+  }
+  let Some(cmd) = cmd.map(str::trim).filter(|c| !c.is_empty()) else {
+    return true;
+  };
+  if cmd.contains('|') || cmd.contains("&&") || cmd.contains("||") {
+    return true;
+  }
+  let program = program_of(cmd).to_ascii_lowercase();
+  !(code == 1 && NO_MATCH_PROGRAMS.contains(&program.as_str()))
+}
+
+fn output_tail(output: &str) -> String {
+  let lines: Vec<&str> = output.lines().collect();
+  let tail = lines[lines.len().saturating_sub(DIAGNOSE_MAX_LINES)..].join("\n");
+  match tail.char_indices().rev().nth(DIAGNOSE_MAX_CHARS - 1) {
+    Some((i, _)) => tail[i..].to_string(),
+    None => tail,
+  }
+}
+
+pub fn diagnose_question(cmd: Option<&str>, code: i32, output: &str, shell: &str) -> String {
+  let command = match cmd {
+    Some(c) => format!("Command: `{c}`\n"),
+    None => String::new(),
+  };
+  format!(
+    "A command just exited non-zero in the user's terminal. An inline hint may be shown under it.\n\
+     {command}Exit code: {code}\n\
+     Output:\n{output}\n\n\
+     Most non-zero exits need no hint. Answer {{\"skip\": true}} when ANY of these hold:\n\
+     - the exit is expected or intentional: a search/compare/check that found nothing or found a difference (grep, rg, diff, test, linters, test runners reporting failures), a deliberate `exit N`, a cancelled or interrupted command, a command run on purpose to show an error;\n\
+     - the output already states the cause and the fix plainly (usage text, a clear message naming the problem);\n\
+     - you cannot point to a specific, concrete cause, or the only thing you could say is what the exit code means.\n\
+     Otherwise write the hint:\n\
+     - name the concrete cause in this case (e.g. \"`cdd` is a typo for `cd`\"), never a generic meaning of the exit code and never a restatement of the error text;\n\
+     - give a corrected command for {shell} that runs as-is, keeping the user's arguments, paths and intent;\n\
+     - if there is no command that would fix it, prefer skipping.\n\n\
+     Reply with ONLY a JSON object, no markdown, no code fences, either\n\
+     {{\"skip\": true}}\n\
+     or\n\
+     {{\"message\": \"one short sentence, commands and names in backticks\", \"command\": \"corrected command\" or null}}",
+    output = output_tail(output),
+  )
+}
+
+pub fn parse_diagnosis(text: &str) -> Option<Diagnosis> {
+  let json = match (text.find('{'), text.rfind('}')) {
+    (Some(a), Some(b)) if a < b => serde_json::from_str::<serde_json::Value>(&text[a..=b]).ok(),
+    _ => None,
+  };
+  let (message, command) = match json {
+    Some(v) => {
+      if v.get("skip").and_then(|s| s.as_bool()) == Some(true) {
+        return None;
+      }
+      let message = v
+        .get("message")
+        .and_then(|m| m.as_str())
+        .unwrap_or_default()
+        .trim()
+        .to_string();
+      let command = v
+        .get("command")
+        .or_else(|| v.get("command_to_solve"))
+        .and_then(|c| c.as_str())
+        .map(|c| c.trim().to_string())
+        .filter(|c| !c.is_empty());
+      (message, command)
+    }
+    None => split_answer(text),
+  };
+  if message.is_empty() {
+    return None;
+  }
+  Some(Diagnosis { message, command })
+}
+
 pub async fn query(q: AiQuery) -> Result<String, String> {
   if q.api_key.is_empty() {
     return Err("No API key configured. Add one in Settings → AI.".into());
@@ -208,6 +322,61 @@ other
     );
     assert_eq!(body, "`clsd` is a typo. Try this:");
     assert_eq!(cmd.as_deref(), Some("cls"));
+  }
+
+  #[test]
+  fn should_diagnose_skips_expected_failures() {
+    assert!(!should_diagnose(Some("grep foo bar.txt"), 1, "x"));
+    assert!(!should_diagnose(Some("/usr/bin/diff a b"), 1, "< a\n> b"));
+    assert!(!should_diagnose(Some("cargo build"), 101, "  "));
+    assert!(should_diagnose(
+      Some("grep foo missing.txt"),
+      2,
+      "No such file"
+    ));
+    assert!(should_diagnose(
+      Some("cat x | grep y"),
+      1,
+      "cat: x: No such file"
+    ));
+    assert!(should_diagnose(Some("cdd foo"), 127, "cdd: not found"));
+    assert!(should_diagnose(None, 1, "error"));
+  }
+
+  #[test]
+  fn diagnose_question_includes_command_and_tail() {
+    let output = (0..100)
+      .map(|i| format!("line{i}"))
+      .collect::<Vec<_>>()
+      .join("\n");
+    let q = diagnose_question(Some("cdd foo"), 127, &output, "pwsh");
+    assert!(q.contains("`cdd foo`") && q.contains("127") && q.contains("pwsh"));
+    assert!(q.contains("line99") && !q.contains("line10\n"));
+  }
+
+  #[test]
+  fn parse_diagnosis_handles_skip_json_and_fences() {
+    assert_eq!(parse_diagnosis("{\"skip\": true}"), None);
+    assert_eq!(
+      parse_diagnosis("{\"message\": \"\", \"command\": null}"),
+      None
+    );
+    assert_eq!(
+      parse_diagnosis(
+        "```json\n{\"message\": \"`cdd` is a typo for `cd`.\", \"command\": \"cd foo\"}\n```"
+      ),
+      Some(Diagnosis {
+        message: "`cdd` is a typo for `cd`.".into(),
+        command: Some("cd foo".into()),
+      })
+    );
+    assert_eq!(
+      parse_diagnosis("Missing dep.\n```bash\nnpm i\n```"),
+      Some(Diagnosis {
+        message: "Missing dep.".into(),
+        command: Some("npm i".into()),
+      })
+    );
   }
 
   #[test]

@@ -102,6 +102,7 @@ impl Default for Nova {
       ai_answer: None,
       diagnostic_banner: None,
       ai_pending_diagnostic: None,
+      ai_diagnostic_inflight: None,
       bell_blink_visible: true,
       bell_blink_remaining: 0,
       cursor_blink_visible: true,

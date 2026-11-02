@@ -398,6 +398,9 @@ logical). On Windows the window starts hidden until the fit is applied.
   delivering `Message::ShellsDetected`, which replaces the list unless
   `general.shells` is configured. The result is memoized
   (`DETECTED_SHELLS`), so later settings edits don't re-spawn the probes.
+- **Audio bell** (`sys::bell::play`): one bell plays at a time (`PLAYING`);
+  BELs arriving while it plays are dropped, so a BEL flood can't spawn a
+  thread and open an audio stream per BEL.
 - **Git branch** (`git_branch` on `Tab`/`SplitPane`, read from
   `.git/HEAD` walking up from the cwd) is refreshed only when the pane's cwd
   changes or a command completes, never per PTY message: the walk is

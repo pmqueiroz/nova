@@ -145,6 +145,14 @@ fn accent_rgb() -> (u8, u8, u8) {
   }
 }
 
+#[cfg(target_os = "windows")]
+fn psreadline_bell_style() -> &'static str {
+  match crate::core::config::get().general.bell {
+    crate::core::config::BellType::Audio => "Audible",
+    _ => "None",
+  }
+}
+
 fn nova_env(c: &mut CommandBuilder) {
   c.env("NOVA_TERMINAL", "1");
   c.env("TERM_PROGRAM", "Nova");
@@ -193,8 +201,10 @@ fn build_shell_command(shell: &str, initial_cwd: Option<&str>) -> CommandBuilder
       c.env("COLORTERM", "truecolor");
       nova_env(&mut c);
       let (ar, ag, ab) = accent_rgb();
+      let bell_style = psreadline_bell_style();
       let ps_prompt_script = format!(
         r#"
+          if (Get-Command Set-PSReadLineOption -ErrorAction SilentlyContinue) {{ Set-PSReadLineOption -BellStyle {bell_style} }}
           Set-Item function:prompt {{
               $__nova_ok = $?
               if (-not $global:__nova_prompt_count) {{ $global:__nova_prompt_count = $true; $global:LASTEXITCODE = 0; $exitCode = 0; $is_first = $true }} else {{ $exitCode = $global:LASTEXITCODE; $global:LASTEXITCODE = 0; $is_first = $false }}

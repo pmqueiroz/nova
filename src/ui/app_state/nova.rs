@@ -97,6 +97,8 @@ pub struct Nova {
   pub(in crate::ui::app_state) hovered_tab: Option<usize>,
   pub(in crate::ui::app_state) drag_pending_tab: Option<usize>,
   pub(in crate::ui::app_state) drag_pending_pos: Option<Point>,
+  pub(in crate::ui::app_state) drag_host_tab: Option<usize>,
+  pub(in crate::ui::app_state) split_drop: Option<crate::ui::tab::PaneSide>,
   pub(in crate::ui::app_state) confirm: Option<Confirm>,
   pub(in crate::ui::app_state) now: Instant,
   pub(in crate::ui::app_state) sheet_opened_at: Instant,

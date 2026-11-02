@@ -4,6 +4,7 @@ use std::path::PathBuf;
 
 use crate::core::config::{self, KeyId, ParsedKeybinding};
 use crate::core::grid;
+use crate::ui::tab::PaneSide;
 use crate::ui::theme::tokens;
 
 pub const RESIZE_EDGE: f32 = 8.0;
@@ -17,6 +18,8 @@ const PADDING_Y: f32 = 76.0;
 const MIN_COLS: usize = 10;
 const MIN_SPLIT_COLS: usize = 5;
 const MIN_ROWS: usize = 5;
+const SPLIT_DROP_EDGE: f32 = 0.25;
+const SPLIT_DROP_TOP: f32 = crate::ui::components::TITLE_BAR_HEIGHT;
 pub const INITIAL_WINDOW_SIZE: Size = Size::new(1200.0, 750.0);
 const WINDOW_ASPECT: f32 = 1.6;
 const WINDOW_WIDTH_FRACTION: f32 = 0.65;
@@ -357,6 +360,20 @@ pub fn pixel_to_cell(pos: Point, font_size: f32) -> Option<(usize, usize)> {
   Some((col, row))
 }
 
+pub fn split_drop_side(pos: Point, size: Size) -> Option<PaneSide> {
+  if pos.y <= SPLIT_DROP_TOP || pos.y >= size.height || size.width <= 0.0 {
+    return None;
+  }
+  let edge = size.width * SPLIT_DROP_EDGE;
+  if pos.x <= edge {
+    Some(PaneSide::Left)
+  } else if pos.x >= size.width - edge {
+    Some(PaneSide::Right)
+  } else {
+    None
+  }
+}
+
 pub fn resize_direction(pos: Point, size: Size) -> Option<window::Direction> {
   let left = pos.x < RESIZE_EDGE;
   let right = pos.x > size.width - RESIZE_EDGE;
@@ -547,5 +564,30 @@ mod window_fit_tests {
       Size::new(800.0, 500.0),
     );
     assert_eq!(p, Point::new(300.0, 175.0));
+  }
+}
+
+#[cfg(test)]
+mod split_drop_tests {
+  use super::*;
+
+  const WINDOW: Size = Size::new(1000.0, 600.0);
+
+  #[test]
+  fn edges_below_title_bar_pick_a_side() {
+    assert_eq!(
+      split_drop_side(Point::new(100.0, 300.0), WINDOW),
+      Some(PaneSide::Left)
+    );
+    assert_eq!(
+      split_drop_side(Point::new(900.0, 300.0), WINDOW),
+      Some(PaneSide::Right)
+    );
+  }
+
+  #[test]
+  fn center_and_title_bar_are_not_drop_zones() {
+    assert_eq!(split_drop_side(Point::new(500.0, 300.0), WINDOW), None);
+    assert_eq!(split_drop_side(Point::new(50.0, 20.0), WINDOW), None);
   }
 }

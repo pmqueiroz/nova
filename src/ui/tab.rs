@@ -75,6 +75,12 @@ impl InputBox {
   }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PaneSide {
+  Left,
+  Right,
+}
+
 pub struct PaneMut<'a> {
   pub grid: &'a mut Grid,
   pub session: &'a mut Session,
@@ -134,6 +140,31 @@ pub struct SplitPane {
   pub scroll_offset: usize,
   pub initial_cwd: String,
   pub waiting_after_exit: bool,
+}
+
+impl From<Tab> for SplitPane {
+  fn from(tab: Tab) -> Self {
+    Self {
+      id: tab.id,
+      grid: tab.grid,
+      pty_tx: tab.pty_tx,
+      pty_alive: tab.pty_alive,
+      ansi_parser: tab.ansi_parser,
+      session: tab.session,
+      integration: tab.integration,
+      input: tab.input,
+      shell_cmd: tab.shell_cmd,
+      pwd: tab.pwd,
+      git_branch: tab.git_branch,
+      current_input: tab.current_input,
+      command_start: tab.command_start,
+      last_command_elapsed: tab.last_command_elapsed,
+      last_pty_output: tab.last_pty_output,
+      scroll_offset: tab.scroll_offset,
+      initial_cwd: tab.initial_cwd,
+      waiting_after_exit: tab.waiting_after_exit,
+    }
+  }
 }
 
 impl SplitPane {

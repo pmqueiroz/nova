@@ -14,7 +14,7 @@ use crate::ui::theme;
 
 impl Nova {
   pub fn view(&self) -> Element<'_, Message> {
-    let active_tab = &self.tabs[self.active_index];
+    let active_tab = &self.tabs[self.shown_tab_index()];
     let pop = self.window_pop.interpolate(0.0, 1.0, self.now);
 
     let selection = match (self.selection_start, self.selection_end) {
@@ -263,6 +263,11 @@ impl Nova {
       } else {
         term_el
       }
+    };
+
+    let term_area = match self.split_drop {
+      Some(side) => stack![term_area, components::split_drop_preview(side)].into(),
+      None => term_area,
     };
 
     let tb_interaction = resize_cursor.unwrap_or(mouse::Interaction::Idle);

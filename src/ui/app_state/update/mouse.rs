@@ -5,7 +5,7 @@ use crate::sys::pty::PtyCommand;
 use super::super::helpers::{
   SPLIT_DIVIDER_WIDTH, alternate_scroll_keys, extract_selection, find_word_boundaries,
   get_display_row, pixel_to_cell, raw_pixel_to_cell, resize_direction, resolve_hovered_url,
-  split_widths, wheel_report,
+  split_drop_side, split_widths, wheel_report,
 };
 use super::super::nova::Nova;
 
@@ -53,6 +53,9 @@ impl Nova {
     }
 
     if self.dragging_tab_index.is_some() {
+      self.split_drop = self
+        .split_drop_host()
+        .and_then(|_| split_drop_side(position, self.window_size));
       return;
     }
 
@@ -212,7 +215,17 @@ impl Nova {
 
     self.drag_pending_tab = None;
     self.drag_pending_pos = None;
-    if button == mouse::Button::Left && self.dragging_tab_index.take().is_some() {
+    if button == mouse::Button::Left && self.dragging_tab_index.is_some() {
+      if let (Some(side), Some(host), Some(dragged)) = (
+        self.split_drop,
+        self.split_drop_host(),
+        self.dragging_tab_index,
+      ) {
+        self.merge_tab_into_split(dragged, host, side);
+      }
+      self.dragging_tab_index = None;
+      self.drag_host_tab = None;
+      self.split_drop = None;
       return iced::Task::none();
     }
 

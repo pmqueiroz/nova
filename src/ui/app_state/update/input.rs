@@ -40,6 +40,7 @@ impl Nova {
       self.click_count = 0;
       self.diagnostic_banner = None;
       self.ai_pending_diagnostic = None;
+      self.ai_diagnostic_inflight = None;
       if let Some(active_tab) = self.tabs.get_mut(self.active_index)
         && let Some(split) = &mut active_tab.split
       {
@@ -111,6 +112,7 @@ impl Nova {
     self.click_count = 0;
     self.diagnostic_banner = None;
     self.ai_pending_diagnostic = None;
+    self.ai_diagnostic_inflight = None;
     let entered = bytes == b"\r";
     if let Some(active_tab) = self.tabs.get_mut(self.active_index) {
       active_tab.scroll_offset = 0;
@@ -309,7 +311,7 @@ impl Nova {
               && code < 128
               && !self.settings.ai.api_key.is_empty()
             {
-              self.diagnostic_banner = Some((code, "Loading...".into(), None));
+              self.diagnostic_banner = None;
               self.ai_pending_diagnostic = Some(code);
             }
           }
@@ -389,16 +391,26 @@ impl Nova {
         return iced::Task::batch(extra_tasks);
       }
 
-      if let Some(code) = self.ai_pending_diagnostic.take() {
-        let context = crate::core::ai::extract_last_output(&tab.grid);
+      let diagnose = self.ai_pending_diagnostic.take().and_then(|code| {
+        let failed = (tab.integration.mode != crate::core::router::Mode::Classic)
+          .then(|| tab.session.last_failure())
+          .flatten()
+          .map(|b| (b.command.clone(), b.text()));
+        let (cmd, output) = match failed {
+          Some((c, out)) => (Some(c), out),
+          None => (None, crate::core::ai::extract_last_output(&tab.grid)),
+        };
+        crate::core::ai::should_diagnose(cmd.as_deref(), code as i32, &output)
+          .then_some((code, cmd, output))
+      });
+      if let Some((code, cmd, output)) = diagnose {
         let ai_cfg = self.settings.ai.clone();
-        let question = format!(
-          "The last command exited with code {}. Output:\n{}\n\nRespond in EXACTLY this JSON format (no markdown, no code fences): {{\"message\": \"short explanation\", \"command_to_solve\": \"command to fix it\" or null}}",
-          code, context,
-        );
+        let question =
+          crate::core::ai::diagnose_question(cmd.as_deref(), code as i32, &output, &tab.shell);
+        self.ai_diagnostic_inflight = Some(code);
         let q = crate::core::ai::AiQuery {
           question,
-          context,
+          context: String::new(),
           provider: ai_cfg.provider,
           model: ai_cfg.model,
           api_key: ai_cfg.api_key,

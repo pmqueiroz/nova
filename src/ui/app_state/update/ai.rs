@@ -17,7 +17,7 @@ pub fn question_for(kind: AiKind, query: &str, last: Option<(&str, i32)>) -> Opt
     )),
     AiKind::Diagnose => last.map(|(cmd, code)| {
       format!(
-        "The command `{cmd}` exited with code {code}. Diagnose the problem in one or two short sentences (wrap commands and names in backticks), then give the corrected command in a single fenced code block."
+        "The command `{cmd}` exited with code {code}. In one or two short sentences, name the concrete cause in this case (for example a typo, a missing file, a wrong flag), not what the exit code means in general and not a restatement of the error text; wrap commands and names in backticks. If the non-zero exit looks expected or intentional, say so briefly. Then give a corrected command that keeps the user's arguments, in a single fenced code block."
       )
     }),
     AiKind::Explain => last.map(|(cmd, _)| {
@@ -201,32 +201,16 @@ impl Nova {
   }
 
   pub(super) fn handle_diagnostic_banner_response(&mut self, result: Result<String, String>) {
-    let code = self
-      .diagnostic_banner
-      .as_ref()
-      .map(|(c, _, _)| *c)
-      .unwrap_or(0);
-    match result {
-      Ok(text) => {
-        let (msg, cmd) = if let Ok(val) = serde_json::from_str::<serde_json::Value>(&text) {
-          let message = val
-            .get("message")
-            .and_then(|m| m.as_str())
-            .unwrap_or(&text)
-            .to_string();
-          let command = val
-            .get("command_to_solve")
-            .and_then(|c| c.as_str().map(|s| s.to_string()));
-          (message, command)
-        } else {
-          (text.clone(), None)
-        };
-        self.diagnostic_banner = Some((code, msg, cmd));
-      }
-      Err(e) => {
-        self.diagnostic_banner = Some((code, format!("AI error: {}", e), None));
-      }
+    let Some(code) = self.ai_diagnostic_inflight.take() else {
+      return;
+    };
+    if !self.settings.ai.diagnostic_banner {
+      return;
     }
+    self.diagnostic_banner = match result {
+      Ok(text) => crate::core::ai::parse_diagnosis(&text).map(|d| (code, d.message, d.command)),
+      Err(e) => Some((code, format!("AI error: {}", e), None)),
+    };
   }
 }
 

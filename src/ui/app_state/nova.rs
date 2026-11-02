@@ -79,6 +79,7 @@ pub struct Nova {
   pub(in crate::ui::app_state) ai_answer: Option<crate::ui::components::AiAnswer>,
   pub(in crate::ui::app_state) diagnostic_banner: Option<(u8, String, Option<String>)>,
   pub(in crate::ui::app_state) ai_pending_diagnostic: Option<u8>,
+  pub(in crate::ui::app_state) ai_diagnostic_inflight: Option<u8>,
   pub(in crate::ui::app_state) bell_blink_visible: bool,
   pub(in crate::ui::app_state) bell_blink_remaining: u8,
   pub(in crate::ui::app_state) cursor_blink_visible: bool,

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OSC integration · Nova docs</title>
+<meta name="description" content="Private OSC sequences used for CLI-to-app integration.">
+<link rel="canonical" href="https://nova.pmqueiroz.dev/docs/internals-osc/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta property="og:type" content="website">
+<meta property="og:title" content="OSC integration · Nova docs">
+<meta property="og:description" content="Private OSC sequences used for CLI-to-app integration.">
+<meta property="og:url" content="https://nova.pmqueiroz.dev/docs/internals-osc/">
+<meta property="og:image" content="https://nova.pmqueiroz.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+(()=>{try{const t=new URLSearchParams(location.search).get('theme')||localStorage.getItem('nova-site-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}})();
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-X9WTDL262N"></script>
+<script>
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-X9WTDL262N');
+</script>
+<script>window.NOVA_SEARCH=[{"title":"Introduction","group":"Getting started","href":"/docs/","h":[["Start Here","start-here"],["Reference","reference"],["Internals","internals"],["Help","help"]]},{"title":"Installation","group":"Getting started","href":"/docs/installation/","h":[["Homebrew","homebrew"],["Winget (Windows)","winget-windows"],["Scoop (Windows)","scoop-windows"],["AUR (Arch Linux)","aur-arch-linux"],["APT (Debian/Ubuntu)","apt-debianubuntu"],["DNF/RPM (Fedora/RHEL)","dnfrpm-fedorarhel"]]},{"title":"Quickstart","group":"Getting started","href":"/docs/quickstart/","h":[["First Run","first-run"],["Editing Settings","editing-settings"],["Command blocks","command-blocks"],["Command Palette","command-palette"],["AI Overlay","ai-overlay"]]},{"title":"Configuration","group":"Reference","href":"/docs/configuration/","h":[["Location","location"],["File Lifecycle","file-lifecycle"],["Defaults","defaults"],["Reference","reference"],["[general]","general"],["[theme]","theme"],["[theme.font]","themefont"],["[theme.colors]","themecolors"],["[theme.cursor]","themecursor"],["[keybindings]","keybindings"],["[ai]","ai"]]},{"title":"Keybindings","group":"Reference","href":"/docs/keybindings/","h":[["Binding Syntax","binding-syntax"],["Actions","actions"],["Defaults","defaults"],["Fixed Shortcuts","fixed-shortcuts"],["Split Pane","split-pane"],["Font Size","font-size"],["Block input","block-input"],["Search","search"],["Notes","notes"]]},{"title":"AI","group":"Reference","href":"/docs/ai/","h":[["Overview","overview"],["Configuration","configuration"],["Provider Behavior","provider-behavior"],["What Gets Sent","what-gets-sent"],["Troubleshooting","troubleshooting"]]},{"title":"CLI","group":"Reference","href":"/docs/cli/","h":[["Commands","commands"],["nova update","nova-update"],["nova ask","nova-ask"],["How It Works","how-it-works"]]},{"title":"OSC integration","group":"Internals","href":"/docs/internals-osc/","h":[["Private Nova OSC Channel","private-nova-osc-channel"],["Command: ask_ai","command-ask_ai"],["OSC 7: Current Working Directory","osc-7-current-working-directory"],["OSC 8: Hyperlinks","osc-8-hyperlinks"]]},{"title":"Development","group":"Internals","href":"/docs/development/","h":[["Build Nova","build-nova"],["Code Map","code-map"],["Build The Docs Site","build-the-docs-site"],["CI Notes","ci-notes"]]},{"title":"Troubleshooting","group":"Help","href":"/docs/troubleshooting/","h":[["macOS: “Nova is damaged and can’t be opened”","macos-nova-is-damaged-and-cant-be-opened"],["Settings Keep Resetting","settings-keep-resetting"],["nova ask Must Be Run Inside Nova","nova-ask-must-be-run-inside-nova"],["Pagers (git log, man) Stay Inside a Block","pagers-git-log-man-stay-inside-a-block"],["AI Errors","ai-errors"],["Updates Fail","updates-fail"]]}];</script>
+<link rel="stylesheet" href="/_astro/CopyButton.BKNGvCRr.css">
+<link rel="stylesheet" href="/_astro/_..C4IPoKZX.css"></head>
+<body>
+
+<header class="site-header full">
+<div class="wrap">
+<a class="logo" href="/" aria-label="Nova home"><svg aria-hidden="true" viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="7"><line x1="50" y1="50" x2="50" y2="10"></line><line x1="50" y1="50" x2="50" y2="90"></line><line x1="50" y1="50" x2="10" y2="50"></line><line x1="50" y1="50" x2="90" y2="50"></line></g><circle cx="50" cy="50" r="13" fill="currentColor"></circle></svg><b>nova</b></a>
+<nav class="nav" aria-label="Main"><a href="/#features">Features</a><a href="/docs/" aria-current="page">Docs</a><a href="/#support">Support</a></nav>
+<div class="header-end">
+
+  <button class="search-trigger" data-search-open="" aria-label="Search docs"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="m10.5 10.5 3 3"></path></svg><span>Search docs</span><span class="keys"><span class="kbd" data-mod="">⌘</span><span class="kbd">K</span></span></button>
+  <a class="icon-btn hide-sm" href="https://github.com/pmqueiroz/nova" aria-label="GitHub"><svg aria-hidden="true" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a>
+  
+<button class="icon-btn" data-theme-toggle="" aria-label="Toggle theme"><svg class="i-sun" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10" cy="10" r="3.5"></circle><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.3 4.3l1.4 1.4M14.3 14.3l1.4 1.4M4.3 15.7l1.4-1.4M14.3 5.7l1.4-1.4"></path></svg><svg class="i-moon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M16 12.5A6.5 6.5 0 0 1 7.5 4a6.5 6.5 0 1 0 8.5 8.5z"></path></svg></button>
+
+<button class="icon-btn menu-btn" aria-label="Menu" aria-expanded="false"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 6h14M3 10h14M3 14h14"></path></svg></button>
+</div>
+</div>
+</header>
+<nav class="mobile-nav" aria-label="Mobile"><a href="/#features">Features</a><a href="/docs/" aria-current="page">Docs</a><a href="/#support">Support</a><a href="https://github.com/pmqueiroz/nova">GitHub</a></nav>
+<div class="docs-bar"><button data-side-toggle=""><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="2.5" width="12" height="11" rx="2"></rect><path d="M6 2.5v11"></path></svg>Menu</button><span class="sep">/</span><span>Internals</span><span class="sep">/</span><span class="here">OSC integration</span></div>
+<div class="side-scrim"></div>
+
+<div class="docs">
+<aside class="docs-side" aria-label="Docs navigation">
+<div class="side-group"><h4>Getting started</h4><a href="/docs/">Introduction</a><a href="/docs/installation/">Installation</a><a href="/docs/quickstart/">Quickstart</a></div><div class="side-group"><h4>Reference</h4><a href="/docs/configuration/">Configuration</a><a href="/docs/keybindings/">Keybindings</a><a href="/docs/ai/">AI</a><a href="/docs/cli/">CLI</a></div><div class="side-group"><h4>Internals</h4><a href="/docs/internals-osc/" aria-current="page">OSC integration</a><a href="/docs/development/">Development</a></div><div class="side-group"><h4>Help</h4><a href="/docs/troubleshooting/">Troubleshooting</a></div>
+<div class="side-meta"><a href="https://github.com/pmqueiroz/nova/releases">Latest release ↗</a><a href="https://github.com/pmqueiroz/nova">GitHub ↗</a></div>
+</aside>
+
+<main class="docs-main">
+<article class="article">
+<div class="crumbs"><span>Internals</span><span>/</span><span>OSC integration</span></div>
+<h1>OSC integration</h1>
+<p class="lead">Private OSC sequences used for CLI-to-app integration.</p>
+<div class="page-actions">
+<a class="btn btn-outline" href="https://github.com/pmqueiroz/nova/blob/main/docs/src/content/docs/internals-osc.md"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.5 13.5 5.5 6 13H3v-3z"></path></svg>Edit on GitHub</a>
+<button class="btn btn-outline" data-copy="#md-src"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy as Markdown</span></button>
+<span id="md-src" hidden="" data-copy-text="Nova supports a small set of OSC (Operating System Command) sequences.
+
+Some are standard-ish (OSC 7, OSC 8), and one is a Nova-private channel used by `nova` CLI commands.
+
+## Private Nova OSC Channel
+
+Nova uses a private OSC code `777`.
+
+Format:
+
+```text
+ESC ] 777 ; <command> [ ; <arg> ... ] BEL
+```
+
+Where:
+
+- `ESC` is `\x1b`
+- Terminator is BEL (`\x07`)
+
+### Command: `ask_ai`
+
+`nova ask` sends:
+
+```text
+ESC ] 777 ; ask_ai [ ; <preset_b64> ] BEL
+```
+
+If a preset is provided, it is base64-encoded (standard base64, no newlines).
+
+Examples:
+
+No preset:
+
+```text
+\x1b]777;ask_ai\x07
+```
+
+With preset `&quot;hello&quot;` (base64: `aGVsbG8=`):
+
+```text
+\x1b]777;ask_ai;aGVsbG8=\x07
+```
+
+## OSC 7: Current Working Directory
+
+Nova parses OSC 7 to track a working directory string.
+
+It expects a `file://` URL or `ssh://` host-like value.
+
+This is used for display/state and may differ from your shell's own concept of PWD.
+
+## OSC 8: Hyperlinks
+
+Nova parses OSC 8 URIs and stores the &quot;current&quot; URI while rendering.
+
+This enables link hover behavior."></span>
+</div>
+
+<p>Nova supports a small set of OSC (Operating System Command) sequences.</p>
+<p>Some are standard-ish (OSC 7, OSC 8), and one is a Nova-private channel used by <code>nova</code> CLI commands.</p>
+<h2 id="private-nova-osc-channel"><a class="anchor" href="#private-nova-osc-channel">#</a>Private Nova OSC Channel</h2>
+<p>Nova uses a private OSC code <code>777</code>.</p>
+<p>Format:</p>
+<div class="code"><div class="code-head"><span>text</span><button class="copy-btn" data-copy=""><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div><pre><code data-lang="text">ESC ] 777 ; &#x3C;command> [ ; &#x3C;arg> ... ] BEL</code></pre></div>
+<p>Where:</p>
+<ul>
+<li><code>ESC</code> is <code>\x1b</code></li>
+<li>Terminator is BEL (<code>\x07</code>)</li>
+</ul>
+<h3 id="command-ask_ai"><a class="anchor" href="#command-ask_ai">#</a>Command: <code>ask_ai</code></h3>
+<p><code>nova ask</code> sends:</p>
+<div class="code"><div class="code-head"><span>text</span><button class="copy-btn" data-copy=""><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div><pre><code data-lang="text">ESC ] 777 ; ask_ai [ ; &#x3C;preset_b64> ] BEL</code></pre></div>
+<p>If a preset is provided, it is base64-encoded (standard base64, no newlines).</p>
+<p>Examples:</p>
+<p>No preset:</p>
+<div class="code"><div class="code-head"><span>text</span><button class="copy-btn" data-copy=""><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div><pre><code data-lang="text">\x1b]777;ask_ai\x07</code></pre></div>
+<p>With preset <code>"hello"</code> (base64: <code>aGVsbG8=</code>):</p>
+<div class="code"><div class="code-head"><span>text</span><button class="copy-btn" data-copy=""><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div><pre><code data-lang="text">\x1b]777;ask_ai;aGVsbG8=\x07</code></pre></div>
+<h2 id="osc-7-current-working-directory"><a class="anchor" href="#osc-7-current-working-directory">#</a>OSC 7: Current Working Directory</h2>
+<p>Nova parses OSC 7 to track a working directory string.</p>
+<p>It expects a <code>file://</code> URL or <code>ssh://</code> host-like value.</p>
+<p>This is used for display/state and may differ from your shell’s own concept of PWD.</p>
+<h2 id="osc-8-hyperlinks"><a class="anchor" href="#osc-8-hyperlinks">#</a>OSC 8: Hyperlinks</h2>
+<p>Nova parses OSC 8 URIs and stores the “current” URI while rendering.</p>
+<p>This enables link hover behavior.</p>
+
+<nav class="pager" aria-label="Pagination">
+<a href="/docs/cli/"><small>← Previous</small><b>CLI</b></a>
+<a class="next" href="/docs/development/"><small>Next →</small><b>Development</b></a>
+</nav>
+<div class="edit-row"><a href="https://github.com/pmqueiroz/nova/blob/main/docs/src/content/docs/internals-osc.md">docs/src/content/docs/internals-osc.md</a><span>Updated with release 1.1.0</span></div>
+</article>
+</main>
+
+<aside class="toc" aria-label="On this page">
+<h4>On this page</h4>
+<nav><a href="#private-nova-osc-channel">Private Nova OSC Channel</a><a class="sub" href="#command-ask_ai">Command: ask_ai</a><a href="#osc-7-current-working-directory">OSC 7: Current Working Directory</a><a href="#osc-8-hyperlinks">OSC 8: Hyperlinks</a></nav>
+</aside>
+</div>
+
+<footer class="site-footer full">
+<div class="wrap">
+<a class="logo" href="/"><svg aria-hidden="true" viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="7"><line x1="50" y1="50" x2="50" y2="10"></line><line x1="50" y1="50" x2="50" y2="90"></line><line x1="50" y1="50" x2="10" y2="50"></line><line x1="50" y1="50" x2="90" y2="50"></line></g><circle cx="50" cy="50" r="13" fill="currentColor"></circle></svg><b>nova</b></a>
+<nav class="foot-links"><a href="/docs/">Docs</a><a href="https://github.com/pmqueiroz/nova">GitHub</a><a href="https://github.com/pmqueiroz/nova/releases">Releases</a><a href="https://github.com/sponsors/pmqueiroz">Sponsors</a></nav>
+<p class="foot-meta">MIT licensed · made by pmqueiroz</p>
+</div>
+</footer>
+<div class="scrim" id="search" hidden="">
+<div class="sheet" role="dialog" aria-label="Search docs">
+<div class="sheet-head"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="m10.5 10.5 3 3"></path></svg><input class="sheet-input" placeholder="Search docs" aria-label="Search docs"><span class="kbd">esc</span></div>
+<div class="sheet-list"></div>
+<div class="sheet-foot"><span><span class="kbd">↑</span><span class="kbd">↓</span>navigate</span><span><span class="kbd">↵</span>open</span></div>
+</div>
+</div>
+
+<script type="module" src="/_astro/Base.astro_astro_type_script_index_0_lang.DdGk6VXI.js"></script>
+</body>
+</html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Keybindings · Nova docs</title>
+<meta name="description" content="Keybinding syntax, defaults, and action reference.">
+<link rel="canonical" href="https://nova.pmqueiroz.dev/docs/keybindings/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Keybindings · Nova docs">
+<meta property="og:description" content="Keybinding syntax, defaults, and action reference.">
+<meta property="og:url" content="https://nova.pmqueiroz.dev/docs/keybindings/">
+<meta property="og:image" content="https://nova.pmqueiroz.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+(()=>{try{const t=new URLSearchParams(location.search).get('theme')||localStorage.getItem('nova-site-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}})();
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-X9WTDL262N"></script>
+<script>
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-X9WTDL262N');
+</script>
+<script>window.NOVA_SEARCH=[{"title":"Introduction","group":"Getting started","href":"/docs/","h":[["Start Here","start-here"],["Reference","reference"],["Internals","internals"],["Help","help"]]},{"title":"Installation","group":"Getting started","href":"/docs/installation/","h":[["Homebrew","homebrew"],["Winget (Windows)","winget-windows"],["Scoop (Windows)","scoop-windows"],["AUR (Arch Linux)","aur-arch-linux"],["APT (Debian/Ubuntu)","apt-debianubuntu"],["DNF/RPM (Fedora/RHEL)","dnfrpm-fedorarhel"]]},{"title":"Quickstart","group":"Getting started","href":"/docs/quickstart/","h":[["First Run","first-run"],["Editing Settings","editing-settings"],["Command blocks","command-blocks"],["Command Palette","command-palette"],["AI Overlay","ai-overlay"]]},{"title":"Configuration","group":"Reference","href":"/docs/configuration/","h":[["Location","location"],["File Lifecycle","file-lifecycle"],["Defaults","defaults"],["Reference","reference"],["[general]","general"],["[theme]","theme"],["[theme.font]","themefont"],["[theme.colors]","themecolors"],["[theme.cursor]","themecursor"],["[keybindings]","keybindings"],["[ai]","ai"]]},{"title":"Keybindings","group":"Reference","href":"/docs/keybindings/","h":[["Binding Syntax","binding-syntax"],["Actions","actions"],["Defaults","defaults"],["Fixed Shortcuts","fixed-shortcuts"],["Split Pane","split-pane"],["Font Size","font-size"],["Block input","block-input"],["Search","search"],["Notes","notes"]]},{"title":"AI","group":"Reference","href":"/docs/ai/","h":[["Overview","overview"],["Configuration","configuration"],["Provider Behavior","provider-behavior"],["What Gets Sent","what-gets-sent"],["Troubleshooting","troubleshooting"]]},{"title":"CLI","group":"Reference","href":"/docs/cli/","h":[["Commands","commands"],["nova update","nova-update"],["nova ask","nova-ask"],["How It Works","how-it-works"]]},{"title":"OSC integration","group":"Internals","href":"/docs/internals-osc/","h":[["Private Nova OSC Channel","private-nova-osc-channel"],["Command: ask_ai","command-ask_ai"],["OSC 7: Current Working Directory","osc-7-current-working-directory"],["OSC 8: Hyperlinks","osc-8-hyperlinks"]]},{"title":"Development","group":"Internals","href":"/docs/development/","h":[["Build Nova","build-nova"],["Code Map","code-map"],["Build The Docs Site","build-the-docs-site"],["CI Notes","ci-notes"]]},{"title":"Troubleshooting","group":"Help","href":"/docs/troubleshooting/","h":[["macOS: “Nova is damaged and can’t be opened”","macos-nova-is-damaged-and-cant-be-opened"],["Settings Keep Resetting","settings-keep-resetting"],["nova ask Must Be Run Inside Nova","nova-ask-must-be-run-inside-nova"],["Pagers (git log, man) Stay Inside a Block","pagers-git-log-man-stay-inside-a-block"],["AI Errors","ai-errors"],["Updates Fail","updates-fail"]]}];</script>
+<link rel="stylesheet" href="/_astro/CopyButton.BKNGvCRr.css">
+<link rel="stylesheet" href="/_astro/_..C4IPoKZX.css"></head>
+<body>
+
+<header class="site-header full">
+<div class="wrap">
+<a class="logo" href="/" aria-label="Nova home"><svg aria-hidden="true" viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="7"><line x1="50" y1="50" x2="50" y2="10"></line><line x1="50" y1="50" x2="50" y2="90"></line><line x1="50" y1="50" x2="10" y2="50"></line><line x1="50" y1="50" x2="90" y2="50"></line></g><circle cx="50" cy="50" r="13" fill="currentColor"></circle></svg><b>nova</b></a>
+<nav class="nav" aria-label="Main"><a href="/#features">Features</a><a href="/docs/" aria-current="page">Docs</a><a href="/#support">Support</a></nav>
+<div class="header-end">
+
+  <button class="search-trigger" data-search-open="" aria-label="Search docs"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="m10.5 10.5 3 3"></path></svg><span>Search docs</span><span class="keys"><span class="kbd" data-mod="">⌘</span><span class="kbd">K</span></span></button>
+  <a class="icon-btn hide-sm" href="https://github.com/pmqueiroz/nova" aria-label="GitHub"><svg aria-hidden="true" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a>
+  
+<button class="icon-btn" data-theme-toggle="" aria-label="Toggle theme"><svg class="i-sun" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10" cy="10" r="3.5"></circle><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.3 4.3l1.4 1.4M14.3 14.3l1.4 1.4M4.3 15.7l1.4-1.4M14.3 5.7l1.4-1.4"></path></svg><svg class="i-moon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M16 12.5A6.5 6.5 0 0 1 7.5 4a6.5 6.5 0 1 0 8.5 8.5z"></path></svg></button>
+
+<button class="icon-btn menu-btn" aria-label="Menu" aria-expanded="false"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 6h14M3 10h14M3 14h14"></path></svg></button>
+</div>
+</div>
+</header>
+<nav class="mobile-nav" aria-label="Mobile"><a href="/#features">Features</a><a href="/docs/" aria-current="page">Docs</a><a href="/#support">Support</a><a href="https://github.com/pmqueiroz/nova">GitHub</a></nav>
+<div class="docs-bar"><button data-side-toggle=""><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="2.5" width="12" height="11" rx="2"></rect><path d="M6 2.5v11"></path></svg>Menu</button><span class="sep">/</span><span>Reference</span><span class="sep">/</span><span class="here">Keybindings</span></div>
+<div class="side-scrim"></div>
+
+<div class="docs">
+<aside class="docs-side" aria-label="Docs navigation">
+<div class="side-group"><h4>Getting started</h4><a href="/docs/">Introduction</a><a href="/docs/installation/">Installation</a><a href="/docs/quickstart/">Quickstart</a></div><div class="side-group"><h4>Reference</h4><a href="/docs/configuration/">Configuration</a><a href="/docs/keybindings/" aria-current="page">Keybindings</a><a href="/docs/ai/">AI</a><a href="/docs/cli/">CLI</a></div><div class="side-group"><h4>Internals</h4><a href="/docs/internals-osc/">OSC integration</a><a href="/docs/development/">Development</a></div><div class="side-group"><h4>Help</h4><a href="/docs/troubleshooting/">Troubleshooting</a></div>
+<div class="side-meta"><a href="https://github.com/pmqueiroz/nova/releases">Latest release ↗</a><a href="https://github.com/pmqueiroz/nova">GitHub ↗</a></div>
+</aside>
+
+<main class="docs-main">
+<article class="article">
+<div class="crumbs"><span>Reference</span><span>/</span><span>Keybindings</span></div>
+<h1>Keybindings</h1>
+<p class="lead">Keybinding syntax, defaults, and action reference.</p>
+<div class="page-actions">
+<a class="btn btn-outline" href="https://github.com/pmqueiroz/nova/blob/main/docs/src/content/docs/keybindings.md"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.5 13.5 5.5 6 13H3v-3z"></path></svg>Edit on GitHub</a>
+<button class="btn btn-outline" data-copy="#md-src"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy as Markdown</span></button>
+<span id="md-src" hidden="" data-copy-text="## Binding Syntax
+
+Bindings are strings like `ctrl+t` or `ctrl+shift+tab`.
+
+Supported modifiers:
+
+- `ctrl`
+- `shift`
+- `alt` (alias: `option`)
+- `cmd` (aliases: `command`, `meta`, `super`)
+
+Supported keys:
+
+- `tab`
+- Any single character (like `t`, `w`, `c`, `v`, `k`)
+
+Examples:
+
+```toml
+[keybindings]
+new-tab = &quot;ctrl+t&quot;
+close-tab = &quot;ctrl+w&quot;
+next-tab = &quot;ctrl+tab&quot;
+prev-tab = &quot;ctrl+shift+tab&quot;
+copy = &quot;ctrl+shift+c&quot;
+paste = &quot;ctrl+v&quot;
+open-palette = &quot;ctrl+p&quot;
+ask-ai = &quot;ctrl+k&quot;
+settings = &quot;ctrl+,&quot;
+```
+
+## Actions
+
+These keys live under `[keybindings]` in `settings.toml`:
+
+- `new-tab`
+- `close-tab`
+- `next-tab`
+- `prev-tab`
+- `copy`
+- `paste`
+- `open-palette`
+- `ask-ai`
+- `settings`
+
+## Defaults
+
+Defaults differ on macOS vs other platforms.
+
+Non-macOS (defaults):
+
+```toml
+[keybindings]
+new-tab = &quot;ctrl+t&quot;
+close-tab = &quot;ctrl+w&quot;
+next-tab = &quot;ctrl+tab&quot;
+prev-tab = &quot;ctrl+shift+tab&quot;
+paste = &quot;ctrl+v&quot;
+copy = &quot;ctrl+shift+c&quot;
+open-palette = &quot;ctrl+p&quot;
+ask-ai = &quot;ctrl+k&quot;
+settings = &quot;ctrl+,&quot;
+```
+
+macOS (defaults):
+
+```toml
+[keybindings]
+new-tab = &quot;cmd+t&quot;
+close-tab = &quot;cmd+w&quot;
+next-tab = &quot;ctrl+tab&quot;
+prev-tab = &quot;ctrl+shift+tab&quot;
+paste = &quot;cmd+v&quot;
+copy = &quot;cmd+c&quot;
+open-palette = &quot;cmd+p&quot;
+ask-ai = &quot;cmd+k&quot;
+settings = &quot;cmd+,&quot;
+```
+
+## Fixed Shortcuts
+
+These shortcuts are hardcoded and cannot be changed via `settings.toml`.
+
+### Split Pane
+
+| Action | macOS | Other |
+|---|---|---|
+| Open split pane | `Cmd+Shift+T` | `Ctrl+Shift+T` |
+| Close split pane | `Cmd+Shift+W` | `Ctrl+Shift+W` |
+
+When a split pane is open, `close-tab` (`Cmd+W` / `Ctrl+W`) closes the **active pane** instead of the entire tab.
+
+The divider between panes is draggable. Hover over it to see a resize cursor, then click and drag to adjust the split ratio. Grids resize when you release the mouse. The ratio is clamped to 10%–90%.
+
+### Font Size
+
+| Action | macOS | Other |
+|---|---|---|
+| Increase font size | `Cmd+=` or `Cmd++` | `Ctrl+=` or `Ctrl++` |
+| Decrease font size | `Cmd+-` | `Ctrl+-` |
+| Reset font size | `Cmd+0` | `Ctrl+0` |
+
+Font size steps by 2 within 14–20 (odd sizes snap to the next even step). Reset returns to the size that was configured at app start.
+
+### Block input
+
+| Action | Key |
+|---|---|
+| Run the command in the input bar | `Enter` |
+| Previous / next history entry | `Up` / `Down` |
+| Complete the word at the end / cycle back | `Tab` / `Shift+Tab` |
+| Clear the input (or copy the selection, when text is selected) | `Ctrl+C` |
+| Clear all blocks | `Ctrl+L` |
+
+`Tab` completes the last word of the input. Nova does this itself, not the shell: the first word completes to commands from your `PATH` and history, any other word (or one with a `/`) to files and folders relative to the pane's current directory (`~` is your home). One match is inserted outright (folders end in `/`, everything else gets a trailing space); several matches first fill in their common prefix, then each further `Tab` cycles through them (`Shift+Tab` goes backwards). Names with spaces are quoted. Shell-specific completions (git branches, PowerShell cmdlets, option flags) are not available.
+
+While a command runs, every key goes to that program (`Ctrl+C` interrupts it).
+Full-screen programs (vim, htop, less) take over the whole pane until they exit.
+
+### Search
+
+| Action | macOS | Other |
+|---|---|---|
+| Open search bar | `Cmd+F` | `Ctrl+F` |
+| Next match | `Enter` | `Enter` |
+| Previous match | `Shift+Enter` | `Shift+Enter` |
+| Close search | `Escape` | `Escape` |
+
+Search is case-insensitive and covers the output of every block in the active pane (or the scrollback and visible rows in classic mode). The current match is highlighted in yellow; other matches are dimly highlighted. The match count is shown in the search bar (e.g. `3 / 15`). Searching closes automatically when switching tabs.
+
+## Notes
+
+- If `open-palette`, `ask-ai` or `settings` is invalid, Nova falls back to its default (`ctrl+p`, `ctrl+k`, `ctrl+,`; `cmd` on macOS).
+- Configs still using the old default palette binding (`ctrl+k` / `cmd+k`) or the old default accent (`#3ECF8E`) are migrated to the new defaults on startup."></span>
+</div>
+
+<h2 id="binding-syntax"><a class="anchor" href="#binding-syntax">#</a>Binding Syntax</h2>
+<p>Bindings are strings like <code>ctrl+t</code> or <code>ctrl+shift+tab</code>.</p>
+<p>Supported modifiers:</p>
+<ul>
+<li><code>ctrl</code></li>
+<li><code>shift</code></li>
+<li><code>alt</code> (alias: <code>option</code>)</li>
+<li><code>cmd</code> (aliases: <code>command</code>, <code>meta</code>, <code>super</code>)</li>
+</ul>
+<p>Supported keys:</p>
+<ul>
+<li><code>tab</code></li>
+<li>Any single character (like <code>t</code>, <code>w</code>, <code>c</code>, <code>v</code>, <code>k</code>)</li>
+</ul>
+<p>Examples:</p>
+<div class="code"><div class="code-head"><span>toml</span><button class="copy-btn" data-copy=""><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div><pre><code data-lang="toml">[keybindings]
+new-tab = "ctrl+t"
+close-tab = "ctrl+w"
+next-tab = "ctrl+tab"
+prev-tab = "ctrl+shift+tab"
+copy = "ctrl+shift+c"
+paste = "ctrl+v"
+open-palette = "ctrl+p"
+ask-ai = "ctrl+k"
+settings = "ctrl+,"</code></pre></div>
+<h2 id="actions"><a class="anchor" href="#actions">#</a>Actions</h2>
+<p>These keys live under <code>[keybindings]</code> in <code>settings.toml</code>:</p>
+<ul>
+<li><code>new-tab</code></li>
+<li><code>close-tab</code></li>
+<li><code>next-tab</code></li>
+<li><code>prev-tab</code></li>
+<li><code>copy</code></li>
+<li><code>paste</code></li>
+<li><code>open-palette</code></li>
+<li><code>ask-ai</code></li>
+<li><code>settings</code></li>
+</ul>
+<h2 id="defaults"><a class="anchor" href="#defaults">#</a>Defaults</h2>
+<p>Defaults differ on macOS vs other platforms.</p>
+<p>Non-macOS (defaults):</p>
+<div class="code"><div class="code-head"><span>toml</span><button class="copy-btn" data-copy=""><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div><pre><code data-lang="toml">[keybindings]
+new-tab = "ctrl+t"
+close-tab = "ctrl+w"
+next-tab = "ctrl+tab"
+prev-tab = "ctrl+shift+tab"
+paste = "ctrl+v"
+copy = "ctrl+shift+c"
+open-palette = "ctrl+p"
+ask-ai = "ctrl+k"
+settings = "ctrl+,"</code></pre></div>
+<p>macOS (defaults):</p>
+<div class="code"><div class="code-head"><span>toml</span><button class="copy-btn" data-copy=""><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div><pre><code data-lang="toml">[keybindings]
+new-tab = "cmd+t"
+close-tab = "cmd+w"
+next-tab = "ctrl+tab"
+prev-tab = "ctrl+shift+tab"
+paste = "cmd+v"
+copy = "cmd+c"
+open-palette = "cmd+p"
+ask-ai = "cmd+k"
+settings = "cmd+,"</code></pre></div>
+<h2 id="fixed-shortcuts"><a class="anchor" href="#fixed-shortcuts">#</a>Fixed Shortcuts</h2>
+<p>These shortcuts are hardcoded and cannot be changed via <code>settings.toml</code>.</p>
+<h3 id="split-pane"><a class="anchor" href="#split-pane">#</a>Split Pane</h3>
+<div class="table-wrap">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Action</th><th>macOS</th><th>Other</th></tr></thead><tbody><tr><td>Open split pane</td><td><code>Cmd+Shift+T</code></td><td><code>Ctrl+Shift+T</code></td></tr><tr><td>Close split pane</td><td><code>Cmd+Shift+W</code></td><td><code>Ctrl+Shift+W</code></td></tr></tbody></table></div>
+<p>When a split pane is open, <code>close-tab</code> (<code>Cmd+W</code> / <code>Ctrl+W</code>) closes the <strong>active pane</strong> instead of the entire tab.</p>
+<p>The divider between panes is draggable. Hover over it to see a resize cursor, then click and drag to adjust the split ratio. Grids resize when you release the mouse. The ratio is clamped to 10%–90%.</p>
+<h3 id="font-size"><a class="anchor" href="#font-size">#</a>Font Size</h3>
+<div class="table-wrap">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Action</th><th>macOS</th><th>Other</th></tr></thead><tbody><tr><td>Increase font size</td><td><code>Cmd+=</code> or <code>Cmd++</code></td><td><code>Ctrl+=</code> or <code>Ctrl++</code></td></tr><tr><td>Decrease font size</td><td><code>Cmd+-</code></td><td><code>Ctrl+-</code></td></tr><tr><td>Reset font size</td><td><code>Cmd+0</code></td><td><code>Ctrl+0</code></td></tr></tbody></table></div>
+<p>Font size steps by 2 within 14–20 (odd sizes snap to the next even step). Reset returns to the size that was configured at app start.</p>
+<h3 id="block-input"><a class="anchor" href="#block-input">#</a>Block input</h3>
+<div class="table-wrap">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Action</th><th>Key</th></tr></thead><tbody><tr><td>Run the command in the input bar</td><td><code>Enter</code></td></tr><tr><td>Previous / next history entry</td><td><code>Up</code> / <code>Down</code></td></tr><tr><td>Complete the word at the end / cycle back</td><td><code>Tab</code> / <code>Shift+Tab</code></td></tr><tr><td>Clear the input (or copy the selection, when text is selected)</td><td><code>Ctrl+C</code></td></tr><tr><td>Clear all blocks</td><td><code>Ctrl+L</code></td></tr></tbody></table></div>
+<p><code>Tab</code> completes the last word of the input. Nova does this itself, not the shell: the first word completes to commands from your <code>PATH</code> and history, any other word (or one with a <code>/</code>) to files and folders relative to the pane’s current directory (<code>~</code> is your home). One match is inserted outright (folders end in <code>/</code>, everything else gets a trailing space); several matches first fill in their common prefix, then each further <code>Tab</code> cycles through them (<code>Shift+Tab</code> goes backwards). Names with spaces are quoted. Shell-specific completions (git branches, PowerShell cmdlets, option flags) are not available.</p>
+<p>While a command runs, every key goes to that program (<code>Ctrl+C</code> interrupts it).
+Full-screen programs (vim, htop, less) take over the whole pane until they exit.</p>
+<h3 id="search"><a class="anchor" href="#search">#</a>Search</h3>
+<div class="table-wrap">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Action</th><th>macOS</th><th>Other</th></tr></thead><tbody><tr><td>Open search bar</td><td><code>Cmd+F</code></td><td><code>Ctrl+F</code></td></tr><tr><td>Next match</td><td><code>Enter</code></td><td><code>Enter</code></td></tr><tr><td>Previous match</td><td><code>Shift+Enter</code></td><td><code>Shift+Enter</code></td></tr><tr><td>Close search</td><td><code>Escape</code></td><td><code>Escape</code></td></tr></tbody></table></div>
+<p>Search is case-insensitive and covers the output of every block in the active pane (or the scrollback and visible rows in classic mode). The current match is highlighted in yellow; other matches are dimly highlighted. The match count is shown in the search bar (e.g. <code>3 / 15</code>). Searching closes automatically when switching tabs.</p>
+<h2 id="notes"><a class="anchor" href="#notes">#</a>Notes</h2>
+<ul>
+<li>If <code>open-palette</code>, <code>ask-ai</code> or <code>settings</code> is invalid, Nova falls back to its default (<code>ctrl+p</code>, <code>ctrl+k</code>, <code>ctrl+,</code>; <code>cmd</code> on macOS).</li>
+<li>Configs still using the old default palette binding (<code>ctrl+k</code> / <code>cmd+k</code>) or the old default accent (<code>#3ECF8E</code>) are migrated to the new defaults on startup.</li>
+</ul>
+
+<nav class="pager" aria-label="Pagination">
+<a href="/docs/configuration/"><small>← Previous</small><b>Configuration</b></a>
+<a class="next" href="/docs/ai/"><small>Next →</small><b>AI</b></a>
+</nav>
+<div class="edit-row"><a href="https://github.com/pmqueiroz/nova/blob/main/docs/src/content/docs/keybindings.md">docs/src/content/docs/keybindings.md</a><span>Updated with release 1.1.0</span></div>
+</article>
+</main>
+
+<aside class="toc" aria-label="On this page">
+<h4>On this page</h4>
+<nav><a href="#binding-syntax">Binding Syntax</a><a href="#actions">Actions</a><a href="#defaults">Defaults</a><a href="#fixed-shortcuts">Fixed Shortcuts</a><a class="sub" href="#split-pane">Split Pane</a><a class="sub" href="#font-size">Font Size</a><a class="sub" href="#block-input">Block input</a><a class="sub" href="#search">Search</a><a href="#notes">Notes</a></nav>
+</aside>
+</div>
+
+<footer class="site-footer full">
+<div class="wrap">
+<a class="logo" href="/"><svg aria-hidden="true" viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="7"><line x1="50" y1="50" x2="50" y2="10"></line><line x1="50" y1="50" x2="50" y2="90"></line><line x1="50" y1="50" x2="10" y2="50"></line><line x1="50" y1="50" x2="90" y2="50"></line></g><circle cx="50" cy="50" r="13" fill="currentColor"></circle></svg><b>nova</b></a>
+<nav class="foot-links"><a href="/docs/">Docs</a><a href="https://github.com/pmqueiroz/nova">GitHub</a><a href="https://github.com/pmqueiroz/nova/releases">Releases</a><a href="https://github.com/sponsors/pmqueiroz">Sponsors</a></nav>
+<p class="foot-meta">MIT licensed · made by pmqueiroz</p>
+</div>
+</footer>
+<div class="scrim" id="search" hidden="">
+<div class="sheet" role="dialog" aria-label="Search docs">
+<div class="sheet-head"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="m10.5 10.5 3 3"></path></svg><input class="sheet-input" placeholder="Search docs" aria-label="Search docs"><span class="kbd">esc</span></div>
+<div class="sheet-list"></div>
+<div class="sheet-foot"><span><span class="kbd">↑</span><span class="kbd">↓</span>navigate</span><span><span class="kbd">↵</span>open</span></div>
+</div>
+</div>
+
+<script type="module" src="/_astro/Base.astro_astro_type_script_index_0_lang.DdGk6VXI.js"></script>
+</body>
+</html>

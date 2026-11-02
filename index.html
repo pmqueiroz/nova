@@ -1,1147 +1,248 @@
-<!--
-  ---------------------------------------------------------------
-  docmd : the zero-config documentation engine.
-  @website https://docmd.io
-  [docmd-source] - Please do not remove this header.
-  ---------------------------------------------------------------
--->
-
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="generator" content="docmd v0.9.8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <script>
-      var root = "./";
-      if (root && !root.endsWith('/')) root += '/';
-      if (root === '') root = './';
-      window.DOCMD_ROOT = root;
-
-      window.DOCMD_SITE_ROOT = "/";
-
-      window.DOCMD_APPEARANCE = "dark";
-      window.DOCMD_VERSION_ROOT = "/";
-      window.DOCMD_BASE = "/";
-      window.DOCMD_LOCALE = "";
-      window.DOCMD_DEFAULT_LOCALE = "";
-    </script>
-    <script>/**
- * --------------------------------------------------------------------
- * docmd : the zero-config documentation engine.
- *
- * @package     @docmd/core (and ecosystem)
- * @website     https://docmd.io
- * @repository  https://github.com/docmd-io/docmd
- * @license     MIT
- * @copyright   Copyright (c) 2025-present docmd.io
- *
- * [docmd-source] - Please do not remove this header.
- * --------------------------------------------------------------------
- */
-
-(function () {
-  try {
-    // 1. Determine Theme
-    //
-    // Resolve from three sources, in priority order:
-    //   1. localStorage explicit user choice (light / dark)
-    //   2. window.DOCMD_APPEARANCE  (current canonical name, set by EJS templates)
-    //   3. window.DOCMD_DEFAULT_MODE (legacy alias kept for pre-0.8.7 outputs)
-    //   4. 'light' as the final fallback
-    //
-    // Note: localStorage is only honoured when it holds an explicit
-    // 'light' or 'dark' value. A stored 'system' value (from a prior
-    // session where the user picked "follow system") must NOT win over
-    // a freshly resolved config value — the resolved value will itself
-    // be 'system' in that case and the OS preference check below takes
-    // over, so this is a no-op for the in-session behaviour but keeps
-    // any future storage migration simple.
-    var localValue = localStorage.getItem('docmd-theme');
-    var configValue = window.DOCMD_APPEARANCE
-      || window.DOCMD_DEFAULT_MODE
-      || 'light';
-    var theme = (localValue === 'light' || localValue === 'dark')
-      ? localValue
-      : configValue;
-
-    if (theme === 'system') {
-      theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-
-    // 2. Apply to Root
-    document.documentElement.setAttribute('data-theme', theme);
-
-    // 3. Highlight.js Toggle Strategy
-    var lightLink = document.getElementById('hljs-light');
-    var darkLink = document.getElementById('hljs-dark');
-
-    if (lightLink && darkLink) {
-      if (theme === 'dark') {
-        lightLink.disabled = true;
-        darkLink.disabled = false;
-      } else {
-        lightLink.disabled = false;
-        darkLink.disabled = true;
-      }
-    }
-
-    document.documentElement.style.visibility = "visible";
-  } catch (e) {
-    document.documentElement.style.visibility = "visible";
-    console.error('Theme init failed', e);
-  }
-})();</script>
-    <style>
-      html {
-        visibility: hidden;
-      }
-    </style>
-    <title>Nova Documentation - A terminal that burns bright</title>
-    
-    
-
-    <link id="site-favicon" rel="icon" href="./assets/favicon.ico?v=mvyjccgh">
-    <link rel="stylesheet" href="./assets/css/docmd-main.css?v=mvyjccgh">
-    
-    <link rel="stylesheet" href="./assets/css/docmd-highlight-light.css?v=mvyjccgh" id="hljs-light" disabled>
-    <link rel="stylesheet" href="./assets/css/docmd-highlight-dark.css?v=mvyjccgh" id="hljs-dark" >
-    
-    
-<meta name="description" content="Deep-dive docs for Nova users and contributors.">
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nova: a terminal where every command is a block</title>
+<meta name="description" content="Nova is a free, open-source, GPU-accelerated terminal for Windows, macOS and Linux. Every command and its output is a block you can select, search and copy.">
 <link rel="canonical" href="https://nova.pmqueiroz.dev/">
-<meta property="og:title" content="Nova Documentation - A terminal that burns bright">
-<meta property="og:description" content="Deep-dive docs for Nova users and contributors.">
-<meta property="og:url" content="https://nova.pmqueiroz.dev/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
 <meta property="og:type" content="website">
+<meta property="og:title" content="Nova: a terminal where every command is a block">
+<meta property="og:description" content="Nova is a free, open-source, GPU-accelerated terminal for Windows, macOS and Linux. Every command and its output is a block you can select, search and copy.">
+<meta property="og:url" content="https://nova.pmqueiroz.dev/">
+<meta property="og:image" content="https://nova.pmqueiroz.dev/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Nova Documentation - A terminal that burns bright">
-<meta name="twitter:description" content="Deep-dive docs for Nova users and contributors.">
-<script type="application/ld+json">
-{"@context":"https://schema.org","@type":"WebSite","name":"A terminal that burns bright","url":"https://nova.pmqueiroz.dev/","potentialAction":{"@type":"SearchAction","target":"https://nova.pmqueiroz.dev/?q={search_term_string}","query-input":"required name=search_term_string"}}
+<script>
+(()=>{try{const t=new URLSearchParams(location.search).get('theme')||localStorage.getItem('nova-site-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}})();
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-X9WTDL262N"></script>
+<script>
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-X9WTDL262N');
 </script>
 
+<link rel="stylesheet" href="/_astro/CopyButton.BKNGvCRr.css">
+<link rel="stylesheet" href="/_astro/index.Bn4uq1rw.css"></head>
+<body>
 
-    <!-- GA4 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id="G-X9WTDL262N""></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', "G-X9WTDL262N");
-    </script>
+<header class="site-header">
+<div class="wrap">
+<a class="logo" href="#top" aria-label="Nova home"><svg aria-hidden="true" viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="7"><line x1="50" y1="50" x2="50" y2="10"></line><line x1="50" y1="50" x2="50" y2="90"></line><line x1="50" y1="50" x2="10" y2="50"></line><line x1="50" y1="50" x2="90" y2="50"></line></g><circle cx="50" cy="50" r="13" fill="currentColor"></circle></svg><b>nova</b></a>
+<nav class="nav" aria-label="Main"><a href="#features">Features</a><a href="/docs/">Docs</a><a href="#support">Support</a></nav>
+<div class="header-end">
+<a class="btn btn-ghost gh-btn hide-sm" href="https://github.com/pmqueiroz/nova"><svg width="16" height="16" aria-hidden="true" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>GitHub</a>
+<button class="icon-btn" data-theme-toggle="" aria-label="Toggle theme"><svg class="i-sun" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10" cy="10" r="3.5"></circle><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.3 4.3l1.4 1.4M14.3 14.3l1.4 1.4M4.3 15.7l1.4-1.4M14.3 5.7l1.4-1.4"></path></svg><svg class="i-moon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M16 12.5A6.5 6.5 0 0 1 7.5 4a6.5 6.5 0 1 0 8.5 8.5z"></path></svg></button>
+<a class="btn btn-primary hide-sm" href="#install">Install</a>
+<button class="icon-btn menu-btn" aria-label="Menu" aria-expanded="false"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 6h14M3 10h14M3 14h14"></path></svg></button>
+</div>
+</div>
+</header>
+<nav class="mobile-nav" aria-label="Mobile"><a href="#features">Features</a><a href="/docs/">Docs</a><a href="#support">Support</a><a href="#install">Install</a><a href="https://github.com/pmqueiroz/nova">GitHub</a></nav>
 
+<main id="top">
+<section class="hero" data-screen-label="Hero">
+<div class="wrap">
+<div class="hero-copy">
+<h1>AI powered terminal</h1>
+<p class="lead"><b>Nova</b> is a GPU-accelerated terminal written in Rust. Each command and its output land in blocks where you can select, search and copy, so the line you need never gets lost in the scroll.</p>
+<div class="hero-ctas">
+<a class="btn btn-primary btn-lg" href="#install">Install Nova</a>
+<a class="btn btn-outline btn-lg" href="https://github.com/pmqueiroz/nova"><svg width="16" height="16" aria-hidden="true" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg>View source</a>
+</div>
+<div class="install">
+<div class="install-head">
+<div class="seg" role="tablist" aria-label="Operating system"><button role="tab" data-os="mac">macOS</button><button role="tab" data-os="win">Windows</button><button role="tab" data-os="linux">Linux</button></div>
+<a href="https://github.com/pmqueiroz/nova/releases/latest">Or download .dmg, .exe, .deb, .rpm, .AppImage →</a>
+</div>
+<div class="cmdline" data-os-panel="mac"><div class="lines"><div>brew install --cask pmqueiroz/tap/nova</div></div><button class="copy-btn" data-copy><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div>
+<div class="cmdline" data-os-panel="win" hidden><div class="lines"><div>scoop bucket add pmqueiroz https://github.com/pmqueiroz/scoop-bucket</div><div>scoop install nova</div></div><button class="copy-btn" data-copy><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div>
+<div class="cmdline" data-os-panel="linux" hidden><div class="lines"><div>brew install pmqueiroz/tap/nova</div><div class="note">On Arch: <code>yay -S nova-bin</code>. apt and dnf in <a href="#install">all install options</a>.</div></div><button class="copy-btn" data-copy><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div>
+</div>
+</div>
+<div class="hero-shot">
+<div class="tw" role="img" aria-label="Nova window with three command blocks; the second one failed and is marked in red.">
+<div class="tw-bar">
+<div class="tw-lights"><i></i><i></i><i></i></div>
+<div class="tw-tabs"><span class="tw-tab on">zsh <small>~/code/nova</small></span><span class="tw-tab">bash</span><span class="tw-tab">pwsh</span></div>
+<div class="tw-actions"><i><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M8 3v10M3 8h10"></path></svg></i><i><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="10" rx="2"></rect><path d="M8 3v10"></path></svg></i></div>
+</div>
+<div class="tw-body no-ts">
+<div class="blk"><div class="cmd"><span><b>cargo</b> build --release</span></div><div class="out">   Compiling nova v1.0.0 (~/code/nova)
+    Finished `release` profile [optimized] target(s) in 41.2s</div></div>
+<div class="blk err"><div class="cmd"><span><b>gti</b> push origin main</span><span class="grow"></span><span class="exit">exit 127</span></div><div class="out">zsh: command not found: gti</div></div>
+<div class="ai-sug"><span class="ai-h"><svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2l1.6 4.8L16.4 8.4 11.6 10 10 14.8 8.4 10 3.6 8.4l4.8-1.6z"></path></svg>Looks like a typo. Did you mean:</span><div class="run-card"><span class="sig">❯</span><code>git push origin main</code><span class="btn btn-primary">Run<span class="kbd run-key">↵</span></span></div></div>
+</div>
+<div class="tw-input"><span class="pr"><span>~/code/nova</span><b>❯</b></span><span class="typed" id="typed"></span><span class="caret"></span><span class="ask"><span class="keys"><span class="kbd" data-mod="">⌘</span><span class="kbd">K</span></span>Ask AI</span></div>
+</div>
+</div>
+</div>
+</section>
 
+<section id="features" data-screen-label="Features">
+<div class="wrap">
+<div class="sec-head">
+<div class="eyebrow"><b>Features</b></div>
+<h2>Built around the block.</h2>
+<p class="lead">Scrollback is a wall of text. Nova splits it at every prompt, so each command, its output and its exit status stay together.</p>
+</div>
+<div class="feat-rows">
 
-<link rel="stylesheet" href="./assets/css/docmd-git.css?v=mvyjccgh" >
-<link rel="stylesheet" href="./assets/css/docmd-openapi.css?v=mvyjccgh" >
-<link rel="stylesheet" href="./assets/css/docmd-ai.css?v=mvyjccgh" >
-
-    
-    
-  </head>
-  <body
-    class="sidebar-collapsible"
-    data-default-collapsed="false"
-    data-copy-code-enabled="true" data-spa-enabled="true" data-source-file="content/index.md">
-
-    <a href="#main-content" class="skip-link">Skip to main content</a>
-
-    
-    
-
-    
-
-    
-    
-      <aside class="sidebar">
-        <div class="sidebar-header">
-          
-<a href="./" class="logo-link">
-              <img
-                src="./assets/images/nova-logo-dark.png"
-                alt="Nova Logo" class="logo logo-light light-logo" >
-              <img
-                src="./assets/images/nova-logo-light.png"
-                alt="Nova Logo" class="logo logo-dark dark-logo" >
-            </a>
-          
-          <span class="mobile-view sidebar-menu-button float-right">
-            
-<svg class="lucide-icon icon-menu " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-menu"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M4 5h16" />
-  <path d="M4 12h16" />
-  <path d="M4 19h16" />
-</svg>
-
-          </span>
-        </div>
-        <div class="sidebar-top-group">
-          
-          
-          
-            <div class="sidebar-options-wrapper">
-              
-
-
-<div class="docmd-options-menu">
-    
-    <button class="docmd-search-trigger" aria-label="Search">
-        
-<svg class="lucide-icon icon-search " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-search"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="m21 21-4.34-4.34" />
-  <circle cx="11" cy="11" r="8" />
-</svg>
-
-        <span class="search-label">Search</span>
-        <span class="search-keys"><kbd class="docmd-kbd">⌘</kbd><kbd class="docmd-kbd">K</kbd></span>
-    </button>
-    
-
-    
-
-    
-
-    
-    <button class="theme-toggle-button" aria-label="Toggle theme" title="Toggle theme">
-        
-<svg class="lucide-icon icon-sun icon-sun" width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-sun"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <circle cx="12" cy="12" r="4" />
-  <path d="M12 2v2" />
-  <path d="M12 20v2" />
-  <path d="m4.93 4.93 1.41 1.41" />
-  <path d="m17.66 17.66 1.41 1.41" />
-  <path d="M2 12h2" />
-  <path d="M20 12h2" />
-  <path d="m6.34 17.66-1.41 1.41" />
-  <path d="m19.07 4.93-1.41 1.41" />
-</svg>
- 
-<svg class="lucide-icon icon-moon icon-moon" width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-moon"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" />
-</svg>
-
-    </button>
-    
-
-    
-
-    
+<div class="feat-row">
+<div class="feat-copy">
+<div class="eyebrow"><b>01</b><span>Command blocks</span></div>
+<h3>Select, search and copy one command at a time.</h3>
+<p class="body">Each command and its output is a card. Click to select it, copy just the command or just the output, or search inside it. Failed commands are marked in red with their exit code.</p>
+<ul><li>Full-screen apps like vim and htop take over the pane until they exit.</li><li>Optional timestamps show when each command ran.</li></ul>
+</div>
+<div class="stage">
+<div class="tw">
+<div class="tw-body no-ts">
+<div class="blk" style="animation:none"><div class="cmd"><span><b>ls</b> src</span></div><div class="out">ai/  blocks/  pty/  render/  settings/  main.rs</div></div>
+<div class="blk sel" style="animation:none"><div class="cmd"><span><b>rg</b> -n "fn render" src</span><div class="blk-tools"><span><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><b>Output</b></span><span><b>Command</b></span><span><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="m10.5 10.5 3 3"></path></svg><b>Find</b></span></div></div><div class="out">src/render/mod.rs:12:pub fn <mark>render</mark>(frame: &amp;mut Frame) {
+src/blocks/view.rs:48:fn <mark>render</mark>_block(b: &amp;Block) -&gt; Element {
+src/blocks/view.rs:96:fn <mark>render</mark>_output(lines: &amp;[Line]) {</div></div>
+<div class="findbar"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="m10.5 10.5 3 3"></path></svg><span class="grow">render</span><small>3 of 3</small></div>
+</div>
+</div>
+</div>
 </div>
 
-            </div>
-          
-          
-          
-        </div>
-        
+<div class="feat-row flip">
+<div class="feat-copy">
+<div class="eyebrow"><b>02</b><span>Ask AI</span></div>
+<h3>Fix the last failed command without leaving the prompt.</h3>
+<p class="body">Describe what you want in plain words and get a command back. Ask it to fix the command that just failed, or explain the output you're looking at. Replies that contain a command get a Run button.</p>
+<ul><li>Works with Anthropic or OpenAI, using your own API key.</li><li>Off until you set a key. Nothing is sent otherwise.</li></ul>
+<div class="shortcut"><span class="keys"><span class="kbd" data-mod="">⌘</span><span class="kbd">K</span></span>opens the Ask AI sheet</div>
+</div>
+<div class="stage">
+<div class="stage-sheet tw bare">
+<div class="mock-sheet">
+<div class="ms-head"><svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2l1.6 4.8L16.4 8.4 11.6 10 10 14.8 8.4 10 3.6 8.4l4.8-1.6z"></path><path d="M15.5 13l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"></path></svg><span class="grow">Fix <code>git pushh origin main</code></span><span class="kbd">esc</span></div>
+<div class="ms-body">
+<div class="ms-chips"><span class="on">Fix last command</span><span>Explain output</span><span>Suggest a command</span></div>
+<p><code>pushh</code> is a typo. Git suggested <code>push</code>, which is what you meant:</p>
+<div class="run-card"><span class="sig">❯</span><code>git push origin main</code><span class="btn btn-primary">Run<span class="kbd run-key">↵</span></span></div>
+</div>
+<div class="ms-foot"><span>anthropic · claude-haiku-4-5</span><span class="grow"></span><span><span class="kbd">↵</span>run</span><span><span class="kbd" data-mod="">⌘</span><span class="kbd">C</span>copy</span></div>
+</div>
+</div>
+</div>
+</div>
 
-<nav class="sidebar-nav" aria-label="Main Navigation">
-  <ul>
-    
-      <li class="active" >
-      
-        <a href="./" class="active "
-          >
-           
-<svg class="lucide-icon icon-home " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-house"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8" />
-  <path d="M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-</svg>
+<div class="feat-row">
+<div class="feat-copy">
+<div class="eyebrow"><b>03</b><span>Command palette</span></div>
+<h3>Every action, two keys away.</h3>
+<p class="body">New tab, split pane, find, Ask AI, text size, timestamps, settings. Or open a new tab with a specific shell. Start typing and the list filters as you go.</p>
+<div class="shortcut"><span class="keys"><span class="kbd" data-mod="">⌘</span><span class="kbd">P</span></span>opens the palette</div>
+</div>
+<div class="stage">
+<div class="stage-sheet tw bare">
+<div class="mock-sheet">
+<div class="ms-head palette-head"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="9" cy="9" r="5.5"></circle><path d="m13 13 4 4"></path></svg><span class="grow mono">new<span class="caret"></span></span></div>
+<div class="sheet-list">
+<div class="sheet-item is-sel"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M8 3v10M3 8h10"></path></svg><span class="lbl"><span><mark>New</mark> tab</span></span><span class="keys"><span class="kbd" data-mod="">⌘</span><span class="kbd">T</span></span></div><div class="sheet-item"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4.5 6 7.5 3 10.5M8 11h5"></path></svg><span class="lbl"><span><mark>New</mark> tab with zsh</span></span></div><div class="sheet-item"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4.5 6 7.5 3 10.5M8 11h5"></path></svg><span class="lbl"><span><mark>New</mark> tab with bash</span></span></div><div class="sheet-item"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M3 4.5 6 7.5 3 10.5M8 11h5"></path></svg><span class="lbl"><span><mark>New</mark> tab with PowerShell</span></span></div><div class="sheet-item"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2" y="3" width="12" height="10" rx="2"></rect><path d="M8 3v10"></path></svg><span class="lbl"><span>Split pane (<mark>new</mark> shell)</span></span></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
 
-          
-          <span class="nav-item-title">
-            Introduction
-            </span>
-          
-          
-        </a>
-        
+<div class="cards">
+<div class="card wide">
+<div class="card-vis"><div class="mini-tabs tw bare"><div class="tw-tabs"><span class="tw-tab on">pwsh</span><span class="tw-tab">cmd</span><span class="tw-tab">Git Bash</span><span class="tw-tab">wsl</span></div><div class="mini-split"><i><b>❯</b> npm run dev</i><i><b>❯</b> cargo test</i></div></div></div>
+<div class="card-copy"><h3>Tabs and split panes</h3><p>Several shells in one window. Pick PowerShell, cmd, bash, zsh or Git Bash per tab, and split any pane in two.</p></div>
+</div>
+<div class="card wide">
+<div class="card-vis code-vis"><div class="code"><div class="code-head"><span>settings.toml</span></div><pre><code data-lang="toml">[theme.colors]
+accent = &quot;#82BAFF&quot;
 
-        
-      </li>
-    
-      <li class="expanded nav-group" >
-      
-        <span class="nav-label nav-group">
-           
-<svg class="lucide-icon icon-rocket " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-rocket"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
-  <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09" />
-  <path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z" />
-  <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05" />
-</svg>
+[theme.cursor]
+style = &quot;underline&quot;
+blink = true</code></pre></div></div>
+<div class="card-copy"><h3>One TOML file</h3><p>Theme, accent color, cursor, keybindings and AI all live in <code>settings.toml</code>. Edit it by hand or from the settings sheet.</p></div>
+</div>
+<div class="card">
+<div class="card-vis"><div class="specs"><div><b>wgpu</b><small>GPU rendering</small></div><div><b>Rust</b><small>with iced</small></div><div><b>ANSI / VTE</b><small>full escape codes</small></div><div><b>24-bit</b><small>256-color + truecolor</small></div><span class="truecolor"></span></div></div>
+<div class="card-copy"><h3>Fast rendering</h3><p>Drawn on the GPU, with full ANSI and VTE support so colors and cursor movement look the way the program meant.</p></div>
+</div>
+<div class="card">
+<div class="card-vis"><div class="lig"><div class="row"><span>=&gt;</span><span>!=</span><span>&gt;=</span><span>-&gt;</span></div><div class="row"><span>|&gt;</span><span>===</span><span>::</span><span>&lt;=</span></div><small>Fira Code Nerd Font, built in</small></div></div>
+<div class="card-copy"><h3>Built-in font</h3><p>Ships with Fira Code Nerd Font, so ligatures and prompt icons work with no setup.</p></div>
+</div>
+<div class="card">
+<div class="card-vis"><div class="upd-bar tw"><div class="tw-bar"><div class="tw-lights"><i></i><i></i><i></i></div><span class="tw-title">zsh</span><span class="upd-btn"><svg aria-hidden="true" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v7M3 6l3 3 3-3"></path></svg>Update</span></div><div class="upd-note"><b>✓</b> checksum verified</div></div></div>
+<div class="card-copy"><h3>Updates itself</h3><p>Checks GitHub once a day. Updates through your package manager or in place, verified by checksum.</p></div>
+</div>
+</div>
+</div>
+</section>
 
-          
-          <span class="nav-item-title">
-            Getting Started
-          </span>
-          
-        </span>
-        
+<section id="install" class="install-sec" data-screen-label="Install">
+<div class="wrap install-grid">
+<div class="sec-head">
+<div class="eyebrow"><b>Install</b></div>
+<h2>Installs the way you install everything else.</h2>
+<p class="lead">Windows, macOS on Intel and Apple Silicon, and Linux. Use your package manager or grab a build from GitHub Releases.</p>
+<ul class="pm-list"><li>Homebrew</li><li>Scoop</li><li>winget</li><li>AUR</li><li>apt</li><li>dnf</li></ul>
+</div>
+<div class="inst-card">
+<div class="seg" role="tablist" aria-label="Operating system"><button role="tab" data-os="mac">macOS</button><button role="tab" data-os="win">Windows</button><button role="tab" data-os="linux">Linux</button></div>
+<div data-os-panel="mac">
+<div class="method"><div class="method-h">Homebrew <small>also puts <code>nova</code> on your PATH</small></div><div class="cmdline"><div class="lines"><div>brew install --cask pmqueiroz/tap/nova</div></div><button class="copy-btn" data-copy><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div></div>
+<div class="method"><div class="method-h">Download</div><div class="dl-row"><a class="btn btn-outline" href="https://github.com/pmqueiroz/nova/releases/latest">.dmg Apple Silicon</a><a class="btn btn-outline" href="https://github.com/pmqueiroz/nova/releases/latest">.dmg Intel</a></div></div>
+<div class="callout warn"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M10 3 18 17H2z"></path><path d="M10 8.5v3.5M10 14.5v.01"></path></svg><div><b>“Nova is damaged and can't be opened”</b>Nova isn't notarized yet. Run this once after installing:<div class="cmdline"><div class="lines"><div>xattr -cr /Applications/Nova.app</div></div><button class="copy-btn" data-copy><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg></button></div></div></div>
+</div>
+<div data-os-panel="win" hidden>
+<div class="method"><div class="method-h">Scoop</div><div class="cmdline"><div class="lines"><div>scoop bucket add pmqueiroz https://github.com/pmqueiroz/scoop-bucket</div><div>scoop install nova</div></div><button class="copy-btn" data-copy><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div></div>
+<div class="method"><div class="method-h">winget</div><div class="cmdline"><div class="lines"><div>winget install pmqueiroz.Nova</div></div><button class="copy-btn" data-copy><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div></div>
+<div class="method"><div class="method-h">Download</div><div class="dl-row"><a class="btn btn-outline" href="https://github.com/pmqueiroz/nova/releases/latest">.exe installer</a><a class="btn btn-outline" href="https://github.com/pmqueiroz/nova/releases/latest">portable .zip</a></div></div>
+</div>
+<div data-os-panel="linux" hidden>
+<div class="method"><div class="method-h">Homebrew</div><div class="cmdline"><div class="lines"><div>brew install pmqueiroz/tap/nova</div></div><button class="copy-btn" data-copy><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div></div>
+<div class="method"><div class="method-h">AUR <small>Arch Linux</small></div><div class="cmdline"><div class="lines"><div>yay -S nova-bin</div></div><button class="copy-btn" data-copy><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div></div>
+<div class="method"><div class="method-h">apt and dnf <small>Debian, Ubuntu, Fedora, RHEL</small></div><p class="body">Repository setup takes three commands. See <a href="/docs/installation/#apt-debianubuntu">Installation</a> in the docs.</p></div>
+<div class="method"><div class="method-h">Download</div><div class="dl-row"><a class="btn btn-outline" href="https://github.com/pmqueiroz/nova/releases/latest">.deb</a><a class="btn btn-outline" href="https://github.com/pmqueiroz/nova/releases/latest">.rpm</a><a class="btn btn-outline" href="https://github.com/pmqueiroz/nova/releases/latest">.AppImage</a></div></div>
+</div>
+</div>
+</div>
+</section>
 
-        
-          <ul class="submenu">
-            
-      <li class="" >
-      
-        <a href="./installation/" class=" "
-          >
-           
-<svg class="lucide-icon icon-download " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-download"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M12 15V3" />
-  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-  <path d="m7 10 5 5 5-5" />
-</svg>
+<section id="support" data-screen-label="Support">
+<div class="wrap support-grid">
+<div class="sec-head">
+<div class="eyebrow"><b>Support</b></div>
+<h2>Free forever. Kept alive by the people who use it.</h2>
+<p class="lead">Nova has no paid tier and no investors. It's built and maintained by one developer, <a href="https://github.com/pmqueiroz">pmqueiroz</a>.</p>
+</div>
+<div>
+<div class="sponsor">
+<div class="sponsor-top"><span class="sponsor-ic"><svg aria-hidden="true" viewBox="0 0 20 20" fill="currentColor"><path d="M10 17s-7-4.35-7-9.5A3.5 3.5 0 0 1 10 5.5a3.5 3.5 0 0 1 7 2C17 12.65 10 17 10 17z"></path></svg></span><div><h3>GitHub Sponsors</h3><p>Monthly or one-time</p></div></div>
+<p>Sponsorships pay for maintenance time and, eventually, a signed and notarized macOS build. GitHub takes no fees on sponsorships from personal accounts.</p>
+<a class="btn btn-primary" href="https://github.com/sponsors/pmqueiroz">Sponsor on GitHub</a>
+</div>
+<div class="alt-links">
+<a href="https://github.com/pmqueiroz/nova"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="m8 1.5 2 4.2 4.5.6-3.3 3.1.8 4.5L8 11.7l-4 2.2.8-4.5L1.5 6.3 6 5.7z"></path></svg>Star the repo<small>Helps others find it</small></a>
+<a href="https://github.com/pmqueiroz/nova/issues"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="8" cy="8" r="6"></circle><path d="M8 5v3.5M8 11v.01"></path></svg>Report a bug<small>Open an issue</small></a>
+<a href="https://github.com/pmqueiroz/nova/blob/main/CONTRIBUTING.md"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 4 2 8l3.5 4M10.5 4 14 8l-3.5 4"></path></svg>Contribute<small>Read the guide</small></a>
+</div>
+</div>
+</div>
+</section>
+</main>
 
-          
-          <span class="nav-item-title">
-            Installation
-            </span>
-          
-          
-        </a>
-        
-
-        
-      </li>
-    
-      <li class="" >
-      
-        <a href="./quickstart/" class=" "
-          >
-           
-<svg class="lucide-icon icon-sparkles " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-sparkles"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" />
-  <path d="M20 2v4" />
-  <path d="M22 4h-4" />
-  <circle cx="4" cy="20" r="2" />
-</svg>
-
-          
-          <span class="nav-item-title">
-            Quickstart
-            </span>
-          
-          
-        </a>
-        
-
-        
-      </li>
-    
-          </ul>
-        
-      </li>
-    
-      <li class="expanded nav-group" >
-      
-        <span class="nav-label nav-group">
-           
-<svg class="lucide-icon icon-book " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-book"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" />
-</svg>
-
-          
-          <span class="nav-item-title">
-            Reference
-          </span>
-          
-        </span>
-        
-
-        
-          <ul class="submenu">
-            
-      <li class="" >
-      
-        <a href="./configuration/" class=" "
-          >
-           
-<svg class="lucide-icon icon-cog " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-cog"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M11 10.27 7 3.34" />
-  <path d="m11 13.73-4 6.93" />
-  <path d="M12 22v-2" />
-  <path d="M12 2v2" />
-  <path d="M14 12h8" />
-  <path d="m17 20.66-1-1.73" />
-  <path d="m17 3.34-1 1.73" />
-  <path d="M2 12h2" />
-  <path d="m20.66 17-1.73-1" />
-  <path d="m20.66 7-1.73 1" />
-  <path d="m3.34 17 1.73-1" />
-  <path d="m3.34 7 1.73 1" />
-  <circle cx="12" cy="12" r="2" />
-  <circle cx="12" cy="12" r="8" />
-</svg>
-
-          
-          <span class="nav-item-title">
-            Configuration
-            </span>
-          
-          
-        </a>
-        
-
-        
-      </li>
-    
-      <li class="" >
-      
-        <a href="./keybindings/" class=" "
-          >
-           
-<svg class="lucide-icon icon-keyboard " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-keyboard"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M10 8h.01" />
-  <path d="M12 12h.01" />
-  <path d="M14 8h.01" />
-  <path d="M16 12h.01" />
-  <path d="M18 8h.01" />
-  <path d="M6 8h.01" />
-  <path d="M7 16h10" />
-  <path d="M8 12h.01" />
-  <rect width="20" height="16" x="2" y="4" rx="2" />
-</svg>
-
-          
-          <span class="nav-item-title">
-            Keybindings
-            </span>
-          
-          
-        </a>
-        
-
-        
-      </li>
-    
-      <li class="" >
-      
-        <a href="./ai/" class=" "
-          >
-           
-<svg class="lucide-icon icon-bot " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-bot"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M12 8V4H8" />
-  <rect width="16" height="12" x="4" y="8" rx="2" />
-  <path d="M2 14h2" />
-  <path d="M20 14h2" />
-  <path d="M15 13v2" />
-  <path d="M9 13v2" />
-</svg>
-
-          
-          <span class="nav-item-title">
-            AI
-            </span>
-          
-          
-        </a>
-        
-
-        
-      </li>
-    
-      <li class="" >
-      
-        <a href="./cli/" class=" "
-          >
-           
-<svg class="lucide-icon icon-terminal " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-terminal"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M12 19h8" />
-  <path d="m4 17 6-6-6-6" />
-</svg>
-
-          
-          <span class="nav-item-title">
-            CLI
-            </span>
-          
-          
-        </a>
-        
-
-        
-      </li>
-    
-          </ul>
-        
-      </li>
-    
-      <li class="expanded nav-group" >
-      
-        <span class="nav-label nav-group">
-           
-<svg class="lucide-icon icon-code " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-code"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="m16 18 6-6-6-6" />
-  <path d="m8 6-6 6 6 6" />
-</svg>
-
-          
-          <span class="nav-item-title">
-            Internals
-          </span>
-          
-        </span>
-        
-
-        
-          <ul class="submenu">
-            
-      <li class="" >
-      
-        <a href="./internals-osc/" class=" "
-          >
-           
-<svg class="lucide-icon icon-link " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-link"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-</svg>
-
-          
-          <span class="nav-item-title">
-            OSC Integration
-            </span>
-          
-          
-        </a>
-        
-
-        
-      </li>
-    
-      <li class="" >
-      
-        <a href="./development/" class=" "
-          >
-           
-          
-          <span class="nav-item-title">
-            Development
-            </span>
-          
-          
-        </a>
-        
-
-        
-      </li>
-    
-          </ul>
-        
-      </li>
-    
-      <li class="" >
-      
-        <a href="./troubleshooting/" class=" "
-          >
-           
-<svg class="lucide-icon icon-life-buoy " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-life-buoy"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <circle cx="12" cy="12" r="10" />
-  <path d="m4.93 4.93 4.24 4.24" />
-  <path d="m14.83 9.17 4.24-4.24" />
-  <path d="m14.83 14.83 4.24 4.24" />
-  <path d="m9.17 14.83-4.24 4.24" />
-  <circle cx="12" cy="12" r="4" />
-</svg>
-
-          
-          <span class="nav-item-title">
-            Troubleshooting
-            </span>
-          
-          
-        </a>
-        
-
-        
-      </li>
-    
-      <li class="" >
-      
-        <a href="https://github.com/pmqueiroz/nova" class=" "
-          target="_blank" rel="noopener">
-           
-          
-          <span class="nav-item-title">
-            GitHub
-            </span>
-          
-           
-<svg class="lucide-icon icon-external-link nav-external-icon" width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-external-link"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M15 3h6v6" />
-  <path d="M10 14 21 3" />
-  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-</svg>
-
-          
-        </a>
-        
-
-        
-      </li>
-    
-  </ul>
-</nav>
-        <div class="sidebar-bottom-group mt-auto">
-          
-          
-          
-          
-          
-        </div>
-      </aside>
-      
-      <div class="main-content-wrapper">
-        
-        
-        
-          <header class="page-header">
-            <div class="header-left">
-              
-                <button id="sidebar-toggle-button" class="sidebar-toggle-button"
-                  aria-label="Toggle Sidebar">
-                  
-<svg class="lucide-icon icon-chevron-left " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-chevron-left"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="m15 18-6-6 6-6" />
-</svg>
-
-                </button>
-              
-              <div class="header-titles-wrapper">
-                <span class="header-title">
-                  Nova Documentation
-                </span>
-              </div>
-            </div>
-            <div class="header-right">
-              
-            </div>
-          </header>
-        
-        <div class="content-theme-cover">
-          <main class="content-area" id="main-content">
-            <div class="content-layout">
-              <div class="main-content">
-                <div class="docmd-breadcrumbs-row">
-                  <div id="docmd-raw-markdown" data-content="---%0Atitle%3A%20%22Nova%20Documentation%22%0Adescription%3A%20%22Deep-dive%20docs%20for%20Nova%20users%20and%20contributors.%22%0A---%0A%0A%23%23%20Start%20Here%0A%0A-%20%5BInstallation%5D(%2Finstallation)%0A-%20%5BQuickstart%5D(%2Fquickstart)%0A%0A%23%23%20Reference%0A%0A-%20%5BConfiguration%5D(%2Fconfiguration)%0A-%20%5BKeybindings%5D(%2Fkeybindings)%0A-%20%5BAI%5D(%2Fai)%0A-%20%5BCLI%5D(%2Fcli)%0A%0A%23%23%20Internals%0A%0A-%20%5BOSC%20Integration%5D(%2Finternals-osc)%0A-%20%5BDevelopment%5D(%2Fdevelopment)%0A%0A%23%23%20Help%0A%0A-%20%5BTroubleshooting%5D(%2Ftroubleshooting)%0A" style="display: none;"></div>
-                  
-                    <nav aria-label="breadcrumb" class="docmd-breadcrumbs">
-                      <ol>
-                        
-                        
-                          <li class="breadcrumb-item active" aria-current=&quot;page&quot;>
-                            
-                              <span>Introduction</span>
-                            
-                            
-                          </li>
-                        
-                      </ol>
-                    </nav>
-                  
-
-                  
-                  
-                    <div class="docmd-copy-widgets">
-                      
-                        <button class="docmd-copy-btn docmd-copy-raw-btn" data-copied="Copied!" title="Copy Markdown" aria-label="Copy Markdown">
-                          <span class="docmd-btn-icon">
-<svg class="lucide-icon icon-copy " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-copy"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-</svg>
-</span>
-                        </button>
-                      
-                      
-                        <button class="docmd-copy-btn docmd-copy-context-btn" data-copied="Copied!" title="Copy Context">
-                          <span class="docmd-btn-icon">
-<svg class="lucide-icon icon-message-square " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-message-square"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z" />
-</svg>
-</span>
-                          <span class="docmd-btn-text">Copy Context</span>
-                        </button>
-                      
-                      
-                    </div>
-                  
-                </div>
-                
-                  <h1 class="docmd-focus-title">
-                    Nova Documentation
-                  </h1>
-                
-                <h2 id="start-here" class="docmd-heading"><a href="#start-here" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Start Here</h2>
-<ul>
-<li><a href="./installation/">Installation</a></li>
-<li><a href="./quickstart/">Quickstart</a></li>
-</ul>
-<h2 id="reference" class="docmd-heading"><a href="#reference" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Reference</h2>
-<ul>
-<li><a href="./configuration/">Configuration</a></li>
-<li><a href="./keybindings/">Keybindings</a></li>
-<li><a href="./ai/">AI</a></li>
-<li><a href="./cli/">CLI</a></li>
-</ul>
-<h2 id="internals" class="docmd-heading"><a href="#internals" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Internals</h2>
-<ul>
-<li><a href="./internals-osc/">OSC Integration</a></li>
-<li><a href="./development/">Development</a></li>
-</ul>
-<h2 id="help" class="docmd-heading"><a href="#help" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Help</h2>
-<ul>
-<li><a href="./troubleshooting/">Troubleshooting</a></li>
-</ul>
-
-                
-                  <div class="page-navigation">
-                    
-                      <div class="prev-page-placeholder">
-                      </div>
-                    
-                    
-                      <a href="./installation/" class="next-page">
-                        <span><small>Next</small>
-                          <strong>
-                            Installation
-                          </strong></span>
-                        
-<svg class="lucide-icon icon-arrow-right page-nav-icon" width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-arrow-right"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="M5 12h14" />
-  <path d="m12 5 7 7-7 7" />
-</svg>
-
-                      </a>
-                    
-                  </div>
-                
-              </div>
-              
-              
-              <div class="toc-sidebar">
-                
-                
-                  
-
-
-  <div class="toc-container">
-    <h2 class="toc-title">On This Page<span class="mobile-view toc-menu-button float-right">
-<svg class="lucide-icon icon-chevron-down " width="1em" height="1em" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"
-  class="lucide lucide-chevron-down"
-  xmlns="http://www.w3.org/2000/svg"
-  width="24"
-  height="24"
-  viewBox="0 0 24 24"
-  fill="none"
-  stroke="currentColor"
-  stroke-width="2"
-  stroke-linecap="round"
-  stroke-linejoin="round"
->
-  <path d="m6 9 6 6 6-6" />
-</svg>
-</span></h2>
-    <ul class="toc-list">
-      
-        <li class="toc-item toc-level-2">
-          <a href="#start-here" class="toc-link">Start Here</a>
-        </li>
-      
-        <li class="toc-item toc-level-2">
-          <a href="#reference" class="toc-link">Reference</a>
-        </li>
-      
-        <li class="toc-item toc-level-2">
-          <a href="#internals" class="toc-link">Internals</a>
-        </li>
-      
-        <li class="toc-item toc-level-2">
-          <a href="#help" class="toc-link">Help</a>
-        </li>
-      
-    </ul>
-  </div>
-
-                
-                
-              </div>
-              
-            </div>
-            <div class="page-footer-actions">
-              
-              
-                <span class="git-last-updated" data-timestamp="1793579898000">
-                  <svg class="git-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                  </svg>
-                  <span class="git-label">Last updated:</span>
-                  <span class="git-time" data-timestamp="1793579898000"></span>
-                  
-                  <div class="git-commit-tooltip" role="tooltip">
-                    <div class="git-tooltip-title">Recent commits</div>
-                    <ul class="git-commit-list">
-                      
-                        <li class="git-commit-item">
-                          <div class="git-commit-avatar" title="Pedro Queiroz">
-                            
-                              <img src="https://www.gravatar.com/avatar/1f88fae02546de069b09be3251a7d08c?d=mp&amp;s=64" alt="Pedro Queiroz">
-                            
-                          </div>
-                          <div class="git-commit-details">
-                            <div class="git-commit-message" title="chore(main): release 1.1.0">chore(main): release 1.1.0</div>
-                            <div class="git-commit-meta">
-                              <span class="git-commit-author">Pedro Queiroz</span>
-                              <span class="git-commit-date" data-timestamp="1793579898000"></span>
-                            </div>
-                          </div>
-                        </li>
-                      
-                    </ul>
-                  </div>
-                  
-                </span>
-              
-              <span class="git-spacer"></span>
-              
-            </div>
-          </main>
-          
-
-
-<footer class="page-footer">
-  <div class="footer-content">
-    <div class="user-footer">© 2026 Nova.</div>
-    
-      <div class="branding-footer">
-        Built with <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.79 0l2.96 2.66"></path><path d="m18 15-2-2"></path><path d="m15 18-2-2"></path></svg> <a href="https://docmd.io" target="_blank" rel="noopener">docmd.</a>
-      </div>
-    
-  </div>
+<footer class="site-footer">
+<div class="wrap">
+<a class="logo" href="#top"><svg aria-hidden="true" viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="7"><line x1="50" y1="50" x2="50" y2="10"></line><line x1="50" y1="50" x2="50" y2="90"></line><line x1="50" y1="50" x2="10" y2="50"></line><line x1="50" y1="50" x2="90" y2="50"></line></g><circle cx="50" cy="50" r="13" fill="currentColor"></circle></svg><b>nova</b></a>
+<nav class="foot-links"><a href="/docs/">Docs</a><a href="https://github.com/pmqueiroz/nova">GitHub</a><a href="https://github.com/pmqueiroz/nova/releases">Releases</a><a href="https://github.com/sponsors/pmqueiroz">Sponsors</a></nav>
+<p class="foot-meta">MIT licensed · made by pmqueiroz</p>
+</div>
 </footer>
+<script type="module">(()=>{let e=document.getElementById(`typed`);if(!e)return;let t=[`nova --version`,`cargo test`,`git status`];if(matchMedia(`(prefers-reduced-motion: reduce)`).matches){e.textContent=t[0];return}let n=0,r=0,i=!1,a=()=>{let o=t[n];if(!i){if(e.textContent=o.slice(0,++r),r===o.length)return i=!0,setTimeout(a,2400)}else if(e.textContent=o.slice(0,--r),r===0)return i=!1,n=(n+1)%t.length,setTimeout(a,400);setTimeout(a,i?30:70+Math.random()*60)};setTimeout(a,1400)})();</script>
 
-        </div>
-      </div>
-      
-      <script src="./assets/js/docmd-main.js?v=mvyjccgh"></script>
-      
-      <script src="./assets/js/docmd-git.js?v=mvyjccgh"></script>
-      <script src="./assets/js/docmd-image-lightbox.js?v=mvyjccgh" ></script>
-<script src="https://cdn.jsdelivr.net/npm/minisearch@7.2.0/dist/umd/index.min.js" ></script>
-<script src="./assets/js/docmd-search.js?v=mvyjccgh" ></script>
-<script src="./assets/js/init-mermaid.js?v=mvyjccgh" type="module"></script>
-<script src="./assets/js/docmd-git.js?v=mvyjccgh" ></script>
-<script src="./assets/js/docmd-ai.js?v=mvyjccgh" ></script>
-
-  <!-- Search Modal (Injected by @docmd/plugin-search) -->
-  <div id="docmd-search-modal" class="docmd-search-modal" style="display: none;"
-       data-search-placeholder="Search documentation..."
-       data-search-no-results="No results found."
-       data-search-error="Failed to load search index."
-       data-search-initial="Type to start searching..."
-       data-search-navigate="to navigate"
-       data-search-escape="to close">
-      <div class="docmd-search-box">
-          <div class="docmd-search-header">
-              <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon icon-search"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
-              <input type="text" id="docmd-search-input" placeholder="Search documentation..." autocomplete="off" spellcheck="false">
-              <button onclick="window.closeDocmdSearch()" class="docmd-search-close" aria-label="Close search">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon icon-x"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
-              </button>
-          </div>
-          <div id="docmd-search-results" class="docmd-search-results"></div>
-          <div class="docmd-search-footer">
-              <span><kbd class="docmd-kbd">↑</kbd> <kbd class="docmd-kbd">↓</kbd> to navigate</span>
-              <span><kbd class="docmd-kbd">ESC</kbd> to close</span>
-          </div>
-      </div>
-  </div>
-
-    <script>
-      (function() {
-        var searchDebounceTimer;
-
-        document.addEventListener('click', function(e) {
-          var link = e.target.closest('a');
-          if (!link || !window.gtag) return;
-          
-          var url = link.href;
-          var hostname = window.location.hostname;
-          var isExternal = link.hostname && link.hostname !== hostname;
-          var isDownload = link.hasAttribute('download') || url.match(/\.(pdf|zip|tar|gz|exe|pkg)$/i);
-          
-          if (isExternal) {
-            gtag('event', 'click_external', { 'url': url, 'link_text': link.innerText.trim() });
-          } else if (isDownload) {
-            gtag('event', 'download', { 'file_name': url.split('/').pop(), 'url': url });
-          }
-
-          // TOC tracking
-          if (link.classList.contains('toc-link')) {
-            gtag('event', 'toc_click', { 'target_id': link.getAttribute('href'), 'title': link.innerText.trim() });
-          }
-
-          // Permalink tracking
-          if (link.classList.contains('heading-anchor')) {
-            gtag('event', 'permalink_click', { 'url': url });
-          }
-        });
-
-        
-        // Search Keyword Tracking
-        document.addEventListener('input', function(e) {
-          if (e.target.id === 'docmd-search-input' && window.gtag) {
-            var query = e.target.value.trim();
-            if (query.length < 3) return;
-            
-            clearTimeout(searchDebounceTimer);
-            searchDebounceTimer = setTimeout(function() {
-              gtag('event', 'search', { 'search_term': query });
-            }, 1000);
-          }
-        });
-        
-      })();
-    </script>
-
-<script>window.__git_config={"repo":"https://github.com/pmqueiroz/nova/edit/main/docs","branch":"main","editLink":true,"lastUpdated":true,"commitHistory":true,"maxCommits":5,"dateFormat":"relative"};window.__git_i18n={"lastUpdated":"Last updated","recentCommits":"Recent commits","viewCommitHistory":"View commit history","editOnGitHub":"Edit on GitHub","editOnGitLab":"Edit on GitLab","editOnBitbucket":"Edit on Bitbucket","editThisPage":"Edit this page","justNow":"just now","minutesAgo":"{n}m ago","hoursAgo":"{n}h ago","daysAgo":"{n}d ago"}</script>
-<div id="docmd-ai-root"></div><script>window.__docmd_ai_config={"endpoint":"","cloud":{},"captcha":true,"position":"bottom-center","siteTitle":"A terminal that burns bright","siteBase":"/","siteUrl":"https://nova.pmqueiroz.dev","versions":null,"i18n":null,"navigation":[{"title":"Introduction","path":"/","icon":"home"},{"title":"Getting Started","icon":"rocket","collapsible":false,"children":[{"title":"Installation","path":"/installation/","icon":"download"},{"title":"Quickstart","path":"/quickstart/","icon":"sparkles"}]},{"title":"Reference","icon":"book","collapsible":false,"children":[{"title":"Configuration","path":"/configuration/","icon":"cog"},{"title":"Keybindings","path":"/keybindings/","icon":"keyboard"},{"title":"AI","path":"/ai/","icon":"bot"},{"title":"CLI","path":"/cli/","icon":"terminal"}]},{"title":"Internals","icon":"code","collapsible":false,"children":[{"title":"OSC Integration","path":"/internals-osc/","icon":"link"},{"title":"Development","path":"/development/","icon":"tool"}]},{"title":"Troubleshooting","path":"/troubleshooting/","icon":"life-buoy"},{"title":"GitHub","path":"https://github.com/pmqueiroz/nova","icon":"github","external":true}],"searchCapabilities":{"keyword":true,"semantic":false},"isWorkspace":false,"workspaceProjects":[],"messageActions":false,"contextLimit":5};</script>
-      
-      
-      
-  </body>
+<script type="module" src="/_astro/Base.astro_astro_type_script_index_0_lang.DdGk6VXI.js"></script>
+</body>
 </html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Troubleshooting · Nova docs</title>
+<meta name="description" content="Common problems and fixes.">
+<link rel="canonical" href="https://nova.pmqueiroz.dev/docs/troubleshooting/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Troubleshooting · Nova docs">
+<meta property="og:description" content="Common problems and fixes.">
+<meta property="og:url" content="https://nova.pmqueiroz.dev/docs/troubleshooting/">
+<meta property="og:image" content="https://nova.pmqueiroz.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+(()=>{try{const t=new URLSearchParams(location.search).get('theme')||localStorage.getItem('nova-site-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}})();
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-X9WTDL262N"></script>
+<script>
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-X9WTDL262N');
+</script>
+<script>window.NOVA_SEARCH=[{"title":"Introduction","group":"Getting started","href":"/docs/","h":[["Start Here","start-here"],["Reference","reference"],["Internals","internals"],["Help","help"]]},{"title":"Installation","group":"Getting started","href":"/docs/installation/","h":[["Homebrew","homebrew"],["Winget (Windows)","winget-windows"],["Scoop (Windows)","scoop-windows"],["AUR (Arch Linux)","aur-arch-linux"],["APT (Debian/Ubuntu)","apt-debianubuntu"],["DNF/RPM (Fedora/RHEL)","dnfrpm-fedorarhel"]]},{"title":"Quickstart","group":"Getting started","href":"/docs/quickstart/","h":[["First Run","first-run"],["Editing Settings","editing-settings"],["Command blocks","command-blocks"],["Command Palette","command-palette"],["AI Overlay","ai-overlay"]]},{"title":"Configuration","group":"Reference","href":"/docs/configuration/","h":[["Location","location"],["File Lifecycle","file-lifecycle"],["Defaults","defaults"],["Reference","reference"],["[general]","general"],["[theme]","theme"],["[theme.font]","themefont"],["[theme.colors]","themecolors"],["[theme.cursor]","themecursor"],["[keybindings]","keybindings"],["[ai]","ai"]]},{"title":"Keybindings","group":"Reference","href":"/docs/keybindings/","h":[["Binding Syntax","binding-syntax"],["Actions","actions"],["Defaults","defaults"],["Fixed Shortcuts","fixed-shortcuts"],["Split Pane","split-pane"],["Font Size","font-size"],["Block input","block-input"],["Search","search"],["Notes","notes"]]},{"title":"AI","group":"Reference","href":"/docs/ai/","h":[["Overview","overview"],["Configuration","configuration"],["Provider Behavior","provider-behavior"],["What Gets Sent","what-gets-sent"],["Troubleshooting","troubleshooting"]]},{"title":"CLI","group":"Reference","href":"/docs/cli/","h":[["Commands","commands"],["nova update","nova-update"],["nova ask","nova-ask"],["How It Works","how-it-works"]]},{"title":"OSC integration","group":"Internals","href":"/docs/internals-osc/","h":[["Private Nova OSC Channel","private-nova-osc-channel"],["Command: ask_ai","command-ask_ai"],["OSC 7: Current Working Directory","osc-7-current-working-directory"],["OSC 8: Hyperlinks","osc-8-hyperlinks"]]},{"title":"Development","group":"Internals","href":"/docs/development/","h":[["Build Nova","build-nova"],["Code Map","code-map"],["Build The Docs Site","build-the-docs-site"],["CI Notes","ci-notes"]]},{"title":"Troubleshooting","group":"Help","href":"/docs/troubleshooting/","h":[["macOS: “Nova is damaged and can’t be opened”","macos-nova-is-damaged-and-cant-be-opened"],["Settings Keep Resetting","settings-keep-resetting"],["nova ask Must Be Run Inside Nova","nova-ask-must-be-run-inside-nova"],["Pagers (git log, man) Stay Inside a Block","pagers-git-log-man-stay-inside-a-block"],["AI Errors","ai-errors"],["Updates Fail","updates-fail"]]}];</script>
+<link rel="stylesheet" href="/_astro/CopyButton.BKNGvCRr.css">
+<link rel="stylesheet" href="/_astro/_..C4IPoKZX.css"></head>
+<body>
+
+<header class="site-header full">
+<div class="wrap">
+<a class="logo" href="/" aria-label="Nova home"><svg aria-hidden="true" viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="7"><line x1="50" y1="50" x2="50" y2="10"></line><line x1="50" y1="50" x2="50" y2="90"></line><line x1="50" y1="50" x2="10" y2="50"></line><line x1="50" y1="50" x2="90" y2="50"></line></g><circle cx="50" cy="50" r="13" fill="currentColor"></circle></svg><b>nova</b></a>
+<nav class="nav" aria-label="Main"><a href="/#features">Features</a><a href="/docs/" aria-current="page">Docs</a><a href="/#support">Support</a></nav>
+<div class="header-end">
+
+  <button class="search-trigger" data-search-open="" aria-label="Search docs"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="m10.5 10.5 3 3"></path></svg><span>Search docs</span><span class="keys"><span class="kbd" data-mod="">⌘</span><span class="kbd">K</span></span></button>
+  <a class="icon-btn hide-sm" href="https://github.com/pmqueiroz/nova" aria-label="GitHub"><svg aria-hidden="true" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a>
+  
+<button class="icon-btn" data-theme-toggle="" aria-label="Toggle theme"><svg class="i-sun" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10" cy="10" r="3.5"></circle><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.3 4.3l1.4 1.4M14.3 14.3l1.4 1.4M4.3 15.7l1.4-1.4M14.3 5.7l1.4-1.4"></path></svg><svg class="i-moon" aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M16 12.5A6.5 6.5 0 0 1 7.5 4a6.5 6.5 0 1 0 8.5 8.5z"></path></svg></button>
+
+<button class="icon-btn menu-btn" aria-label="Menu" aria-expanded="false"><svg aria-hidden="true" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 6h14M3 10h14M3 14h14"></path></svg></button>
+</div>
+</div>
+</header>
+<nav class="mobile-nav" aria-label="Mobile"><a href="/#features">Features</a><a href="/docs/" aria-current="page">Docs</a><a href="/#support">Support</a><a href="https://github.com/pmqueiroz/nova">GitHub</a></nav>
+<div class="docs-bar"><button data-side-toggle=""><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="2" y="2.5" width="12" height="11" rx="2"></rect><path d="M6 2.5v11"></path></svg>Menu</button><span class="sep">/</span><span>Help</span><span class="sep">/</span><span class="here">Troubleshooting</span></div>
+<div class="side-scrim"></div>
+
+<div class="docs">
+<aside class="docs-side" aria-label="Docs navigation">
+<div class="side-group"><h4>Getting started</h4><a href="/docs/">Introduction</a><a href="/docs/installation/">Installation</a><a href="/docs/quickstart/">Quickstart</a></div><div class="side-group"><h4>Reference</h4><a href="/docs/configuration/">Configuration</a><a href="/docs/keybindings/">Keybindings</a><a href="/docs/ai/">AI</a><a href="/docs/cli/">CLI</a></div><div class="side-group"><h4>Internals</h4><a href="/docs/internals-osc/">OSC integration</a><a href="/docs/development/">Development</a></div><div class="side-group"><h4>Help</h4><a href="/docs/troubleshooting/" aria-current="page">Troubleshooting</a></div>
+<div class="side-meta"><a href="https://github.com/pmqueiroz/nova/releases">Latest release ↗</a><a href="https://github.com/pmqueiroz/nova">GitHub ↗</a></div>
+</aside>
+
+<main class="docs-main">
+<article class="article">
+<div class="crumbs"><span>Help</span><span>/</span><span>Troubleshooting</span></div>
+<h1>Troubleshooting</h1>
+<p class="lead">Common problems and fixes.</p>
+<div class="page-actions">
+<a class="btn btn-outline" href="https://github.com/pmqueiroz/nova/blob/main/docs/src/content/docs/troubleshooting.md"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2.5 13.5 5.5 6 13H3v-3z"></path></svg>Edit on GitHub</a>
+<button class="btn btn-outline" data-copy="#md-src"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy as Markdown</span></button>
+<span id="md-src" hidden="" data-copy-text="## macOS: &quot;Nova is damaged and can't be opened&quot;
+
+Nova is not notarized. macOS Gatekeeper may block it.
+
+If you installed the app bundle, you can clear the quarantine attribute:
+
+```bash
+xattr -cr /Applications/Nova.app
+```
+
+## Settings Keep Resetting
+
+Nova overwrites `settings.toml` with defaults if it fails to parse as TOML.
+
+If your settings keep resetting:
+
+- Validate your TOML syntax (missing quotes, stray commas, etc.)
+- Keep a backup copy while editing
+
+## `nova ask` Must Be Run Inside Nova
+
+`nova ask` is an integration command that signals the running Nova app via OSC.
+
+If you run it in another terminal, you'll get:
+
+```text
+error: 'nova ask' must be run inside Nova terminal
+```
+
+Run it inside Nova, or use the in-app command palette action.
+
+## Pagers (`git log`, `man`) Stay Inside a Block
+
+Nova shows a program fullscreen when it switches to the terminal's alternate
+screen, or when it turns on bracketed paste (interactive apps such as Claude
+Code, REPLs and nested shells over `ssh`). An app that does bracketed paste
+stays fullscreen until it exits. `less` skips that switch when its options contain `X`, and
+Git runs it with `LESS=FRX` when `LESS` is unset.
+
+Nova therefore starts its shells with `LESS=FR` (pager output that fits on one
+screen still prints inline and exits). If you set `LESS` yourself, Nova leaves
+it alone: drop the `X` flag from it to get fullscreen pagers.
+
+In PowerShell, `help` (and its alias `man`) normally pipes through Windows'
+`more`, which never goes fullscreen and waits for a key after every page.
+Nova's PowerShell session replaces `help`: it pages through `less` when one is
+on `PATH`, otherwise it prints the whole topic into the block, which you can
+scroll.
+
+While a program is fullscreen, the mouse wheel scrolls it: Nova sends arrow
+keys, or wheel events if the program asked for mouse reporting.
+
+## AI Errors
+
+- Missing key: set `[ai].api_key`.
+- Wrong model/provider: ensure model name matches the selected provider.
+- Proxy issues: verify `[ai].base_url` is correct and reachable.
+
+## Updates Fail
+
+- **Permission denied** replacing `nova.exe`, `Nova.app` or the AppImage: Nova
+  writes next to the existing file, so its folder must be writable by you. Move
+  it somewhere you own, or update with the method you installed with.
+- **Windows installer:** a per-machine install (under `Program Files`) asks for
+  admin rights (UAC) when the update runs. The installer closes every open Nova
+  window.
+- **apt / dnf / AUR / Homebrew:** the update runs in a new tab and may ask for
+  your `sudo` password there. If it fails, the tab shows the package manager's
+  error; re-run `nova update --install` or the shown command yourself.
+- **&quot;checksum mismatch&quot;:** the download was corrupted or tampered with, so
+  nothing was replaced. Try again later.
+- Updates are cached in your user cache folder under `nova/updates/` and
+  removed once you run that version."></span>
+</div>
+
+<h2 id="macos-nova-is-damaged-and-cant-be-opened"><a class="anchor" href="#macos-nova-is-damaged-and-cant-be-opened">#</a>macOS: “Nova is damaged and can’t be opened”</h2>
+<p>Nova is not notarized. macOS Gatekeeper may block it.</p>
+<p>If you installed the app bundle, you can clear the quarantine attribute:</p>
+<div class="code"><div class="code-head"><span>bash</span><button class="copy-btn" data-copy=""><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div><pre><code data-lang="bash">xattr -cr /Applications/Nova.app</code></pre></div>
+<h2 id="settings-keep-resetting"><a class="anchor" href="#settings-keep-resetting">#</a>Settings Keep Resetting</h2>
+<p>Nova overwrites <code>settings.toml</code> with defaults if it fails to parse as TOML.</p>
+<p>If your settings keep resetting:</p>
+<ul>
+<li>Validate your TOML syntax (missing quotes, stray commas, etc.)</li>
+<li>Keep a backup copy while editing</li>
+</ul>
+<h2 id="nova-ask-must-be-run-inside-nova"><a class="anchor" href="#nova-ask-must-be-run-inside-nova">#</a><code>nova ask</code> Must Be Run Inside Nova</h2>
+<p><code>nova ask</code> is an integration command that signals the running Nova app via OSC.</p>
+<p>If you run it in another terminal, you’ll get:</p>
+<div class="code"><div class="code-head"><span>text</span><button class="copy-btn" data-copy=""><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div><pre><code data-lang="text">error: 'nova ask' must be run inside Nova terminal</code></pre></div>
+<p>Run it inside Nova, or use the in-app command palette action.</p>
+<h2 id="pagers-git-log-man-stay-inside-a-block"><a class="anchor" href="#pagers-git-log-man-stay-inside-a-block">#</a>Pagers (<code>git log</code>, <code>man</code>) Stay Inside a Block</h2>
+<p>Nova shows a program fullscreen when it switches to the terminal’s alternate
+screen, or when it turns on bracketed paste (interactive apps such as Claude
+Code, REPLs and nested shells over <code>ssh</code>). An app that does bracketed paste
+stays fullscreen until it exits. <code>less</code> skips that switch when its options contain <code>X</code>, and
+Git runs it with <code>LESS=FRX</code> when <code>LESS</code> is unset.</p>
+<p>Nova therefore starts its shells with <code>LESS=FR</code> (pager output that fits on one
+screen still prints inline and exits). If you set <code>LESS</code> yourself, Nova leaves
+it alone: drop the <code>X</code> flag from it to get fullscreen pagers.</p>
+<p>In PowerShell, <code>help</code> (and its alias <code>man</code>) normally pipes through Windows’
+<code>more</code>, which never goes fullscreen and waits for a key after every page.
+Nova’s PowerShell session replaces <code>help</code>: it pages through <code>less</code> when one is
+on <code>PATH</code>, otherwise it prints the whole topic into the block, which you can
+scroll.</p>
+<p>While a program is fullscreen, the mouse wheel scrolls it: Nova sends arrow
+keys, or wheel events if the program asked for mouse reporting.</p>
+<h2 id="ai-errors"><a class="anchor" href="#ai-errors">#</a>AI Errors</h2>
+<ul>
+<li>Missing key: set <code>[ai].api_key</code>.</li>
+<li>Wrong model/provider: ensure model name matches the selected provider.</li>
+<li>Proxy issues: verify <code>[ai].base_url</code> is correct and reachable.</li>
+</ul>
+<h2 id="updates-fail"><a class="anchor" href="#updates-fail">#</a>Updates Fail</h2>
+<ul>
+<li><strong>Permission denied</strong> replacing <code>nova.exe</code>, <code>Nova.app</code> or the AppImage: Nova
+writes next to the existing file, so its folder must be writable by you. Move
+it somewhere you own, or update with the method you installed with.</li>
+<li><strong>Windows installer:</strong> a per-machine install (under <code>Program Files</code>) asks for
+admin rights (UAC) when the update runs. The installer closes every open Nova
+window.</li>
+<li><strong>apt / dnf / AUR / Homebrew:</strong> the update runs in a new tab and may ask for
+your <code>sudo</code> password there. If it fails, the tab shows the package manager’s
+error; re-run <code>nova update --install</code> or the shown command yourself.</li>
+<li><strong>“checksum mismatch”:</strong> the download was corrupted or tampered with, so
+nothing was replaced. Try again later.</li>
+<li>Updates are cached in your user cache folder under <code>nova/updates/</code> and
+removed once you run that version.</li>
+</ul>
+
+<nav class="pager" aria-label="Pagination">
+<a href="/docs/development/"><small>← Previous</small><b>Development</b></a>
+
+</nav>
+<div class="edit-row"><a href="https://github.com/pmqueiroz/nova/blob/main/docs/src/content/docs/troubleshooting.md">docs/src/content/docs/troubleshooting.md</a><span>Updated with release 1.1.0</span></div>
+</article>
+</main>
+
+<aside class="toc" aria-label="On this page">
+<h4>On this page</h4>
+<nav><a href="#macos-nova-is-damaged-and-cant-be-opened">macOS: “Nova is damaged and can’t be opened”</a><a href="#settings-keep-resetting">Settings Keep Resetting</a><a href="#nova-ask-must-be-run-inside-nova">nova ask Must Be Run Inside Nova</a><a href="#pagers-git-log-man-stay-inside-a-block">Pagers (git log, man) Stay Inside a Block</a><a href="#ai-errors">AI Errors</a><a href="#updates-fail">Updates Fail</a></nav>
+</aside>
+</div>
+
+<footer class="site-footer full">
+<div class="wrap">
+<a class="logo" href="/"><svg aria-hidden="true" viewBox="0 0 100 100"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="7"><line x1="50" y1="50" x2="50" y2="10"></line><line x1="50" y1="50" x2="50" y2="90"></line><line x1="50" y1="50" x2="10" y2="50"></line><line x1="50" y1="50" x2="90" y2="50"></line></g><circle cx="50" cy="50" r="13" fill="currentColor"></circle></svg><b>nova</b></a>
+<nav class="foot-links"><a href="/docs/">Docs</a><a href="https://github.com/pmqueiroz/nova">GitHub</a><a href="https://github.com/pmqueiroz/nova/releases">Releases</a><a href="https://github.com/sponsors/pmqueiroz">Sponsors</a></nav>
+<p class="foot-meta">MIT licensed · made by pmqueiroz</p>
+</div>
+</footer>
+<div class="scrim" id="search" hidden="">
+<div class="sheet" role="dialog" aria-label="Search docs">
+<div class="sheet-head"><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"></circle><path d="m10.5 10.5 3 3"></path></svg><input class="sheet-input" placeholder="Search docs" aria-label="Search docs"><span class="kbd">esc</span></div>
+<div class="sheet-list"></div>
+<div class="sheet-foot"><span><span class="kbd">↑</span><span class="kbd">↓</span>navigate</span><span><span class="kbd">↵</span>open</span></div>
+</div>
+</div>
+
+<script type="module" src="/_astro/Base.astro_astro_type_script_index_0_lang.DdGk6VXI.js"></script>
+</body>
+</html>

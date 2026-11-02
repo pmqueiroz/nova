@@ -3108,6 +3108,7 @@ dependencies = [
  "font-kit",
  "iced",
  "image",
+ "memchr",
  "notify-rust",
  "open",
  "openai_api_rust",

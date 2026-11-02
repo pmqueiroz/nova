@@ -79,10 +79,7 @@ mod tests {
       .blocks
       .remove(s.blocks.iter().position(|b| b.id == id).unwrap());
     let mut p = Parser::new();
-    let mut e = AnsiExecutor {
-      grid: &mut b.output,
-      bell_pending: false,
-    };
+    let mut e = AnsiExecutor::new(&mut b.output);
     p.advance(&mut e, text.as_bytes());
     b
   }

@@ -183,6 +183,100 @@ fn handle_control(
   }
 }
 
+fn mark_end(bytes: &[u8], at: usize) -> Option<usize> {
+  match bytes.get(at..at + 3) {
+    Some([0xEF, 0xA3, 0xB0..=0xB2]) => Some(at + 3),
+    _ => None,
+  }
+}
+
+fn segment_len(bytes: &[u8], split_on_newline: bool) -> usize {
+  let mut from = 0;
+  while let Some(off) = if split_on_newline {
+    memchr::memchr2(0xEF, b'\n', &bytes[from..])
+  } else {
+    memchr::memchr(0xEF, &bytes[from..])
+  } {
+    let at = from + off;
+    if bytes[at] == b'\n' {
+      return at + 1;
+    }
+    if let Some(end) = mark_end(bytes, at) {
+      return end;
+    }
+    from = at + 1;
+  }
+  bytes.len()
+}
+
+fn route_step(
+  parser: &mut Parser,
+  screen: &mut Grid,
+  session: &mut Session,
+  integ: &mut Integration,
+  bytes: &[u8],
+  out: &mut Routed,
+) -> usize {
+  let was_raw = session.is_raw();
+  let target = target(session, integ);
+  let (consumed, bell, mut responses, controls, in_alt, interactive, on_block) = {
+    let (grid, on_block): (&mut Grid, bool) = match target {
+      Target::Block(id) if session.block(id).is_some() => {
+        (&mut session.block_mut(id).unwrap().output, true)
+      }
+      _ => (&mut *screen, false),
+    };
+    let mut exec = AnsiExecutor::new(grid);
+    let consumed = parser.advance_until_terminated(&mut exec, bytes);
+    let bell = exec.bell_pending;
+    let grid = exec.grid;
+    let responses = std::mem::take(&mut grid.output_queue);
+    let controls = std::mem::take(&mut grid.control_queue);
+    (
+      consumed,
+      bell,
+      responses,
+      controls,
+      grid.in_alt_screen(),
+      grid.bracketed_paste,
+      on_block,
+    )
+  };
+  out.bell |= bell;
+  out.responses.append(&mut responses);
+  if on_block {
+    let takeover = match session.active_mut() {
+      Some(b) => {
+        b.takeover |= interactive;
+        b.takeover
+      }
+      None => false,
+    };
+    let want_raw = in_alt || takeover;
+    if want_raw && !session.is_raw() {
+      session.enter_raw();
+    } else if !want_raw && session.is_raw() {
+      session.leave_raw();
+      keep_last_frame(session);
+    }
+  }
+  for c in controls {
+    handle_control(c, session, screen, integ, out);
+  }
+  if integ.mode == Mode::Blocks
+    && integ.awaiting_echo
+    && consumed > 0
+    && bytes[consumed - 1] == b'\n'
+    && !on_block
+    && session.is_running()
+  {
+    integ.awaiting_echo = false;
+    begin_output(session, screen);
+  }
+  out.raw_changed |= was_raw != session.is_raw();
+  consumed
+}
+
 pub fn route(
   parser: &mut Parser,
   screen: &mut Grid,
@@ -191,65 +285,18 @@ pub fn route(
   bytes: &[u8],
 ) -> Routed {
   let mut out = Routed::default();
-  for &byte in bytes {
-    let was_raw = session.is_raw();
-    let target = target(session, integ);
-    let (bell, mut responses, controls, in_alt, interactive, on_block) = {
-      let (grid, on_block): (&mut Grid, bool) = match target {
-        Target::Block(id) if session.block(id).is_some() => {
-          (&mut session.block_mut(id).unwrap().output, true)
-        }
-        _ => (&mut *screen, false),
-      };
-      let mut exec = AnsiExecutor {
-        grid,
-        bell_pending: false,
-      };
-      parser.advance(&mut exec, &[byte]);
-      let bell = exec.bell_pending;
-      let grid = exec.grid;
-      let responses = std::mem::take(&mut grid.output_queue);
-      let controls = std::mem::take(&mut grid.control_queue);
-      (
-        bell,
-        responses,
-        controls,
-        grid.in_alt_screen(),
-        grid.bracketed_paste,
-        on_block,
-      )
-    };
-    out.bell |= bell;
-    out.responses.append(&mut responses);
-    if on_block {
-      let takeover = match session.active_mut() {
-        Some(b) => {
-          b.takeover |= interactive;
-          b.takeover
-        }
-        None => false,
-      };
-      let want_raw = in_alt || takeover;
-      if want_raw && !session.is_raw() {
-        session.enter_raw();
-      } else if !want_raw && session.is_raw() {
-        session.leave_raw();
-        keep_last_frame(session);
+  let split_on_newline = integ.awaiting_echo;
+  let mut rest = bytes;
+  while !rest.is_empty() {
+    let (mut segment, tail) = rest.split_at(segment_len(rest, split_on_newline));
+    rest = tail;
+    while !segment.is_empty() {
+      let consumed = route_step(parser, screen, session, integ, segment, &mut out);
+      if consumed == 0 {
+        break;
       }
+      segment = &segment[consumed..];
     }
-    for c in controls {
-      handle_control(c, session, screen, integ, &mut out);
-    }
-    if integ.mode == Mode::Blocks
-      && integ.awaiting_echo
-      && byte == b'\n'
-      && !on_block
-      && session.is_running()
-    {
-      integ.awaiting_echo = false;
-      begin_output(session, screen);
-    }
-    out.raw_changed |= was_raw != session.is_raw();
   }
   if integ.mode == Mode::Blocks || integ.mode == Mode::Detecting {
     session.cwd = screen.pwd.clone();
@@ -327,6 +374,45 @@ mod tests {
     assert!(!out.entered_blocks);
     assert_eq!(r.integ.mode, Mode::Classic);
     assert_eq!(r.screen.cells[0].c.as_str(), "$");
+  }
+
+  fn run_script(feed: impl Fn(&mut Rig, &str)) -> (Vec<String>, Phase, Mode) {
+    let mut r = Rig::new();
+    feed(&mut r, "banner\r\n\u{F8F0}C:\\>");
+    r.submit("dir");
+    feed(&mut r, "dir\r\n file1\r\n\u{F8F1}PS> ");
+    r.submit("vim");
+    feed(
+      &mut r,
+      "vim\r\n\u{F8F2}pre\r\n\x1b[?1049hEDIT\x1b[?1049lpost\r\n\u{F8F1}PS> ",
+    );
+    r.submit("echo hi");
+    feed(
+      &mut r,
+      "\u{F8F2}hi\r\n\x1b]777;command_complete;3\x07\u{F8F1}",
+    );
+    let texts = r.session.blocks.iter().map(|b| b.text()).collect();
+    (texts, r.session.phase, r.integ.mode)
+  }
+
+  #[test]
+  fn whole_and_bytewise_feeds_agree() {
+    let whole = run_script(|r, s| {
+      r.feed(s);
+    });
+    let bytewise = run_script(|r, s| {
+      for b in s.as_bytes() {
+        route(
+          &mut r.parser,
+          &mut r.screen,
+          &mut r.session,
+          &mut r.integ,
+          std::slice::from_ref(b),
+        );
+      }
+    });
+    assert_eq!(whole, bytewise);
+    assert_eq!(whole.0, vec![" file1", "pre\nEDIT\npost", "hi"]);
   }
 
   #[test]

@@ -537,9 +537,23 @@ pub fn term<'a>(
   let sb_len = scrollback.len();
   let clamped_offset = scroll_offset.min(sb_len);
 
+  let sb_start = sb_len.saturating_sub(clamped_offset);
+  let live_count = grid.rows.saturating_sub(clamped_offset);
+  let visible_matches: Vec<_> = search_matches
+    .iter()
+    .enumerate()
+    .filter(|(_, m)| {
+      if m.0 {
+        m.1 >= sb_start
+      } else {
+        m.1 < live_count
+      }
+    })
+    .collect();
+
   let search_hl_for = |is_sb: bool, row: usize, cols: usize| -> Option<(Vec<bool>, Vec<bool>)> {
     let mut found = None::<(Vec<bool>, Vec<bool>)>;
-    for (idx, m) in search_matches.iter().enumerate() {
+    for &(idx, m) in &visible_matches {
       if m.0 != is_sb || m.1 != row {
         continue;
       }
@@ -558,7 +572,6 @@ pub fn term<'a>(
   let mut cells = Vec::new();
   let mut viewport_y = 0usize;
 
-  let sb_start = sb_len.saturating_sub(clamped_offset);
   for (sb_row_idx, (row_cells, _)) in scrollback.range(sb_start..).enumerate() {
     let hl = compute_url_highlight(row_cells, viewport_y, hovered_url, hovered_link_span);
     let sh = search_hl_for(true, sb_start + sb_row_idx, row_cells.len());
@@ -577,7 +590,6 @@ pub fn term<'a>(
     viewport_y += 1;
   }
 
-  let live_count = grid.rows.saturating_sub(clamped_offset);
   for (y, row_cells) in grid.cells[..live_count * grid.cols]
     .chunks_exact(grid.cols)
     .enumerate()

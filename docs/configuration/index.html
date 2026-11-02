@@ -5,16 +5,32 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Configuration · Nova docs</title>
 <meta name="description" content="Config file location, behavior, and full settings reference.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="author" content="pmqueiroz">
 <link rel="canonical" href="https://nova.pmqueiroz.dev/docs/configuration/">
+<link rel="sitemap" type="application/xml" href="/sitemap-index.xml">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon.ico" sizes="any">
-<meta property="og:type" content="website">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#0c1015" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f9fafc" media="(prefers-color-scheme: light)">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Nova">
+<meta property="og:locale" content="en_US">
 <meta property="og:title" content="Configuration · Nova docs">
 <meta property="og:description" content="Config file location, behavior, and full settings reference.">
 <meta property="og:url" content="https://nova.pmqueiroz.dev/docs/configuration/">
 <meta property="og:image" content="https://nova.pmqueiroz.dev/og.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="Nova: a GPU-accelerated terminal where every command is a block">
 <meta name="twitter:card" content="summary_large_image">
-<script>
+<meta name="twitter:title" content="Configuration · Nova docs">
+<meta name="twitter:description" content="Config file location, behavior, and full settings reference.">
+<meta name="twitter:image" content="https://nova.pmqueiroz.dev/og.png">
+<meta name="twitter:image:alt" content="Nova: a GPU-accelerated terminal where every command is a block">
+<script type="application/ld+json">[{"@context":"https://schema.org","@type":"WebSite","name":"Nova","url":"https://nova.pmqueiroz.dev/"},{"@context":"https://schema.org","@type":"TechArticle","headline":"Configuration","description":"Config file location, behavior, and full settings reference.","url":"https://nova.pmqueiroz.dev/docs/configuration/","inLanguage":"en","isPartOf":{"@type":"WebSite","name":"Nova","url":"https://nova.pmqueiroz.dev/"},"about":{"@type":"SoftwareApplication","name":"Nova"}},{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Nova","item":"https://nova.pmqueiroz.dev/"},{"@type":"ListItem","position":2,"name":"Docs","item":"https://nova.pmqueiroz.dev/docs/"},{"@type":"ListItem","position":3,"name":"Configuration","item":"https://nova.pmqueiroz.dev/docs/configuration/"}]}]</script><script>
 (()=>{try{const t=new URLSearchParams(location.search).get('theme')||localStorage.getItem('nova-site-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}})();
 </script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-X9WTDL262N"></script>
@@ -22,7 +38,7 @@
 window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-X9WTDL262N');
 </script>
 <script>window.NOVA_SEARCH=[{"title":"Introduction","group":"Getting started","href":"/docs/","h":[["Start Here","start-here"],["Reference","reference"],["Internals","internals"],["Help","help"]]},{"title":"Installation","group":"Getting started","href":"/docs/installation/","h":[["Homebrew","homebrew"],["Winget (Windows)","winget-windows"],["Scoop (Windows)","scoop-windows"],["AUR (Arch Linux)","aur-arch-linux"],["APT (Debian/Ubuntu)","apt-debianubuntu"],["DNF/RPM (Fedora/RHEL)","dnfrpm-fedorarhel"]]},{"title":"Quickstart","group":"Getting started","href":"/docs/quickstart/","h":[["First Run","first-run"],["Editing Settings","editing-settings"],["Command blocks","command-blocks"],["Command Palette","command-palette"],["AI Overlay","ai-overlay"]]},{"title":"Configuration","group":"Reference","href":"/docs/configuration/","h":[["Location","location"],["File Lifecycle","file-lifecycle"],["Defaults","defaults"],["Reference","reference"],["[general]","general"],["[theme]","theme"],["[theme.font]","themefont"],["[theme.colors]","themecolors"],["[theme.cursor]","themecursor"],["[keybindings]","keybindings"],["[ai]","ai"]]},{"title":"Keybindings","group":"Reference","href":"/docs/keybindings/","h":[["Binding Syntax","binding-syntax"],["Actions","actions"],["Defaults","defaults"],["Fixed Shortcuts","fixed-shortcuts"],["Split Pane","split-pane"],["Font Size","font-size"],["Block input","block-input"],["Search","search"],["Notes","notes"]]},{"title":"AI","group":"Reference","href":"/docs/ai/","h":[["Overview","overview"],["Configuration","configuration"],["Provider Behavior","provider-behavior"],["What Gets Sent","what-gets-sent"],["Troubleshooting","troubleshooting"]]},{"title":"CLI","group":"Reference","href":"/docs/cli/","h":[["Commands","commands"],["nova update","nova-update"],["nova ask","nova-ask"],["How It Works","how-it-works"]]},{"title":"OSC integration","group":"Internals","href":"/docs/internals-osc/","h":[["Private Nova OSC Channel","private-nova-osc-channel"],["Command: ask_ai","command-ask_ai"],["OSC 7: Current Working Directory","osc-7-current-working-directory"],["OSC 8: Hyperlinks","osc-8-hyperlinks"]]},{"title":"Development","group":"Internals","href":"/docs/development/","h":[["Build Nova","build-nova"],["Code Map","code-map"],["Build The Docs Site","build-the-docs-site"],["CI Notes","ci-notes"]]},{"title":"Troubleshooting","group":"Help","href":"/docs/troubleshooting/","h":[["macOS: “Nova is damaged and can’t be opened”","macos-nova-is-damaged-and-cant-be-opened"],["Settings Keep Resetting","settings-keep-resetting"],["nova ask Must Be Run Inside Nova","nova-ask-must-be-run-inside-nova"],["Pagers (git log, man) Stay Inside a Block","pagers-git-log-man-stay-inside-a-block"],["AI Errors","ai-errors"],["Updates Fail","updates-fail"]]}];</script>
-<link rel="stylesheet" href="/_astro/CopyButton.BKNGvCRr.css">
+<link rel="stylesheet" href="/_astro/seo.BKNGvCRr.css">
 <link rel="stylesheet" href="/_astro/_..C4IPoKZX.css"></head>
 <body>
 

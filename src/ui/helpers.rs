@@ -1,10 +1,13 @@
-pub fn til_home(pwd: &str) -> String {
-  let home_dir = std::env::var("HOME")
+static HOME_DIR: std::sync::LazyLock<String> = std::sync::LazyLock::new(|| {
+  std::env::var("HOME")
     .or_else(|_| std::env::var("USERPROFILE"))
-    .unwrap_or_default();
+    .unwrap_or_default()
+});
 
-  if pwd.starts_with(&home_dir) {
-    pwd.replacen(&home_dir, "~", 1)
+pub fn til_home(pwd: &str) -> String {
+  let home_dir = HOME_DIR.as_str();
+  if pwd.starts_with(home_dir) {
+    pwd.replacen(home_dir, "~", 1)
   } else {
     pwd.to_owned()
   }

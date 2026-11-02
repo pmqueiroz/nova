@@ -263,6 +263,12 @@ Every wheel tick and pointer move re-runs `view`, so a block's output is one
 
 ### Selection, links, search
 
+- Output cards report pointer moves through `components::cell_area`, not
+  `mouse_area::on_move` (which publishes on every pixel, and every message
+  rebuilds `view`). It publishes `BlockPointer` only when the pointer enters a
+  new `(line, col)` — computed with the same padding and cell size as
+  `handle_block_pointer` — or while a button is held, so edge auto-scroll
+  during a drag still advances per move.
 - Output cards report pointer moves relative to the card, mapped to
   `(line, col)` with card padding and `tokens::block` cell size. Selection is
   scoped to one block (`BlockSelection`). Ctrl+click opens the URL under the

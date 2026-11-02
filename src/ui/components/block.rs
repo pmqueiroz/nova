@@ -9,6 +9,7 @@ use crate::core::grid::{Cell, CellAttrs};
 use crate::core::search::BlockMatch;
 use crate::core::selection::BlockSelection;
 use crate::ui::app_state::Message;
+use crate::ui::components::cell_area::cell_area;
 use crate::ui::components::ds::transform::Transform;
 use crate::ui::components::output_lines::output_lines;
 use crate::ui::theme::motion::{self, lerp};
@@ -264,8 +265,17 @@ pub fn output_card<'a>(
   .clip(true)
   .style(move |_| card_style(alpha));
   let (pane_id, block_id) = (o.pane_id, block.id);
-  mouse_area(card)
-    .on_move(move |p| Message::BlockPointer(pane_id, block_id, p))
+  let pad = card_padding(o.compact);
+  let tracked = cell_area(
+    card,
+    iced::Vector::new(pad.left, pad.top),
+    iced::Size::new(
+      size * tokens::block::CHAR_WIDTH_RATIO,
+      size * tokens::block::LINE_HEIGHT,
+    ),
+    move |p| Message::BlockPointer(pane_id, block_id, p),
+  );
+  mouse_area(tracked)
     .on_press(Message::BlockPress(pane_id, block_id))
     .on_release(Message::BlockRelease)
     .interaction(if url.is_some() {

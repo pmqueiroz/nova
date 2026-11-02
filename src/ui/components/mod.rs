@@ -1,6 +1,7 @@
 mod ai_sheet;
 mod app;
 pub mod block;
+mod cell_area;
 pub mod command_palette;
 pub mod confirm;
 #[allow(dead_code)]

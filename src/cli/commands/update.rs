@@ -72,6 +72,7 @@ pub fn run(args: &[String]) -> i32 {
 
   match &offer.plan {
     UpdatePlan::Delegate { argv, .. } => run_delegate(&install::fill_file(argv, Path::new(&file))),
+    UpdatePlan::AfterExit { argv } => run_delegate(argv),
     _ => {
       match offer.install {
         Install::Nsis { .. } => println!(

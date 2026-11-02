@@ -29,6 +29,16 @@ Locally, `lefthook.yml` runs `cargo clippy --fix` and `cargo fmt` on staged
 - **`package`** — matrix (windows, macos x86_64 + aarch64, ubuntu-22.04):
   `cargo build --release` then `cargo packager` → NSIS + portable ZIP, DMG,
   deb/AppImage, RPM. Uploads artifacts.
+  - Windows first runs `packaging/conpty/fetch.ps1 -Dest target/release`:
+    downloads the pinned `Microsoft.Windows.Console.ConPTY` nupkg, checks its
+    SHA-256, and copies `conpty.dll` + `OpenConsole.exe` (x64) next to
+    `nova.exe`. To bump, change `$Version` and `$Sha256` together.
+  - The NSIS template derives their source paths from `MAINBINARYSRCPATH`
+    via `!searchreplace` (cargo-packager `resources` would also land in the
+    macOS/Linux bundles), renames any existing copies to `.old` before
+    writing (a lingering `OpenConsole.exe` may still run), and deletes them
+    on uninstall. A missing file fails `makensis`.
+  - The portable ZIP holds all three at its root; Scoop extracts it as is.
 - **`release`** — collects artifacts, generates checksums, publishes the
   GitHub release.
 - After `release`: **`update-readme`** (commits new download URLs to

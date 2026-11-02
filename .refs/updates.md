@@ -80,7 +80,11 @@ renamed after the hash matches.
   `nova.exe.old` (Windows allows renaming, not overwriting, a running exe),
   then move the new one in. If `.old` is locked by a still-running older
   process, a timestamped `.old.<secs>` is used. This swap happens at stage
-  time, so the next launch is already the new version.
+  time, so the next launch is already the new version. The
+  `install::WINDOWS_SIDECARS` (`conpty.dll`, `OpenConsole.exe`) get the same
+  swap first when the ZIP has them (a loaded dll and a running host can be
+  renamed too); older ZIPs without them still update. `cleanup()` removes
+  their `.old*` siblings as well.
 - **AppImage:** copy to `<path>.new`, `chmod 755`, same rename swap. The
   running mount keeps the old inode.
 - **MacApp:** `hdiutil attach -nobrowse -readonly` the dmg, `ditto` the `.app`

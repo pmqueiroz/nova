@@ -42,6 +42,17 @@ instead of a panicked thread behind a dead window. portable-pty's
 drops its own `tx_out` clone after a successful spawn, otherwise `rx_out`
 never closes when the shell exits.
 
+**Sideloaded ConPTY (Windows).** portable-pty loads `conpty.dll` from beside
+the exe before falling back to kernel32's ConPTY; that dll runs the
+`OpenConsole.exe` next to it. Nova ships both (pinned NuGet
+`Microsoft.Windows.Console.ConPTY`, see `packaging/conpty/fetch.ps1`). The
+inbox conhost swallows `?1000h/1002h/1003h/1006h`, so `Grid::mouse_mode`
+stays `None` and the wheel falls back to arrow keys (Claude Code then warns
+"Scroll wheel is sending arrow keys"). OpenConsole forwards them. Both hosts
+emit `?9001h` (win32-input-mode), which Nova ignores; plain VT input still
+works. Bun apps receive SGR wheel reports verbatim; Node (libuv) apps drop
+them.
+
 ## Terminal emulation (`sys/parser.rs`, `core/grid.rs`)
 
 - Tabs are fixed 8-column stops; no `HTS`/`TBC`. SGR 8/28 (hidden) are

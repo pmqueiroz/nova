@@ -225,7 +225,10 @@ The shell never sees the input bar's text, so Nova completes locally.
 - Several matches: insert the common prefix if longer, else cycle
   (`Completion`, `step(±1)`). Any edit, history walk or submit drops it.
 - Runs synchronously in `update`; a slow network drive in `PATH` stalls the
-  UI.
+  UI. `PATH` listings are cached per directory (`PATH_CACHE`) and reused
+  while the directory's mtime is unchanged, so a Tab press costs one `stat`
+  per `PATH` entry; installing or removing a program bumps the mtime and
+  triggers a rescan of that directory only.
 
 ### Block log rendering (`components/output_lines.rs`)
 

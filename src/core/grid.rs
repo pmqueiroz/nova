@@ -1,6 +1,7 @@
 use bitflags::bitflags;
 use iced::Color;
 use serde::{Deserialize, Serialize};
+use smol_str::SmolStr;
 use std::collections::{HashMap, VecDeque};
 use std::sync::Arc;
 
@@ -25,7 +26,7 @@ bitflags! {
 
 #[derive(Clone, Debug)]
 pub struct Cell {
-  pub c: Box<str>,
+  pub c: SmolStr,
   pub width: u8,
   pub fg: Option<Color>,
   pub bg: Option<Color>,
@@ -35,7 +36,7 @@ pub struct Cell {
 
 impl Cell {
   pub fn is_blank(&self) -> bool {
-    &*self.c == " " && self.bg.is_none()
+    self.c == " " && self.bg.is_none()
   }
 }
 
@@ -50,7 +51,7 @@ fn without_trailing_blanks(cells: &[Cell]) -> &[Cell] {
 impl Default for Cell {
   fn default() -> Self {
     Self {
-      c: Box::from(" "),
+      c: SmolStr::new_inline(" "),
       width: 1,
       fg: None,
       bg: None,
@@ -488,28 +489,28 @@ impl Grid {
     if start_row == self.cursor_y {
       for col in start_col..self.cursor_x.min(self.cols) {
         let cell = &self.cells[start_row * self.cols + col];
-        if cell.width != 0 && cell.c.as_ref() != " " {
+        if cell.width != 0 && cell.c.as_str() != " " {
           input.push_str(&cell.c);
         }
       }
     } else {
       for col in start_col..self.cols {
         let cell = &self.cells[start_row * self.cols + col];
-        if cell.width != 0 && cell.c.as_ref() != " " {
+        if cell.width != 0 && cell.c.as_str() != " " {
           input.push_str(&cell.c);
         }
       }
       for row in (start_row + 1)..self.cursor_y {
         for col in 0..self.cols {
           let cell = &self.cells[row * self.cols + col];
-          if cell.width != 0 && cell.c.as_ref() != " " {
+          if cell.width != 0 && cell.c.as_str() != " " {
             input.push_str(&cell.c);
           }
         }
       }
       for col in 0..self.cursor_x.min(self.cols) {
         let cell = &self.cells[self.cursor_y * self.cols + col];
-        if cell.width != 0 && cell.c.as_ref() != " " {
+        if cell.width != 0 && cell.c.as_str() != " " {
           input.push_str(&cell.c);
         }
       }

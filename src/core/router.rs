@@ -326,7 +326,7 @@ mod tests {
     let out = r.feed(&format!("{READY_PREEXEC}$ "));
     assert!(!out.entered_blocks);
     assert_eq!(r.integ.mode, Mode::Classic);
-    assert_eq!(r.screen.cells[0].c.as_ref(), "$");
+    assert_eq!(r.screen.cells[0].c.as_str(), "$");
   }
 
   #[test]

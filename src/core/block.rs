@@ -139,7 +139,7 @@ impl Block {
         cells
           .iter()
           .filter(|c| c.width != 0)
-          .map(|c| c.c.as_ref())
+          .map(|c| c.c.as_str())
           .collect::<String>()
           .trim_end()
           .to_string()
@@ -182,7 +182,7 @@ impl<'a> Lines<'a> {
 fn row_is_blank(cells: &[Cell]) -> bool {
   cells
     .iter()
-    .all(|c| c.c.as_ref().trim().is_empty() && c.bg.is_none())
+    .all(|c| c.c.as_str().trim().is_empty() && c.bg.is_none())
 }
 
 pub fn last_used_row(grid: &Grid) -> Option<usize> {

@@ -19,7 +19,7 @@ pub struct AiQuery {
 pub fn extract_last_output(grid: &Grid) -> String {
   let prompt_row = (0..grid.rows)
     .rev()
-    .find(|&r| grid.row(r).iter().any(|c| c.c.as_ref() == "λ"));
+    .find(|&r| grid.row(r).iter().any(|c| c.c.as_str() == "λ"));
   let start = match prompt_row {
     Some(r) => r + 1,
     None => return String::new(),

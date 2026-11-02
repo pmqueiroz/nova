@@ -76,6 +76,10 @@ arrow keys". The installer, the portable ZIP and Scoop include both files; a
 - **Windows installer:** a per-machine install (under `Program Files`) asks for
   admin rights (UAC) when the update runs. The installer closes every open Nova
   window.
+- **Scoop:** Scoop won't update an app that is running, so *Restart to update*
+  closes every open Nova window, runs `scoop update nova` in the background and
+  reopens Nova. If Nova comes back on the old version, run `scoop update nova`
+  from another terminal with Nova closed to see Scoop's error.
 - **apt / dnf / AUR / Homebrew:** the update runs in a new tab and may ask for
   your `sudo` password there. If it fails, the tab shows the package manager's
   error; re-run `nova update --install` or the shown command yourself.

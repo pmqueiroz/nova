@@ -355,6 +355,10 @@ logical). On Windows the window starts hidden until the fit is applied.
   About tab; failures show only in About. Installing the update (delegate to
   the package manager, or verify + swap the binary) is in
   [updates.md](./updates.md). `nova update [--install]` is the CLI side.
+- **Git branch** (`git_branch` on `Tab`/`SplitPane`, read from
+  `.git/HEAD` walking up from the cwd) is refreshed only when the pane's cwd
+  changes or a command completes, never per PTY message: the walk is
+  filesystem I/O on the UI thread.
 - **Tabs** are labeled with the last segment of their cwd
   (`helpers::dir_name`), not the full path. The hidden close × renders a `Space`, not a transparent icon —
   iced's svg tint drops alpha, so a transparent icon draws black.

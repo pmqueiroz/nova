@@ -211,9 +211,11 @@ impl Nova {
       }
       let mut split_clipboard_write: Option<String> = None;
       let mut split_request_clipboard = false;
+      let mut refresh_git = false;
       for cmd in split.grid.control_queue.drain(..) {
         match cmd {
           ControlCommand::CommandComplete(_) => {
+            refresh_git = true;
             if let Some(start) = split.command_start.take() {
               let elapsed = split
                 .last_pty_output
@@ -239,9 +241,11 @@ impl Nova {
       if split.command_start.is_some() {
         split.last_pty_output = Some(std::time::Instant::now());
       }
-      let new_pwd = split.grid.pwd.clone();
-      if new_pwd != split.pwd {
-        split.pwd = new_pwd;
+      if split.grid.pwd != split.pwd {
+        split.pwd.clone_from(&split.grid.pwd);
+        refresh_git = true;
+      }
+      if refresh_git {
         split.update_git_status();
       }
       split.scroll_offset = 0;
@@ -284,6 +288,7 @@ impl Nova {
       let mut ai_preset: Option<std::sync::Arc<str>> = None;
       let mut clipboard_write: Option<String> = None;
       let mut request_clipboard = false;
+      let mut refresh_git = false;
       for cmd in tab.grid.control_queue.drain(..) {
         match cmd {
           ControlCommand::SetClipboard(text) => clipboard_write = Some(text),
@@ -319,6 +324,7 @@ impl Nova {
           }
           ControlCommand::CommandComplete(_code) => {
             tab.shell_at_prompt = true;
+            refresh_git = true;
             const NOTIFY_THRESHOLD_SECS: u64 = 10;
             if let Some(start) = tab.command_start.take() {
               let elapsed = tab
@@ -350,11 +356,13 @@ impl Nova {
         }
       }
 
-      let new_pwd = tab.grid.pwd.clone();
-      if new_pwd != tab.pwd {
-        tab.pwd = new_pwd;
+      if tab.grid.pwd != tab.pwd {
+        tab.pwd.clone_from(&tab.grid.pwd);
+        refresh_git = true;
       }
-      tab.update_git_status();
+      if refresh_git {
+        tab.update_git_status();
+      }
       tab.scroll_offset = 0;
 
       if tab.command_start.is_some() {

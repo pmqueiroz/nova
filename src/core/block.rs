@@ -28,6 +28,16 @@ pub struct Block {
   pub born: std::time::Instant,
   pub takeover: bool,
   pub scroll_col: usize,
+  frozen_lines: Option<FrozenLines>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct FrozenLines {
+  first: usize,
+  end: usize,
+  cols: usize,
+  rows: usize,
+  scrollback: usize,
 }
 
 impl Block {
@@ -46,6 +56,7 @@ impl Block {
       born: std::time::Instant::now(),
       takeover: false,
       scroll_col: 0,
+      frozen_lines: None,
     }
   }
 
@@ -111,13 +122,48 @@ impl Block {
       .unwrap_or(end)
   }
 
-  pub fn lines(&self) -> Lines<'_> {
+  fn scan_lines(&self) -> Lines<'_> {
     let end = self.raw_end();
     Lines {
       block: self,
       first: self.first_line(end),
       end,
     }
+  }
+
+  fn frozen_shape(&self) -> (usize, usize, usize) {
+    (
+      self.output.cols,
+      self.output.rows,
+      self.output.scrollback.len(),
+    )
+  }
+
+  pub fn freeze_lines(&mut self) {
+    let lines = self.scan_lines();
+    let (first, end) = (lines.first, lines.end);
+    let (cols, rows, scrollback) = self.frozen_shape();
+    self.frozen_lines = Some(FrozenLines {
+      first,
+      end,
+      cols,
+      rows,
+      scrollback,
+    });
+  }
+
+  pub fn lines(&self) -> Lines<'_> {
+    if let Some(f) = self.frozen_lines
+      && self.is_finished()
+      && (f.cols, f.rows, f.scrollback) == self.frozen_shape()
+    {
+      return Lines {
+        block: self,
+        first: f.first,
+        end: f.end,
+      };
+    }
+    self.scan_lines()
   }
 
   pub fn line_count(&self) -> usize {
@@ -296,6 +342,7 @@ impl Session {
       b.state = BlockState::Done;
       b.exit_code = Some(exit_code);
       b.finished_at = Some(Local::now());
+      b.freeze_lines();
     }
     self.phase = Phase::Prompt;
     Some(id)
@@ -332,6 +379,9 @@ impl Session {
     for b in self.blocks.iter_mut().filter(|b| !b.keeps_width()) {
       if b.output.cols != self.cols || b.output.rows != self.rows {
         b.output.resize(self.cols, self.rows);
+        if b.is_finished() {
+          b.freeze_lines();
+        }
       }
     }
   }
@@ -372,6 +422,29 @@ mod tests {
     let mut p = Parser::new();
     let mut exec = AnsiExecutor::new(&mut b.output);
     p.advance(&mut exec, s.as_bytes());
+  }
+
+  fn range(l: Lines<'_>) -> (usize, usize) {
+    (l.first, l.end)
+  }
+
+  #[test]
+  fn finished_block_lines_stay_in_sync_with_a_fresh_scan() {
+    let mut s = Session::new("~".into(), 10, 6);
+    let id = s.submit("seq").unwrap();
+    feed(
+      s.block_mut(id).unwrap(),
+      "\r\n\r\n0123456789abcdef\r\nx\r\n",
+    );
+    s.finish(0);
+    let b = s.block(id).unwrap();
+    assert!(b.frozen_lines.is_some());
+    assert_eq!(range(b.lines()), range(b.scan_lines()));
+    assert_eq!(b.text(), "0123456789\nabcdef\nx");
+    s.resize(20, 6);
+    let b = s.block(id).unwrap();
+    assert_eq!(range(b.lines()), range(b.scan_lines()));
+    assert_eq!(b.text(), "0123456789abcdef\nx");
   }
 
   #[test]

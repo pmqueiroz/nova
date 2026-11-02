@@ -20,6 +20,7 @@ white `#f0f2f5`.
 | `.github/assets/nova-hero-1280x400.gif` | README hero (caret blink) | `README.md` |
 | `.github/assets/nova-og-*.png` | social preview | uploaded manually in GitHub repo settings |
 | `docs/public/favicon.{ico,svg}`, `docs/public/og.png` | site favicon (brand-v2 `icon/web/favicon.svg`, metadata stripped) and OG image (copy of `nova-og-1280x640.png`) | `docs/src/layouts/Base.astro` |
+| `docs/public/apple-touch-icon.png` | 180×180 opaque, made from `nova-macos-1024.png` (see `docs-site.md` › SEO) | `docs/src/layouts/Base.astro` |
 
 ## Gotchas
 

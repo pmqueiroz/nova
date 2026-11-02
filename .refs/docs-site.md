@@ -25,17 +25,36 @@ Deliberate deviation: winget is shown as available (the design still says
 ## Layout
 
 - `src/layouts/Base.astro` — head (meta, OG, favicon, GA `G-X9WTDL262N`,
-  pre-paint theme from `?theme=` / localStorage), loads `site.js`.
+  pre-paint theme from `?theme=` / localStorage), loads `site.js`. Props:
+  `title`, `description`, optional `type` (`website` | `article`) and
+  `jsonLd` (see SEO below).
 - `src/components/` — `Header` (`variant="landing" | "docs"`), `Footer`,
   `Logo`, `Icon` (all SVGs live in `src/lib/icons.ts`), `Keys`, `CopyButton`,
   `Cmdline`, `OsSeg`, `SearchModal`, `DocsSidebar`, `Toc`, `Pager`.
 - `src/pages/index.astro` — landing. `src/pages/docs/[...slug].astro` — one
   page per Markdown file. `index.md` → `/docs/`.
+- `src/lib/release.ts` — current version from `.release-please-manifest.json`.
 - `src/lib/nav.ts` — **single source** for sidebar groups, page order, titles,
   crumbs, prev/next and the search index. Add a new page here or it is built
   but not linked.
 - `src/content/docs/*.md` — docs content (`title`, `description` frontmatter;
   description becomes the lead paragraph).
+
+## SEO
+
+- Every page: canonical, `robots`, sitemap link, `theme-color` (dark/light
+  `--bg` as hex), Open Graph + Twitter tags with `og.png` (1280×640, a copy
+  of `.github/assets/nova-og-1280x640.png`; keep the width/height meta in
+  sync if it changes), and a JSON-LD array that always starts with `WebSite`.
+- `src/lib/seo.ts` builds the extra JSON-LD: landing passes
+  `SoftwareApplication` (version from `release.ts`); docs pages pass
+  `TechArticle` + `BreadcrumbList` (Nova › Docs › page) with `type="article"`.
+- The frontmatter `description` is the meta/OG description, so keep it a real
+  sentence.
+- `public/robots.txt` points to `sitemap-index.xml` (from `@astrojs/sitemap`;
+  the redirect stubs are not in it). `public/apple-touch-icon.png` is
+  `assets/icons/macos/nova-macos-1024.png` cropped to the squircle, corners
+  filled with its gradient, resized to 180×180.
 
 ## Markdown pipeline
 

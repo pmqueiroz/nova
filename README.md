@@ -9,7 +9,7 @@
 - **Command blocks:** Type into a dedicated input bar; every command and its output becomes a block you can select, search and copy from. Full-screen apps take over the pane until they exit.
 - **Multi-tab workflow:** Open, close, and switch between terminal tabs without leaving the window.
 - **ANSI & VTE support:** Full escape code processing via `vte` for accurate rendering of colors, cursor movement, and control sequences.
-- **Built-in font:** Ships with Fira Code Nerd Font — no system font installation required.
+- **Built-in font:** Ships with Fira Code Nerd Font. No system font installation required.
 - **AI Agentic Features:** Integrated LLM capabilities directly within the terminal, including "Ask AI" for natural language command generation and automated explanations for complex command outputs.
 
 ## 🚀 Installation
@@ -22,10 +22,6 @@
 | Linux | `brew install pmqueiroz/tap/nova` |
 
 ### Winget (Windows)
-
-> [!WARNING]  
-> waiting to winget maintainers to approve the request check https://github.com/pmqueiroz/nova/issues/25
-
 
 ```sh
 winget install pmqueiroz.Nova
@@ -73,7 +69,7 @@ sudo dnf install nova
 Each release includes a [`checksums.txt`](https://github.com/pmqueiroz/nova/releases/download/v1.0.0/checksums.txt) for verifying the download.
 
 > [!WARNING]
-> Nova is not notarized — macOS may block it with *"Nova is damaged and can't be opened."*
+> Nova is not notarized, macOS may block it with *"Nova is damaged and can't be opened."*
 > Run this once after installing:
 > ```sh
 > xattr -cr /Applications/Nova.app

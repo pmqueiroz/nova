@@ -17,13 +17,7 @@ impl Nova {
     let active_tab = &self.tabs[self.shown_tab_index()];
     let pop = self.window_pop.interpolate(0.0, 1.0, self.now);
 
-    let selection = match (self.selection_start, self.selection_end) {
-      (Some(start), Some(end)) if start != end => {
-        let ((sc, sr), (ec, er)) = normalize_sel(start, end);
-        Some((sc, sr, ec, er))
-      }
-      _ => None,
-    };
+    let selection = self.term_selection();
 
     let font_size = self.settings.theme.font.size;
     let resize_cursor = resize_direction(self.cursor_position, self.window_size).map(dir_to_cursor);
@@ -378,6 +372,16 @@ impl Nova {
     mouse_area(inner).interaction(outer_interaction).into()
   }
 
+  fn term_selection(&self) -> Option<(usize, usize, usize, usize)> {
+    match (self.selection_start, self.selection_end) {
+      (Some(start), Some(end)) if start != end => {
+        let ((sc, sr), (ec, er)) = normalize_sel(start, end);
+        Some((sc, sr, ec, er))
+      }
+      _ => None,
+    }
+  }
+
   fn tab_ghost(&self) -> Option<Element<'_, Message>> {
     let dragged = self.tabs.get(self.dragging_tab_index?)?;
     if self.cursor_position.y <= components::TITLE_BAR_HEIGHT {
@@ -404,7 +408,9 @@ impl Nova {
     if let Some(grid) = pane.raw_grid() {
       return Some(components::term(
         grid,
-        None,
+        (tab.active_pane().id == pane.id)
+          .then(|| self.term_selection())
+          .flatten(),
         crate::ui::theme::tokens::block::font_size(font_size),
         0,
         None,

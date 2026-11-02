@@ -1,5 +1,6 @@
 use iced::{Point, mouse};
 
+use crate::core::grid::{Grid, MouseMode};
 use crate::sys::pty::PtyCommand;
 
 use super::super::helpers::{
@@ -9,7 +10,56 @@ use super::super::helpers::{
 };
 use super::super::nova::Nova;
 
+#[derive(Clone, Copy)]
+pub(super) struct Pointer {
+  mouse_mode: MouseMode,
+  cell: Option<(usize, usize)>,
+}
+
+impl Pointer {
+  fn reports(&self, shift_held: bool) -> bool {
+    self.mouse_mode != MouseMode::None && !shift_held
+  }
+}
+
 impl Nova {
+  pub(super) fn selection_grid(&self) -> Option<(&Grid, usize)> {
+    let tab = self.tabs.get(self.active_index)?;
+    match tab.active_pane().raw_grid() {
+      Some(grid) => Some((grid, 0)),
+      None => Some((&tab.grid, tab.scroll_offset)),
+    }
+  }
+
+  fn pointer(&self) -> Option<Pointer> {
+    let tab = self.tabs.get(self.active_index)?;
+    let split = tab.active_pane_is_split;
+    let Some(grid) = tab.pane(split).raw_grid() else {
+      return Some(Pointer {
+        mouse_mode: tab.grid.mouse_mode,
+        cell: pixel_to_cell(self.cursor_position, self.settings.theme.font.size),
+      });
+    };
+    let pane_x = if split {
+      split_widths(self.window_size.width, tab.split_ratio).0 + SPLIT_DIVIDER_WIDTH
+    } else {
+      0.0
+    };
+    let pos = self.cursor_position;
+    let inside = pos.x >= pane_x && pos.y >= crate::ui::components::TITLE_BAR_HEIGHT;
+    let compact = crate::ui::theme::tokens::block::is_compact(self.window_size.width);
+    let (col, row) = raw_pixel_to_cell(pos, pane_x, compact, self.settings.theme.font.size);
+    Some(Pointer {
+      mouse_mode: grid.mouse_mode,
+      cell: inside.then(|| {
+        (
+          col.min(grid.cols.saturating_sub(1)),
+          row.min(grid.rows.saturating_sub(1)),
+        )
+      }),
+    })
+  }
+
   pub(super) fn update_hovered_url(&mut self) {
     if !self.ctrl_held {
       self.hovered_url = None;
@@ -59,45 +109,39 @@ impl Nova {
       return;
     }
 
-    let font_size = self.settings.theme.font.size;
+    let pointer = self.pointer();
 
     let mut bypass_selection = false;
-    if let Some(tab) = self.tabs.get(self.active_index)
-      && tab.grid.mouse_mode != crate::core::grid::MouseMode::None
-      && !self.shift_held
+    if let Some(p) = pointer
+      && p.reports(self.shift_held)
     {
       bypass_selection = true;
-      if (tab.grid.mouse_mode == crate::core::grid::MouseMode::AnyEvent
-        || (tab.grid.mouse_mode == crate::core::grid::MouseMode::Button
-          && self.last_mouse_button.is_some()))
-        && let Some(cell) = pixel_to_cell(position, font_size)
+      if (p.mouse_mode == MouseMode::AnyEvent
+        || (p.mouse_mode == MouseMode::Button && self.last_mouse_button.is_some()))
+        && let Some((col, row)) = p.cell
       {
-        if let Some(button) = self.last_mouse_button {
-          self.send_mouse_event(tab, cell.0, cell.1, Some(button), true, true);
-        } else {
-          self.send_mouse_event(tab, cell.0, cell.1, None, false, true);
+        match self.last_mouse_button {
+          Some(button) => self.send_mouse_event(col, row, Some(button), true, true),
+          None => self.send_mouse_event(col, row, None, false, true),
         }
       }
     }
 
     if self.is_selecting && !bypass_selection {
-      let end = pixel_to_cell(position, font_size);
+      let end = pointer.and_then(|p| p.cell);
       self.selection_end = end;
       if self.click_count >= 2
-        && let (Some((end_col, end_row)), Some(active_tab)) =
-          (end, self.tabs.get(self.active_index))
+        && let (Some((end_col, end_row)), Some((grid, scroll))) = (end, self.selection_grid())
       {
         match self.click_count {
           2 => {
-            if let Some(row_cells) =
-              get_display_row(&active_tab.grid, active_tab.scroll_offset, end_row)
-            {
+            if let Some(row_cells) = get_display_row(grid, scroll, end_row) {
               let (_, we) = find_word_boundaries(row_cells, end_col);
               self.selection_end = Some((we, end_row));
             }
           }
           3 => {
-            self.selection_end = Some((active_tab.grid.cols.saturating_sub(1), end_row));
+            self.selection_end = Some((grid.cols.saturating_sub(1), end_row));
           }
           _ => {}
         }
@@ -126,15 +170,12 @@ impl Nova {
       return iced::window::drag_resize(window_id, direction);
     }
 
-    let font_size = self.settings.theme.font.size;
-    let cell = pixel_to_cell(self.cursor_position, font_size);
+    let pointer = self.pointer();
+    let cell = pointer.and_then(|p| p.cell);
 
-    if let Some(tab) = self.tabs.get(self.active_index)
-      && tab.grid.mouse_mode != crate::core::grid::MouseMode::None
-      && !self.shift_held
-    {
+    if pointer.is_some_and(|p| p.reports(self.shift_held)) {
       if let Some((col, row)) = cell {
-        self.send_mouse_event(tab, col, row, Some(button), true, false);
+        self.send_mouse_event(col, row, Some(button), true, false);
       }
       self.click_count = 0;
       return iced::Task::none();
@@ -171,23 +212,16 @@ impl Nova {
 
       if let Some((col, row)) = cell
         && self.click_count >= 2
-        && let Some(active_tab) = self.tabs.get(self.active_index)
+        && let Some((grid, scroll)) = self.selection_grid()
       {
-        match self.click_count {
-          2 => {
-            if let Some(row_cells) =
-              get_display_row(&active_tab.grid, active_tab.scroll_offset, row)
-            {
-              let (ws, we) = find_word_boundaries(row_cells, col);
-              self.selection_start = Some((ws, row));
-              self.selection_end = Some((we, row));
-            }
-          }
-          3 => {
-            self.selection_start = Some((0, row));
-            self.selection_end = Some((active_tab.grid.cols.saturating_sub(1), row));
-          }
-          _ => {}
+        let span = match self.click_count {
+          2 => get_display_row(grid, scroll, row).map(|cells| find_word_boundaries(cells, col)),
+          3 => Some((0, grid.cols.saturating_sub(1))),
+          _ => None,
+        };
+        if let Some((start, end)) = span {
+          self.selection_start = Some((start, row));
+          self.selection_end = Some((end, row));
         }
       }
     }
@@ -234,13 +268,11 @@ impl Nova {
       return iced::Task::none();
     }
 
-    if let Some(tab) = self.tabs.get(self.active_index)
-      && tab.grid.mouse_mode != crate::core::grid::MouseMode::None
-      && !self.shift_held
+    if let Some(p) = self.pointer()
+      && p.reports(self.shift_held)
     {
-      let font_size = self.settings.theme.font.size;
-      if let Some((col, row)) = pixel_to_cell(self.cursor_position, font_size) {
-        self.send_mouse_event(tab, col, row, Some(button), false, false);
+      if let Some((col, row)) = p.cell {
+        self.send_mouse_event(col, row, Some(button), false, false);
       }
       return iced::Task::none();
     }
@@ -249,8 +281,8 @@ impl Nova {
       if start == end {
         self.selection_start = None;
         self.selection_end = None;
-      } else if let Some(active_tab) = self.tabs.get(self.active_index) {
-        let text = extract_selection(&active_tab.grid, active_tab.scroll_offset, start, end);
+      } else if let Some((grid, scroll)) = self.selection_grid() {
+        let text = extract_selection(grid, scroll, start, end);
         if !text.is_empty() {
           return iced::clipboard::write(text);
         }
@@ -370,14 +402,24 @@ impl Nova {
 
   fn send_mouse_event(
     &self,
-    tab: &crate::ui::tab::Tab,
     col: usize,
     row: usize,
     button: Option<mouse::Button>,
     pressed: bool,
     motion: bool,
   ) {
-    let Some(tx) = &tab.pty_tx else { return };
+    let Some(tab) = self.tabs.get(self.active_index) else {
+      return;
+    };
+    let split = tab.active_pane_is_split;
+    let raw = tab.pane(split).raw_grid();
+    let tx = if raw.is_some() && split {
+      tab.split.as_ref().and_then(|s| s.pty_tx.as_ref())
+    } else {
+      tab.pty_tx.as_ref()
+    };
+    let Some(tx) = tx else { return };
+    let sgr = raw.unwrap_or(&tab.grid).mouse_sgr;
 
     let mut cb = match button {
       Some(mouse::Button::Left) => 0,
@@ -401,7 +443,7 @@ impl Nova {
       cb |= 16;
     }
 
-    if tab.grid.mouse_sgr {
+    if sgr {
       let state = if pressed { 'M' } else { 'm' };
       let cmd = format!("\x1b[<{};{};{}{}", cb, col + 1, row + 1, state);
       let _ = tx.try_send(PtyCommand::Input(cmd.into_bytes()));

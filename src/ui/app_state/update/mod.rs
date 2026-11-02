@@ -950,9 +950,9 @@ impl Nova {
           return iced::clipboard::write(text);
         }
         if let (Some(start), Some(end)) = (self.selection_start, self.selection_end)
-          && let Some(active_tab) = self.tabs.get(self.active_index)
+          && let Some((grid, scroll)) = self.selection_grid()
         {
-          let text = extract_selection(&active_tab.grid, active_tab.scroll_offset, start, end);
+          let text = extract_selection(grid, scroll, start, end);
           if !text.is_empty() {
             return iced::clipboard::write(text);
           }

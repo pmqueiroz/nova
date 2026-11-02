@@ -332,7 +332,17 @@ In `Phase::Raw`, `Nova::pane_body` swaps the log and input bar for
 `components::term` showing the block's own grid; `PaneRef::input_grid` makes
 kitty keyboard flags come from that grid. Wheel: a mouse report when the
 program enabled mouse reporting, otherwise 3 arrow keys per notch (alternate
-scroll, as xterm does). Clicks and drags are not forwarded.
+scroll, as xterm does).
+
+Pointer handling in `update/mouse.rs` goes through `Nova::pointer` and
+`Nova::selection_grid`, which pick the raw block grid (mapped with
+`raw_pixel_to_cell`, scroll offset 0) when the active pane is raw, and the
+classic grid (`pixel_to_cell`, `tab.scroll_offset`) otherwise. So in a raw
+pane, clicks/drags are forwarded as mouse reports to the pane's own PTY when
+the program enabled mouse reporting; otherwise (or with Shift held) they
+drive the grid selection (`selection_start/end`), which `pane_body` passes to
+`term` for the active pane and release/Ctrl+C copy from the raw grid. Any
+new pointer code must use these helpers, not `tab.grid` directly.
 
 ### Sizing (`helpers::calc_block_grid`, `update/window.rs`)
 

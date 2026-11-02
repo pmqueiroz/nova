@@ -50,6 +50,17 @@ fn notification_click_stream() -> impl iced::futures::Stream<Item = Message> {
   )
 }
 
+fn pty_stream(k: &PtyKey) -> impl iced::futures::Stream<Item = Message> + use<> {
+  pty_worker(
+    k.tab_id,
+    k.initial_cols,
+    k.initial_rows,
+    k.shell_cmd.clone(),
+    k.initial_cwd.clone(),
+    k.initial_command.clone(),
+  )
+}
+
 fn pty_worker(
   tab_id: usize,
   cols: u16,
@@ -585,16 +596,7 @@ impl Nova {
           initial_cwd: tab.initial_cwd.clone(),
           initial_command: tab.initial_command.clone(),
         };
-        subs.push(Subscription::run_with(key, |k| {
-          pty_worker(
-            k.tab_id,
-            k.initial_cols,
-            k.initial_rows,
-            k.shell_cmd.clone(),
-            k.initial_cwd.clone(),
-            k.initial_command.clone(),
-          )
-        }));
+        subs.push(Subscription::run_with(key, pty_stream));
       }
 
       if let Some(split) = &tab.split
@@ -608,16 +610,7 @@ impl Nova {
           initial_cwd: split.initial_cwd.clone(),
           initial_command: None,
         };
-        subs.push(Subscription::run_with(split_key, |k| {
-          pty_worker(
-            k.tab_id,
-            k.initial_cols,
-            k.initial_rows,
-            k.shell_cmd.clone(),
-            k.initial_cwd.clone(),
-            k.initial_command.clone(),
-          )
-        }));
+        subs.push(Subscription::run_with(split_key, pty_stream));
       }
     }
 

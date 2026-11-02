@@ -1,5 +1,57 @@
 # Changelog
 
+## [1.2.0](https://github.com/pmqueiroz/nova/compare/v1.1.1...v1.2.0) (2026-11-02)
+
+
+### Features
+
+* **input:** show running state in the input bar with a sliding prompt ([66ae2ef](https://github.com/pmqueiroz/nova/commit/66ae2ef853359787c7b17b6701b54629bfe3f500))
+* **tabs:** drag a tab to the window edge to open it as a split pane ([8e22806](https://github.com/pmqueiroz/nova/commit/8e22806d772fb57c71957c43b4098fb2f34e3709))
+* **tabs:** label tabs with the directory name instead of the full path ([c170377](https://github.com/pmqueiroz/nova/commit/c17037784b42963e56001ab1e40f9a78898c688e))
+* **tabs:** show a skeleton thumbnail of the tab while dragging it ([0c79298](https://github.com/pmqueiroz/nova/commit/0c7929879e600537f632ef541f0dda79603a5dcd))
+
+
+### Bug Fixes
+
+* **blocks:** select text and forward clicks in full-screen programs ([adcf89a](https://github.com/pmqueiroz/nova/commit/adcf89a2e9920c0e466f21434ee765114bd36194))
+* **input:** put the cursor at the end when recalling history ([9f2ef31](https://github.com/pmqueiroz/nova/commit/9f2ef31c38122b7ac984bf063caf708664c42eaf))
+* **tabs:** keep the shell alive when a pane moves between tab and split ([6b92766](https://github.com/pmqueiroz/nova/commit/6b927665945ca3b1d4e14278019e3eee0549c6bf))
+* **ui:** drop the iced suffix from the window title ([c8edeb7](https://github.com/pmqueiroz/nova/commit/c8edeb7a0debc1262a41f8c2067fafd18c6b6885))
+* **windows:** keep the first character of the first powershell command ([0103a47](https://github.com/pmqueiroz/nova/commit/0103a47a31353f6fc00c409184ed1e16a3c73294))
+* **windows:** silence the powershell error ding unless the bell is audio ([f2f60f1](https://github.com/pmqueiroz/nova/commit/f2f60f1f5627cc4edb3c714438a62ff464d8b5bc))
+
+
+### Performance Improvements
+
+* **bell:** play one bell at a time instead of a thread per bel ([72136f0](https://github.com/pmqueiroz/nova/commit/72136f08cf54b1818d4b61ae0da5b57f5eb5ab2a))
+* **block:** freeze the visible line range of finished blocks ([bc1fc9e](https://github.com/pmqueiroz/nova/commit/bc1fc9e93d7b6d5b7c8a787baf1998ebbc9aa534))
+* **block:** report pointer moves over block cards only when the hovered cell changes ([328a3bb](https://github.com/pmqueiroz/nova/commit/328a3bbbe73beea89d0bb651c6b9f469a0cee182))
+* **block:** resolve block lines once when collecting text and copying selections ([9370aa1](https://github.com/pmqueiroz/nova/commit/9370aa1444347858a0218816b9599006f5a1d790))
+* **build:** enable fat lto and single codegen unit for release builds ([48392c0](https://github.com/pmqueiroz/nova/commit/48392c00a024f3240b9a8a463e7d6e9be350f5f3))
+* **completion:** cache path executables per directory until it changes ([7ae8eee](https://github.com/pmqueiroz/nova/commit/7ae8eee7a930eadf455ef805d0cef2fff288a97d))
+* **completion:** use the directory entry's file type instead of a stat per entry ([f083612](https://github.com/pmqueiroz/nova/commit/f083612b114cb55bd521ac4559c1c414f51da2dc))
+* **glyph:** look up block element rects without allocating ([165d396](https://github.com/pmqueiroz/nova/commit/165d39671582a657a9dbd41ac78bc4293cce98d5))
+* **grid:** erase with slice fills and reuse evicted scrollback rows ([8bd389a](https://github.com/pmqueiroz/nova/commit/8bd389a54e127728842b78d95e4dac155bd0467b))
+* **grid:** find history suggestions in one scan instead of building a map per keystroke ([0d67981](https://github.com/pmqueiroz/nova/commit/0d67981b0fb24d32851e57fc0f428fb96926a6b1))
+* **grid:** move scrollback rows into reflow instead of cloning them ([00f4afd](https://github.com/pmqueiroz/nova/commit/00f4afd17014aece29f246fd30e2bff7f01cbd85))
+* **grid:** pack cell colors into three bytes to shrink cells from 88 to 56 bytes ([71d72f9](https://github.com/pmqueiroz/nova/commit/71d72f95f0243ab8575a8d009981c36d319cafd2))
+* **grid:** scroll the screen by rotating a row ring instead of moving every cell ([67fbc8d](https://github.com/pmqueiroz/nova/commit/67fbc8d6b8e40f1b8294f1e4b80cb343ee699a01))
+* **grid:** store cell text inline instead of heap-allocating per cell ([c6c2121](https://github.com/pmqueiroz/nova/commit/c6c21213e159bf93cee80e6d8db15f71bb6093ea))
+* **paste:** preview a paste without collecting every line each frame ([d0d0df1](https://github.com/pmqueiroz/nova/commit/d0d0df130a4e0f0d7f0e98771e1f58b594482652))
+* **pty:** cache the debug-log env flag and skip unchanged cwd clones ([efd7fd3](https://github.com/pmqueiroz/nova/commit/efd7fd3118dd585a67173b3bf404877f13cd7071))
+* **pty:** read 64 KiB at a time and batch queued output into one message ([f906d05](https://github.com/pmqueiroz/nova/commit/f906d0594b2650538fdff6ba4393274a42e0c306))
+* **router:** feed vte in segments instead of one byte at a time ([9ecf23d](https://github.com/pmqueiroz/nova/commit/9ecf23d2a84867582000f2ffda65cbee41ac199f))
+* **startup:** detect installed shells in the background instead of before the window opens ([09f5858](https://github.com/pmqueiroz/nova/commit/09f58588df92db2ddd089ff8e06c271124b23bd7))
+* **tabs:** stop reading the git branch from disk on every pty output ([e5fe963](https://github.com/pmqueiroz/nova/commit/e5fe963df0c2aa1d6abe5f89694fb444479dcda4))
+* **term:** draw the grid from one widget instead of a widget per cell ([30c1d04](https://github.com/pmqueiroz/nova/commit/30c1d0491ee6ea0d2610bc8a0a4b4ebc1b227b15))
+* **term:** only consider search matches on visible rows when rendering ([008bb23](https://github.com/pmqueiroz/nova/commit/008bb23330fa88292ff78c47268d5f1a2ce6e1f0))
+* **term:** resolve theme fonts once per frame instead of per cell ([3954c0c](https://github.com/pmqueiroz/nova/commit/3954c0c8534e61f2a73ac7d3d296fc8dfe4c45d1))
+* **ui:** only run the one-second tick while a shell integration is being detected ([8c3e799](https://github.com/pmqueiroz/nova/commit/8c3e7993d7d06d3ffb88886abd41269855c762d5))
+* **ui:** only tick cursor blink while a blinking grid cursor is shown ([586fc8b](https://github.com/pmqueiroz/nova/commit/586fc8bffccdbcce51e4a02f26f56298234d04bd))
+* **ui:** read the home directory once instead of on every frame ([86ca113](https://github.com/pmqueiroz/nova/commit/86ca113185ac7153c8c95e69b478cb0b573ab8d4))
+* **ui:** skip pointer-move updates when nothing tracks the pointer ([49bf345](https://github.com/pmqueiroz/nova/commit/49bf3451bd115c2910aed9420a8c4a3491afed96))
+* write settings and command history off the ui thread ([2da978f](https://github.com/pmqueiroz/nova/commit/2da978fbccaf38078c4af3c35c42538a4fff77a2))
+
 ## [1.1.1](https://github.com/pmqueiroz/nova/compare/v1.1.0...v1.1.1) (2026-11-02)
 
 

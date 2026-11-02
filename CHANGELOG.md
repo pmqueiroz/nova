@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.1.0](https://github.com/pmqueiroz/nova/compare/v1.0.0...v1.1.0) (2026-11-02)
+
+
+### Features
+
+* **blocks:** take over fullscreen when a command enables bracketed paste ([ffb2593](https://github.com/pmqueiroz/nova/commit/ffb2593e023201078093eaf4acd82817d729f814))
+* **cli:** add nova update command to check for new releases ([c58ad85](https://github.com/pmqueiroz/nova/commit/c58ad85c3621b85449373dd81cba8101a2baac29))
+* **ds:** match text button height to the segmented control ([d292d05](https://github.com/pmqueiroz/nova/commit/d292d056c0f03a6b9a43fbc225a42a8682acc432))
+* **update:** check github for new releases and show an update button ([25a6f8b](https://github.com/pmqueiroz/nova/commit/25a6f8bcb63a6a2753c9d4cb38af59d18698d30e))
+* **update:** install updates in place or through the package manager ([d559f98](https://github.com/pmqueiroz/nova/commit/d559f98980beb36a1a6dd45cf37b34bc9742ffd2))
+
+
+### Bug Fixes
+
+* **blocks:** draw block elements as solid cells in block cards ([503e283](https://github.com/pmqueiroz/nova/commit/503e283ad7553f29c2c53495b1d3f81457a57ca8))
+* **blocks:** keep finished fullscreen frames at full width and scroll them sideways while selecting ([b772737](https://github.com/pmqueiroz/nova/commit/b7727377e346cc7568d36ec91842b1ee3559475a))
+
 ## [1.0.0](https://github.com/pmqueiroz/nova/compare/v0.24.0...v1.0.0) (2026-11-01)
 
 

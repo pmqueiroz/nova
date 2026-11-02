@@ -265,6 +265,16 @@ never use the alt screen; under ConPTY they only send `?2004h`, `?1004h`,
   changes while dragging a selection on the first/last visible column
   (`Block::scroll_to_col`, clamped to the frame width).
 
+**Grid rendering (`components::term`).** One `TermView` widget per grid, not
+a widget per cell (that was ~10k widgets, each shaping its own paragraph, per
+`view`). `term()` resolves every cell's look (selection, search, URL hover,
+cursor, reverse/dim) into a flat `DrawCell` list, dropping cells with nothing
+to draw; `draw` paints background quads, block-glyph rects,
+underline/strike rules (rich_text's baseline math) and one cached
+`fill_text` per glyph at `col × font_size·0.62`, `row × font_size·1.29`.
+Per-cell placement is deliberate: the font's own advance differs from the
+cell width the pointer mapping assumes.
+
 In `Phase::Raw`, `Nova::pane_body` swaps the log and input bar for
 `components::term` showing the block's own grid; `PaneRef::input_grid` makes
 kitty keyboard flags come from that grid. Wheel: a mouse report when the

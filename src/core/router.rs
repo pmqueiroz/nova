@@ -298,8 +298,8 @@ pub fn route(
       segment = &segment[consumed..];
     }
   }
-  if integ.mode == Mode::Blocks || integ.mode == Mode::Detecting {
-    session.cwd = screen.pwd.clone();
+  if matches!(integ.mode, Mode::Blocks | Mode::Detecting) && session.cwd != screen.pwd {
+    session.cwd.clone_from(&screen.pwd);
   }
   out
 }

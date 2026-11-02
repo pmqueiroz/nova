@@ -50,15 +50,17 @@ impl Nova {
   }
 
   pub(super) fn handle_input_history(&mut self, delta: i32) -> iced::Task<Message> {
-    if let Some(tab) = self.tabs.get_mut(self.active_index) {
-      let pane = tab.active_pane_mut();
-      if delta < 0 {
-        pane.input.history_up(pane.session);
-      } else {
-        pane.input.history_down(pane.session);
-      }
+    let Some(tab) = self.tabs.get_mut(self.active_index) else {
+      return iced::Task::none();
+    };
+    let pane_id = tab.active_pane().id;
+    let pane = tab.active_pane_mut();
+    if delta < 0 {
+      pane.input.history_up(pane.session);
+    } else {
+      pane.input.history_down(pane.session);
     }
-    iced::Task::none()
+    iced::widget::operation::move_cursor_to_end(session::input_id(pane_id))
   }
 
   pub(super) fn handle_input_complete(&mut self, delta: i32) -> iced::Task<Message> {

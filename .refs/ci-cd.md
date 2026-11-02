@@ -59,3 +59,9 @@ its root. Renaming an artifact here breaks in-app updates; the
 
 - No test job: unit tests (`cargo test`) exist but CI does not run them.
 - No code signing / notarization for Windows or macOS artifacts.
+
+## Release profile
+
+`[profile.release]` uses fat LTO and `codegen-units = 1`: slower release
+builds for a faster binary (cross-crate inlining into iced/vte/wgpu). No
+`panic = "abort"` — a panic in a PTY reader thread must only end that thread.

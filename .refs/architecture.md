@@ -121,6 +121,11 @@ prompt is split correctly.
 - Target grid: `Prompt`, a `Pending` block and non-block modes go to the
   pane's screen grid (keeps prompt and echo hidden); `Running`/`Raw` go to the
   block grid.
+- **cwd (OSC 7)** also emits `ControlCommand::Cwd`, which the router applies
+  to the screen grid's `pwd` whatever grid parsed it. The tab title, prompt and
+  `Session.cwd` read the screen grid, and the hooks print OSC 7 before the
+  prompt mark (ConPTY can reorder them too), so the OSC often lands while the
+  block is still `Running`. Without this, `cd` showed up late or not at all.
 - `Integration`: `Detecting` until the first `prompt_ready` → `Blocks`; after
   8 s without one (`expire`, driven by the 1 s `Tick`) → `Classic`. A late
   `prompt_ready` still upgrades an idle classic pane.

@@ -800,11 +800,14 @@ impl<'a> Perform for AnsiExecutor<'a> {
           #[cfg(not(target_os = "windows"))]
           let pwd = format!("/{}", path);
 
-          self.grid.pwd = pwd;
+          self.grid.pwd = pwd.clone();
+          self.grid.control_queue.push(ControlCommand::Cwd(pwd));
         } else if let Some(host) = raw_url.strip_prefix("ssh://")
           && !host.is_empty()
         {
-          self.grid.pwd = format!("ssh:{}", host);
+          let pwd = format!("ssh:{}", host);
+          self.grid.pwd = pwd.clone();
+          self.grid.control_queue.push(ControlCommand::Cwd(pwd));
         }
       }
       b"8" if params.len() >= 3 => {

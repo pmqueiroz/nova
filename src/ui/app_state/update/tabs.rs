@@ -30,7 +30,7 @@ impl Nova {
       return;
     };
     for tab in self.tabs.iter_mut() {
-      tab.grid.command_history = history.clone();
+      tab.grid.set_command_history(history.clone());
       for pane in tab.panes_mut() {
         pane.session.history = history.clone();
       }

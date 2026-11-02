@@ -547,17 +547,31 @@ impl Grid {
     if partial.is_empty() {
       return None;
     }
-    let mut candidates: HashMap<&str, u64> = HashMap::new();
+    let mut best: Option<&CommandEntry> = None;
     for entry in self.command_history.iter().rev() {
-      if entry.text.starts_with(partial) && entry.text.len() > partial.len() {
-        let score = candidates.entry(entry.text.as_str()).or_insert(0);
-        *score += entry.count as u64;
+      if entry.text.len() > partial.len()
+        && entry.text.starts_with(partial)
+        && best.is_none_or(|b| entry.count > b.count)
+      {
+        best = Some(entry);
       }
     }
-    candidates
-      .into_iter()
-      .max_by_key(|(_, score)| *score)
-      .map(|(cmd, _)| cmd[partial.len()..].to_string())
+    best.map(|e| e.text[partial.len()..].to_string())
+  }
+
+  pub fn set_command_history(&mut self, history: VecDeque<CommandEntry>) {
+    let mut merged: VecDeque<CommandEntry> = VecDeque::with_capacity(history.len());
+    let mut index: HashMap<String, usize> = HashMap::with_capacity(history.len());
+    for entry in history {
+      match index.get(&entry.text) {
+        Some(&i) => merged[i].count = merged[i].count.saturating_add(entry.count),
+        None => {
+          index.insert(entry.text.clone(), merged.len());
+          merged.push_back(entry);
+        }
+      }
+    }
+    self.command_history = merged;
   }
 
   pub fn extract_current_input(&self) -> Option<String> {
@@ -620,5 +634,32 @@ impl Grid {
     }
     self.cursor_x = 0;
     self.newline();
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  fn entry(text: &str, count: u32) -> CommandEntry {
+    CommandEntry {
+      text: text.into(),
+      count,
+    }
+  }
+
+  #[test]
+  fn loaded_history_merges_duplicates_before_suggesting() {
+    let mut g = Grid::new(10, 2);
+    g.set_command_history(VecDeque::from([
+      entry("git commit", 2),
+      entry("git checkout", 3),
+      entry("git commit", 2),
+    ]));
+    assert_eq!(g.command_history.len(), 2);
+    assert_eq!(g.find_best_suggestion("git c").as_deref(), Some("ommit"));
+    assert_eq!(g.find_best_suggestion("git ch").as_deref(), Some("eckout"));
+    assert_eq!(g.find_best_suggestion("git commit"), None);
+    assert_eq!(g.find_best_suggestion(""), None);
   }
 }

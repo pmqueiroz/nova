@@ -4,9 +4,11 @@ use iced::widget::{button, container, row, text, text_input};
 use iced::{Alignment, Background, Border, Color, Element, Length, Padding, Shadow};
 
 use crate::ui::app_state::Message;
+use crate::ui::components::block::dots;
 use crate::ui::components::ds::button::icon_button_style;
 use crate::ui::components::ds::focus_within::focus_within;
-use crate::ui::components::ds::kbd::{kbd, shortcut_label};
+use crate::ui::components::ds::kbd::{IS_MAC, kbd, shortcut_label};
+use crate::ui::components::ds::slide::slide;
 use crate::ui::components::ds::transform::{Transform, press};
 use crate::ui::components::session::input_id;
 use crate::ui::helpers::til_home;
@@ -103,6 +105,8 @@ pub struct InputBarView<'a> {
   pub cwd: &'a str,
   pub value: &'a str,
   pub running: bool,
+  pub running_since: Instant,
+  pub swap: f32,
   pub pulsed_at: Option<Instant>,
   pub now: Instant,
   pub font_size: f32,
@@ -120,18 +124,47 @@ pub fn prompt<'a>(cwd: &str, size: f32) -> Element<'a, Message> {
   .into()
 }
 
-pub fn input_bar<'a>(v: InputBarView<'a>) -> Element<'a, Message> {
-  let input = text_input("", v.value)
+pub fn interrupt_label() -> &'static str {
+  if IS_MAC { "\u{2303}C" } else { "Ctrl C" }
+}
+
+pub fn running_label<'a>(since: Instant, now: Instant, size: f32) -> Element<'a, Message> {
+  row![
+    dots(since, now),
+    text("Running").size(size).color(tokens::FG_3),
+  ]
+  .spacing(space::S8)
+  .align_y(Alignment::Center)
+  .into()
+}
+
+pub fn stop_hint<'a>() -> Element<'a, Message> {
+  row![
+    iced::widget::Space::new().width(Length::Fill),
+    text("Stop").size(tokens::text::T12).color(tokens::FG_3),
+    kbd(interrupt_label()),
+  ]
+  .spacing(space::S8)
+  .align_y(Alignment::Center)
+  .width(Length::Fill)
+  .into()
+}
+
+pub fn command_field<'a>(v: &InputBarView<'a>) -> Element<'a, Message> {
+  text_input("", v.value)
     .id(input_id(v.pane_id))
-    .on_input_maybe((!v.running).then_some(Message::InputChanged))
+    .on_input(Message::InputChanged)
     .on_submit(Message::InputSubmit)
     .font(font::regular())
     .size(v.font_size)
     .padding(0)
     .width(Length::Fill)
-    .style(|_t, s| input_bar_input_style(s));
+    .style(|_t, s| input_bar_input_style(s))
+    .into()
+}
 
-  let enter = Transform::new(
+pub fn enter_button<'a>(pulsed_at: Option<Instant>, now: Instant) -> Element<'a, Message> {
+  Transform::new(
     button(
       container(icon(Icon::Enter, 20.0, tokens::FG_2))
         .center_x(Length::Fill)
@@ -143,28 +176,39 @@ pub fn input_bar<'a>(v: InputBarView<'a>) -> Element<'a, Message> {
     .style(|_t, s| icon_button_style(s))
     .on_press(Message::InputSubmit),
   )
-  .scale(pulse_scale(v.pulsed_at, v.now))
-  .press();
+  .scale(pulse_scale(pulsed_at, now))
+  .press()
+  .into()
+}
 
-  let bar = container(
-    row![
-      prompt(v.cwd, v.font_size),
-      input,
-      ask_ai_button(v.compact),
-      enter,
-    ]
+pub fn input_bar<'a>(v: InputBarView<'a>) -> Element<'a, Message> {
+  let ps1 = slide(
+    prompt(v.cwd, v.font_size),
+    running_label(v.running_since, v.now, v.font_size),
+    v.swap,
+  );
+  let field = if v.running {
+    stop_hint()
+  } else {
+    command_field(&v)
+  };
+  let mut content = row![ps1, field, ask_ai_button(v.compact)]
     .spacing(space::S12)
-    .align_y(Alignment::Center),
-  )
-  .height(height::H56)
-  .padding(Padding {
-    top: 0.0,
-    right: space::S8,
-    bottom: 0.0,
-    left: space::S16,
-  })
-  .center_y(height::H56)
-  .width(Length::Fill);
+    .align_y(Alignment::Center);
+  if !v.running {
+    content = content.push(enter_button(v.pulsed_at, v.now));
+  }
+
+  let bar = container(content)
+    .height(height::H56)
+    .padding(Padding {
+      top: 0.0,
+      right: space::S8,
+      bottom: 0.0,
+      left: space::S16,
+    })
+    .center_y(height::H56)
+    .width(Length::Fill);
 
   container(focus_within(bar, input_bar_style))
     .padding(Padding {

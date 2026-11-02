@@ -5,7 +5,7 @@ use std::{
 };
 
 use async_channel::Sender;
-use iced::animation::Animation;
+use iced::animation::{Animation, Easing};
 use vte::Parser;
 
 use crate::core::block::Session;
@@ -15,10 +15,11 @@ use crate::core::grid::{DEFAULT_SCROLLBACK_LIMIT, Grid};
 use crate::core::router::Integration;
 use crate::sys::pty::PtyCommand;
 use crate::ui::theme::motion;
+use crate::ui::theme::tokens::duration;
 
 pub const BLOCKS_ENABLED: bool = true;
 
-#[derive(Default, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub struct InputBox {
   pub text: String,
   pub history_cursor: Option<usize>,
@@ -27,9 +28,41 @@ pub struct InputBox {
   pub scrolled_up: bool,
   pub pulsed_at: Option<Instant>,
   pub completion: Option<Completion>,
+  pub running: Animation<bool>,
+  pub running_since: Instant,
+}
+
+impl Default for InputBox {
+  fn default() -> Self {
+    Self {
+      text: String::new(),
+      history_cursor: None,
+      draft: String::new(),
+      submitted: 0,
+      scrolled_up: false,
+      pulsed_at: None,
+      completion: None,
+      running: motion::anim(false, duration::D2, Easing::Linear),
+      running_since: Instant::now(),
+    }
+  }
 }
 
 impl InputBox {
+  pub fn sync_running(&mut self, running_since: Option<Instant>, now: Instant) {
+    let running = running_since.is_some();
+    if self.running.value() != running {
+      self.running.go_mut(running, now);
+    }
+    if let Some(since) = running_since {
+      self.running_since = since;
+    }
+  }
+
+  pub fn running_progress(&self, now: Instant) -> f32 {
+    self.running.interpolate(0.0, 1.0, now)
+  }
+
   pub fn take(&mut self) -> String {
     self.history_cursor = None;
     self.completion = None;

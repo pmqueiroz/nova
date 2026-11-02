@@ -449,6 +449,8 @@ impl Nova {
           cwd: &pane.session.cwd,
           value: &pane.input.text,
           running: pane.session.is_running(),
+          running_since: pane.input.running_since,
+          swap: pane.input.running_progress(self.now),
           pulsed_at: pane.input.pulsed_at,
           now: self.now,
           font_size,

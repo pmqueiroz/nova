@@ -160,11 +160,13 @@ impl Nova {
       return false;
     }
     let now = self.now;
-    pane
-      .session
-      .blocks
-      .iter()
-      .any(|b| crate::ui::components::block::is_animating(b, now))
+    pane.session.is_running()
+      || pane.input.running.is_animating(now)
+      || pane
+        .session
+        .blocks
+        .iter()
+        .any(|b| crate::ui::components::block::is_animating(b, now))
       || pane
         .input
         .pulsed_at

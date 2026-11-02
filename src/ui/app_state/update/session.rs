@@ -274,6 +274,27 @@ impl Nova {
       .sum()
   }
 
+  pub(super) fn sync_running_motion(&mut self) {
+    let now = Instant::now();
+    for tab in self.tabs.iter_mut() {
+      for pane in tab.panes_mut() {
+        let since = pane.session.active().map(|b| b.born);
+        pane.input.sync_running(since, now);
+      }
+    }
+  }
+
+  pub(super) fn running_panes(&self) -> usize {
+    self
+      .tabs
+      .iter()
+      .map(|t| {
+        usize::from(t.pane(false).session.is_running())
+          + usize::from(t.split.is_some() && t.pane(true).session.is_running())
+      })
+      .sum()
+  }
+
   pub(super) fn block_mode_panes(&self) -> usize {
     self
       .tabs

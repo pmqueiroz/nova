@@ -180,11 +180,18 @@ impl Nova {
     if !matches!(message, Message::CursorMoved(_)) {
       self.cursor_position = super::nova::latest_pointer();
     }
+    let task = self.dispatch(message);
+    self.sync_running_motion();
+    task
+  }
+
+  fn dispatch(&mut self, message: Message) -> iced::Task<Message> {
     match message {
       Message::Type(bytes) => self.handle_type_input(bytes),
       Message::PtyOutputReceived(tab_id, bytes) => {
         let before = self.block_mode_panes();
         let raw_before = self.raw_panes();
+        let running_before = self.running_panes();
         let task = self.handle_pty_output(tab_id, bytes);
         let mut tasks = vec![task, self.follow_output(tab_id)];
         let raw_after = self.raw_panes();
@@ -196,6 +203,8 @@ impl Nova {
           if raw_after < raw_before {
             tasks.push(self.focus_input());
           }
+        } else if self.running_panes() < running_before {
+          tasks.push(self.focus_input());
         }
         iced::Task::batch(tasks)
       }

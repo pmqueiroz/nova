@@ -4,7 +4,7 @@ use iced::widget::text::{Span, Wrapping};
 use iced::widget::{Row, column, container, mouse_area, rich_text, row, text};
 use iced::{Alignment, Background, Border, Color, Element, Font, Length, Padding};
 
-use crate::core::block::{Block, BlockId, BlockState, Lines};
+use crate::core::block::{Block, BlockId, Lines};
 use crate::core::grid::{Cell, CellAttrs};
 use crate::core::search::BlockMatch;
 use crate::core::selection::BlockSelection;
@@ -195,28 +195,6 @@ pub fn dots<'a>(born: Instant, now: Instant) -> Element<'a, Message> {
     .into()
 }
 
-pub fn pending_card<'a>(
-  born: Instant,
-  now: Instant,
-  alpha: f32,
-  compact: bool,
-) -> Element<'a, Message> {
-  container(
-    row![
-      dots(born, now),
-      text("Running")
-        .size(tokens::text::T14)
-        .color(tokens::with_alpha(tokens::FG_3, alpha)),
-    ]
-    .spacing(space::S12)
-    .align_y(Alignment::Center),
-  )
-  .width(Length::Fill)
-  .padding(card_padding(compact))
-  .style(move |_| card_style(alpha))
-  .into()
-}
-
 pub fn default_output_color(block: &Block) -> Color {
   if block.is_error() {
     tokens::RED
@@ -296,9 +274,7 @@ pub fn entry_progress(born: Instant, now: Instant, delay: Duration) -> f32 {
 }
 
 pub fn is_animating(block: &Block, now: Instant) -> bool {
-  let showing_dots = block.state == BlockState::Pending
-    || (block.state == BlockState::Running && !block.has_output());
-  showing_dots || now.saturating_duration_since(block.born) < duration::D2 + OUTPUT_DELAY
+  now.saturating_duration_since(block.born) < duration::D2 + OUTPUT_DELAY
 }
 
 pub struct EntryOptions<'a> {
@@ -320,17 +296,12 @@ pub fn block_entry<'a>(block: &'a Block, o: &EntryOptions<'_>) -> Element<'a, Me
   let lines = block.lines();
   let has_output = !lines.is_empty();
 
-  let pending =
-    block.state == BlockState::Pending || (block.state == BlockState::Running && !has_output);
-  let output: Option<Element<'a, Message>> = if pending {
-    Some(pending_card(block.born, o.now, t_out, o.compact))
-  } else if has_output {
-    Some(output_card(block, lines, out_size, t_out, o))
-  } else {
-    None
-  };
-  let output =
-    output.map(|e| Element::from(Transform::new(e).offset(0.0, lerp(space::S8, 0.0, t_out))));
+  let output = has_output.then(|| {
+    Element::from(
+      Transform::new(output_card(block, lines, out_size, t_out, o))
+        .offset(0.0, lerp(space::S8, 0.0, t_out)),
+    )
+  });
 
   let mut body = column![command_line(block, o.font_size, t_in)].spacing(space::S8);
   if let Some(out) = output {
@@ -345,9 +316,8 @@ pub fn block_entry<'a>(block: &'a Block, o: &EntryOptions<'_>) -> Element<'a, Me
     body.into()
   };
 
-  let has_out = pending || has_output;
   let entry = container(content).padding(Padding {
-    bottom: if has_out { space::S8 } else { 0.0 },
+    bottom: if has_output { space::S8 } else { 0.0 },
     ..Padding::default()
   });
   Transform::new(entry)

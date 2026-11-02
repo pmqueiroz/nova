@@ -374,6 +374,14 @@ logical). On Windows the window starts hidden until the fit is applied.
   About tab; failures show only in About. Installing the update (delegate to
   the package manager, or verify + swap the binary) is in
   [updates.md](./updates.md). `nova update [--install]` is the CLI side.
+- **Shell detection** (`config::detect_shells`): on Windows it spawns
+  `where pwsh` and `wsl --list --quiet`, which can take seconds on a cold
+  WSL. Startup never waits for it: `Nova::default` uses `quick_shells()`
+  (no subprocesses; `powershell` is first either way, so the default shell
+  is the same), and `WindowOpened` runs the full scan on `spawn_blocking`,
+  delivering `Message::ShellsDetected`, which replaces the list unless
+  `general.shells` is configured. The result is memoized
+  (`DETECTED_SHELLS`), so later settings edits don't re-spawn the probes.
 - **Git branch** (`git_branch` on `Tab`/`SplitPane`, read from
   `.git/HEAD` walking up from the cwd) is refreshed only when the pane's cwd
   changes or a command completes, never per PTY message: the walk is

@@ -149,11 +149,12 @@ fn finish(session: &mut Session, integ: &mut Integration, code: i32, out: &mut R
 fn handle_control(
   cmd: ControlCommand,
   session: &mut Session,
-  screen: &Grid,
+  screen: &mut Grid,
   integ: &mut Integration,
   out: &mut Routed,
 ) {
   match cmd {
+    ControlCommand::Cwd(pwd) => screen.pwd = pwd,
     ControlCommand::PromptReady { preexec } if integ.enabled => {
       integ.preexec = preexec;
       if integ.mode == Mode::Detecting || (integ.mode == Mode::Classic && !session.is_running()) {
@@ -511,6 +512,17 @@ mod tests {
       "\x1b]7;file://host/home/me/proj\x1b\\{READY_PREEXEC}"
     ));
     assert!(r.session.cwd.ends_with("proj"));
+  }
+
+  #[test]
+  fn cwd_reported_inside_running_block_reaches_screen() {
+    let mut r = Rig::new();
+    r.feed("\u{F8F1}PS> ");
+    r.submit("cd proj");
+    r.feed("\u{F8F2}");
+    r.feed("\x1b]7;file://localhost/C:/Users/me/proj\x1b\\\u{F8F1}PS> ");
+    assert!(r.session.cwd.ends_with("proj"));
+    assert!(r.screen.pwd.ends_with("proj"));
   }
 
   #[test]

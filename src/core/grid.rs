@@ -121,6 +121,7 @@ pub enum ControlCommand {
   CommandStart,
   SetClipboard(String),
   RequestClipboard,
+  Cwd(String),
 }
 
 impl Grid {

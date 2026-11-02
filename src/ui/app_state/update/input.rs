@@ -286,7 +286,9 @@ impl Nova {
         match cmd {
           ControlCommand::SetClipboard(text) => clipboard_write = Some(text),
           ControlCommand::RequestClipboard => request_clipboard = true,
-          ControlCommand::PromptReady { .. } | ControlCommand::CommandStart => {}
+          ControlCommand::PromptReady { .. }
+          | ControlCommand::CommandStart
+          | ControlCommand::Cwd(_) => {}
           ControlCommand::OpenAskAi { preset } => {
             open_ask_ai = true;
             if let Some(p) = preset

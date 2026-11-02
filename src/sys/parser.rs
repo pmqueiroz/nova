@@ -276,6 +276,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
     let n = if param_value == 0 { 1 } else { param_value };
 
     match command {
+      'm' if !intermediates.is_empty() => {}
       'm' => {
         if params.iter().next().is_none() {
           self.grid.current_fg = None;
@@ -304,6 +305,10 @@ impl<'a> Perform for AnsiExecutor<'a> {
               .grid
               .current_attrs
               .insert(crate::core::grid::CellAttrs::ITALIC),
+            4 if param.get(1) == Some(&0) => self
+              .grid
+              .current_attrs
+              .remove(crate::core::grid::CellAttrs::UNDERLINE),
             4 => self
               .grid
               .current_attrs
@@ -427,6 +432,17 @@ impl<'a> Perform for AnsiExecutor<'a> {
                 }
               }
             }
+            58 if param.len() == 1 => match iter.next().and_then(|p| p.first().copied()) {
+              Some(5) => {
+                iter.next();
+              }
+              Some(2) => {
+                iter.next();
+                iter.next();
+                iter.next();
+              }
+              _ => {}
+            },
             49 => self.grid.current_bg = None,
             90..=97 => self.grid.current_fg = Some(Rgb::from(ansi_fg(code - 90, true))),
             100..=107 => self.grid.current_bg = Some(Rgb::from(ansi_bg(code - 100, true))),
@@ -843,6 +859,28 @@ mod tests {
     assert_eq!(grid.row(0)[9].bg_color(), bg);
     assert_eq!(grid.row(1)[1].bg_color(), bg);
     assert_eq!(grid.row(1)[2].bg, None);
+  }
+
+  #[test]
+  fn private_sgr_sequences_do_not_set_attrs() {
+    use crate::core::grid::CellAttrs;
+    let mut grid = make_grid(10, 1);
+    print_str(&mut grid, "\x1b[>4;2m\x1b[>4m\x1b[?4mx");
+    assert_eq!(grid.row(0)[0].attrs, CellAttrs::empty());
+  }
+
+  #[test]
+  fn underline_color_and_style_off_do_not_underline() {
+    use crate::core::grid::CellAttrs;
+    let mut grid = make_grid(10, 1);
+    print_str(
+      &mut grid,
+      "\x1b[58;2;4;4;4mx\x1b[58;5;4my\x1b[4mz\x1b[4:0mw",
+    );
+    assert_eq!(grid.row(0)[0].attrs, CellAttrs::empty());
+    assert_eq!(grid.row(0)[1].attrs, CellAttrs::empty());
+    assert_eq!(grid.row(0)[2].attrs, CellAttrs::UNDERLINE);
+    assert_eq!(grid.row(0)[3].attrs, CellAttrs::empty());
   }
 
   #[test]

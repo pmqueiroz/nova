@@ -626,6 +626,19 @@ Section Install
   ; Copy main executable
   File "${MAINBINARYSRCPATH}"
 
+  ; Sideloaded ConPTY (packaging/conpty/fetch.ps1 puts it next to the binary).
+  ; A lingering OpenConsole.exe can still be running; renaming frees the name.
+  !searchreplace CONPTYDLLSRC "${MAINBINARYSRCPATH}" "${MAINBINARYNAME}.exe" "conpty.dll"
+  !searchreplace OPENCONSOLESRC "${MAINBINARYSRCPATH}" "${MAINBINARYNAME}.exe" "OpenConsole.exe"
+  Delete "$INSTDIR\conpty.dll.old"
+  Delete "$INSTDIR\OpenConsole.exe.old"
+  Rename "$INSTDIR\conpty.dll" "$INSTDIR\conpty.dll.old"
+  Rename "$INSTDIR\OpenConsole.exe" "$INSTDIR\OpenConsole.exe.old"
+  File "/oname=conpty.dll" "${CONPTYDLLSRC}"
+  File "/oname=OpenConsole.exe" "${OPENCONSOLESRC}"
+  Delete "$INSTDIR\conpty.dll.old"
+  Delete "$INSTDIR\OpenConsole.exe.old"
+
   ; Create resources directory structure
   {{#each resources_dirs}}
     CreateDirectory "$INSTDIR\\{{this}}"
@@ -736,6 +749,10 @@ Section Uninstall
   ; Delete the app directory and its content from disk
   ; Copy main executable
   Delete "$INSTDIR\${MAINBINARYNAME}.exe"
+  Delete "$INSTDIR\conpty.dll"
+  Delete "$INSTDIR\OpenConsole.exe"
+  Delete "$INSTDIR\conpty.dll.old"
+  Delete "$INSTDIR\OpenConsole.exe.old"
 
   ; Delete resources
   {{#each resources}}

@@ -7,6 +7,7 @@ pub const REPO_URL: &str = "https://github.com/pmqueiroz/nova";
 pub const AUR_URL: &str = "https://aur.archlinux.org/packages/nova-bin";
 pub const CHECKSUMS_ASSET: &str = "checksums.txt";
 pub const FILE_ARG: &str = "{file}";
+pub const WINDOWS_SIDECARS: &[&str] = &["conpty.dll", "OpenConsole.exe"];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Os {

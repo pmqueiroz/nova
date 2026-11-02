@@ -48,18 +48,35 @@ fn swap_file(new: &Path, target: &Path) -> Result<(), String> {
   Ok(())
 }
 
+fn extract_and_swap(
+  archive: &mut zip::ZipArchive<std::fs::File>,
+  name: &str,
+  target: &Path,
+) -> Result<(), String> {
+  let mut entry = archive
+    .by_name(name)
+    .map_err(|_| format!("{name} not found in the portable ZIP"))?;
+  let new = sibling(target, ".new");
+  let mut out = std::fs::File::create(&new)
+    .map_err(|e| format!("cannot write next to {}: {e}", target.display()))?;
+  std::io::copy(&mut entry, &mut out).map_err(io)?;
+  drop(out);
+  if target.exists() {
+    swap_file(&new, target)
+  } else {
+    std::fs::rename(&new, target).map_err(|e| format!("cannot write {}: {e}", target.display()))
+  }
+}
+
 fn replace_exe_from_zip(zip_path: &Path, exe: &Path) -> Result<(), String> {
   let file = std::fs::File::open(zip_path).map_err(io)?;
   let mut archive = zip::ZipArchive::new(file).map_err(|e| e.to_string())?;
-  let mut entry = archive
-    .by_name("nova.exe")
-    .map_err(|_| "nova.exe not found in the portable ZIP".to_string())?;
-  let new = sibling(exe, ".new");
-  let mut out = std::fs::File::create(&new)
-    .map_err(|e| format!("cannot write next to {}: {e}", exe.display()))?;
-  std::io::copy(&mut entry, &mut out).map_err(io)?;
-  drop(out);
-  swap_file(&new, exe)
+  for name in install::WINDOWS_SIDECARS {
+    if archive.index_for_name(name).is_some() {
+      extract_and_swap(&mut archive, name, &exe.with_file_name(name))?;
+    }
+  }
+  extract_and_swap(&mut archive, "nova.exe", exe)
 }
 
 fn replace_appimage(file: &Path, target: &Path) -> Result<(), String> {
@@ -240,6 +257,9 @@ pub fn cleanup() {
   let probe = super::probe::light();
   let target = install::target_path(&probe);
   remove_old_siblings(&target);
+  for name in install::WINDOWS_SIDECARS {
+    remove_old_siblings(&target.with_file_name(name));
+  }
   if let Some(bundle) = install::app_bundle(&target) {
     let _ = std::fs::remove_dir_all(bundle_old(&bundle));
   }
@@ -262,4 +282,72 @@ pub fn apply_pending_on_startup() -> bool {
     return false;
   }
   run_installer(&pending).is_ok()
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use std::io::Write;
+
+  fn write_zip(path: &Path, files: &[(&str, &[u8])]) {
+    let mut zip = zip::ZipWriter::new(std::fs::File::create(path).unwrap());
+    for (name, data) in files {
+      zip
+        .start_file(*name, zip::write::SimpleFileOptions::default())
+        .unwrap();
+      zip.write_all(data).unwrap();
+    }
+    zip.finish().unwrap();
+  }
+
+  fn scratch(name: &str) -> PathBuf {
+    let dir = std::env::temp_dir().join(format!("nova-apply-{name}-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+    dir
+  }
+
+  #[test]
+  fn portable_zip_swaps_exe_and_sidecars() {
+    let dir = scratch("sidecars");
+    let exe = dir.join("nova.exe");
+    std::fs::write(&exe, b"old exe").unwrap();
+    std::fs::write(dir.join("conpty.dll"), b"old dll").unwrap();
+    let zip = dir.join("p.zip");
+    write_zip(
+      &zip,
+      &[
+        ("nova.exe", b"new exe"),
+        ("conpty.dll", b"new dll"),
+        ("OpenConsole.exe", b"new host"),
+      ],
+    );
+    replace_exe_from_zip(&zip, &exe).unwrap();
+    assert_eq!(std::fs::read(&exe).unwrap(), b"new exe");
+    assert_eq!(std::fs::read(dir.join("conpty.dll")).unwrap(), b"new dll");
+    assert_eq!(
+      std::fs::read(dir.join("OpenConsole.exe")).unwrap(),
+      b"new host"
+    );
+    assert_eq!(
+      std::fs::read(dir.join("conpty.dll.old")).unwrap(),
+      b"old dll"
+    );
+    remove_old_siblings(&dir.join("conpty.dll"));
+    assert!(!dir.join("conpty.dll.old").exists());
+    let _ = std::fs::remove_dir_all(&dir);
+  }
+
+  #[test]
+  fn portable_zip_without_sidecars_still_updates() {
+    let dir = scratch("plain");
+    let exe = dir.join("nova.exe");
+    std::fs::write(&exe, b"old exe").unwrap();
+    let zip = dir.join("p.zip");
+    write_zip(&zip, &[("nova.exe", b"new exe")]);
+    replace_exe_from_zip(&zip, &exe).unwrap();
+    assert_eq!(std::fs::read(&exe).unwrap(), b"new exe");
+    assert!(!dir.join("conpty.dll").exists());
+    let _ = std::fs::remove_dir_all(&dir);
+  }
 }

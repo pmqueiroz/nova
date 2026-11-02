@@ -310,7 +310,8 @@ logical). On Windows the window starts hidden until the fit is applied.
   the host the split; ratio resets to 0.5 and grids resize. Tab-only fields
   (`initial_command`, `wait_after_exit`) are dropped.
   Once the cursor leaves the title bar, `components::tab_ghost` follows it:
-  a skeleton mini-window (header with the tab's label, placeholder bars),
+  a skeleton mini-window (header with the last segment of the tab's cwd,
+  `helpers::dir_name`, and placeholder bars),
   not a render of the real content. It is stacked over the whole app, so it
   is positioned with padding from the window origin (`ghost_origin`,
   clamped inside the window), and its border turns accent while over a
@@ -332,7 +333,8 @@ logical). On Windows the window starts hidden until the fit is applied.
   About tab; failures show only in About. Installing the update (delegate to
   the package manager, or verify + swap the binary) is in
   [updates.md](./updates.md). `nova update [--install]` is the CLI side.
-- **Tabs:** the hidden close × renders a `Space`, not a transparent icon —
+- **Tabs** are labeled with the last segment of their cwd
+  (`helpers::dir_name`), not the full path. The hidden close × renders a `Space`, not a transparent icon —
   iced's svg tint drops alpha, so a transparent icon draws black.
 
 ## Shared state

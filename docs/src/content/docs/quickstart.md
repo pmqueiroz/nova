@@ -48,6 +48,9 @@ commands show their output in red. Click inside an output card to select text,
 `Ctrl+click` a link to open it.
 While a command runs, the prompt flips to **Running** and the text field is
 hidden; your keystrokes go to the running program, and `Ctrl+C` stops it.
+Full-screen programs (vim, htop, less) take over the pane; drag to select
+text there too. If the program uses the mouse itself, hold `Shift` while
+dragging.
 
 Block mode needs Nova's shell integration (PowerShell, cmd, bash, zsh and Git
 Bash are set up automatically). Shells that don't report their prompt (for

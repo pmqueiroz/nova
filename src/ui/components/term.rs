@@ -106,6 +106,10 @@ struct Palette {
   bg: Color,
   accent: Color,
   cursor: Color,
+  regular: Font,
+  bold: Font,
+  italic: Font,
+  bold_italic: Font,
 }
 
 impl Palette {
@@ -116,6 +120,10 @@ impl Palette {
       bg: rt.background,
       accent: rt.accent,
       cursor: rt.cursor,
+      regular: theme::font::regular(),
+      bold: theme::font::bold(),
+      italic: theme::font::italic(),
+      bold_italic: theme::font::bold_italic(),
     }
   }
 }
@@ -172,10 +180,10 @@ fn cell_style(
     attrs.contains(CellAttrs::BOLD),
     attrs.contains(CellAttrs::ITALIC),
   ) {
-    (true, true) => theme::font::bold_italic(),
-    (true, false) => theme::font::bold(),
-    (false, true) => theme::font::italic(),
-    (false, false) => theme::font::regular(),
+    (true, true) => palette.bold_italic,
+    (true, false) => palette.bold,
+    (false, true) => palette.italic,
+    (false, false) => palette.regular,
   };
   let underline = attrs.contains(CellAttrs::UNDERLINE);
   let strike = attrs.contains(CellAttrs::STRIKETHROUGH);
@@ -297,11 +305,10 @@ fn push_row(out: &mut Vec<DrawCell>, row: RowInput<'_>, frame: &Frame<'_>) {
         let max_chars = row.cells.len().saturating_sub(x);
         let mut chars = sugg.chars().take(max_chars);
         if let Some(first) = chars.next() {
-          let regular = theme::font::regular();
           let first_style = Style {
             color: frame.palette.cursor,
             bg: None,
-            font: regular,
+            font: frame.palette.regular,
             underline: true,
             strike: false,
           };

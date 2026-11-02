@@ -217,6 +217,9 @@ blocks.
 - Each pane owns an `InputBox` (text, history cursor + draft, completion
   state, submit pulse). `PaneMut`/`PaneRef` abstract over `Tab` and
   `SplitPane` so session code is written once.
+- Up/Down history recall and Tab completion replace `InputBox.text` from
+  `update`, which leaves iced's `text_input` cursor where it was (often 0),
+  so both return `move_cursor_to_end` on the pane's input id.
 - `clear`/`cls` clear blocks locally; anything else goes through
   `Session::submit` → `Integration::on_submit` → PTY.
 - Readline shells (`router::is_readline_shell`) get a Ctrl+U prefix on every

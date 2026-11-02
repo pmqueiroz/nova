@@ -70,6 +70,12 @@ them.
   only via `row`/`row_mut`/`cell`/`cell_mut`/`erase_cols`/`erase_rows`.
   Alt-screen save/restore and resize call `linearize()` first, so saved
   buffers and reflow see `origin == 0`.
+- Cell and pen colors are `Option<Rgb>` (3 bytes), not `Option<Color>`
+  (20 bytes): a `Cell` is 56 bytes instead of 88, which shrinks every
+  scroll, scrollback copy and erase. Every color that reaches a cell is
+  8-bit (`rgb8`, hex tokens), so the round trip is exact
+  (`cell_colors_round_trip_exactly`); use `fg_color()`/`bg_color()` to get
+  an `iced::Color`. Dimming and other alpha are applied at render time.
 - Erases are slice `fill`s per row. Once scrollback is at its limit,
   `scroll_up` reuses the evicted row's `Vec` for the new one.
 - Tabs are fixed 8-column stops; no `HTS`/`TBC`. SGR 8/28 (hidden) are

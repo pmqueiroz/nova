@@ -1,6 +1,6 @@
 use crate::cli;
-use crate::core::grid::Grid;
 use crate::core::grid::{ControlCommand, MARK_COMMAND_START, MARK_PROMPT, MARK_PROMPT_PREEXEC};
+use crate::core::grid::{Grid, Rgb};
 use base64::Engine;
 use iced::Color;
 use smol_str::SmolStr;
@@ -353,12 +353,12 @@ impl<'a> Perform for AnsiExecutor<'a> {
               .current_attrs
               .remove(crate::core::grid::CellAttrs::STRIKETHROUGH),
             39 => self.grid.current_fg = None,
-            30..=37 => self.grid.current_fg = Some(ansi_fg(code - 30, false)),
+            30..=37 => self.grid.current_fg = Some(Rgb::from(ansi_fg(code - 30, false))),
             38 => {
               if param.len() >= 3 && param[1] == 5 {
-                self.grid.current_fg = Some(color_256(param[2] as u8));
+                self.grid.current_fg = Some(Rgb::from(color_256(param[2] as u8)));
               } else if let Some(c) = colon_rgb(param) {
-                self.grid.current_fg = Some(c);
+                self.grid.current_fg = Some(Rgb::from(c));
               } else {
                 let mode = iter
                   .next()
@@ -369,7 +369,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
                       .next()
                       .map_or(0, |p| if p.is_empty() { 0 } else { p[0] })
                       as u8;
-                    self.grid.current_fg = Some(color_256(n));
+                    self.grid.current_fg = Some(Rgb::from(color_256(n)));
                   }
                   2 => {
                     let r = iter
@@ -384,18 +384,18 @@ impl<'a> Perform for AnsiExecutor<'a> {
                       .next()
                       .map_or(0, |p| if p.is_empty() { 0 } else { p[0] })
                       as u8;
-                    self.grid.current_fg = Some(rgb8(r, g, b));
+                    self.grid.current_fg = Some(Rgb::from(rgb8(r, g, b)));
                   }
                   _ => {}
                 }
               }
             }
-            40..=47 => self.grid.current_bg = Some(ansi_bg(code - 40, false)),
+            40..=47 => self.grid.current_bg = Some(Rgb::from(ansi_bg(code - 40, false))),
             48 => {
               if param.len() >= 3 && param[1] == 5 {
-                self.grid.current_bg = Some(color_256(param[2] as u8));
+                self.grid.current_bg = Some(Rgb::from(color_256(param[2] as u8)));
               } else if let Some(c) = colon_rgb(param) {
-                self.grid.current_bg = Some(c);
+                self.grid.current_bg = Some(Rgb::from(c));
               } else {
                 let mode = iter
                   .next()
@@ -406,7 +406,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
                       .next()
                       .map_or(0, |p| if p.is_empty() { 0 } else { p[0] })
                       as u8;
-                    self.grid.current_bg = Some(color_256(n));
+                    self.grid.current_bg = Some(Rgb::from(color_256(n)));
                   }
                   2 => {
                     let r = iter
@@ -421,15 +421,15 @@ impl<'a> Perform for AnsiExecutor<'a> {
                       .next()
                       .map_or(0, |p| if p.is_empty() { 0 } else { p[0] })
                       as u8;
-                    self.grid.current_bg = Some(rgb8(r, g, b));
+                    self.grid.current_bg = Some(Rgb::from(rgb8(r, g, b)));
                   }
                   _ => {}
                 }
               }
             }
             49 => self.grid.current_bg = None,
-            90..=97 => self.grid.current_fg = Some(ansi_fg(code - 90, true)),
-            100..=107 => self.grid.current_bg = Some(ansi_bg(code - 100, true)),
+            90..=97 => self.grid.current_fg = Some(Rgb::from(ansi_fg(code - 90, true))),
+            100..=107 => self.grid.current_bg = Some(Rgb::from(ansi_bg(code - 100, true))),
             _ => {}
           }
         }
@@ -840,8 +840,8 @@ mod tests {
     let mut grid = make_grid(10, 3);
     print_str(&mut grid, "\x1b[48;2;10;20;30mab\x1b[K\x1b[2;1H\x1b[2X");
     let bg = Some(rgb8(10, 20, 30));
-    assert_eq!(grid.row(0)[9].bg, bg);
-    assert_eq!(grid.row(1)[1].bg, bg);
+    assert_eq!(grid.row(0)[9].bg_color(), bg);
+    assert_eq!(grid.row(1)[1].bg_color(), bg);
     assert_eq!(grid.row(1)[2].bg, None);
   }
 
@@ -849,8 +849,8 @@ mod tests {
   fn truecolor_colon_form_with_colorspace() {
     let mut grid = make_grid(10, 1);
     print_str(&mut grid, "\x1b[38:2::10:20:30mx\x1b[38:2:10:20:30my");
-    assert_eq!(grid.row(0)[0].fg, Some(rgb8(10, 20, 30)));
-    assert_eq!(grid.row(0)[1].fg, Some(rgb8(10, 20, 30)));
+    assert_eq!(grid.row(0)[0].fg_color(), Some(rgb8(10, 20, 30)));
+    assert_eq!(grid.row(0)[1].fg_color(), Some(rgb8(10, 20, 30)));
   }
 
   #[test]
@@ -990,6 +990,19 @@ mod tests {
     assert_eq!(screen_text(&grid)[..2], ["z".to_string(), "w".to_string()]);
     grid.resize(5, 4);
     assert_eq!(grid.row(0).len(), 5);
+  }
+
+  #[test]
+  fn cell_colors_round_trip_exactly() {
+    for n in 0..=255u8 {
+      let c = color_256(n);
+      assert_eq!(Color::from(Rgb::from(c)), c);
+    }
+    for i in 0..8 {
+      let (fg, bg) = (ansi_fg(i, false), ansi_bg(i, false));
+      assert_eq!(Color::from(Rgb::from(fg)), fg);
+      assert_eq!(Color::from(Rgb::from(bg)), bg);
+    }
   }
 
   #[test]

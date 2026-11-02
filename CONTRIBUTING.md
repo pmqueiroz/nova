@@ -57,6 +57,10 @@ For a faster iteration loop during development, use:
 cargo run
 ```
 
+On Windows, run `./packaging/conpty/fetch.ps1` once to put the bundled
+`conpty.dll` and `OpenConsole.exe` next to the dev binaries; without them the
+console built into Windows hides apps' mouse-reporting requests.
+
 Nova's main crates and what they own:
 
 | Path | Responsibility |

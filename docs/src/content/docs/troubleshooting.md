@@ -55,6 +55,13 @@ scroll.
 While a program is fullscreen, the mouse wheel scrolls it: Nova sends arrow
 keys, or wheel events if the program asked for mouse reporting.
 
+On Windows, Nova only learns that a program asked for mouse reporting through
+the `conpty.dll` and `OpenConsole.exe` shipped next to `nova.exe`. The console
+built into Windows drops those requests, so without them the wheel sends arrow
+keys everywhere and apps such as Claude Code warn "Scroll wheel is sending
+arrow keys". The installer, the portable ZIP and Scoop include both files; a
+`cargo install` build does not.
+
 ## AI Errors
 
 - Missing key: set `[ai].api_key`.

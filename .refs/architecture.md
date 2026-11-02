@@ -222,6 +222,15 @@ blocks.
 - Readline shells (`router::is_readline_shell`) get a Ctrl+U prefix on every
   submit: readline can swallow a byte while starting up, which lost the first
   character of the first command in Git Bash.
+- PowerShell (`router::is_powershell`) gets a leading space instead. Under
+  the sideloaded OpenConsole, PSReadLine drops the first character of the
+  first line (`ls` ran as `s`; inbox conhost doesn't). A Shift-only key
+  event doesn't absorb it, so the space does; PowerShell ignores it when
+  kept.
+- PSReadLine's ding is `Console.Beep`, not BEL, so Nova never sees it. The
+  PowerShell integration script sets `-BellStyle` from `general.bell`
+  (`Audible` only for `audio`, else `None`), read once at spawn via
+  `config::get()`.
 - While a command runs, `INPUT_OWNS_KEYS` is off and keys go through the
   legacy encoder to the PTY (passwords, `Read-Host`, REPLs, Ctrl+C).
 - The running state lives in the input bar, not the block. While

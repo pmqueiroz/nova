@@ -26,7 +26,7 @@ fixed. Exact sizes and colors live in code, not here.
   rasterizes once.
 - `ui/components/ds/` — primitives, one file per handoff CSS class (button,
   kbd, seg, toggle, stepper, swatch, row, list_item, sheet, transform,
-  focus_within).
+  slide, focus_within).
 - `ui/components/` — screens and app widgets (block, session, input_bar,
   palette, ai_sheet, settings, tab_bar, title_bar, …).
 
@@ -37,6 +37,7 @@ fixed. Exact sizes and colors live in code, not here.
 | CSS transforms (scale, translateY) | `ds/transform.rs`: wrapper using `Renderer::with_transformation`, layout untouched. `widget::float` can't be used: it only transforms when scale > 1 and draws as an overlay layer. Needs iced `advanced`. |
 | Opacity fades | No global alpha: style fns take an alpha factor and scale their colors. |
 | Box-shadow rings (swatch) | Drawn outside the widget bounds so layout never shifts. |
+| Vertical face swap (input bar PS1 ↔ Running) | `ds/slide.rs`: both faces laid out, width lerps between them, drawn in one layer clipped to the widget; the front translates up by `progress·height` while the back follows from below, offsets snapped to whole px. A staggered slat (trivision) version was tried and dropped as visually noisy. |
 | Focus glow | `Shadow` with blur 4; inset 1 px lines become borders. |
 | Backdrop blur | Not available; scrim color only. |
 | `prefers-reduced-motion` | Not exposed; omitted. |

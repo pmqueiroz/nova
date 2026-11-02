@@ -224,6 +224,22 @@ blocks.
   character of the first command in Git Bash.
 - While a command runs, `INPUT_OWNS_KEYS` is off and keys go through the
   legacy encoder to the PTY (passwords, `Read-Host`, REPLs, Ctrl+C).
+- The running state lives in the input bar, not the block. While
+  `session.is_running()`, the PS1 (`prompt`: cwd + `$`) turns into
+  `running_label` (pulsing dots from the active block's `born`, "Running")
+  through `ds::slide` (prompt slides up and out, label rises from below;
+  reversed on finish), the `text_input` is swapped for `stop_hint`
+  (Ctrl C) and the Enter button is dropped. A disabled `text_input` still
+  looked typable while keystrokes went to the PTY, so it read as a hung
+  prompt. Blocks no longer render a pending card; one with no output is just
+  its command line.
+- The turn is driven by `InputBox.running` (`Animation<bool>`, linear, D2;
+  `slide` applies `ease`) and `running_since`.
+  `Nova::update` wraps `dispatch` and calls `sync_running_motion` after
+  every message, so any phase change (submit, finish, respawn) flips it.
+  `pane_animating` keeps frames on while running (dots) and while turning.
+- Because the `text_input` leaves the tree, `PtyOutputReceived` refocuses
+  the input when `running_panes()` drops (a command finished).
 - History: `Session.history` is the source of truth, persisted to
   `command_history.bin` (bincode) after every submit, loaded into every pane
   at startup and copied into new tabs/splits. Classic panes still use

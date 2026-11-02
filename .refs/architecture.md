@@ -166,7 +166,8 @@ blocks.
   prompt mark (ConPTY can reorder them too), so the OSC often lands while the
   block is still `Running`. Without this, `cd` showed up late or not at all.
 - `Integration`: `Detecting` until the first `prompt_ready` → `Blocks`; after
-  8 s without one (`expire`, driven by the 1 s `Tick`) → `Classic`. A late
+  8 s without one (`expire`, driven by the 1 s `Tick`, which is subscribed
+  only while some pane is `Detecting`) → `Classic`. A late
   `prompt_ready` still upgrades an idle classic pane.
 - Shells without preexec: `on_submit` sets `awaiting_echo`; the first `\n`
   after submit starts the block.

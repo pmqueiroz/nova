@@ -172,6 +172,17 @@ impl Nova {
       || now.saturating_duration_since(pane.integration.spawned_at) < ANIM_TAIL * 12
   }
 
+  pub(in crate::ui::app_state) fn any_integration_detecting(&self) -> bool {
+    use crate::core::router::Mode;
+    self.tabs.iter().any(|t| {
+      t.integration.mode == Mode::Detecting
+        || t
+          .split
+          .as_ref()
+          .is_some_and(|s| s.integration.mode == Mode::Detecting)
+    })
+  }
+
   pub(in crate::ui::app_state) fn needs_pointer_moves(&self) -> bool {
     self.dragging_split
       || self.drag_pending_pos.is_some()

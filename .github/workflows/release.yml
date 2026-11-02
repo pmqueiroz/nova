@@ -73,6 +73,11 @@ jobs:
       - name: Build
         run: cargo build --release
 
+      - name: Fetch ConPTY (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./packaging/conpty/fetch.ps1 -Dest target/release
+
       - name: Package (Windows)
         if: runner.os == 'Windows'
         run: cargo packager --release --formats nsis --out-dir dist
@@ -82,7 +87,7 @@ jobs:
         shell: pwsh
         run: |
           $ver = "${env:GITHUB_REF_NAME}".TrimStart('v')
-          Compress-Archive -Path target/release/nova.exe -DestinationPath "dist/nova_${ver}_x64_portable.zip"
+          Compress-Archive -Path target/release/nova.exe, target/release/conpty.dll, target/release/OpenConsole.exe -DestinationPath "dist/nova_${ver}_x64_portable.zip"
 
       - name: Package (macOS)
         if: runner.os == 'macOS'

@@ -180,7 +180,10 @@ pub fn list_dir(dir: &Path) -> Vec<Candidate> {
     .flatten()
     .filter_map(|e| {
       let name = e.file_name().into_string().ok()?;
-      let dir = fs::metadata(e.path()).is_ok_and(|m| m.is_dir());
+      let dir = match e.file_type() {
+        Ok(t) if !t.is_symlink() => t.is_dir(),
+        _ => fs::metadata(e.path()).is_ok_and(|m| m.is_dir()),
+      };
       Some(Candidate { name, dir })
     })
     .collect()

@@ -10,7 +10,7 @@ same binary is a CLI (`nova ask`, `nova config`, …) when given arguments.
   code, no window opens. Otherwise: detach console (Windows),
   `config::init()`, notifications, runtime theme, `ui::start()`.
 - `src/cli/` — subcommands. Those that need the running app talk to it over
-  private OSC 777 (see `docs/content/internals-osc.md`).
+  private OSC 777 (see `docs/src/content/docs/internals-osc.md`).
 - `src/core/` — platform-free logic: config, grid, block/session, byte
   router, completion, search, selection, url, glyph, ai.
 - `src/sys/` — OS edges: `pty` (`PtyBridge`, shell bootstrap), `parser`
@@ -50,10 +50,9 @@ the exe before falling back to kernel32's ConPTY; that dll runs the
 `OpenConsole.exe` next to it. Nova ships both (pinned NuGet
 `Microsoft.Windows.Console.ConPTY`, see `packaging/conpty/fetch.ps1`). The
 inbox conhost swallows `?1000h/1002h/1003h/1006h`, so `Grid::mouse_mode`
-stays `None` and the wheel falls back to arrow keys (Claude Code then warns
-"Scroll wheel is sending arrow keys"). OpenConsole forwards them. Both hosts
-emit `?9001h` (win32-input-mode), which Nova ignores; plain VT input still
-works. Bun apps receive SGR wheel reports verbatim; Node (libuv) apps drop
+stays `None` and the wheel falls back to arrow keys. OpenConsole forwards
+them. Both hosts emit `?9001h` (win32-input-mode), which Nova ignores; plain
+VT input still works. Bun apps receive SGR wheel reports verbatim; Node (libuv) apps drop
 them.
 
 ## Terminal emulation (`sys/parser.rs`, `core/grid.rs`)
@@ -89,8 +88,8 @@ them.
   never paints with the pen background and drops trailing blank cells per
   logical line, so padding from a wider width doesn't become empty rows.
 - Block elements U+2580–259F are drawn as rectangles (`core::glyph`,
-  `TermView`), not from the font: font glyphs don't fill the cell, so
-  pixel art showed gaps. Box drawing still comes from the font. Block cards
+  `TermView`), not from the font: font glyphs don't fill the cell and
+  leave gaps in pixel art. Box drawing still comes from the font. Block cards
   do the same in `output_lines.rs`: `shape` blanks them to spaces
   (`without_block_glyphs`) and `draw_block_glyphs` fills their rects over
   the full `LINE_HEIGHT`. Otherwise explicit cell backgrounds (Claude Code's
@@ -182,7 +181,7 @@ blocks.
   to the screen grid's `pwd` whatever grid parsed it. The tab title, prompt and
   `Session.cwd` read the screen grid, and the hooks print OSC 7 before the
   prompt mark (ConPTY can reorder them too), so the OSC often lands while the
-  block is still `Running`. Without this, `cd` showed up late or not at all.
+  block is still `Running`; without it `cd` updates late or never.
 - `Integration`: `Detecting` until the first `prompt_ready` → `Blocks`; after
   8 s without one (`expire`, driven by the 1 s `Tick`, which is subscribed
   only while some pane is `Detecting`) → `Classic`. A late
@@ -223,13 +222,12 @@ blocks.
 - `clear`/`cls` clear blocks locally; anything else goes through
   `Session::submit` → `Integration::on_submit` → PTY.
 - Readline shells (`router::is_readline_shell`) get a Ctrl+U prefix on every
-  submit: readline can swallow a byte while starting up, which lost the first
+  submit: readline can swallow a byte while starting up, dropping the first
   character of the first command in Git Bash.
 - PowerShell (`router::is_powershell`) gets a leading space instead. Under
-  the sideloaded OpenConsole, PSReadLine drops the first character of the
-  first line (`ls` ran as `s`; inbox conhost doesn't). A Shift-only key
-  event doesn't absorb it, so the space does; PowerShell ignores it when
-  kept.
+  the sideloaded OpenConsole (not inbox conhost), PSReadLine drops the first
+  character of the first line. A Shift-only key event doesn't absorb it, the
+  space does, and PowerShell ignores it when kept.
 - PSReadLine's ding is `Console.Beep`, not BEL, so Nova never sees it. The
   PowerShell integration script sets `-BellStyle` from `general.bell`
   (`Audible` only for `audio`, else `None`), read once at spawn via
@@ -241,10 +239,9 @@ blocks.
   `running_label` (pulsing dots from the active block's `born`, "Running")
   through `ds::slide` (prompt slides up and out, label rises from below;
   reversed on finish), the `text_input` is swapped for `stop_hint`
-  (Ctrl C) and the Enter button is dropped. A disabled `text_input` still
-  looked typable while keystrokes went to the PTY, so it read as a hung
-  prompt. Blocks no longer render a pending card; one with no output is just
-  its command line.
+  (Ctrl C) and the Enter button is dropped. A disabled `text_input` would
+  look typable while keys go to the PTY. A block with no output is just its
+  command line.
 - The turn is driven by `InputBox.running` (`Animation<bool>`, linear, D2;
   `slide` applies `ease`) and `running_since`.
   `Nova::update` wraps `dispatch` and calls `sync_running_motion` after
@@ -431,15 +428,11 @@ logical). On Windows the window starts hidden until the fit is applied.
   same `pty_stream` fn. With separate closures, moving a pane between tab
   and split (tab drag-to-split, closing the left pane) restarts its shell.
 - **Update check** (`core/update.rs` pure, `sys/update/` network): GET
-  GitHub's `releases/latest` via blocking `ureq` on `spawn_blocking`, 10 s
-  timeout, compared with `CARGO_PKG_VERSION` using `semver` (so `1.10 > 1.9`;
+  GitHub's `releases/latest` via blocking `ureq` on `spawn_blocking`,
+  compared with `CARGO_PKG_VERSION` using `semver` (so `1.10 > 1.9`;
   drafts/prereleases ignored). Runs on `WindowOpened` and every
-  `CHECK_INTERVAL` (24 h, a subscription only while `general.check-updates`).
-  `Nova.update_status` drives an orange-tint (`Variant::Orange`) "Update" button after
-  the settings icon in the title bar actions, and the
-  About tab; failures show only in About. Installing the update (delegate to
-  the package manager, or verify + swap the binary) is in
-  [updates.md](./updates.md). `nova update [--install]` is the CLI side.
+  `CHECK_INTERVAL`, a subscription only while `general.check-updates`.
+  Failures show only in About. UI flow and install: [updates.md](./updates.md).
 - **Shell detection** (`config::detect_shells`): on Windows it spawns
   `where pwsh` and `wsl --list --quiet`, which can take seconds on a cold
   WSL. Startup never waits for it: `Nova::default` uses `quick_shells()`
@@ -455,9 +448,9 @@ logical). On Windows the window starts hidden until the fit is applied.
   `.git/HEAD` walking up from the cwd) is refreshed only when the pane's cwd
   changes or a command completes, never per PTY message: the walk is
   filesystem I/O on the UI thread.
-- **Tabs** are labeled with the last segment of their cwd
-  (`helpers::dir_name`), not the full path. `til_home` (title, input bar,
-  tab labels — every frame) reads the home dir once into `HOME_DIR`. The hidden close × renders a `Space`, not a transparent icon —
+- `til_home` runs every frame (title, input bar, tab labels), so it reads the
+  home dir once into `HOME_DIR`. The tab's hidden close × renders a `Space`,
+  not a transparent icon —
   iced's svg tint drops alpha, so a transparent icon draws black.
 
 ## Shared state
@@ -517,5 +510,3 @@ logical). On Windows the window starts hidden until the fit is applied.
   repainted once more below the kept frame.
 - Completion is local only (no git branches, cmdlets, flags), ignores the
   cursor position, and has no candidate list UI.
-- Raw takeover forwards only the wheel, not clicks/drags.
-- Hover color transitions are instant (see `design-system.md`).

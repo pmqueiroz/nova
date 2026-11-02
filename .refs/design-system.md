@@ -37,7 +37,7 @@ fixed. Exact sizes and colors live in code, not here.
 | CSS transforms (scale, translateY) | `ds/transform.rs`: wrapper using `Renderer::with_transformation`, layout untouched. `widget::float` can't be used: it only transforms when scale > 1 and draws as an overlay layer. Needs iced `advanced`. |
 | Opacity fades | No global alpha: style fns take an alpha factor and scale their colors. |
 | Box-shadow rings (swatch) | Drawn outside the widget bounds so layout never shifts. |
-| Vertical face swap (input bar PS1 ↔ Running) | `ds/slide.rs`: both faces laid out, width lerps between them, drawn in one layer clipped to the widget; the front translates up by `progress·height` while the back follows from below, offsets snapped to whole px. A staggered slat (trivision) version was tried and dropped as visually noisy. |
+| Vertical face swap (input bar PS1 ↔ Running) | `ds/slide.rs`: both faces laid out, width lerps between them, drawn in one layer clipped to the widget; the front translates up by `progress·height` while the back follows from below, offsets snapped to whole px. |
 | Focus glow | `Shadow` with blur 4; inset 1 px lines become borders. |
 | Backdrop blur | Not available; scrim color only. |
 | `prefers-reduced-motion` | Not exposed; omitted. |
@@ -49,8 +49,8 @@ fixed. Exact sizes and colors live in code, not here.
   match the segmented control's segments, so a button next to a `seg` (or
   in the 48 px title bar) doesn't look oversized.
 - **Sheets drop the `pop` scale (.96→1).** iced_wgpu passes the scale to
-  glyphon, so every frame at a new scale re-rasterizes every glyph; settings
-  dropped frames. The translateY is snapped to whole px for the same reason
+  glyphon, so every frame at a new scale re-rasterizes every glyph and drops
+  frames. The translateY is snapped to whole px for the same reason
   (fractional offsets miss the glyph cache's subpixel bins).
 - Sheets are top-aligned at `min(16vh, 128)` and keep the same gap at the
   bottom; tall bodies scroll inside `sheet::max_height`. The panel is wrapped
@@ -65,7 +65,6 @@ fixed. Exact sizes and colors live in code, not here.
   startup so the first open doesn't block a frame.
 - Settings' background/foreground/border color editors were removed (the DS
   owns those) but the fields stay in the config for compatibility.
-- About uses a raster lockup PNG (no SVG in the brand handoff).
 - In block mode at the prompt, pasted text goes into the input bar with
   lines joined by `; `; otherwise to the PTY (bracketed when enabled).
 
@@ -80,6 +79,5 @@ the card.
 
 Every handoff keyframe is implemented except:
 
-- Hover background/color transitions (buttons, tabs, seg, list items) — instant.
 - Tab close × opacity — instant.
 - Settings row fade on tab switch — not animated.

@@ -115,7 +115,7 @@ renamed after the hash matches.
 
 ## Untested
 
-Only the Windows portable path has been exercised end to end (0.24.0 →
-1.0.0 via `nova update --install`, then startup cleanup). NSIS, macOS and
+Only the Windows portable path has been exercised end to end (stage, swap,
+startup cleanup). NSIS, macOS and
 Linux swaps and all delegate commands are covered by unit tests of detection
 and planning only.

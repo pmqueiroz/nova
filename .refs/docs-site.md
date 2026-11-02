@@ -1,8 +1,7 @@
 # Docs site (`docs/`)
 
 Static Astro site served at `nova.pmqueiroz.dev`: landing page at `/`, docs
-under `/docs/`. Replaced docmd because docmd could not render a custom landing
-page or the design's docs chrome.
+under `/docs/`.
 
 ## Design source
 

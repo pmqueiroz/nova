@@ -50,6 +50,8 @@ fn notification_click_stream() -> impl iced::futures::Stream<Item = Message> {
   )
 }
 
+const MAX_OUTPUT_BATCH: usize = 1024 * 1024;
+
 fn pty_stream(k: &PtyKey) -> impl iced::futures::Stream<Item = Message> + use<> {
   pty_worker(
     k.tab_id,
@@ -107,7 +109,12 @@ fn pty_worker(
 
       let _ = output.send(Message::PtyReady(tab_id, tx_in)).await;
 
-      while let Ok(bytes) = rx_out.recv().await {
+      while let Ok(mut bytes) = rx_out.recv().await {
+        while bytes.len() < MAX_OUTPUT_BATCH
+          && let Ok(more) = rx_out.try_recv()
+        {
+          bytes.extend_from_slice(&more);
+        }
         let _ = output.send(Message::PtyOutputReceived(tab_id, bytes)).await;
       }
 

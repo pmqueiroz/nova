@@ -28,13 +28,37 @@ bitflags! {
 pub struct Cell {
   pub c: SmolStr,
   pub width: u8,
-  pub fg: Option<Color>,
-  pub bg: Option<Color>,
+  pub fg: Option<Rgb>,
+  pub bg: Option<Rgb>,
   pub attrs: CellAttrs,
   pub uri: Option<Arc<str>>,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Rgb(pub [u8; 3]);
+
+impl From<Color> for Rgb {
+  fn from(c: Color) -> Self {
+    let ch = |v: f32| (v.clamp(0.0, 1.0) * 255.0).round() as u8;
+    Self([ch(c.r), ch(c.g), ch(c.b)])
+  }
+}
+
+impl From<Rgb> for Color {
+  fn from(Rgb([r, g, b]): Rgb) -> Self {
+    Color::from_rgb8(r, g, b)
+  }
+}
+
 impl Cell {
+  pub fn fg_color(&self) -> Option<Color> {
+    self.fg.map(Color::from)
+  }
+
+  pub fn bg_color(&self) -> Option<Color> {
+    self.bg.map(Color::from)
+  }
+
   pub fn is_blank(&self) -> bool {
     self.c == " " && self.bg.is_none()
   }
@@ -81,8 +105,8 @@ pub struct Grid {
   origin: usize,
   pub cursor_x: usize,
   pub cursor_y: usize,
-  pub current_fg: Option<Color>,
-  pub current_bg: Option<Color>,
+  pub current_fg: Option<Rgb>,
+  pub current_bg: Option<Rgb>,
   pub current_uri: Option<Arc<str>>,
   pub current_attrs: CellAttrs,
   pub mouse_mode: MouseMode,

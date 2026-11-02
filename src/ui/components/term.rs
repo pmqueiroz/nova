@@ -291,9 +291,9 @@ fn push_row(out: &mut Vec<DrawCell>, row: RowInput<'_>, frame: &Frame<'_>) {
         CellAttrs::empty(),
       )
     } else if is_search_match {
-      (cell.fg, Some(SEARCH_MATCH_BG), cell.attrs)
+      (cell.fg_color(), Some(SEARCH_MATCH_BG), cell.attrs)
     } else {
-      (cell.fg, cell.bg, cell.attrs)
+      (cell.fg_color(), cell.bg_color(), cell.attrs)
     };
 
     if is_url_hovered {
@@ -342,7 +342,7 @@ fn push_row(out: &mut Vec<DrawCell>, row: RowInput<'_>, frame: &Frame<'_>) {
       match frame.cursor_style {
         CursorStyle::Block => eff_bg = Some(frame.palette.cursor),
         CursorStyle::Beam => {
-          let style = cell_style(cell.fg, cell.bg, cell.attrs, &frame.palette);
+          let style = cell_style(cell.fg_color(), cell.bg_color(), cell.attrs, &frame.palette);
           push(
             out,
             cell.width,

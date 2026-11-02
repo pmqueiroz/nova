@@ -30,8 +30,8 @@ struct Style {
 
 fn cell_style(cell: &Cell, default_fg: Color) -> Style {
   let a = cell.attrs;
-  let mut fg = cell.fg.unwrap_or(default_fg);
-  let mut bg = cell.bg;
+  let mut fg = cell.fg_color().unwrap_or(default_fg);
+  let mut bg = cell.bg_color();
   if a.contains(CellAttrs::REVERSE) {
     let new_bg = fg;
     fg = bg.unwrap_or(tokens::WIN_BOT);

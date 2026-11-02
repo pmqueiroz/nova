@@ -94,7 +94,8 @@ Each command is shown as a block instead of a scrolling grid.
 - `Block` owns an `output: Grid` sized like the PTY so in-place redraws work.
   Visible lines = scrollback + screen rows up to the last non-blank row or the
   cursor. Resolving that range scans the whole screen, so callers walking many
-  lines must take `Block::lines()` once rather than `line(i)` in a loop.
+  lines must take `Block::lines()` once rather than `line(i)` in a loop
+  (`Lines::text(i)` for text; `Block::text` and selection copy do this).
 - Exit 141 (SIGPIPE) is not an error: Git exits with it when the pager is
   quit early.
 

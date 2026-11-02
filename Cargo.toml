@@ -89,3 +89,7 @@ release = "1"
 assets = [
   { source = "target/release/nova", dest = "/usr/bin/nova", mode = "755" },
 ]
+
+[profile.release]
+lto = "fat"
+codegen-units = 1

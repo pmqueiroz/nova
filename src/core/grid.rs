@@ -185,6 +185,11 @@ impl Grid {
     }
   }
 
+  pub fn erase(&mut self, range: std::ops::Range<usize>) {
+    let blank = self.blank_cell();
+    self.cells[range].fill(blank);
+  }
+
   pub fn row(&self, row: usize) -> &[Cell] {
     let start = row * self.cols;
     &self.cells[start..start + self.cols]
@@ -282,11 +287,17 @@ impl Grid {
 
     for _ in 0..count {
       if top == 0 && bottom == self.rows.saturating_sub(1) {
-        let mut row_copy = Vec::with_capacity(self.cols);
+        let mut row_copy = if self.scrollback.len() >= self.scrollback_limit {
+          self.scrollback.pop_front().map(|(row, _)| row)
+        } else {
+          None
+        }
+        .unwrap_or_else(|| Vec::with_capacity(self.cols));
+        row_copy.clear();
         row_copy.extend_from_slice(self.row(top));
         let is_cont = self.row_continuation[top];
         self.scrollback.push_back((row_copy, is_cont));
-        if self.scrollback.len() > self.scrollback_limit {
+        while self.scrollback.len() > self.scrollback_limit {
           self.scrollback.pop_front();
         }
       }
@@ -297,9 +308,7 @@ impl Grid {
       self.row_continuation[top..=bottom].rotate_left(1);
 
       let clear_start = bottom * self.cols;
-      for cell in &mut self.cells[clear_start..clear_start + self.cols] {
-        *cell = blank.clone();
-      }
+      self.cells[clear_start..clear_start + self.cols].fill(blank.clone());
       self.row_continuation[bottom] = false;
     }
   }
@@ -317,9 +326,7 @@ impl Grid {
       self.row_continuation[top..=bottom].rotate_right(1);
 
       let clear_start = top * self.cols;
-      for cell in &mut self.cells[clear_start..clear_start + self.cols] {
-        *cell = blank.clone();
-      }
+      self.cells[clear_start..clear_start + self.cols].fill(blank.clone());
       self.row_continuation[top] = false;
     }
   }

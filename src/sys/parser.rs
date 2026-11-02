@@ -444,22 +444,12 @@ impl<'a> Perform for AnsiExecutor<'a> {
         let y = self.grid.cursor_y;
 
         if y < self.grid.rows {
+          let cols = self.grid.cols;
+          let row = y * cols;
           match mode {
-            0 => {
-              for col in x..self.grid.cols {
-                *self.grid.cell_mut(y, col) = self.grid.blank_cell();
-              }
-            }
-            1 => {
-              for col in 0..=x {
-                *self.grid.cell_mut(y, col) = self.grid.blank_cell();
-              }
-            }
-            2 => {
-              for col in 0..self.grid.cols {
-                *self.grid.cell_mut(y, col) = self.grid.blank_cell();
-              }
-            }
+            0 => self.grid.erase(row + x.min(cols)..row + cols),
+            1 => self.grid.erase(row..row + (x + 1).min(cols)),
+            2 => self.grid.erase(row..row + cols),
             _ => {}
           }
         }
@@ -515,35 +505,13 @@ impl<'a> Perform for AnsiExecutor<'a> {
       'J' => {
         let mode = params.iter().next().map_or(0, |p| p[0]);
         let x = self.grid.cursor_x;
-        let y = self.grid.cursor_y;
+        let cols = self.grid.cols;
+        let cursor = self.grid.cursor_y * cols;
+        let total = self.grid.cells.len();
         match mode {
-          0 => {
-            for col in x..self.grid.cols {
-              *self.grid.cell_mut(y, col) = self.grid.blank_cell();
-            }
-            for row in (y + 1)..self.grid.rows {
-              for col in 0..self.grid.cols {
-                *self.grid.cell_mut(row, col) = self.grid.blank_cell();
-              }
-            }
-          }
-          1 => {
-            for row in 0..y {
-              for col in 0..self.grid.cols {
-                *self.grid.cell_mut(row, col) = self.grid.blank_cell();
-              }
-            }
-            for col in 0..=x {
-              *self.grid.cell_mut(y, col) = self.grid.blank_cell();
-            }
-          }
-          2 | 3 => {
-            for row in 0..self.grid.rows {
-              for col in 0..self.grid.cols {
-                *self.grid.cell_mut(row, col) = self.grid.blank_cell();
-              }
-            }
-          }
+          0 => self.grid.erase(cursor + x.min(cols)..total),
+          1 => self.grid.erase(0..(cursor + x + 1).min(total)),
+          2 | 3 => self.grid.erase(0..total),
           _ => {}
         }
       }
@@ -556,9 +524,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
           let end_idx = (y + 1) * self.grid.cols;
 
           self.grid.cells[start_idx..end_idx].rotate_right(count);
-          for col in x..(x + count) {
-            *self.grid.cell_mut(y, col) = self.grid.blank_cell();
-          }
+          self.grid.erase(start_idx..start_idx + count);
         }
       }
       'P' => {
@@ -570,18 +536,15 @@ impl<'a> Perform for AnsiExecutor<'a> {
           let end_idx = (y + 1) * self.grid.cols;
 
           self.grid.cells[start_idx..end_idx].rotate_left(count);
-          for col in (self.grid.cols - count)..self.grid.cols {
-            *self.grid.cell_mut(y, col) = self.grid.blank_cell();
-          }
+          self.grid.erase(end_idx - count..end_idx);
         }
       }
       'X' => {
         let y = self.grid.cursor_y;
         let x = self.grid.cursor_x;
         if y < self.grid.rows {
-          for col in x..(x + n).min(self.grid.cols) {
-            *self.grid.cell_mut(y, col) = self.grid.blank_cell();
-          }
+          let row = y * self.grid.cols;
+          self.grid.erase(row + x..row + (x + n).min(self.grid.cols));
         }
       }
       'L' => {

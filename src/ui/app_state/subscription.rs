@@ -1,8 +1,8 @@
 use super::helpers::matches_kb;
 use super::message::Message;
 use super::nova::{
-  ACTIVE_KITTY_FLAGS, AI_OPEN, HAS_BLOCK_SELECTION, INPUT_OWNS_KEYS, KB_RECORDING, Nova,
-  PALETTE_OPEN, PASTE_OPEN, SEARCH_OPEN, SETTINGS_OPEN, SHELL_PICKER_OPEN,
+  ACTIVE_KITTY_FLAGS, AI_OPEN, CONFIRM_OPEN, HAS_BLOCK_SELECTION, INPUT_OWNS_KEYS, KB_RECORDING,
+  Nova, PALETTE_OPEN, SEARCH_OPEN, SETTINGS_OPEN, SHELL_PICKER_OPEN,
 };
 
 use iced::keyboard::Key;
@@ -19,7 +19,7 @@ struct PtyKey {
   initial_cols: u16,
   initial_rows: u16,
   initial_cwd: String,
-  initial_command: Option<String>,
+  initial_command: Option<Vec<String>>,
 }
 
 impl std::hash::Hash for PtyKey {
@@ -56,7 +56,7 @@ fn pty_worker(
   rows: u16,
   shell: String,
   initial_cwd: String,
-  initial_command: Option<String>,
+  initial_command: Option<Vec<String>>,
 ) -> impl iced::futures::Stream<Item = Message> {
   stream::channel(
     100,
@@ -76,7 +76,10 @@ fn pty_worker(
         let mut pty = match PtyBridge::new(tx_out.clone(), cols, rows, &shell, cwd, cmd) {
           Ok(pty) => pty,
           Err(err) => {
-            let program = cmd.unwrap_or(&shell);
+            let program = cmd
+              .and_then(|a| a.first())
+              .map(String::as_str)
+              .unwrap_or(&shell);
             let _ = tx_out.send_blocking(spawn_error_message(program, &err));
             return;
           }
@@ -198,10 +201,10 @@ fn handle_key_pressed(
       _ => None,
     };
   }
-  if PASTE_OPEN.load(Ordering::Relaxed) {
+  if CONFIRM_OPEN.load(Ordering::Relaxed) {
     return match &key {
-      Key::Named(Named::Escape) => Some(Message::PasteWarningCancel),
-      Key::Named(Named::Enter) => Some(Message::PasteWarningConfirm),
+      Key::Named(Named::Escape) => Some(Message::ConfirmCancelled),
+      Key::Named(Named::Enter) => Some(Message::ConfirmAccepted),
       _ => None,
     };
   }
@@ -532,7 +535,7 @@ impl Nova {
       pane.integration.is_blocks() && !pane.session.is_running()
     });
     INPUT_OWNS_KEYS.store(owns, Ordering::Relaxed);
-    PASTE_OPEN.store(self.paste_warning.is_some(), Ordering::Relaxed);
+    CONFIRM_OPEN.store(self.confirm.is_some(), Ordering::Relaxed);
     SHELL_PICKER_OPEN.store(self.shell_picker_open, Ordering::Relaxed);
     HAS_BLOCK_SELECTION.store(
       self.block_selection.is_some_and(|s| !s.is_empty()),

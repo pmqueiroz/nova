@@ -105,6 +105,7 @@ pub const GREEN: Color = rgb(0x88E48C);
 pub const RED: Color = rgb(0xFD736D);
 pub const BLUE: Color = rgb(0x82BAFF);
 pub const YELLOW: Color = rgb(0xF2CD64);
+pub const ORANGE: Color = rgb(0xFB9A5B);
 pub const MAGENTA: Color = rgb(0xD695E4);
 pub const CYAN: Color = rgb(0x72DEE4);
 

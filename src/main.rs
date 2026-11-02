@@ -10,6 +10,10 @@ pub fn main() -> ui::Result {
     std::process::exit(code);
   }
 
+  if sys::update::apply::apply_pending_on_startup() {
+    std::process::exit(0);
+  }
+
   #[cfg(target_os = "windows")]
   cli::detach_console();
 

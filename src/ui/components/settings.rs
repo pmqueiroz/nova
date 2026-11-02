@@ -16,6 +16,7 @@ use crate::ui::components::ds::sheet::{self, Sheet};
 use crate::ui::components::ds::stepper::stepper;
 use crate::ui::components::ds::swatch::swatch;
 use crate::ui::components::ds::toggle::toggle;
+use crate::ui::components::update::{update_button, update_line};
 use crate::ui::icons::Icon;
 use crate::ui::theme::tokens::{self, font_size, height, radius, space};
 use crate::ui::theme::{color, font};
@@ -393,28 +394,6 @@ fn ai_tab<'a>(s: &'a config::Config) -> Element<'a, Message> {
       ),
     ),
   ])
-}
-
-pub fn update_line(status: &update::Status) -> Option<String> {
-  match status {
-    update::Status::Unknown => None,
-    update::Status::Checking => Some("Checking for updates…".into()),
-    update::Status::UpToDate => Some("You're on the latest version".into()),
-    update::Status::Available(r) => Some(format!("Version {} is available", r.version)),
-    update::Status::Failed(e) => Some(format!("Update check failed: {e}")),
-  }
-}
-
-fn update_button<'a>(status: &update::Status) -> Element<'a, Message> {
-  let check = btn::<Message>(Variant::Default).label("Check for updates");
-  match status {
-    update::Status::Available(r) => btn::<Message>(Variant::Primary)
-      .label(format!("Download {}", r.version))
-      .on_press(Message::OpenUpdatePage)
-      .into_element(),
-    update::Status::Checking => check.into_element(),
-    _ => check.on_press(Message::CheckForUpdates).into_element(),
-  }
 }
 
 fn about<'a>(s: &'a config::Config, status: &update::Status) -> Element<'a, Message> {

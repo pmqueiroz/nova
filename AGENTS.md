@@ -13,6 +13,8 @@ explain the *why* and the gotchas.
   binding size/motion constraints, tokens, iced capability fallbacks.
 - [brand.md](./.refs/brand.md) — brand-v2 asset layout, which file each
   platform/surface uses, colors.
+- [updates.md](./.refs/updates.md) — update check and install: install-kind
+  detection, delegate vs. self-swap, staging, restart, startup cleanup.
 - [ci-cd.md](./.refs/ci-cd.md) — CI (fmt, clippy matrix), release-please,
   tag-driven packaging and package-manager publishing.
 - [docs/content/](./docs/content/) — user-facing docs site (config,

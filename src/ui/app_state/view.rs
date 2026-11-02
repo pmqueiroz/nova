@@ -1,6 +1,6 @@
 use super::helpers::{dir_to_cursor, normalize_sel, resize_direction};
 use super::message::Message;
-use super::nova::Nova;
+use super::nova::{Confirm, Nova};
 
 use iced::alignment::{Horizontal, Vertical};
 use iced::mouse;
@@ -287,10 +287,7 @@ impl Nova {
         },
         tb_interaction,
         &self.settings.general.window_controls,
-        match &self.update_status {
-          crate::core::update::Status::Available(r) => Some(r.version.as_str()),
-          _ => None,
-        },
+        components::title_update_button(&self.update_status),
       ),
       term_area,
     ];
@@ -354,9 +351,15 @@ impl Nova {
         self.window_size.height,
       );
       components::app(stack![col, picker], self.window_maximized, pop)
-    } else if let Some(ref pending) = self.paste_warning {
-      let overlay =
-        components::paste_warning_overlay(pending, self.sheet_progress(), self.window_size.height);
+    } else if let Some(ref confirm) = self.confirm {
+      let overlay = match confirm {
+        Confirm::Paste(pending) => {
+          components::paste_warning_overlay(pending, self.sheet_progress(), self.window_size.height)
+        }
+        Confirm::Restart => {
+          components::restart_confirm(self.sheet_progress(), self.window_size.height)
+        }
+      };
       components::app(stack![col, overlay], self.window_maximized, pop)
     } else {
       components::app(col, self.window_maximized, pop)

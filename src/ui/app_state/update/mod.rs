@@ -6,6 +6,7 @@ mod search;
 mod session;
 mod settings;
 mod tabs;
+mod updates;
 mod window;
 
 use base64::Engine;
@@ -24,7 +25,9 @@ use super::helpers::{
   rebuild_runtime_theme, recenter,
 };
 use super::message::Message;
-use super::nova::{KB_RECORDING, Nova, PALETTE_OPEN, SEARCH_OPEN, SETTINGS_OPEN, SettingsTab};
+use super::nova::{
+  Confirm, KB_RECORDING, Nova, PALETTE_OPEN, SEARCH_OPEN, SETTINGS_OPEN, SettingsTab,
+};
 
 impl Default for Nova {
   fn default() -> Self {
@@ -116,7 +119,7 @@ impl Default for Nova {
       hovered_tab: None,
       drag_pending_tab: None,
       drag_pending_pos: None,
-      paste_warning: None,
+      confirm: None,
       now: Instant::now(),
       sheet_opened_at: Instant::now(),
       timestamps: cfg.theme.timestamps,
@@ -128,16 +131,6 @@ impl Default for Nova {
     };
     nova.load_command_history();
     nova
-  }
-}
-
-impl Nova {
-  fn check_for_updates(&mut self) -> iced::Task<Message> {
-    if self.update_status == crate::core::update::Status::Checking {
-      return iced::Task::none();
-    }
-    self.update_status = crate::core::update::Status::Checking;
-    iced::Task::perform(crate::sys::update::check(), Message::UpdateChecked)
   }
 }
 
@@ -415,7 +408,7 @@ impl Nova {
         if let Some(tab) = self.tabs.iter_mut().find(|t| t.id == tab_id) {
           tab.pty_alive = false;
           tab.pty_tx = None;
-          if wait {
+          if tab.wait_after_exit {
             tab.waiting_after_exit = true;
           }
           return iced::Task::none();
@@ -569,14 +562,13 @@ impl Nova {
         }
       }
       Message::CheckForUpdates => self.check_for_updates(),
-      Message::UpdateChecked(result) => {
-        self.update_status = crate::core::update::status_from(result);
-        iced::Task::none()
-      }
-      Message::OpenUpdatePage => {
-        if let crate::core::update::Status::Available(r) = &self.update_status {
-          let _ = open::that_detached(&r.url);
-        }
+      Message::UpdateChecked(result) => self.handle_update_checked(result),
+      Message::StartUpdate => self.start_update(),
+      Message::UpdateProgress(event) => self.handle_update_progress(event),
+      Message::ConfirmRestart => {
+        self.sheet_opened_at = Instant::now();
+        self.now = self.sheet_opened_at;
+        self.confirm = Some(Confirm::Restart);
         iced::Task::none()
       }
       Message::SettingsCheckUpdatesToggled(enabled) => {
@@ -893,21 +885,23 @@ impl Nova {
           if is_dangerous_paste(&text) {
             self.sheet_opened_at = Instant::now();
             self.now = self.sheet_opened_at;
-            self.paste_warning = Some(text);
+            self.confirm = Some(Confirm::Paste(text));
           } else {
             self.do_paste(text);
           }
         }
         iced::Task::none()
       }
-      Message::PasteWarningConfirm => {
-        if let Some(text) = self.paste_warning.take() {
+      Message::ConfirmAccepted => match self.confirm.take() {
+        Some(Confirm::Paste(text)) => {
           self.do_paste(text);
+          self.focus_input()
         }
-        self.focus_input()
-      }
-      Message::PasteWarningCancel => {
-        self.paste_warning = None;
+        Some(Confirm::Restart) => self.restart_for_update(),
+        None => iced::Task::none(),
+      },
+      Message::ConfirmCancelled => {
+        self.confirm = None;
         self.focus_input()
       }
       Message::PasteRequested => iced::clipboard::read().map(Message::ClipboardReceived),

@@ -6,7 +6,7 @@ Commands:
   config   View or set configuration values
   explain  Explain output using AI (Nova terminal only)
   help     Show this help
-  update   Check GitHub for a newer release
+  update   Check for a newer release (--install to update)
 
 Flags:
   --version, -v   Print version

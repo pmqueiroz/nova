@@ -267,16 +267,16 @@ logical). On Windows the window starts hidden until the fit is applied.
   first line as the runnable command.
 - **Split panes** are independent sessions; the focused input ring marks the
   active pane (no border).
-- **Update check** (`core/update.rs` pure, `sys/update.rs` network): GET
+- **Update check** (`core/update.rs` pure, `sys/update/` network): GET
   GitHub's `releases/latest` via blocking `ureq` on `spawn_blocking`, 10 s
   timeout, compared with `CARGO_PKG_VERSION` using `semver` (so `1.10 > 1.9`;
   drafts/prereleases ignored). Runs on `WindowOpened` and every
   `CHECK_INTERVAL` (24 h, a subscription only while `general.check-updates`).
-  `Nova.update_status` drives a Ghost "Update to X" button in the title bar
-  actions and the About tab; failures show only in About. It only opens the
-  release page — no self-replace, because most installs are owned by a
-  package manager (see [ci-cd.md](./ci-cd.md)) that would be bypassed.
-  `nova update` / `--check-update` runs the same check from the CLI.
+  `Nova.update_status` drives an orange-tint (`Variant::Orange`) "Update" button after
+  the settings icon in the title bar actions, and the
+  About tab; failures show only in About. Installing the update (delegate to
+  the package manager, or verify + swap the binary) is in
+  [updates.md](./updates.md). `nova update [--install]` is the CLI side.
 - **Tabs:** the hidden close × renders a `Space`, not a transparent icon —
   iced's svg tint drops alpha, so a transparent icon draws black.
 

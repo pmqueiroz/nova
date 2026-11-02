@@ -25,7 +25,7 @@ upgrade command. Every other install has its binary swapped by Nova itself.
 |---|---|---|
 | `Nsis { exe, per_machine }` | Windows, `uninstall.exe` next to the exe; per-machine when under a `%ProgramFiles%` dir | Stage `nova_V_x64-setup.exe` |
 | `Portable { exe }` | Windows, no uninstaller | Stage `nova_V_x64_portable.zip` |
-| `Scoop` | path contains `/scoop/apps/nova/` | Delegate `powershell -Command scoop update nova` |
+| `Scoop` | path contains `/scoop/apps/nova/` | `AfterExit` `powershell -Command scoop update nova` |
 | `MacApp { bundle }` | macOS, exe inside a `.app` | Stage `nova_V_{x64,aarch64}.dmg` |
 | `BrewCask` | macOS `.app` + `{/opt/homebrew,/usr/local}/Caskroom/nova` | Delegate `brew upgrade --cask nova` |
 | `BrewFormula` | Linux, path contains `/Cellar/nova/` | Delegate `brew upgrade nova` |
@@ -44,6 +44,11 @@ upgrade command. Every other install has its binary swapped by Nova itself.
   under `/usr/`.
 - A missing asset, a missing `checksums.txt` or an unsupported arch (only
   x86_64 is shipped for Windows and Linux) falls back to `OpenPage`.
+- Scoop refuses to update an app while any process runs from its
+  `apps/nova/` dir, and the update tab is itself inside Nova, so a plain
+  `Delegate` always failed. `UpdatePlan::AfterExit` runs the command once Nova
+  is gone (see Restart). The CLI still runs it directly, which works only from
+  a terminal outside Nova.
 - Deb/rpm install the downloaded file instead of `apt upgrade`, so it works the
   same for repo and manual installs.
 
@@ -57,6 +62,7 @@ upgrade command. Every other install has its binary swapped by Nova itself.
 2. `StartUpdate`:
    - `OpenPage` opens the URL;
    - `Delegate` without a download opens an **update tab**;
+   - `AfterExit` goes straight to `Ready`;
    - otherwise → `Downloading`, with `sys::update::prepare` streaming
      `Event::Progress` / `Event::Done` through `Task::run`.
 3. `Done(Ok(file))`:
@@ -99,6 +105,15 @@ renamed after the hash matches.
 - `apply::restart`:
   - NSIS: removes the marker and spawns hidden PowerShell running
     `nsis_helper_script`: `Start-Process setup -ArgumentList '/S','/CURRENTUSER'|'/ALLUSERS' [-Verb RunAs] -Wait; Start-Process nova.exe`;
+  - Scoop: spawns hidden PowerShell running `scoop_helper_script(pid, app_dir)`:
+    `Wait-Process` on Nova's pid, then `Stop-Process -Force` only processes
+    named `nova`/`OpenConsole` whose path starts with the app dir (other Nova
+    windows, the conpty host), `scoop update nova`, then start
+    `(scoop prefix nova)\nova.exe`. `app_dir` comes from `scoop_app_dir`
+    (the `apps/nova` ancestor of `current_exe()`), not from `scoop prefix` at
+    runtime: a failing `scoop` call would leave an empty prefix that matches
+    unrelated processes. No app dir → the restart fails instead. It relaunches
+    even if the update failed; the Update button reappears on the next check;
   - macOS: `open -n` the bundle;
   - the rest spawn the (now replaced) binary.
 

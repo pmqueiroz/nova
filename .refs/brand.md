@@ -19,14 +19,13 @@ white `#f0f2f5`.
 | `assets/brand/wordmark/` | "Nova" text only (IBM Plex Sans 600) | not referenced in code |
 | `.github/assets/nova-hero-1280x400.gif` | README hero (caret blink) | `README.md` |
 | `.github/assets/nova-og-*.png` | social preview | uploaded manually in GitHub repo settings |
-| `docs/assets/favicon.ico`, `docs/assets/images/nova-logo-{dark,light}.png` | docs favicon/logo | `docs/docmd.config.js` |
+| `docs/public/favicon.{ico,svg}`, `docs/public/og.png` | site favicon (brand-v2 `icon/web/favicon.svg`, metadata stripped) and OG image (copy of `nova-og-1280x640.png`) | `docs/src/layouts/Base.astro` |
 
 ## Gotchas
 
 - Sizes ≤ 48 px use the simplified 4-ray glyph for legibility; the handoff
   already baked that into the small PNGs and the `.ico`/`.icns`.
-- Docs logo naming is by text color: `nova-logo-dark.png` (dark text, from
-  `lockup/for-light-64h`) is shown on the light theme, `nova-logo-light.png`
-  (from `for-dark-64h`) on the dark theme.
+- The site logo is the inline 4-ray glyph SVG + "nova" text (`Logo.astro`),
+  colored by the theme accent, so it needs no per-theme raster.
 - No lockup SVG exists in the handoff, so About uses a raster PNG.
 - The in-app default accent (`DEFAULT_ACCENT` in `src/core/config.rs`, `tokens::BLUE`) is the same `#82BAFF`.

@@ -15,9 +15,11 @@ explain the *why* and the gotchas.
   platform/surface uses, colors.
 - [updates.md](./.refs/updates.md) — update check and install: install-kind
   detection, delegate vs. self-swap, staging, restart, startup cleanup.
+- [docs-site.md](./.refs/docs-site.md) — Astro site in `docs/`: landing page,
+  `/docs/` template, Markdown directives (callouts, OS tabs, key caps), nav order.
 - [ci-cd.md](./.refs/ci-cd.md) — CI (fmt, clippy matrix), release-please,
   tag-driven packaging and package-manager publishing.
-- [docs/content/](./docs/content/) — user-facing docs site (config,
+- [docs/src/content/docs/](./docs/src/content/docs/) — user-facing docs site (config,
   keybindings, CLI, OSC internals). Update alongside `.refs/` when behaviour
   users see changes.
 - [incidents/](./.refs/incidents/README.md) — postmortems + standing rules;

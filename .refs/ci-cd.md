@@ -20,8 +20,9 @@ Locally, `lefthook.yml` runs `cargo clippy --fix` and `cargo fmt` on staged
   untagged component) using `RELEASE_PLEASE_TOKEN`. Merging it bumps
   `Cargo.toml`, `CHANGELOG.md`, `.release-please-manifest.json` and pushes a
   `vX.Y.Z` tag. Changelog is driven by Conventional Commit types.
-- **`docs`** — builds `docs/` with `@docmd/core` (Bun) and deploys
-  `docs/dist` to `gh-pages`.
+- **`docs`** — `bun install --frozen-lockfile && bun run build` in `docs/`
+  (Astro, see [docs-site.md](./docs-site.md)) and deploys `docs/dist` to
+  `gh-pages`.
 
 ## `release.yml` — tag `v*.*.*`
 

@@ -20,7 +20,7 @@ same binary is a CLI (`nova ask`, `nova config`, …) when given arguments.
   `Tab`/`SplitPane`; `components/` widgets; `theme/` tokens, motion, fonts.
 - `assets/` — embedded fonts, icons, brand, sounds, default `settings.toml`
   (separate macOS variant). See [brand.md](./brand.md).
-- `docs/` user docs site · `packaging/` NSIS template, AUR PKGBUILD.
+- `docs/` marketing site + user docs (Astro, see [docs-site.md](./docs-site.md)) · `packaging/` NSIS template, AUR PKGBUILD.
 
 ## Data flow
 

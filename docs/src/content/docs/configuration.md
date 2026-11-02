@@ -86,7 +86,7 @@ api_key = ""
 ### `[general]`
 
 - `editor` (string): External editor command.
-- `bell` (string): One of `none`, `audio`, `blink`.
+- `bell` (string): One of `none`, `audio`, `blink`. PowerShell's own error ding (PSReadLine) follows this too: it stays audible only with `audio`. Changes apply to shells started after Nova restarts.
 - `shells` (array of strings, optional): If set and non-empty, Nova uses this list instead of auto-detect.
 - `initial-command` (string, optional): Program each new pane runs instead of the shell, launched directly (not through a shell), so shell built-ins and aliases such as PowerShell's `ls` do not work. If it cannot be started, the pane shows why instead of a blank screen.
 - `wait-after-command` (bool): Wait for a key after the initial command exits.

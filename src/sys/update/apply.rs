@@ -194,12 +194,16 @@ fn spawn_detached(cmd: &mut Command) -> Result<(), String> {
   cmd.spawn().map(|_| ()).map_err(|e| e.to_string())
 }
 
-fn run_installer(p: &PendingInstaller) -> Result<(), String> {
+fn run_hidden_powershell(script: String) -> Result<(), String> {
   spawn_detached(
     Command::new("powershell")
       .args(["-NoProfile", "-WindowStyle", "Hidden", "-Command"])
-      .arg(install::nsis_helper_script(&p.setup, &p.exe, p.per_machine)),
+      .arg(script),
   )
+}
+
+fn run_installer(p: &PendingInstaller) -> Result<(), String> {
+  run_hidden_powershell(install::nsis_helper_script(&p.setup, &p.exe, p.per_machine))
 }
 
 pub fn restart(offer: &Offer) -> Result<(), String> {
@@ -212,6 +216,11 @@ pub fn restart(offer: &Offer) -> Result<(), String> {
       let pending = pending_for(offer, &setup).ok_or("not an installer install")?;
       let _ = std::fs::remove_file(pending_path()?);
       run_installer(&pending)
+    }
+    Install::Scoop => {
+      let exe = std::env::current_exe().map_err(io)?;
+      let app_dir = install::scoop_app_dir(&exe).ok_or("cannot find the Scoop app folder")?;
+      run_hidden_powershell(install::scoop_helper_script(std::process::id(), &app_dir))
     }
     Install::MacApp { bundle } => spawn_detached(Command::new("open").arg("-n").arg(bundle)),
     Install::AppImage { path } => spawn_detached(&mut Command::new(path)),

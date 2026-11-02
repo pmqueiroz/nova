@@ -7,6 +7,7 @@ pub const REPO_URL: &str = "https://github.com/pmqueiroz/nova";
 pub const AUR_URL: &str = "https://aur.archlinux.org/packages/nova-bin";
 pub const CHECKSUMS_ASSET: &str = "checksums.txt";
 pub const FILE_ARG: &str = "{file}";
+pub const SCOOP_UPDATE: &str = "scoop update nova";
 pub const WINDOWS_SIDECARS: &[&str] = &["conpty.dll", "OpenConsole.exe"];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -93,13 +94,16 @@ pub enum UpdatePlan {
     argv: Vec<String>,
     download: Option<(Asset, Asset)>,
   },
+  AfterExit {
+    argv: Vec<String>,
+  },
   OpenPage(String),
 }
 
 impl UpdatePlan {
   pub fn command_line(&self) -> Option<String> {
     match self {
-      UpdatePlan::Delegate { argv, .. } => Some(argv.join(" ")),
+      UpdatePlan::Delegate { argv, .. } | UpdatePlan::AfterExit { argv } => Some(argv.join(" ")),
       _ => None,
     }
   }
@@ -247,12 +251,9 @@ pub fn plan(install: &Install, release: &Release, arch: Arch) -> UpdatePlan {
         download: Some(download),
       }
     }
-    Install::Scoop => delegate(argv(&[
-      "powershell",
-      "-NoProfile",
-      "-Command",
-      "scoop update nova",
-    ])),
+    Install::Scoop => UpdatePlan::AfterExit {
+      argv: argv(&["powershell", "-NoProfile", "-Command", SCOOP_UPDATE]),
+    },
     Install::BrewCask => delegate(argv(&["brew", "upgrade", "--cask", "nova"])),
     Install::BrewFormula => delegate(argv(&["brew", "upgrade", "nova"])),
     Install::Aur { helper: Some(h) } => delegate(vec![h.clone(), "-S".into(), "nova-bin".into()]),
@@ -309,6 +310,34 @@ pub fn nsis_helper_script(setup: &Path, exe: &Path, per_machine: bool) -> String
     "Start-Process -FilePath {} -ArgumentList '/S','{mode}'{elevate} -Wait; Start-Process -FilePath {}",
     ps_quote(setup),
     ps_quote(exe)
+  )
+}
+
+pub fn scoop_app_dir(exe: &Path) -> Option<PathBuf> {
+  exe
+    .ancestors()
+    .find(|p| {
+      p.file_name()
+        .is_some_and(|n| n.eq_ignore_ascii_case("nova"))
+        && p
+          .parent()
+          .and_then(Path::file_name)
+          .is_some_and(|n| n.eq_ignore_ascii_case("apps"))
+    })
+    .map(Path::to_path_buf)
+}
+
+pub fn scoop_helper_script(pid: u32, app_dir: &Path) -> String {
+  let mut prefix = app_dir.to_string_lossy().trim_end_matches('\\').to_string();
+  prefix.push('\\');
+  let prefix = ps_quote(Path::new(&prefix));
+  format!(
+    "Wait-Process -Id {pid} -ErrorAction SilentlyContinue; \
+     Get-Process -Name nova,OpenConsole -ErrorAction SilentlyContinue | \
+     Where-Object {{ $_.Path -and $_.Path.StartsWith({prefix}, [StringComparison]::OrdinalIgnoreCase) }} | \
+     Stop-Process -Force; \
+     {SCOOP_UPDATE}; \
+     Start-Process -FilePath (Join-Path (scoop prefix nova) 'nova.exe')"
   )
 }
 
@@ -634,6 +663,26 @@ mod tests {
     assert!(s.ends_with(r"Start-Process -FilePath 'C:\Program Files\Nova\nova.exe'"));
     let user = nsis_helper_script(Path::new("s.exe"), Path::new("n.exe"), false);
     assert!(user.contains("'/S','/CURRENTUSER' -Wait"));
+  }
+
+  #[test]
+  fn scoop_updates_after_nova_exits() {
+    assert!(matches!(
+      plan(&Install::Scoop, &all_assets(), Arch::X86_64),
+      UpdatePlan::AfterExit { .. }
+    ));
+    let exe = Path::new(r"C:\Users\me\scoop\apps\nova\current\nova.exe");
+    let dir = scoop_app_dir(exe).unwrap();
+    assert_eq!(dir, Path::new(r"C:\Users\me\scoop\apps\nova"));
+    assert_eq!(scoop_app_dir(Path::new(r"D:\tools\nova.exe")), None);
+    let s = scoop_helper_script(42, &dir);
+    assert!(s.starts_with("Wait-Process -Id 42 "));
+    assert!(s.contains("Get-Process -Name nova,OpenConsole "));
+    assert!(s.contains(r"StartsWith('C:\Users\me\scoop\apps\nova\', "));
+    let stop = s.find("Stop-Process").unwrap();
+    let update = s.find(SCOOP_UPDATE).unwrap();
+    assert!(stop < update);
+    assert!(s.ends_with("Start-Process -FilePath (Join-Path (scoop prefix nova) 'nova.exe')"));
   }
 
   #[test]

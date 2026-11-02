@@ -48,6 +48,10 @@ impl Nova {
         self.update_status = Status::Delegated(offer);
         iced::Task::none()
       }
+      UpdatePlan::AfterExit { .. } => {
+        self.update_status = Status::Ready(offer);
+        iced::Task::none()
+      }
       _ => {
         self.update_status = Status::Downloading(offer.clone(), 0.0);
         iced::Task::run(sys_update::prepare(offer), Message::UpdateProgress)

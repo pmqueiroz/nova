@@ -367,10 +367,7 @@ mod tests {
 
   fn feed(b: &mut Block, s: &str) {
     let mut p = Parser::new();
-    let mut exec = AnsiExecutor {
-      grid: &mut b.output,
-      bell_pending: false,
-    };
+    let mut exec = AnsiExecutor::new(&mut b.output);
     p.advance(&mut exec, s.as_bytes());
   }
 

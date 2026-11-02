@@ -131,9 +131,23 @@ OSC 777, parsed into `ControlCommand`s:
 
 ### Byte router (`core/router.rs`)
 
-`route()` feeds the parser byte by byte and checks for a mark after each, so
-one chunk carrying echo + `command_start` + output + `command_complete` +
-prompt is split correctly.
+`route()` must re-pick the target grid right after any byte that changes
+routing, so one chunk carrying echo + `command_start` + output +
+`command_complete` + prompt is split correctly. Feeding vte byte by byte did
+that but skipped its bulk UTF-8 path, so instead:
+
+- `segment_len` cuts the input right after each ConPTY text mark
+  (`EF A3 B0..B2`) and, while `awaiting_echo`, after each `\n`. vte
+  dispatches a plain-text run whole without checking for termination, so
+  these must be split beforehand.
+- Within a segment, `advance_until_terminated` stops after any escape
+  sequence that queues a control or flips the alt screen / bracketed paste
+  (`AnsiExecutor::terminated`); `route_step` then re-targets and continues.
+- A mark split across reads completes in vte's partial-UTF-8 step, which is
+  followed by a termination check, so it still lands on a boundary.
+
+`whole_and_bytewise_feeds_agree` pins that both feeds produce the same
+blocks.
 
 - Target grid: `Prompt`, a `Pending` block and non-block modes go to the
   pane's screen grid (keeps prompt and echo hidden); `Running`/`Raw` go to the

@@ -359,10 +359,7 @@ mod tests {
       .blocks
       .remove(s.blocks.iter().position(|b| b.id == id).unwrap());
     let mut p = Parser::new();
-    let mut exec = AnsiExecutor {
-      grid: &mut b.output,
-      bell_pending: false,
-    };
+    let mut exec = AnsiExecutor::new(&mut b.output);
     p.advance(&mut exec, output.as_bytes());
     b
   }

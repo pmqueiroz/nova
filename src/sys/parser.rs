@@ -75,9 +75,28 @@ fn append_to_cell(cell: &mut crate::core::grid::Cell, c: char) {
 pub struct AnsiExecutor<'a> {
   pub grid: &'a mut Grid,
   pub bell_pending: bool,
+  alt_at_start: bool,
+  paste_at_start: bool,
+}
+
+impl<'a> AnsiExecutor<'a> {
+  pub fn new(grid: &'a mut Grid) -> Self {
+    Self {
+      alt_at_start: grid.in_alt_screen(),
+      paste_at_start: grid.bracketed_paste,
+      grid,
+      bell_pending: false,
+    }
+  }
 }
 
 impl<'a> Perform for AnsiExecutor<'a> {
+  fn terminated(&self) -> bool {
+    !self.grid.control_queue.is_empty()
+      || self.grid.in_alt_screen() != self.alt_at_start
+      || self.grid.bracketed_paste != self.paste_at_start
+  }
+
   fn print(&mut self, c: char) {
     use unicode_width::UnicodeWidthChar;
 
@@ -854,10 +873,7 @@ mod tests {
 
   fn print_str(grid: &mut Grid, s: &str) {
     let mut parser = Parser::new();
-    let mut exec = AnsiExecutor {
-      grid,
-      bell_pending: false,
-    };
+    let mut exec = AnsiExecutor::new(grid);
     parser.advance(&mut exec, s.as_bytes());
   }
 

@@ -71,10 +71,7 @@ mod tests {
       let id = s.submit(&format!("cmd{i}")).unwrap();
       let b = s.block_mut(id).unwrap();
       let mut p = Parser::new();
-      let mut e = AnsiExecutor {
-        grid: &mut b.output,
-        bell_pending: false,
-      };
+      let mut e = AnsiExecutor::new(&mut b.output);
       p.advance(&mut e, o.as_bytes());
       s.finish(0);
     }

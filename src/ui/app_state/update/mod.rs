@@ -177,6 +177,9 @@ impl Nova {
   }
 
   pub fn update(&mut self, message: Message) -> iced::Task<Message> {
+    if !matches!(message, Message::CursorMoved(_)) {
+      self.cursor_position = super::nova::latest_pointer();
+    }
     match message {
       Message::Type(bytes) => self.handle_type_input(bytes),
       Message::PtyOutputReceived(tab_id, bytes) => {

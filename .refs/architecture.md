@@ -400,6 +400,17 @@ logical). On Windows the window starts hidden until the fit is applied.
 - Runtime theme: mutex-guarded `RuntimeTheme` in `ui::theme::color`.
 - Overlay atomics in `app_state::nova` (`SETTINGS_OPEN`, `INPUT_OWNS_KEYS`,
   `ACTIVE_KITTY_FLAGS`, …): the keyboard subscription can't borrow `Nova`.
+- Pointer moves: every message rebuilds `view`, so `CursorMoved` is only
+  emitted when needed. The `listen_with` fn records the position in
+  `POINTER` (atomic) and emits only if `TRACK_POINTER` is set
+  (`needs_pointer_moves`: split/tab drag, pending drag, classic selection,
+  Ctrl held / hovered URL, mouse reporting) or the pointer crossed into or
+  out of a window-resize edge zone (`POINTER_ZONE`, which drives the resize
+  cursor in `view`). `update` copies `latest_pointer()` into
+  `cursor_position` before handling any other message, so press/release/
+  scroll handlers and the tab ghost always see the real position. Anything
+  new that reads `cursor_position` live in `view` must be added to one of
+  those two conditions.
 - Animation: `window::frames()` is subscribed only while
   `Nova::is_animating()`, so an idle window renders nothing. Likewise the
   500 ms `CursorBlinkTick` runs only while `needs_cursor_blink()`: blink is

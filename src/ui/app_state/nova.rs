@@ -1,6 +1,6 @@
 use iced::animation::Animation;
 use iced::{Point, Size, mouse, window};
-use std::sync::atomic::{AtomicBool, AtomicU32};
+use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, AtomicU64, Ordering};
 use std::time::Instant;
 
 use crate::core::config;
@@ -16,6 +16,49 @@ pub static INPUT_OWNS_KEYS: AtomicBool = AtomicBool::new(false);
 pub static HAS_BLOCK_SELECTION: AtomicBool = AtomicBool::new(false);
 pub static CONFIRM_OPEN: AtomicBool = AtomicBool::new(false);
 pub static SHELL_PICKER_OPEN: AtomicBool = AtomicBool::new(false);
+pub static TRACK_POINTER: AtomicBool = AtomicBool::new(false);
+static POINTER: AtomicU64 = AtomicU64::new(0);
+static WINDOW_SIZE: AtomicU64 = AtomicU64::new(0);
+static POINTER_ZONE: AtomicU8 = AtomicU8::new(0);
+
+fn pack(a: f32, b: f32) -> u64 {
+  (u64::from(a.to_bits()) << 32) | u64::from(b.to_bits())
+}
+
+fn unpack(v: u64) -> (f32, f32) {
+  (f32::from_bits((v >> 32) as u32), f32::from_bits(v as u32))
+}
+
+pub fn latest_pointer() -> Point {
+  let (x, y) = unpack(POINTER.load(Ordering::Relaxed));
+  Point::new(x, y)
+}
+
+pub fn publish_window_size(size: Size) {
+  WINDOW_SIZE.store(pack(size.width, size.height), Ordering::Relaxed);
+}
+
+fn zone_code(dir: Option<window::Direction>) -> u8 {
+  match dir {
+    None => 0,
+    Some(window::Direction::North) => 1,
+    Some(window::Direction::South) => 2,
+    Some(window::Direction::East) => 3,
+    Some(window::Direction::West) => 4,
+    Some(window::Direction::NorthEast) => 5,
+    Some(window::Direction::NorthWest) => 6,
+    Some(window::Direction::SouthEast) => 7,
+    Some(window::Direction::SouthWest) => 8,
+  }
+}
+
+pub fn pointer_moved(position: Point) -> bool {
+  POINTER.store(pack(position.x, position.y), Ordering::Relaxed);
+  let (w, h) = unpack(WINDOW_SIZE.load(Ordering::Relaxed));
+  let zone = zone_code(super::helpers::resize_direction(position, Size::new(w, h)));
+  let zone_changed = POINTER_ZONE.swap(zone, Ordering::Relaxed) != zone;
+  zone_changed || TRACK_POINTER.load(Ordering::Relaxed)
+}
 
 pub const ANIM_TAIL: std::time::Duration = std::time::Duration::from_millis(400);
 
@@ -127,6 +170,19 @@ impl Nova {
         .pulsed_at
         .is_some_and(|p| now.saturating_duration_since(p) < ANIM_TAIL)
       || now.saturating_duration_since(pane.integration.spawned_at) < ANIM_TAIL * 12
+  }
+
+  pub(in crate::ui::app_state) fn needs_pointer_moves(&self) -> bool {
+    self.dragging_split
+      || self.drag_pending_pos.is_some()
+      || self.dragging_tab_index.is_some()
+      || self.is_selecting
+      || self.ctrl_held
+      || self.hovered_url.is_some()
+      || self
+        .tabs
+        .get(self.active_index)
+        .is_some_and(|t| t.grid.mouse_mode != crate::core::grid::MouseMode::None)
   }
 
   pub(in crate::ui::app_state) fn needs_cursor_blink(&self) -> bool {

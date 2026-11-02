@@ -3,6 +3,8 @@ use portable_pty::{Child, CommandBuilder, MasterPty, NativePtySystem, PtySize, P
 use std::io::{Read, Write};
 use std::thread;
 
+const READ_BUFFER_SIZE: usize = 64 * 1024;
+
 #[derive(Debug, Clone)]
 pub enum PtyCommand {
   Input(Vec<u8>),
@@ -45,7 +47,7 @@ impl PtyBridge {
     let writer = pair.master.take_writer()?;
 
     thread::spawn(move || {
-      let mut buffer = [0u8; 1024];
+      let mut buffer = vec![0u8; READ_BUFFER_SIZE];
       loop {
         match reader.read(&mut buffer) {
           Ok(0) => {

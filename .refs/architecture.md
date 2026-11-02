@@ -25,7 +25,10 @@ same binary is a CLI (`nova ask`, `nova config`, …) when given arguments.
 ## Data flow
 
 1. A `PtyKey` subscription per pane spawns a PTY worker; bytes arrive as
-   `Message::PtyOutputReceived(tab_id, bytes)`.
+   `Message::PtyOutputReceived(tab_id, bytes)`. The reader thread reads
+   64 KiB at a time, and `pty_worker` concatenates every chunk already
+   queued (up to `MAX_OUTPUT_BATCH`, 1 MiB) into one message, so a flood of
+   output costs one `update` + `view` per batch instead of per read.
 2. `core::router::route` feeds them through the pane's `vte::Parser` into
    `AnsiExecutor`, which mutates the target `Grid` and emits `ControlCommand`s
    (OSC 7 cwd, OSC 8 links, OSC 777).

@@ -24,6 +24,7 @@ pub struct Integration {
   pub pending_exit: Option<i32>,
   pub spawned_at: Instant,
   pub readline: bool,
+  pub powershell: bool,
 }
 
 impl Integration {
@@ -40,12 +41,14 @@ impl Integration {
       pending_exit: None,
       spawned_at: Instant::now(),
       readline: false,
+      powershell: false,
     }
   }
 
   pub fn for_shell(enabled: bool, shell_cmd: &str) -> Self {
     Self {
       readline: is_readline_shell(shell_cmd),
+      powershell: is_powershell(shell_cmd),
       ..Self::new(enabled)
     }
   }
@@ -54,6 +57,9 @@ impl Integration {
     let mut bytes = Vec::with_capacity(command.len() + 2);
     if self.readline {
       bytes.push(0x15);
+    }
+    if self.powershell {
+      bytes.push(b' ');
     }
     bytes.extend_from_slice(command.as_bytes());
     bytes.push(b'\r');
@@ -77,13 +83,23 @@ impl Integration {
   }
 }
 
-pub fn is_readline_shell(shell_cmd: &str) -> bool {
-  let name = std::path::Path::new(shell_cmd)
+fn shell_name(shell_cmd: &str) -> String {
+  std::path::Path::new(shell_cmd)
     .file_stem()
     .and_then(|n| n.to_str())
     .unwrap_or(shell_cmd)
-    .to_lowercase();
-  matches!(name.as_str(), "bash" | "zsh" | "git-bash" | "sh")
+    .to_lowercase()
+}
+
+pub fn is_readline_shell(shell_cmd: &str) -> bool {
+  matches!(
+    shell_name(shell_cmd).as_str(),
+    "bash" | "zsh" | "git-bash" | "sh"
+  )
+}
+
+pub fn is_powershell(shell_cmd: &str) -> bool {
+  matches!(shell_name(shell_cmd).as_str(), "powershell" | "pwsh")
 }
 
 #[derive(Default, Debug)]
@@ -357,12 +373,20 @@ mod tests {
       b"\x15ls\r"
     );
     assert_eq!(
-      Integration::for_shell(true, "powershell").submit_bytes("ls"),
-      b"ls\r"
-    );
-    assert_eq!(
       Integration::for_shell(true, "cmd").submit_bytes("ls"),
       b"ls\r"
+    );
+  }
+
+  #[test]
+  fn powershell_gets_sacrificial_space() {
+    assert_eq!(
+      Integration::for_shell(true, "powershell").submit_bytes("ls"),
+      b" ls\r"
+    );
+    assert_eq!(
+      Integration::for_shell(true, r"C:\Program Files\PowerShell\7\pwsh.exe").submit_bytes("ls"),
+      b" ls\r"
     );
   }
 

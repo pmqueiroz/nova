@@ -62,7 +62,7 @@ pub fn run_font(flags: u8) -> Font {
 pub fn visible_len(cells: &[Cell]) -> usize {
   cells
     .iter()
-    .rposition(|c| !c.c.as_ref().trim().is_empty() || c.bg.is_some())
+    .rposition(|c| !c.c.as_str().trim().is_empty() || c.bg.is_some())
     .map(|i| i + 1)
     .unwrap_or(0)
 }

@@ -3,6 +3,7 @@ use crate::core::grid::Grid;
 use crate::core::grid::{ControlCommand, MARK_COMMAND_START, MARK_PROMPT, MARK_PROMPT_PREEXEC};
 use base64::Engine;
 use iced::Color;
+use smol_str::SmolStr;
 use std::sync::Arc;
 use vte::{Params, Perform};
 
@@ -64,6 +65,13 @@ fn color_256(n: u8) -> Color {
   }
 }
 
+fn append_to_cell(cell: &mut crate::core::grid::Cell, c: char) {
+  let mut s = String::with_capacity(cell.c.len() + c.len_utf8());
+  s.push_str(&cell.c);
+  s.push(c);
+  cell.c = SmolStr::from(s);
+}
+
 pub struct AnsiExecutor<'a> {
   pub grid: &'a mut Grid,
   pub bell_pending: bool,
@@ -111,10 +119,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
       } else {
         return;
       };
-      let base = self.grid.cell_mut(by, bx);
-      let mut s = base.c.to_string();
-      s.push(c);
-      base.c = s.into_boxed_str();
+      append_to_cell(self.grid.cell_mut(by, bx), c);
       return;
     }
 
@@ -140,10 +145,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
           .c
           .ends_with('\u{200D}')
       {
-        let base = self.grid.cell_mut(by, bx);
-        let mut s = base.c.to_string();
-        s.push(c);
-        base.c = s.into_boxed_str();
+        append_to_cell(self.grid.cell_mut(by, bx), c);
         return;
       }
     }
@@ -162,7 +164,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
       let y = self.grid.cursor_y;
       if x < self.grid.cols && y < self.grid.rows {
         *self.grid.cell_mut(y, x) = crate::core::grid::Cell {
-          c: Box::from(" "),
+          c: SmolStr::new_inline(" "),
           width: 1,
           fg: self.grid.current_fg,
           bg: self.grid.current_bg,
@@ -182,7 +184,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
 
     if x < self.grid.cols && y < self.grid.rows {
       *self.grid.cell_mut(y, x) = crate::core::grid::Cell {
-        c: c.to_string().into_boxed_str(),
+        c: SmolStr::new(c.encode_utf8(&mut [0; 4])),
         width: char_width,
         fg: self.grid.current_fg,
         bg: self.grid.current_bg,
@@ -192,7 +194,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
 
       if char_width == 2 && x + 1 < self.grid.cols {
         *self.grid.cell_mut(y, x + 1) = crate::core::grid::Cell {
-          c: Box::from(""),
+          c: SmolStr::new_inline(""),
           width: 0,
           fg: self.grid.current_fg,
           bg: self.grid.current_bg,
@@ -909,8 +911,8 @@ mod tests {
         ControlCommand::PromptReady { preexec: true },
       ]
     );
-    assert_eq!(grid.cells[0].c.as_ref(), "a");
-    assert_eq!(grid.cells[1].c.as_ref(), "b");
+    assert_eq!(grid.cells[0].c.as_str(), "a");
+    assert_eq!(grid.cells[1].c.as_str(), "b");
     assert_eq!(grid.cursor_x, 2);
   }
 
@@ -960,7 +962,7 @@ mod tests {
   fn ascii_char_width_and_cursor() {
     let mut grid = make_grid(10, 5);
     print_str(&mut grid, "A");
-    assert_eq!(grid.cells[0].c.as_ref(), "A");
+    assert_eq!(grid.cells[0].c.as_str(), "A");
     assert_eq!(grid.cells[0].width, 1);
     assert_eq!(grid.cursor_x, 1);
   }
@@ -969,10 +971,10 @@ mod tests {
   fn cjk_wide_char_occupies_two_columns() {
     let mut grid = make_grid(10, 5);
     print_str(&mut grid, "中");
-    assert_eq!(grid.cells[0].c.as_ref(), "中");
+    assert_eq!(grid.cells[0].c.as_str(), "中");
     assert_eq!(grid.cells[0].width, 2);
     assert_eq!(grid.cells[1].width, 0);
-    assert_eq!(grid.cells[1].c.as_ref(), "");
+    assert_eq!(grid.cells[1].c.as_str(), "");
     assert_eq!(grid.cursor_x, 2);
   }
 
@@ -980,7 +982,7 @@ mod tests {
   fn combining_accent_appended_to_base() {
     let mut grid = make_grid(10, 5);
     print_str(&mut grid, "e\u{0301}");
-    assert_eq!(grid.cells[0].c.as_ref(), "e\u{0301}");
+    assert_eq!(grid.cells[0].c.as_str(), "e\u{0301}");
     assert_eq!(grid.cells[0].width, 1);
     assert_eq!(grid.cursor_x, 1);
   }
@@ -989,7 +991,7 @@ mod tests {
   fn zwj_emoji_sequence_in_single_cell() {
     let mut grid = make_grid(20, 5);
     print_str(&mut grid, "\u{1F468}\u{200D}\u{1F469}");
-    assert_eq!(grid.cells[0].c.as_ref(), "\u{1F468}\u{200D}\u{1F469}");
+    assert_eq!(grid.cells[0].c.as_str(), "\u{1F468}\u{200D}\u{1F469}");
     assert_eq!(grid.cells[0].width, 2);
     assert_eq!(grid.cells[1].width, 0);
     assert_eq!(grid.cursor_x, 2);
@@ -999,10 +1001,10 @@ mod tests {
   fn wide_char_at_line_end_wraps() {
     let mut grid = make_grid(3, 5);
     print_str(&mut grid, "ab中");
-    assert_eq!(grid.cells[0].c.as_ref(), "a");
-    assert_eq!(grid.cells[1].c.as_ref(), "b");
+    assert_eq!(grid.cells[0].c.as_str(), "a");
+    assert_eq!(grid.cells[1].c.as_str(), "b");
     let row1_start = 3;
-    assert_eq!(grid.cells[row1_start].c.as_ref(), "中");
+    assert_eq!(grid.cells[row1_start].c.as_str(), "中");
     assert_eq!(grid.cells[row1_start].width, 2);
     assert_eq!(grid.cursor_x, 2);
     assert_eq!(grid.cursor_y, 1);
@@ -1012,9 +1014,9 @@ mod tests {
   fn multiple_wide_chars_cursor_tracking() {
     let mut grid = make_grid(10, 5);
     print_str(&mut grid, "你好");
-    assert_eq!(grid.cells[0].c.as_ref(), "你");
+    assert_eq!(grid.cells[0].c.as_str(), "你");
     assert_eq!(grid.cells[0].width, 2);
-    assert_eq!(grid.cells[2].c.as_ref(), "好");
+    assert_eq!(grid.cells[2].c.as_str(), "好");
     assert_eq!(grid.cells[2].width, 2);
     assert_eq!(grid.cursor_x, 4);
   }
@@ -1024,7 +1026,7 @@ mod tests {
     let mut grid = make_grid(20, 5);
     let family = "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}";
     print_str(&mut grid, family);
-    assert_eq!(grid.cells[0].c.as_ref(), family);
+    assert_eq!(grid.cells[0].c.as_str(), family);
     assert_eq!(grid.cells[0].width, 2);
     assert_eq!(grid.cursor_x, 2);
   }

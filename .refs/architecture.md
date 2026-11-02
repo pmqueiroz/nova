@@ -58,6 +58,9 @@ them.
 
 ## Terminal emulation (`sys/parser.rs`, `core/grid.rs`)
 
+- `Cell.c` is a `SmolStr` (inline up to 23 bytes), not `Box<str>`: printing,
+  erasing and `Cell::default()` never touch the heap, which a boxed string
+  did for every cell. Use `c.as_str()`; `as_ref()` is ambiguous on it.
 - Tabs are fixed 8-column stops; no `HTS`/`TBC`. SGR 8/28 (hidden) are
   ignored — `CellAttrs` has no hidden attribute.
 - **BCE:** erases and scrolled-in lines use `Grid::blank_cell()` with the

@@ -61,8 +61,17 @@ them.
 - `Cell.c` is a `SmolStr` (inline up to 23 bytes), not `Box<str>`: printing,
   erasing and `Cell::default()` never touch the heap, which a boxed string
   did for every cell. Use `c.as_str()`; `as_ref()` is ambiguous on it.
-- Erases go through `Grid::erase(range)` (one slice `fill`). Once scrollback
-  is at its limit, `scroll_up` reuses the evicted row's `Vec` for the new one.
+- **Screen storage is a ring of rows.** `Grid.cells` is private; logical row
+  `r` lives at physical row `(r + origin) % rows`, so each row is still one
+  contiguous slice. A full-screen `scroll_up`/`scroll_down` (every newline at
+  the bottom) just moves `origin` and clears one row — O(cols) instead of a
+  memmove of the whole screen, ~7× faster on an output flood. Partial scroll
+  regions (`CSI r`, `IL`/`DL`) swap rows inside the region. Access cells
+  only via `row`/`row_mut`/`cell`/`cell_mut`/`erase_cols`/`erase_rows`.
+  Alt-screen save/restore and resize call `linearize()` first, so saved
+  buffers and reflow see `origin == 0`.
+- Erases are slice `fill`s per row. Once scrollback is at its limit,
+  `scroll_up` reuses the evicted row's `Vec` for the new one.
 - Tabs are fixed 8-column stops; no `HTS`/`TBC`. SGR 8/28 (hidden) are
   ignored — `CellAttrs` has no hidden attribute.
 - **BCE:** erases and scrolled-in lines use `Grid::blank_cell()` with the

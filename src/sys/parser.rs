@@ -117,11 +117,11 @@ impl<'a> Perform for AnsiExecutor<'a> {
       let x = self.grid.cursor_x;
       let y = self.grid.cursor_y;
       let (bx, by) = if self.grid.wrap_next {
-        let w = self.grid.cells[y * self.grid.cols + x].width;
+        let w = self.grid.cell(y, x).width;
         if w == 0 && x > 0 { (x - 1, y) } else { (x, y) }
       } else if x > 0 {
         let px = x - 1;
-        let pw = self.grid.cells[y * self.grid.cols + px].width;
+        let pw = self.grid.cell(y, px).width;
         if pw == 0 && px > 0 {
           (px - 1, y)
         } else {
@@ -129,7 +129,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
         }
       } else if y > 0 {
         let lx = self.grid.cols - 1;
-        let pw = self.grid.cells[(y - 1) * self.grid.cols + lx].width;
+        let pw = self.grid.cell(y - 1, lx).width;
         if pw == 0 && lx > 0 {
           (lx - 1, y - 1)
         } else {
@@ -146,11 +146,11 @@ impl<'a> Perform for AnsiExecutor<'a> {
       let x = self.grid.cursor_x;
       let y = self.grid.cursor_y;
       let (bx, by) = if self.grid.wrap_next {
-        let w = self.grid.cells[y * self.grid.cols + x].width;
+        let w = self.grid.cell(y, x).width;
         if w == 0 && x > 0 { (x - 1, y) } else { (x, y) }
       } else if x > 0 {
         let px = x - 1;
-        let pw = self.grid.cells[y * self.grid.cols + px].width;
+        let pw = self.grid.cell(y, px).width;
         if pw == 0 && px > 0 {
           (px - 1, y)
         } else {
@@ -159,11 +159,7 @@ impl<'a> Perform for AnsiExecutor<'a> {
       } else {
         (usize::MAX, 0)
       };
-      if bx != usize::MAX
-        && self.grid.cells[by * self.grid.cols + bx]
-          .c
-          .ends_with('\u{200D}')
-      {
+      if bx != usize::MAX && self.grid.cell(by, bx).c.ends_with('\u{200D}') {
         append_to_cell(self.grid.cell_mut(by, bx), c);
         return;
       }
@@ -445,11 +441,10 @@ impl<'a> Perform for AnsiExecutor<'a> {
 
         if y < self.grid.rows {
           let cols = self.grid.cols;
-          let row = y * cols;
           match mode {
-            0 => self.grid.erase(row + x.min(cols)..row + cols),
-            1 => self.grid.erase(row..row + (x + 1).min(cols)),
-            2 => self.grid.erase(row..row + cols),
+            0 => self.grid.erase_cols(y, x.min(cols)..cols),
+            1 => self.grid.erase_cols(y, 0..(x + 1).min(cols)),
+            2 => self.grid.erase_cols(y, 0..cols),
             _ => {}
           }
         }
@@ -505,13 +500,18 @@ impl<'a> Perform for AnsiExecutor<'a> {
       'J' => {
         let mode = params.iter().next().map_or(0, |p| p[0]);
         let x = self.grid.cursor_x;
-        let cols = self.grid.cols;
-        let cursor = self.grid.cursor_y * cols;
-        let total = self.grid.cells.len();
+        let y = self.grid.cursor_y;
+        let (cols, rows) = (self.grid.cols, self.grid.rows);
         match mode {
-          0 => self.grid.erase(cursor + x.min(cols)..total),
-          1 => self.grid.erase(0..(cursor + x + 1).min(total)),
-          2 | 3 => self.grid.erase(0..total),
+          0 => {
+            self.grid.erase_cols(y, x.min(cols)..cols);
+            self.grid.erase_rows(y + 1..rows);
+          }
+          1 => {
+            self.grid.erase_rows(0..y);
+            self.grid.erase_cols(y, 0..(x + 1).min(cols));
+          }
+          2 | 3 => self.grid.erase_rows(0..rows),
           _ => {}
         }
       }
@@ -520,31 +520,26 @@ impl<'a> Perform for AnsiExecutor<'a> {
         let x = self.grid.cursor_x;
         if y < self.grid.rows {
           let count = n.min(self.grid.cols - x);
-          let start_idx = y * self.grid.cols + x;
-          let end_idx = (y + 1) * self.grid.cols;
-
-          self.grid.cells[start_idx..end_idx].rotate_right(count);
-          self.grid.erase(start_idx..start_idx + count);
+          self.grid.row_mut(y)[x..].rotate_right(count);
+          self.grid.erase_cols(y, x..x + count);
         }
       }
       'P' => {
         let y = self.grid.cursor_y;
         let x = self.grid.cursor_x;
         if y < self.grid.rows {
-          let count = n.min(self.grid.cols - x);
-          let start_idx = y * self.grid.cols + x;
-          let end_idx = (y + 1) * self.grid.cols;
-
-          self.grid.cells[start_idx..end_idx].rotate_left(count);
-          self.grid.erase(end_idx - count..end_idx);
+          let cols = self.grid.cols;
+          let count = n.min(cols - x);
+          self.grid.row_mut(y)[x..].rotate_left(count);
+          self.grid.erase_cols(y, cols - count..cols);
         }
       }
       'X' => {
         let y = self.grid.cursor_y;
         let x = self.grid.cursor_x;
         if y < self.grid.rows {
-          let row = y * self.grid.cols;
-          self.grid.erase(row + x..row + (x + n).min(self.grid.cols));
+          let cols = self.grid.cols;
+          self.grid.erase_cols(y, x.min(cols)..(x + n).min(cols));
         }
       }
       'L' => {
@@ -866,7 +861,7 @@ mod tests {
     print_str(&mut grid, "\x1b[8;20Hz");
     assert_eq!(&*grid.row(7)[19].c, "z");
     print_str(&mut grid, "\x1b[?1049l");
-    assert_eq!(grid.cells.len(), 20 * 8);
+    assert_eq!((grid.cols, grid.rows), (20, 8));
     assert_eq!(&*grid.row(0)[0].c, "h");
   }
 
@@ -890,8 +885,8 @@ mod tests {
         ControlCommand::PromptReady { preexec: true },
       ]
     );
-    assert_eq!(grid.cells[0].c.as_str(), "a");
-    assert_eq!(grid.cells[1].c.as_str(), "b");
+    assert_eq!(grid.cell(0, 0).c.as_str(), "a");
+    assert_eq!(grid.cell(0, 1).c.as_str(), "b");
     assert_eq!(grid.cursor_x, 2);
   }
 
@@ -937,12 +932,72 @@ mod tests {
     );
   }
 
+  fn screen_text(grid: &Grid) -> Vec<String> {
+    (0..grid.rows)
+      .map(|r| {
+        grid
+          .row(r)
+          .iter()
+          .map(|c| c.c.as_str())
+          .collect::<String>()
+          .trim_end()
+          .to_string()
+      })
+      .collect()
+  }
+
+  fn scrollback_text(grid: &Grid) -> Vec<String> {
+    grid
+      .scrollback
+      .iter()
+      .map(|(r, _)| {
+        r.iter()
+          .map(|c| c.c.as_str())
+          .collect::<String>()
+          .trim_end()
+          .to_string()
+      })
+      .collect()
+  }
+
+  #[test]
+  fn ring_scrolling_keeps_rows_in_order() {
+    let mut grid = make_grid(5, 3);
+    print_str(&mut grid, "1\r\n2\r\n3\r\n4\r\n5\r\n6\r\n7");
+    assert_eq!(screen_text(&grid), ["5", "6", "7"]);
+    assert_eq!(scrollback_text(&grid), ["1", "2", "3", "4"]);
+
+    print_str(&mut grid, "\x1b[2;3r\x1b[3;1H\n");
+    assert_eq!(screen_text(&grid), ["5", "7", ""]);
+    print_str(&mut grid, "\x1b[2;1H\x1bM");
+    assert_eq!(screen_text(&grid), ["5", "", "7"]);
+    print_str(&mut grid, "\x1b[r\x1b[1;1H\x1bM");
+    assert_eq!(screen_text(&grid), ["", "5", ""]);
+    assert_eq!(scrollback_text(&grid).len(), 4);
+
+    print_str(&mut grid, "\x1b[3;1Hab\x1b[3;1H\x1b[1@\x1b[3;3H\x1b[1P");
+    assert_eq!(screen_text(&grid), ["", "5", " a"]);
+    print_str(&mut grid, "\x1b[2;1H\x1b[J");
+    assert_eq!(screen_text(&grid), ["", "", ""]);
+
+    print_str(&mut grid, "\x1b[1;1Hx\r\ny\r\nz\r\nw");
+    assert_eq!(screen_text(&grid), ["y", "z", "w"]);
+    print_str(&mut grid, "\x1b[?1049hALT\x1b[?1049l");
+    assert_eq!(screen_text(&grid), ["y", "z", "w"]);
+    print_str(&mut grid, "\x1b[?1049hALT\r\n\r\n\r\nB");
+    grid.resize(6, 3);
+    print_str(&mut grid, "\x1b[?1049l");
+    assert_eq!(screen_text(&grid)[..2], ["z".to_string(), "w".to_string()]);
+    grid.resize(5, 4);
+    assert_eq!(grid.row(0).len(), 5);
+  }
+
   #[test]
   fn ascii_char_width_and_cursor() {
     let mut grid = make_grid(10, 5);
     print_str(&mut grid, "A");
-    assert_eq!(grid.cells[0].c.as_str(), "A");
-    assert_eq!(grid.cells[0].width, 1);
+    assert_eq!(grid.cell(0, 0).c.as_str(), "A");
+    assert_eq!(grid.cell(0, 0).width, 1);
     assert_eq!(grid.cursor_x, 1);
   }
 
@@ -950,10 +1005,10 @@ mod tests {
   fn cjk_wide_char_occupies_two_columns() {
     let mut grid = make_grid(10, 5);
     print_str(&mut grid, "中");
-    assert_eq!(grid.cells[0].c.as_str(), "中");
-    assert_eq!(grid.cells[0].width, 2);
-    assert_eq!(grid.cells[1].width, 0);
-    assert_eq!(grid.cells[1].c.as_str(), "");
+    assert_eq!(grid.cell(0, 0).c.as_str(), "中");
+    assert_eq!(grid.cell(0, 0).width, 2);
+    assert_eq!(grid.cell(0, 1).width, 0);
+    assert_eq!(grid.cell(0, 1).c.as_str(), "");
     assert_eq!(grid.cursor_x, 2);
   }
 
@@ -961,8 +1016,8 @@ mod tests {
   fn combining_accent_appended_to_base() {
     let mut grid = make_grid(10, 5);
     print_str(&mut grid, "e\u{0301}");
-    assert_eq!(grid.cells[0].c.as_str(), "e\u{0301}");
-    assert_eq!(grid.cells[0].width, 1);
+    assert_eq!(grid.cell(0, 0).c.as_str(), "e\u{0301}");
+    assert_eq!(grid.cell(0, 0).width, 1);
     assert_eq!(grid.cursor_x, 1);
   }
 
@@ -970,9 +1025,9 @@ mod tests {
   fn zwj_emoji_sequence_in_single_cell() {
     let mut grid = make_grid(20, 5);
     print_str(&mut grid, "\u{1F468}\u{200D}\u{1F469}");
-    assert_eq!(grid.cells[0].c.as_str(), "\u{1F468}\u{200D}\u{1F469}");
-    assert_eq!(grid.cells[0].width, 2);
-    assert_eq!(grid.cells[1].width, 0);
+    assert_eq!(grid.cell(0, 0).c.as_str(), "\u{1F468}\u{200D}\u{1F469}");
+    assert_eq!(grid.cell(0, 0).width, 2);
+    assert_eq!(grid.cell(0, 1).width, 0);
     assert_eq!(grid.cursor_x, 2);
   }
 
@@ -980,11 +1035,10 @@ mod tests {
   fn wide_char_at_line_end_wraps() {
     let mut grid = make_grid(3, 5);
     print_str(&mut grid, "ab中");
-    assert_eq!(grid.cells[0].c.as_str(), "a");
-    assert_eq!(grid.cells[1].c.as_str(), "b");
-    let row1_start = 3;
-    assert_eq!(grid.cells[row1_start].c.as_str(), "中");
-    assert_eq!(grid.cells[row1_start].width, 2);
+    assert_eq!(grid.cell(0, 0).c.as_str(), "a");
+    assert_eq!(grid.cell(0, 1).c.as_str(), "b");
+    assert_eq!(grid.cell(1, 0).c.as_str(), "中");
+    assert_eq!(grid.cell(1, 0).width, 2);
     assert_eq!(grid.cursor_x, 2);
     assert_eq!(grid.cursor_y, 1);
   }
@@ -993,10 +1047,10 @@ mod tests {
   fn multiple_wide_chars_cursor_tracking() {
     let mut grid = make_grid(10, 5);
     print_str(&mut grid, "你好");
-    assert_eq!(grid.cells[0].c.as_str(), "你");
-    assert_eq!(grid.cells[0].width, 2);
-    assert_eq!(grid.cells[2].c.as_str(), "好");
-    assert_eq!(grid.cells[2].width, 2);
+    assert_eq!(grid.cell(0, 0).c.as_str(), "你");
+    assert_eq!(grid.cell(0, 0).width, 2);
+    assert_eq!(grid.cell(0, 2).c.as_str(), "好");
+    assert_eq!(grid.cell(0, 2).width, 2);
     assert_eq!(grid.cursor_x, 4);
   }
 
@@ -1005,8 +1059,8 @@ mod tests {
     let mut grid = make_grid(20, 5);
     let family = "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}\u{200D}\u{1F466}";
     print_str(&mut grid, family);
-    assert_eq!(grid.cells[0].c.as_str(), family);
-    assert_eq!(grid.cells[0].width, 2);
+    assert_eq!(grid.cell(0, 0).c.as_str(), family);
+    assert_eq!(grid.cell(0, 0).width, 2);
     assert_eq!(grid.cursor_x, 2);
   }
 }

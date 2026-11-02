@@ -37,9 +37,10 @@ impl BlockSelection {
 
   pub fn text(&self, block: &Block) -> String {
     let ((sl, sc), (el, ec)) = self.ordered();
+    let lines = block.lines();
     let mut out = Vec::new();
     for l in sl..=el {
-      let chars: Vec<char> = block.line_text(l).chars().collect();
+      let chars: Vec<char> = lines.text(l).chars().collect();
       let start = if l == sl { sc.min(chars.len()) } else { 0 };
       let end = if l == el {
         ec.min(chars.len())

@@ -133,23 +133,13 @@ impl Block {
   }
 
   pub fn line_text(&self, i: usize) -> String {
-    self
-      .line(i)
-      .map(|cells| {
-        cells
-          .iter()
-          .filter(|c| c.width != 0)
-          .map(|c| c.c.as_str())
-          .collect::<String>()
-          .trim_end()
-          .to_string()
-      })
-      .unwrap_or_default()
+    self.lines().text(i)
   }
 
   pub fn text(&self) -> String {
-    (0..self.line_count())
-      .map(|i| self.line_text(i))
+    let lines = self.lines();
+    (0..lines.len())
+      .map(|i| lines.text(i))
       .collect::<Vec<_>>()
       .join("\n")
   }
@@ -176,6 +166,19 @@ impl<'a> Lines<'a> {
       return None;
     }
     self.block.raw_line(self.first + i)
+  }
+
+  pub fn text(&self, i: usize) -> String {
+    let Some(cells) = self.get(i) else {
+      return String::new();
+    };
+    let mut text: String = cells
+      .iter()
+      .filter(|c| c.width != 0)
+      .map(|c| c.c.as_str())
+      .collect();
+    text.truncate(text.trim_end().len());
+    text
   }
 }
 

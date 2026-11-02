@@ -267,6 +267,31 @@ logical). On Windows the window starts hidden until the fit is applied.
   first line as the runnable command.
 - **Split panes** are independent sessions; the focused input ring marks the
   active pane (no border).
+- **Drag a tab into a split** (`update/tabs.rs`, `split_drop_side` in
+  `helpers.rs`): `TabPressed` records the previously active tab as
+  `drag_host_tab` (by id, since reordering moves indices). While dragging,
+  the cursor below the title bar in the outer 25% of the width sets
+  `split_drop`; the view then shows the host tab (`shown_tab_index`) with
+  `components::split_drop_preview` over the target half. The host is the
+  previously active tab, or the dragged tab's neighbour when that's the one
+  being dragged; neither may already have a split (one split per tab). On
+  release `merge_tab_into_split` turns the dragged `Tab` into a `SplitPane`
+  (`From<Tab>`) on the right, or for the left side makes it the primary and
+  the host the split; ratio resets to 0.5 and grids resize. Tab-only fields
+  (`initial_command`, `wait_after_exit`) are dropped.
+  Once the cursor leaves the title bar, `components::tab_ghost` follows it:
+  a skeleton mini-window (header with the tab's label, placeholder bars),
+  not a render of the real content. It is stacked over the whole app, so it
+  is positioned with padding from the window origin (`ghost_origin`,
+  clamped inside the window), and its border turns accent while over a
+  drop zone.
+  iced's `clip` is rectangular, so the header's top corners are rounded
+  to `R8 - border` and the card is padded by the border width; otherwise
+  the header's square corners leak past the rounded border.
+- **PTY subscription identity:** iced keys `Subscription::run_with` by the
+  data *and* the builder fn pointer, so tab and split panes must share the
+  same `pty_stream` fn. With separate closures, moving a pane between tab
+  and split (tab drag-to-split, closing the left pane) restarts its shell.
 - **Update check** (`core/update.rs` pure, `sys/update/` network): GET
   GitHub's `releases/latest` via blocking `ureq` on `spawn_blocking`, 10 s
   timeout, compared with `CARGO_PKG_VERSION` using `semver` (so `1.10 > 1.9`;

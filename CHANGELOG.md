@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.1.1](https://github.com/pmqueiroz/nova/compare/v1.1.0...v1.1.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* **ai:** skip failure hints that add nothing and name the concrete cause ([3916749](https://github.com/pmqueiroz/nova/commit/39167491b09ee36aaf5b223d4c88735aa98d8420))
+* track cwd reported while a command block is still running ([c50a4d9](https://github.com/pmqueiroz/nova/commit/c50a4d9a523db6eb14816fbe1150f6d5788acdd5))
+* **update:** swap bundled conpty files during portable updates ([2a7586d](https://github.com/pmqueiroz/nova/commit/2a7586d087b5d1c7c6e1e2a30d320b8d26388c15))
+* **windows:** ship openconsole conpty so apps can enable mouse reporting ([ecd8549](https://github.com/pmqueiroz/nova/commit/ecd8549e77ccb73d319b296684fbab09315447fc))
+
 ## [1.1.0](https://github.com/pmqueiroz/nova/compare/v1.0.0...v1.1.0) (2026-11-02)
 
 

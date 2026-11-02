@@ -3,10 +3,10 @@ type: concept
 title: "Nova Docs"
 source: "https://nova.pmqueiroz.dev/installation/"
 path: /installation/
-updated: 2026-11-01
+updated: 2026-11-02
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-11-01T23:42:00.779Z"
+  generated_at: "2026-11-02T00:38:19.560Z"
 ---
 ---
 title: "Nova Docs"

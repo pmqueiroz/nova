@@ -4,10 +4,10 @@ title: "OSC Integration"
 description: "Private OSC sequences used for CLI-to-app integration."
 source: "https://nova.pmqueiroz.dev/internals-osc/"
 path: /internals-osc/
-updated: 2026-11-01
+updated: 2026-11-02
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-11-01T23:42:00.780Z"
+  generated_at: "2026-11-02T00:38:19.560Z"
 ---
 ---
 title: "OSC Integration"

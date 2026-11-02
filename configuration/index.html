@@ -102,11 +102,11 @@
     
     
 
-    <link id="site-favicon" rel="icon" href="../assets/favicon.ico?v=mvyh5ge1">
-    <link rel="stylesheet" href="../assets/css/docmd-main.css?v=mvyh5ge1">
+    <link id="site-favicon" rel="icon" href="../assets/favicon.ico?v=mvyj5vip">
+    <link rel="stylesheet" href="../assets/css/docmd-main.css?v=mvyj5vip">
     
-    <link rel="stylesheet" href="../assets/css/docmd-highlight-light.css?v=mvyh5ge1" id="hljs-light" disabled>
-    <link rel="stylesheet" href="../assets/css/docmd-highlight-dark.css?v=mvyh5ge1" id="hljs-dark" >
+    <link rel="stylesheet" href="../assets/css/docmd-highlight-light.css?v=mvyj5vip" id="hljs-light" disabled>
+    <link rel="stylesheet" href="../assets/css/docmd-highlight-dark.css?v=mvyj5vip" id="hljs-dark" >
     
     
 <meta name="description" content="Config file location, behavior, and full settings reference.">
@@ -134,9 +134,9 @@
 
 
 
-<link rel="stylesheet" href="../assets/css/docmd-git.css?v=mvyh5ge1" >
-<link rel="stylesheet" href="../assets/css/docmd-openapi.css?v=mvyh5ge1" >
-<link rel="stylesheet" href="../assets/css/docmd-ai.css?v=mvyh5ge1" >
+<link rel="stylesheet" href="../assets/css/docmd-git.css?v=mvyj5vip" >
+<link rel="stylesheet" href="../assets/css/docmd-openapi.css?v=mvyj5vip" >
+<link rel="stylesheet" href="../assets/css/docmd-ai.css?v=mvyj5vip" >
 
     
     
@@ -823,7 +823,7 @@
             <div class="content-layout">
               <div class="main-content">
                 <div class="docmd-breadcrumbs-row">
-                  <div id="docmd-raw-markdown" data-content="---%0Atitle%3A%20%22Configuration%22%0Adescription%3A%20%22Config%20file%20location%2C%20behavior%2C%20and%20full%20settings%20reference.%22%0A---%0A%0A%23%23%20Location%0A%0ANova%20stores%20settings%20at%20%60settings.toml%60%20under%20your%20OS%20config%20directory%3A%0A%0A-%20Windows%3A%20%60%25APPDATA%25%5Cnova%5Csettings.toml%60%0A-%20macOS%3A%20%60~%2FLibrary%2FApplication%20Support%2Fnova%2Fsettings.toml%60%0A-%20Linux%3A%20%60~%2F.config%2Fnova%2Fsettings.toml%60%0A%0AInternally%2C%20this%20is%20%60dirs%3A%3Aconfig_dir().join(%22nova%22).join(%22settings.toml%22)%60.%0A%0A%23%23%20File%20Lifecycle%0A%0A-%20If%20%60settings.toml%60%20does%20not%20exist%2C%20Nova%20writes%20an%20embedded%20default%20config.%0A-%20If%20%60settings.toml%60%20exists%20but%20TOML%20parsing%20fails%2C%20Nova%20overwrites%20it%20with%20defaults.%0A%0AThis%20means%20a%20malformed%20edit%20can%20be%20%22repaired%22%20by%20reset-to-default%20(but%20you%20may%20lose%20changes).%0A%0A%23%23%20Defaults%0A%0ANova%20ships%20embedded%20defaults%20(slightly%20different%20on%20macOS).%0A%0ANon-macOS%20default%20excerpt%3A%0A%0A%60%60%60toml%0A%5Bgeneral%5D%0Aeditor%20%3D%20%22nano%22%0Abell%20%3D%20%22none%22%0A%0A%5Btheme.font%5D%0Asize%20%3D%2016%0Afamily%20%3D%20%22FiraCode%20Nerd%20Font%22%0A%0A%5Btheme.colors%5D%0Abackground%20%3D%20%22%230D0D0D%22%0Aforeground%20%3D%20%22%23E5E5E5%22%0Aaccent%20%3D%20%22%2382BAFF%22%0Aforeground-muted%20%3D%20%22%23666666%22%0Aborder%20%3D%20%22%23FFFFFF12%22%0Acursor%20%3D%20%22%2382BAFF%22%0A%0A%5Btheme.cursor%5D%0Astyle%20%3D%20%22underline%22%0Ablink%20%3D%20false%0A%0A%5Bkeybindings%5D%0Anew-tab%20%3D%20%22ctrl%2Bt%22%0Aclose-tab%20%3D%20%22ctrl%2Bw%22%0Anext-tab%20%3D%20%22ctrl%2Btab%22%0Aprev-tab%20%3D%20%22ctrl%2Bshift%2Btab%22%0Apaste%20%3D%20%22ctrl%2Bv%22%0Acopy%20%3D%20%22ctrl%2Bshift%2Bc%22%0Aopen-palette%20%3D%20%22ctrl%2Bp%22%0Aask-ai%20%3D%20%22ctrl%2Bk%22%0Asettings%20%3D%20%22ctrl%2B%2C%22%0A%0A%5Bai%5D%0Aprovider%20%3D%20%22anthropic%22%0Amodel%20%3D%20%22claude-haiku-4-5-20251001%22%0Aapi_key%20%3D%20%22%22%0A%60%60%60%0A%0A%23%23%20Reference%0A%0A%23%23%23%20%60%5Bgeneral%5D%60%0A%0A-%20%60editor%60%20(string)%3A%20External%20editor%20command.%0A-%20%60bell%60%20(string)%3A%20One%20of%20%60none%60%2C%20%60audio%60%2C%20%60blink%60.%0A-%20%60shells%60%20(array%20of%20strings%2C%20optional)%3A%20If%20set%20and%20non-empty%2C%20Nova%20uses%20this%20list%20instead%20of%20auto-detect.%0A-%20%60initial-command%60%20(string%2C%20optional)%3A%20Program%20each%20new%20pane%20runs%20instead%20of%20the%20shell%2C%20launched%20directly%20(not%20through%20a%20shell)%2C%20so%20shell%20built-ins%20and%20aliases%20such%20as%20PowerShell&#039;s%20%60ls%60%20do%20not%20work.%20If%20it%20cannot%20be%20started%2C%20the%20pane%20shows%20why%20instead%20of%20a%20blank%20screen.%0A-%20%60wait-after-command%60%20(bool)%3A%20Wait%20for%20a%20key%20after%20the%20initial%20command%20exits.%0A-%20%60window-controls%60%20(string)%3A%20One%20of%20%60traffic-lights%60%20or%20%60system%60.%0A-%20%60scrollback%60%20(integer%2C%20optional)%3A%20Maximum%20scrollback%20lines%20per%20pane.%20Defaults%20to%20%6010000%60.%0A%0AExample%3A%0A%0A%60%60%60toml%0A%5Bgeneral%5D%0Aeditor%20%3D%20%22code%20-w%22%0Abell%20%3D%20%22none%22%0Ashells%20%3D%20%5B%22zsh%22%2C%20%22bash%22%5D%0Awindow-controls%20%3D%20%22system%22%0A%60%60%60%0A%0A%23%23%23%20%60%5Btheme%5D%60%0A%0A-%20%60timestamps%60%20(bool%2C%20default%20%60false%60)%3A%20show%20the%20%60HH%3AMM%60%20each%20command%20ran%20next%20to%20its%20block.%0A%0A%23%23%23%20%60%5Btheme.font%5D%60%0A%0A-%20%60size%60%20(number)%0A-%20%60family%60%20(string)%0A%0AExample%3A%0A%0A%60%60%60toml%0A%5Btheme.font%5D%0Asize%20%3D%2015%0Afamily%20%3D%20%22FiraCode%20Nerd%20Font%22%0A%60%60%60%0A%0A%23%23%23%20%60%5Btheme.colors%5D%60%0A%0AAll%20values%20are%20hex%20strings.%0A%0A-%20%60%23RRGGBB%60%20is%20supported.%0A-%20%60%23RRGGBBAA%60%20is%20supported%20(alpha%20channel).%0A%0AKeys%3A%0A%0A-%20%60background%60%0A-%20%60foreground%60%0A-%20%60accent%60%20(the%20settings%20sheet%20offers%20Blue%20%60%2382BAFF%60%2C%20Mint%20%60%2365DFAF%60%2C%20Amber%20%60%23FCBE62%60%2C%20Rose%20%60%23FC899D%60)%0A-%20%60foreground-muted%60%0A-%20%60border%60%0A-%20%60cursor%60%0A%0AExample%3A%0A%0A%60%60%60toml%0A%5Btheme.colors%5D%0Abackground%20%3D%20%22%230D0D0D%22%0Aforeground%20%3D%20%22%23E5E5E5%22%0Aaccent%20%3D%20%22%2382BAFF%22%0Aforeground-muted%20%3D%20%22%23666666%22%0Aborder%20%3D%20%22%23FFFFFF12%22%0Acursor%20%3D%20%22%2382BAFF%22%0A%0A%5Btheme.cursor%5D%0Astyle%20%3D%20%22underline%22%0Ablink%20%3D%20true%0A%0A%5Bai%5D%0Aprovider%20%3D%20%22anthropic%22%0Amodel%20%3D%20%22claude-haiku-4-5-20251001%22%0Aapi_key%20%3D%20%22%22%0A%60%60%60%0A%0A%23%23%23%20%60%5Btheme.cursor%5D%60%0A%0A-%20%60style%60%20(string)%3A%20Cursor%20shape.%20One%20of%20%60block%60%2C%20%60beam%60%2C%20%60underline%60.%0A-%20%60blink%60%20(bool)%3A%20Whether%20the%20cursor%20blinks.%0A%0AExample%3A%0A%0A%60%60%60toml%0A%5Btheme.cursor%5D%0Astyle%20%3D%20%22underline%22%0Ablink%20%3D%20true%0A%60%60%60%0A%0A%23%23%23%20%60%5Bkeybindings%5D%60%0A%0ASee%20%5BKeybindings%5D(%2Fkeybindings)%20for%20syntax%20and%20examples.%0A%0AKeys%3A%0A%0A-%20%60new-tab%60%0A-%20%60close-tab%60%0A-%20%60next-tab%60%0A-%20%60prev-tab%60%0A-%20%60paste%60%0A-%20%60copy%60%0A-%20%60open-palette%60%0A-%20%60ask-ai%60%0A-%20%60settings%60%0A%0A%23%23%23%20%60%5Bai%5D%60%0A%0ASee%20%5BAI%5D(%2Fai)%20for%20behavior%20and%20troubleshooting.%0A%0A-%20%60provider%60%20(string)%3A%20%60anthropic%60%20or%20%60openai%60%0A-%20%60model%60%20(string)%0A-%20%60api_key%60%20(string)%0A-%20%60base_url%60%20(string%2C%20optional)%3A%20Override%20API%20base%20URL%20(useful%20for%20proxies).%0A%0AExample%3A%0A%0A%60%60%60toml%0A%5Bai%5D%0Aprovider%20%3D%20%22openai%22%0Amodel%20%3D%20%22gpt-4.1-mini%22%0Aapi_key%20%3D%20%22...%22%0Abase_url%20%3D%20%22https%3A%2F%2Fapi.openai.com%2Fv1%2F%22%0A%60%60%60%0A" style="display: none;"></div>
+                  <div id="docmd-raw-markdown" data-content="---%0Atitle%3A%20%22Configuration%22%0Adescription%3A%20%22Config%20file%20location%2C%20behavior%2C%20and%20full%20settings%20reference.%22%0A---%0A%0A%23%23%20Location%0A%0ANova%20stores%20settings%20at%20%60settings.toml%60%20under%20your%20OS%20config%20directory%3A%0A%0A-%20Windows%3A%20%60%25APPDATA%25%5Cnova%5Csettings.toml%60%0A-%20macOS%3A%20%60~%2FLibrary%2FApplication%20Support%2Fnova%2Fsettings.toml%60%0A-%20Linux%3A%20%60~%2F.config%2Fnova%2Fsettings.toml%60%0A%0AInternally%2C%20this%20is%20%60dirs%3A%3Aconfig_dir().join(%22nova%22).join(%22settings.toml%22)%60.%0A%0A%23%23%20File%20Lifecycle%0A%0A-%20If%20%60settings.toml%60%20does%20not%20exist%2C%20Nova%20writes%20an%20embedded%20default%20config.%0A-%20If%20%60settings.toml%60%20exists%20but%20TOML%20parsing%20fails%2C%20Nova%20overwrites%20it%20with%20defaults.%0A%0AThis%20means%20a%20malformed%20edit%20can%20be%20%22repaired%22%20by%20reset-to-default%20(but%20you%20may%20lose%20changes).%0A%0A%23%23%20Defaults%0A%0ANova%20ships%20embedded%20defaults%20(slightly%20different%20on%20macOS).%0A%0ANon-macOS%20default%20excerpt%3A%0A%0A%60%60%60toml%0A%5Bgeneral%5D%0Aeditor%20%3D%20%22nano%22%0Abell%20%3D%20%22none%22%0Acheck-updates%20%3D%20true%0A%0A%5Btheme.font%5D%0Asize%20%3D%2016%0Afamily%20%3D%20%22FiraCode%20Nerd%20Font%22%0A%0A%5Btheme.colors%5D%0Abackground%20%3D%20%22%230D0D0D%22%0Aforeground%20%3D%20%22%23E5E5E5%22%0Aaccent%20%3D%20%22%2382BAFF%22%0Aforeground-muted%20%3D%20%22%23666666%22%0Aborder%20%3D%20%22%23FFFFFF12%22%0Acursor%20%3D%20%22%2382BAFF%22%0A%0A%5Btheme.cursor%5D%0Astyle%20%3D%20%22underline%22%0Ablink%20%3D%20false%0A%0A%5Bkeybindings%5D%0Anew-tab%20%3D%20%22ctrl%2Bt%22%0Aclose-tab%20%3D%20%22ctrl%2Bw%22%0Anext-tab%20%3D%20%22ctrl%2Btab%22%0Aprev-tab%20%3D%20%22ctrl%2Bshift%2Btab%22%0Apaste%20%3D%20%22ctrl%2Bv%22%0Acopy%20%3D%20%22ctrl%2Bshift%2Bc%22%0Aopen-palette%20%3D%20%22ctrl%2Bp%22%0Aask-ai%20%3D%20%22ctrl%2Bk%22%0Asettings%20%3D%20%22ctrl%2B%2C%22%0A%0A%5Bai%5D%0Aprovider%20%3D%20%22anthropic%22%0Amodel%20%3D%20%22claude-haiku-4-5-20251001%22%0Aapi_key%20%3D%20%22%22%0A%60%60%60%0A%0A%23%23%20Reference%0A%0A%23%23%23%20%60%5Bgeneral%5D%60%0A%0A-%20%60editor%60%20(string)%3A%20External%20editor%20command.%0A-%20%60bell%60%20(string)%3A%20One%20of%20%60none%60%2C%20%60audio%60%2C%20%60blink%60.%0A-%20%60shells%60%20(array%20of%20strings%2C%20optional)%3A%20If%20set%20and%20non-empty%2C%20Nova%20uses%20this%20list%20instead%20of%20auto-detect.%0A-%20%60initial-command%60%20(string%2C%20optional)%3A%20Program%20each%20new%20pane%20runs%20instead%20of%20the%20shell%2C%20launched%20directly%20(not%20through%20a%20shell)%2C%20so%20shell%20built-ins%20and%20aliases%20such%20as%20PowerShell&#039;s%20%60ls%60%20do%20not%20work.%20If%20it%20cannot%20be%20started%2C%20the%20pane%20shows%20why%20instead%20of%20a%20blank%20screen.%0A-%20%60wait-after-command%60%20(bool)%3A%20Wait%20for%20a%20key%20after%20the%20initial%20command%20exits.%0A-%20%60window-controls%60%20(string)%3A%20One%20of%20%60traffic-lights%60%20or%20%60system%60.%0A-%20%60scrollback%60%20(integer%2C%20optional)%3A%20Maximum%20scrollback%20lines%20per%20pane.%20Defaults%20to%20%6010000%60.%0A-%20%60check-updates%60%20(bool)%3A%20Check%20GitHub%20for%20a%20newer%20release%20on%20startup%20and%20once%20a%20day.%20Defaults%20to%20%60true%60.%20Turn%20it%20off%20if%20a%20package%20manager%20keeps%20Nova%20up%20to%20date.%20Also%20in%20Settings%20%E2%86%92%20About.%0A%0AExample%3A%0A%0A%60%60%60toml%0A%5Bgeneral%5D%0Aeditor%20%3D%20%22code%20-w%22%0Abell%20%3D%20%22none%22%0Ashells%20%3D%20%5B%22zsh%22%2C%20%22bash%22%5D%0Awindow-controls%20%3D%20%22system%22%0A%60%60%60%0A%0A%23%23%23%20%60%5Btheme%5D%60%0A%0A-%20%60timestamps%60%20(bool%2C%20default%20%60false%60)%3A%20show%20the%20%60HH%3AMM%60%20each%20command%20ran%20next%20to%20its%20block.%0A%0A%23%23%23%20%60%5Btheme.font%5D%60%0A%0A-%20%60size%60%20(number)%0A-%20%60family%60%20(string)%0A%0AExample%3A%0A%0A%60%60%60toml%0A%5Btheme.font%5D%0Asize%20%3D%2015%0Afamily%20%3D%20%22FiraCode%20Nerd%20Font%22%0A%60%60%60%0A%0A%23%23%23%20%60%5Btheme.colors%5D%60%0A%0AAll%20values%20are%20hex%20strings.%0A%0A-%20%60%23RRGGBB%60%20is%20supported.%0A-%20%60%23RRGGBBAA%60%20is%20supported%20(alpha%20channel).%0A%0AKeys%3A%0A%0A-%20%60background%60%0A-%20%60foreground%60%0A-%20%60accent%60%20(the%20settings%20sheet%20offers%20Blue%20%60%2382BAFF%60%2C%20Mint%20%60%2365DFAF%60%2C%20Amber%20%60%23FCBE62%60%2C%20Rose%20%60%23FC899D%60)%0A-%20%60foreground-muted%60%0A-%20%60border%60%0A-%20%60cursor%60%0A%0AExample%3A%0A%0A%60%60%60toml%0A%5Btheme.colors%5D%0Abackground%20%3D%20%22%230D0D0D%22%0Aforeground%20%3D%20%22%23E5E5E5%22%0Aaccent%20%3D%20%22%2382BAFF%22%0Aforeground-muted%20%3D%20%22%23666666%22%0Aborder%20%3D%20%22%23FFFFFF12%22%0Acursor%20%3D%20%22%2382BAFF%22%0A%0A%5Btheme.cursor%5D%0Astyle%20%3D%20%22underline%22%0Ablink%20%3D%20true%0A%0A%5Bai%5D%0Aprovider%20%3D%20%22anthropic%22%0Amodel%20%3D%20%22claude-haiku-4-5-20251001%22%0Aapi_key%20%3D%20%22%22%0A%60%60%60%0A%0A%23%23%23%20%60%5Btheme.cursor%5D%60%0A%0A-%20%60style%60%20(string)%3A%20Cursor%20shape.%20One%20of%20%60block%60%2C%20%60beam%60%2C%20%60underline%60.%0A-%20%60blink%60%20(bool)%3A%20Whether%20the%20cursor%20blinks.%0A%0AExample%3A%0A%0A%60%60%60toml%0A%5Btheme.cursor%5D%0Astyle%20%3D%20%22underline%22%0Ablink%20%3D%20true%0A%60%60%60%0A%0A%23%23%23%20%60%5Bkeybindings%5D%60%0A%0ASee%20%5BKeybindings%5D(%2Fkeybindings)%20for%20syntax%20and%20examples.%0A%0AKeys%3A%0A%0A-%20%60new-tab%60%0A-%20%60close-tab%60%0A-%20%60next-tab%60%0A-%20%60prev-tab%60%0A-%20%60paste%60%0A-%20%60copy%60%0A-%20%60open-palette%60%0A-%20%60ask-ai%60%0A-%20%60settings%60%0A%0A%23%23%23%20%60%5Bai%5D%60%0A%0ASee%20%5BAI%5D(%2Fai)%20for%20behavior%20and%20troubleshooting.%0A%0A-%20%60provider%60%20(string)%3A%20%60anthropic%60%20or%20%60openai%60%0A-%20%60model%60%20(string)%0A-%20%60api_key%60%20(string)%0A-%20%60base_url%60%20(string%2C%20optional)%3A%20Override%20API%20base%20URL%20(useful%20for%20proxies).%0A%0AExample%3A%0A%0A%60%60%60toml%0A%5Bai%5D%0Aprovider%20%3D%20%22openai%22%0Amodel%20%3D%20%22gpt-4.1-mini%22%0Aapi_key%20%3D%20%22...%22%0Abase_url%20%3D%20%22https%3A%2F%2Fapi.openai.com%2Fv1%2F%22%0A%60%60%60%0A" style="display: none;"></div>
                   
                     <nav aria-label="breadcrumb" class="docmd-breadcrumbs">
                       <ol>
@@ -938,6 +938,7 @@
 <pre class="hljs"><code class="language-toml">[general]
 editor <span class="hljs-operator">=</span> <span class="hljs-string">&quot;nano&quot;</span>
 bell <span class="hljs-operator">=</span> <span class="hljs-string">&quot;none&quot;</span>
+check<span class="hljs-operator">-</span>updates <span class="hljs-operator">=</span> <span class="hljs-literal">true</span>
 
 [theme.<span class="hljs-attr">font</span>]
 size <span class="hljs-operator">=</span> <span class="hljs-number">16</span>
@@ -981,6 +982,7 @@ api_key <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&qu
 <li><code>wait-after-command</code> (bool): Wait for a key after the initial command exits.</li>
 <li><code>window-controls</code> (string): One of <code>traffic-lights</code> or <code>system</code>.</li>
 <li><code>scrollback</code> (integer, optional): Maximum scrollback lines per pane. Defaults to <code>10000</code>.</li>
+<li><code>check-updates</code> (bool): Check GitHub for a newer release on startup and once a day. Defaults to <code>true</code>. Turn it off if a package manager keeps Nova up to date. Also in Settings → About.</li>
 </ul>
 <p>Example:</p>
 <pre class="hljs"><code class="language-toml">[general]
@@ -1212,13 +1214,13 @@ base_url <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ht
             <div class="page-footer-actions">
               
               
-                <span class="git-last-updated" data-timestamp="1793576484000">
+                <span class="git-last-updated" data-timestamp="1793579684000">
                   <svg class="git-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                   </svg>
                   <span class="git-label">Last updated:</span>
-                  <span class="git-time" data-timestamp="1793576484000"></span>
+                  <span class="git-time" data-timestamp="1793579684000"></span>
                   
                   <div class="git-commit-tooltip" role="tooltip">
                     <div class="git-tooltip-title">Recent commits</div>
@@ -1231,10 +1233,10 @@ base_url <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ht
                             
                           </div>
                           <div class="git-commit-details">
-                            <div class="git-commit-message" title="chore(skills): add ref-compact skill for tightening refs">chore(skills): add ref-compact skill ...</div>
+                            <div class="git-commit-message" title="feat(ds): match text button height to the segmented control">feat(ds): match text button height to...</div>
                             <div class="git-commit-meta">
                               <span class="git-commit-author">pmqueiroz</span>
-                              <span class="git-commit-date" data-timestamp="1793576484000"></span>
+                              <span class="git-commit-date" data-timestamp="1793579684000"></span>
                             </div>
                           </div>
                         </li>
@@ -1265,15 +1267,15 @@ base_url <span class="hljs-operator">=</span> <span class="hljs-string">&quot;ht
         </div>
       </div>
       
-      <script src="../assets/js/docmd-main.js?v=mvyh5ge1"></script>
+      <script src="../assets/js/docmd-main.js?v=mvyj5vip"></script>
       
-      <script src="../assets/js/docmd-git.js?v=mvyh5ge1"></script>
-      <script src="../assets/js/docmd-image-lightbox.js?v=mvyh5ge1" ></script>
+      <script src="../assets/js/docmd-git.js?v=mvyj5vip"></script>
+      <script src="../assets/js/docmd-image-lightbox.js?v=mvyj5vip" ></script>
 <script src="https://cdn.jsdelivr.net/npm/minisearch@7.2.0/dist/umd/index.min.js" ></script>
-<script src="../assets/js/docmd-search.js?v=mvyh5ge1" ></script>
-<script src="../assets/js/init-mermaid.js?v=mvyh5ge1" type="module"></script>
-<script src="../assets/js/docmd-git.js?v=mvyh5ge1" ></script>
-<script src="../assets/js/docmd-ai.js?v=mvyh5ge1" ></script>
+<script src="../assets/js/docmd-search.js?v=mvyj5vip" ></script>
+<script src="../assets/js/init-mermaid.js?v=mvyj5vip" type="module"></script>
+<script src="../assets/js/docmd-git.js?v=mvyj5vip" ></script>
+<script src="../assets/js/docmd-ai.js?v=mvyj5vip" ></script>
 
   <!-- Search Modal (Injected by @docmd/plugin-search) -->
   <div id="docmd-search-modal" class="docmd-search-modal" style="display: none;"

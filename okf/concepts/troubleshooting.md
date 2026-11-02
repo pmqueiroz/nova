@@ -4,10 +4,10 @@ title: Troubleshooting
 description: "Common problems and fixes."
 source: "https://nova.pmqueiroz.dev/troubleshooting/"
 path: /troubleshooting/
-updated: 2026-11-01
+updated: 2026-11-02
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-11-01T23:42:00.782Z"
+  generated_at: "2026-11-02T00:38:19.561Z"
 ---
 ---
 title: "Troubleshooting"
@@ -71,3 +71,19 @@ keys, or wheel events if the program asked for mouse reporting.
 - Missing key: set `[ai].api_key`.
 - Wrong model/provider: ensure model name matches the selected provider.
 - Proxy issues: verify `[ai].base_url` is correct and reachable.
+
+## Updates Fail
+
+- **Permission denied** replacing `nova.exe`, `Nova.app` or the AppImage: Nova
+  writes next to the existing file, so its folder must be writable by you. Move
+  it somewhere you own, or update with the method you installed with.
+- **Windows installer:** a per-machine install (under `Program Files`) asks for
+  admin rights (UAC) when the update runs. The installer closes every open Nova
+  window.
+- **apt / dnf / AUR / Homebrew:** the update runs in a new tab and may ask for
+  your `sudo` password there. If it fails, the tab shows the package manager's
+  error; re-run `nova update --install` or the shown command yourself.
+- **"checksum mismatch":** the download was corrupted or tampered with, so
+  nothing was replaced. Try again later.
+- Updates are cached in your user cache folder under `nova/updates/` and
+  removed once you run that version.

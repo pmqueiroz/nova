@@ -4,10 +4,10 @@ title: Configuration
 description: "Config file location, behavior, and full settings reference."
 source: "https://nova.pmqueiroz.dev/configuration/"
 path: /configuration/
-updated: 2026-11-01
+updated: 2026-11-02
 okf:
   generated_by: "@docmd/plugin-okf"
-  generated_at: "2026-11-01T23:42:00.776Z"
+  generated_at: "2026-11-02T00:38:19.559Z"
 ---
 ---
 title: "Configuration"
@@ -41,6 +41,7 @@ Non-macOS default excerpt:
 [general]
 editor = "nano"
 bell = "none"
+check-updates = true
 
 [theme.font]
 size = 16
@@ -86,6 +87,7 @@ api_key = ""
 - `wait-after-command` (bool): Wait for a key after the initial command exits.
 - `window-controls` (string): One of `traffic-lights` or `system`.
 - `scrollback` (integer, optional): Maximum scrollback lines per pane. Defaults to `10000`.
+- `check-updates` (bool): Check GitHub for a newer release on startup and once a day. Defaults to `true`. Turn it off if a package manager keeps Nova up to date. Also in Settings → About.
 
 Example:
 

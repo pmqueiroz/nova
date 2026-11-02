@@ -102,11 +102,11 @@
     
     
 
-    <link id="site-favicon" rel="icon" href="../assets/favicon.ico?v=mvyh5ge1">
-    <link rel="stylesheet" href="../assets/css/docmd-main.css?v=mvyh5ge1">
+    <link id="site-favicon" rel="icon" href="../assets/favicon.ico?v=mvyj5vip">
+    <link rel="stylesheet" href="../assets/css/docmd-main.css?v=mvyj5vip">
     
-    <link rel="stylesheet" href="../assets/css/docmd-highlight-light.css?v=mvyh5ge1" id="hljs-light" disabled>
-    <link rel="stylesheet" href="../assets/css/docmd-highlight-dark.css?v=mvyh5ge1" id="hljs-dark" >
+    <link rel="stylesheet" href="../assets/css/docmd-highlight-light.css?v=mvyj5vip" id="hljs-light" disabled>
+    <link rel="stylesheet" href="../assets/css/docmd-highlight-dark.css?v=mvyj5vip" id="hljs-dark" >
     
     
 <meta name="description" content="Common problems and fixes.">
@@ -134,9 +134,9 @@
 
 
 
-<link rel="stylesheet" href="../assets/css/docmd-git.css?v=mvyh5ge1" >
-<link rel="stylesheet" href="../assets/css/docmd-openapi.css?v=mvyh5ge1" >
-<link rel="stylesheet" href="../assets/css/docmd-ai.css?v=mvyh5ge1" >
+<link rel="stylesheet" href="../assets/css/docmd-git.css?v=mvyj5vip" >
+<link rel="stylesheet" href="../assets/css/docmd-openapi.css?v=mvyj5vip" >
+<link rel="stylesheet" href="../assets/css/docmd-ai.css?v=mvyj5vip" >
 
     
     
@@ -823,7 +823,7 @@
             <div class="content-layout">
               <div class="main-content">
                 <div class="docmd-breadcrumbs-row">
-                  <div id="docmd-raw-markdown" data-content="---%0Atitle%3A%20%22Troubleshooting%22%0Adescription%3A%20%22Common%20problems%20and%20fixes.%22%0A---%0A%0A%23%23%20macOS%3A%20%22Nova%20is%20damaged%20and%20can&#039;t%20be%20opened%22%0A%0ANova%20is%20not%20notarized.%20macOS%20Gatekeeper%20may%20block%20it.%0A%0AIf%20you%20installed%20the%20app%20bundle%2C%20you%20can%20clear%20the%20quarantine%20attribute%3A%0A%0A%60%60%60bash%0Axattr%20-cr%20%2FApplications%2FNova.app%0A%60%60%60%0A%0A%23%23%20Settings%20Keep%20Resetting%0A%0ANova%20overwrites%20%60settings.toml%60%20with%20defaults%20if%20it%20fails%20to%20parse%20as%20TOML.%0A%0AIf%20your%20settings%20keep%20resetting%3A%0A%0A-%20Validate%20your%20TOML%20syntax%20(missing%20quotes%2C%20stray%20commas%2C%20etc.)%0A-%20Keep%20a%20backup%20copy%20while%20editing%0A%0A%23%23%20%60nova%20ask%60%20Must%20Be%20Run%20Inside%20Nova%0A%0A%60nova%20ask%60%20is%20an%20integration%20command%20that%20signals%20the%20running%20Nova%20app%20via%20OSC.%0A%0AIf%20you%20run%20it%20in%20another%20terminal%2C%20you&#039;ll%20get%3A%0A%0A%60%60%60text%0Aerror%3A%20&#039;nova%20ask&#039;%20must%20be%20run%20inside%20Nova%20terminal%0A%60%60%60%0A%0ARun%20it%20inside%20Nova%2C%20or%20use%20the%20in-app%20command%20palette%20action.%0A%0A%23%23%20Pagers%20(%60git%20log%60%2C%20%60man%60)%20Stay%20Inside%20a%20Block%0A%0ANova%20shows%20a%20program%20fullscreen%20when%20it%20switches%20to%20the%20terminal&#039;s%20alternate%0Ascreen%2C%20or%20when%20it%20turns%20on%20bracketed%20paste%20(interactive%20apps%20such%20as%20Claude%0ACode%2C%20REPLs%20and%20nested%20shells%20over%20%60ssh%60).%20An%20app%20that%20does%20bracketed%20paste%0Astays%20fullscreen%20until%20it%20exits.%20%60less%60%20skips%20that%20switch%20when%20its%20options%20contain%20%60X%60%2C%20and%0AGit%20runs%20it%20with%20%60LESS%3DFRX%60%20when%20%60LESS%60%20is%20unset.%0A%0ANova%20therefore%20starts%20its%20shells%20with%20%60LESS%3DFR%60%20(pager%20output%20that%20fits%20on%20one%0Ascreen%20still%20prints%20inline%20and%20exits).%20If%20you%20set%20%60LESS%60%20yourself%2C%20Nova%20leaves%0Ait%20alone%3A%20drop%20the%20%60X%60%20flag%20from%20it%20to%20get%20fullscreen%20pagers.%0A%0AIn%20PowerShell%2C%20%60help%60%20(and%20its%20alias%20%60man%60)%20normally%20pipes%20through%20Windows&#039;%0A%60more%60%2C%20which%20never%20goes%20fullscreen%20and%20waits%20for%20a%20key%20after%20every%20page.%0ANova&#039;s%20PowerShell%20session%20replaces%20%60help%60%3A%20it%20pages%20through%20%60less%60%20when%20one%20is%0Aon%20%60PATH%60%2C%20otherwise%20it%20prints%20the%20whole%20topic%20into%20the%20block%2C%20which%20you%20can%0Ascroll.%0A%0AWhile%20a%20program%20is%20fullscreen%2C%20the%20mouse%20wheel%20scrolls%20it%3A%20Nova%20sends%20arrow%0Akeys%2C%20or%20wheel%20events%20if%20the%20program%20asked%20for%20mouse%20reporting.%0A%0A%23%23%20AI%20Errors%0A%0A-%20Missing%20key%3A%20set%20%60%5Bai%5D.api_key%60.%0A-%20Wrong%20model%2Fprovider%3A%20ensure%20model%20name%20matches%20the%20selected%20provider.%0A-%20Proxy%20issues%3A%20verify%20%60%5Bai%5D.base_url%60%20is%20correct%20and%20reachable.%0A" style="display: none;"></div>
+                  <div id="docmd-raw-markdown" data-content="---%0Atitle%3A%20%22Troubleshooting%22%0Adescription%3A%20%22Common%20problems%20and%20fixes.%22%0A---%0A%0A%23%23%20macOS%3A%20%22Nova%20is%20damaged%20and%20can&#039;t%20be%20opened%22%0A%0ANova%20is%20not%20notarized.%20macOS%20Gatekeeper%20may%20block%20it.%0A%0AIf%20you%20installed%20the%20app%20bundle%2C%20you%20can%20clear%20the%20quarantine%20attribute%3A%0A%0A%60%60%60bash%0Axattr%20-cr%20%2FApplications%2FNova.app%0A%60%60%60%0A%0A%23%23%20Settings%20Keep%20Resetting%0A%0ANova%20overwrites%20%60settings.toml%60%20with%20defaults%20if%20it%20fails%20to%20parse%20as%20TOML.%0A%0AIf%20your%20settings%20keep%20resetting%3A%0A%0A-%20Validate%20your%20TOML%20syntax%20(missing%20quotes%2C%20stray%20commas%2C%20etc.)%0A-%20Keep%20a%20backup%20copy%20while%20editing%0A%0A%23%23%20%60nova%20ask%60%20Must%20Be%20Run%20Inside%20Nova%0A%0A%60nova%20ask%60%20is%20an%20integration%20command%20that%20signals%20the%20running%20Nova%20app%20via%20OSC.%0A%0AIf%20you%20run%20it%20in%20another%20terminal%2C%20you&#039;ll%20get%3A%0A%0A%60%60%60text%0Aerror%3A%20&#039;nova%20ask&#039;%20must%20be%20run%20inside%20Nova%20terminal%0A%60%60%60%0A%0ARun%20it%20inside%20Nova%2C%20or%20use%20the%20in-app%20command%20palette%20action.%0A%0A%23%23%20Pagers%20(%60git%20log%60%2C%20%60man%60)%20Stay%20Inside%20a%20Block%0A%0ANova%20shows%20a%20program%20fullscreen%20when%20it%20switches%20to%20the%20terminal&#039;s%20alternate%0Ascreen%2C%20or%20when%20it%20turns%20on%20bracketed%20paste%20(interactive%20apps%20such%20as%20Claude%0ACode%2C%20REPLs%20and%20nested%20shells%20over%20%60ssh%60).%20An%20app%20that%20does%20bracketed%20paste%0Astays%20fullscreen%20until%20it%20exits.%20%60less%60%20skips%20that%20switch%20when%20its%20options%20contain%20%60X%60%2C%20and%0AGit%20runs%20it%20with%20%60LESS%3DFRX%60%20when%20%60LESS%60%20is%20unset.%0A%0ANova%20therefore%20starts%20its%20shells%20with%20%60LESS%3DFR%60%20(pager%20output%20that%20fits%20on%20one%0Ascreen%20still%20prints%20inline%20and%20exits).%20If%20you%20set%20%60LESS%60%20yourself%2C%20Nova%20leaves%0Ait%20alone%3A%20drop%20the%20%60X%60%20flag%20from%20it%20to%20get%20fullscreen%20pagers.%0A%0AIn%20PowerShell%2C%20%60help%60%20(and%20its%20alias%20%60man%60)%20normally%20pipes%20through%20Windows&#039;%0A%60more%60%2C%20which%20never%20goes%20fullscreen%20and%20waits%20for%20a%20key%20after%20every%20page.%0ANova&#039;s%20PowerShell%20session%20replaces%20%60help%60%3A%20it%20pages%20through%20%60less%60%20when%20one%20is%0Aon%20%60PATH%60%2C%20otherwise%20it%20prints%20the%20whole%20topic%20into%20the%20block%2C%20which%20you%20can%0Ascroll.%0A%0AWhile%20a%20program%20is%20fullscreen%2C%20the%20mouse%20wheel%20scrolls%20it%3A%20Nova%20sends%20arrow%0Akeys%2C%20or%20wheel%20events%20if%20the%20program%20asked%20for%20mouse%20reporting.%0A%0A%23%23%20AI%20Errors%0A%0A-%20Missing%20key%3A%20set%20%60%5Bai%5D.api_key%60.%0A-%20Wrong%20model%2Fprovider%3A%20ensure%20model%20name%20matches%20the%20selected%20provider.%0A-%20Proxy%20issues%3A%20verify%20%60%5Bai%5D.base_url%60%20is%20correct%20and%20reachable.%0A%0A%23%23%20Updates%20Fail%0A%0A-%20**Permission%20denied**%20replacing%20%60nova.exe%60%2C%20%60Nova.app%60%20or%20the%20AppImage%3A%20Nova%0A%20%20writes%20next%20to%20the%20existing%20file%2C%20so%20its%20folder%20must%20be%20writable%20by%20you.%20Move%0A%20%20it%20somewhere%20you%20own%2C%20or%20update%20with%20the%20method%20you%20installed%20with.%0A-%20**Windows%20installer%3A**%20a%20per-machine%20install%20(under%20%60Program%20Files%60)%20asks%20for%0A%20%20admin%20rights%20(UAC)%20when%20the%20update%20runs.%20The%20installer%20closes%20every%20open%20Nova%0A%20%20window.%0A-%20**apt%20%2F%20dnf%20%2F%20AUR%20%2F%20Homebrew%3A**%20the%20update%20runs%20in%20a%20new%20tab%20and%20may%20ask%20for%0A%20%20your%20%60sudo%60%20password%20there.%20If%20it%20fails%2C%20the%20tab%20shows%20the%20package%20manager&#039;s%0A%20%20error%3B%20re-run%20%60nova%20update%20--install%60%20or%20the%20shown%20command%20yourself.%0A-%20**%22checksum%20mismatch%22%3A**%20the%20download%20was%20corrupted%20or%20tampered%20with%2C%20so%0A%20%20nothing%20was%20replaced.%20Try%20again%20later.%0A-%20Updates%20are%20cached%20in%20your%20user%20cache%20folder%20under%20%60nova%2Fupdates%2F%60%20and%0A%20%20removed%20once%20you%20run%20that%20version.%0A" style="display: none;"></div>
                   
                     <nav aria-label="breadcrumb" class="docmd-breadcrumbs">
                       <ol>
@@ -934,6 +934,22 @@ keys, or wheel events if the program asked for mouse reporting.</p>
 <li>Wrong model/provider: ensure model name matches the selected provider.</li>
 <li>Proxy issues: verify <code>[ai].base_url</code> is correct and reachable.</li>
 </ul>
+<h2 id="updates-fail" class="docmd-heading"><a href="#updates-fail" class="heading-anchor" aria-label="Permalink to this section"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-link2-icon lucide-link-2"><path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 1 1 0 10h-2m-7-5h8"/></svg></a>Updates Fail</h2>
+<ul>
+<li><strong>Permission denied</strong> replacing <code>nova.exe</code>, <code>Nova.app</code> or the AppImage: Nova<br>
+writes next to the existing file, so its folder must be writable by you. Move<br>
+it somewhere you own, or update with the method you installed with.</li>
+<li><strong>Windows installer:</strong> a per-machine install (under <code>Program Files</code>) asks for<br>
+admin rights (UAC) when the update runs. The installer closes every open Nova<br>
+window.</li>
+<li><strong>apt / dnf / AUR / Homebrew:</strong> the update runs in a new tab and may ask for<br>
+your <code>sudo</code> password there. If it fails, the tab shows the package manager’s<br>
+error; re-run <code>nova update --install</code> or the shown command yourself.</li>
+<li><strong>“checksum mismatch”:</strong> the download was corrupted or tampered with, so<br>
+nothing was replaced. Try again later.</li>
+<li>Updates are cached in your user cache folder under <code>nova/updates/</code> and<br>
+removed once you run that version.</li>
+</ul>
 
                 
                   <div class="page-navigation">
@@ -1015,6 +1031,10 @@ keys, or wheel events if the program asked for mouse reporting.</p>
           <a href="#ai-errors" class="toc-link">AI Errors</a>
         </li>
       
+        <li class="toc-item toc-level-2">
+          <a href="#updates-fail" class="toc-link">Updates Fail</a>
+        </li>
+      
     </ul>
   </div>
 
@@ -1026,13 +1046,13 @@ keys, or wheel events if the program asked for mouse reporting.</p>
             <div class="page-footer-actions">
               
               
-                <span class="git-last-updated" data-timestamp="1793576484000">
+                <span class="git-last-updated" data-timestamp="1793579684000">
                   <svg class="git-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="10"></circle>
                     <polyline points="12 6 12 12 16 14"></polyline>
                   </svg>
                   <span class="git-label">Last updated:</span>
-                  <span class="git-time" data-timestamp="1793576484000"></span>
+                  <span class="git-time" data-timestamp="1793579684000"></span>
                   
                   <div class="git-commit-tooltip" role="tooltip">
                     <div class="git-tooltip-title">Recent commits</div>
@@ -1045,10 +1065,10 @@ keys, or wheel events if the program asked for mouse reporting.</p>
                             
                           </div>
                           <div class="git-commit-details">
-                            <div class="git-commit-message" title="chore(skills): add ref-compact skill for tightening refs">chore(skills): add ref-compact skill ...</div>
+                            <div class="git-commit-message" title="feat(ds): match text button height to the segmented control">feat(ds): match text button height to...</div>
                             <div class="git-commit-meta">
                               <span class="git-commit-author">pmqueiroz</span>
-                              <span class="git-commit-date" data-timestamp="1793576484000"></span>
+                              <span class="git-commit-date" data-timestamp="1793579684000"></span>
                             </div>
                           </div>
                         </li>
@@ -1079,15 +1099,15 @@ keys, or wheel events if the program asked for mouse reporting.</p>
         </div>
       </div>
       
-      <script src="../assets/js/docmd-main.js?v=mvyh5ge1"></script>
+      <script src="../assets/js/docmd-main.js?v=mvyj5vip"></script>
       
-      <script src="../assets/js/docmd-git.js?v=mvyh5ge1"></script>
-      <script src="../assets/js/docmd-image-lightbox.js?v=mvyh5ge1" ></script>
+      <script src="../assets/js/docmd-git.js?v=mvyj5vip"></script>
+      <script src="../assets/js/docmd-image-lightbox.js?v=mvyj5vip" ></script>
 <script src="https://cdn.jsdelivr.net/npm/minisearch@7.2.0/dist/umd/index.min.js" ></script>
-<script src="../assets/js/docmd-search.js?v=mvyh5ge1" ></script>
-<script src="../assets/js/init-mermaid.js?v=mvyh5ge1" type="module"></script>
-<script src="../assets/js/docmd-git.js?v=mvyh5ge1" ></script>
-<script src="../assets/js/docmd-ai.js?v=mvyh5ge1" ></script>
+<script src="../assets/js/docmd-search.js?v=mvyj5vip" ></script>
+<script src="../assets/js/init-mermaid.js?v=mvyj5vip" type="module"></script>
+<script src="../assets/js/docmd-git.js?v=mvyj5vip" ></script>
+<script src="../assets/js/docmd-ai.js?v=mvyj5vip" ></script>
 
   <!-- Search Modal (Injected by @docmd/plugin-search) -->
   <div id="docmd-search-modal" class="docmd-search-modal" style="display: none;"

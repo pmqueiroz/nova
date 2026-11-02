@@ -385,7 +385,10 @@ logical). On Windows the window starts hidden until the fit is applied.
 - Overlay atomics in `app_state::nova` (`SETTINGS_OPEN`, `INPUT_OWNS_KEYS`,
   `ACTIVE_KITTY_FLAGS`, …): the keyboard subscription can't borrow `Nova`.
 - Animation: `window::frames()` is subscribed only while
-  `Nova::is_animating()`, so an idle window renders nothing. Animations
+  `Nova::is_animating()`, so an idle window renders nothing. Likewise the
+  500 ms `CursorBlinkTick` runs only while `needs_cursor_blink()`: blink is
+  on and the active tab shows a grid cursor (classic pane or raw takeover),
+  or the cursor is currently hidden (so it always ticks back to visible). Animations
   interpolate against `Nova.now`.
 
 ## Platform specifics

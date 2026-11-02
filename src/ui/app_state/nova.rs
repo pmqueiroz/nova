@@ -129,6 +129,24 @@ impl Nova {
       || now.saturating_duration_since(pane.integration.spawned_at) < ANIM_TAIL * 12
   }
 
+  pub(in crate::ui::app_state) fn needs_cursor_blink(&self) -> bool {
+    if !self.cursor_blink_visible {
+      return true;
+    }
+    if !self.settings.theme.cursor.blink {
+      return false;
+    }
+    self.tabs.get(self.active_index).is_some_and(|t| {
+      [false, true]
+        .into_iter()
+        .filter(|&split| !split || t.split.is_some())
+        .any(|split| {
+          let pane = t.pane(split);
+          pane.integration.mode == crate::core::router::Mode::Classic || pane.raw_grid().is_some()
+        })
+    })
+  }
+
   pub(in crate::ui::app_state) fn any_sheet_open(&self) -> bool {
     self.command_palette_open
       || self.settings_open

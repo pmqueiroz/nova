@@ -527,7 +527,9 @@ impl Nova {
   pub fn subscription(&self) -> Subscription<Message> {
     let mut subs = Vec::new();
 
-    subs.push(time::every(std::time::Duration::from_secs(1)).map(|_| Message::Tick));
+    if self.any_integration_detecting() {
+      subs.push(time::every(std::time::Duration::from_secs(1)).map(|_| Message::Tick));
+    }
     subs.push(Subscription::run(notification_click_stream));
     if self.needs_cursor_blink() {
       subs

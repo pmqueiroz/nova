@@ -409,7 +409,8 @@ logical). On Windows the window starts hidden until the fit is applied.
   changes or a command completes, never per PTY message: the walk is
   filesystem I/O on the UI thread.
 - **Tabs** are labeled with the last segment of their cwd
-  (`helpers::dir_name`), not the full path. The hidden close × renders a `Space`, not a transparent icon —
+  (`helpers::dir_name`), not the full path. `til_home` (title, input bar,
+  tab labels — every frame) reads the home dir once into `HOME_DIR`. The hidden close × renders a `Space`, not a transparent icon —
   iced's svg tint drops alpha, so a transparent icon draws black.
 
 ## Shared state

@@ -12,7 +12,7 @@ use iced::{Background, Color, Element, Font, Length, Pixels, Point, Rectangle, S
 use unicode_width::UnicodeWidthChar;
 
 use crate::core::block::Lines;
-use crate::core::glyph::block_glyph;
+use crate::core::glyph::{block_glyph, is_block_glyph};
 use crate::core::grid::Cell;
 use crate::ui::components::block::{LineMarks, Run, run_font, runs};
 use crate::ui::theme::font;
@@ -74,7 +74,7 @@ pub fn visible_range(top: f32, bottom: f32, line_h: f32, count: usize) -> (usize
 fn without_block_glyphs(text: &str) -> String {
   text
     .chars()
-    .map(|c| if block_glyph(c).is_some() { ' ' } else { c })
+    .map(|c| if is_block_glyph(c) { ' ' } else { c })
     .collect()
 }
 
@@ -160,7 +160,7 @@ fn draw_decorations(renderer: &mut iced::Renderer, shaped: &Shaped, origin: Poin
 fn draw_block_glyphs(renderer: &mut iced::Renderer, shaped: &Shaped, origin: Point) {
   let line_h = shaped.size * LINE_HEIGHT;
   for (k, (text, fg, _, _)) in shaped.runs.iter().enumerate() {
-    if !text.chars().any(|c| block_glyph(c).is_some()) {
+    if !text.chars().any(is_block_glyph) {
       continue;
     }
     let cols: usize = text.chars().map(|c| c.width().unwrap_or(0)).sum();
@@ -176,7 +176,7 @@ fn draw_block_glyphs(renderer: &mut iced::Renderer, shaped: &Shaped, origin: Poi
       if let Some(glyph) = block_glyph(c) {
         let color = tokens::with_alpha(*fg, shaped.alpha * glyph.alpha);
         let cell_x = origin.x + region.x + col as f32 * col_w;
-        for rect in &glyph.rects {
+        for rect in glyph.rects() {
           let x0 = col_w * f32::from(rect.x0) / 8.0;
           let x1 = col_w * f32::from(rect.x1) / 8.0;
           let y0 = line_h * f32::from(rect.y0) / 8.0;

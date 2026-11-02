@@ -409,7 +409,7 @@ impl TermView {
           a: style.color.a * glyph.alpha,
           ..style.color
         };
-        for rect in &glyph.rects {
+        for rect in glyph.rects() {
           let x0 = width * f32::from(rect.x0) / 8.0;
           let x1 = width * f32::from(rect.x1) / 8.0;
           let y0 = height * f32::from(rect.y0) / 8.0;

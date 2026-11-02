@@ -89,12 +89,15 @@ them.
   never paints with the pen background and drops trailing blank cells per
   logical line, so padding from a wider width doesn't become empty rows.
 - Block elements U+2580–259F are drawn as rectangles (`core::glyph`,
-  `term::block_cell`), not from the font: font glyphs don't fill the cell, so
+  `TermView`), not from the font: font glyphs don't fill the cell, so
   pixel art showed gaps. Box drawing still comes from the font. Block cards
   do the same in `output_lines.rs`: `shape` blanks them to spaces
   (`without_block_glyphs`) and `draw_block_glyphs` fills their rects over
   the full `LINE_HEIGHT`. Otherwise explicit cell backgrounds (Claude Code's
   logo paints `48;2;0;0;0`) show through the gaps as black bars.
+  `block_glyph` is called per cell per frame, so `BlockGlyph` stores its
+  (at most three) rects inline and never allocates; `is_block_glyph` is the
+  cheap range test.
 
 ## Block mode
 

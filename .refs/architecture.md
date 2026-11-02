@@ -96,6 +96,11 @@ Each command is shown as a block instead of a scrolling grid.
   cursor. Resolving that range scans the whole screen, so callers walking many
   lines must take `Block::lines()` once rather than `line(i)` in a loop
   (`Lines::text(i)` for text; `Block::text` and selection copy do this).
+  `view` calls `lines()` for every block, so a finished block's range is
+  frozen (`freeze_lines`) in `Session::finish` and again after
+  `Session::resize` reflows it. The frozen range is used only while the block
+  is `Done` and the grid's cols/rows/scrollback length still match, so a
+  missed re-freeze falls back to a scan rather than a stale range.
 - Exit 141 (SIGPIPE) is not an error: Git exits with it when the pager is
   quit early.
 

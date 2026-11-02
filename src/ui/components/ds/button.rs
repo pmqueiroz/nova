@@ -36,6 +36,8 @@ impl IconSize {
   }
 }
 
+pub const BTN_HEIGHT: f32 = height::H32;
+
 pub fn accent() -> Color {
   color::runtime().accent
 }
@@ -182,7 +184,7 @@ impl<'a, Message: Clone + 'a> Btn<'a, Message> {
         .height(Length::Fill)
         .align_y(Alignment::Center),
     )
-    .height(height::H40)
+    .height(BTN_HEIGHT)
     .padding(Padding::from([0.0, space::S16]))
     .style(move |_t, s| style(variant, s))
     .on_press_maybe(self.on_press);
@@ -262,6 +264,11 @@ mod tests {
     assert_eq!(IconSize::Sm.r#box(), height::H32);
     assert_eq!(IconSize::Sm.icon(), 16.0);
     assert_eq!(IconSize::Md.r#box(), height::H40);
+  }
+
+  #[test]
+  fn buttons_match_segment_height() {
+    assert_eq!(BTN_HEIGHT, height::H32);
   }
 
   #[test]

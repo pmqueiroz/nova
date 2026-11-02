@@ -44,6 +44,9 @@ fixed. Exact sizes and colors live in code, not here.
 
 ## Deviations and gotchas
 
+- **Text buttons are 32 px tall (`ds::button::BTN_HEIGHT`), not 40.** They
+  match the segmented control's segments, so a button next to a `seg` (or
+  in the 48 px title bar) doesn't look oversized.
 - **Sheets drop the `pop` scale (.96→1).** iced_wgpu passes the scale to
   glyphon, so every frame at a new scale re-rasterizes every glyph; settings
   dropped frames. The translateY is snapped to whole px for the same reason

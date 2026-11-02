@@ -334,6 +334,10 @@ otherwise (or with Shift) they drive the grid selection.
   enter/leave.
 - Classic panes keep the legacy `calc_grid*` math; `pixel_to_cell` assumes
   the legacy layout below the title bar.
+- Every resize (window, font, split divider release) goes through
+  `resize_panes`. Sizing a split with classic math alone resized only the
+  screen grid, so a raw takeover (Claude Code) got a PTY width different
+  from its block grid and its redraws garbled.
 
 ### Initial window size
 

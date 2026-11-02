@@ -243,7 +243,7 @@ impl Nova {
 
     if self.dragging_split && button == mouse::Button::Left {
       self.dragging_split = false;
-      self.resize_split_grids_for_ratio();
+      self.resize_all_grids();
       return iced::Task::none();
     }
 

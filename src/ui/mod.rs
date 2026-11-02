@@ -63,6 +63,7 @@ pub fn start() -> Result {
     app_state::Nova::update,
     app_state::Nova::view,
   )
+  .title("Nova")
   .theme(app_state::Nova::theme)
   .subscription(app_state::Nova::subscription)
   .window(window_settings())

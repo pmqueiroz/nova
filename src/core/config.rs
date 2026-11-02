@@ -427,36 +427,46 @@ pub fn available_shells() -> Vec<String> {
   {
     return shells.clone();
   }
-  detect_shells()
+  quick_shells()
 }
 
+static DETECTED_SHELLS: OnceLock<Vec<String>> = OnceLock::new();
+
 pub fn detect_shells() -> Vec<String> {
+  DETECTED_SHELLS.get_or_init(|| scan_shells(true)).clone()
+}
+
+pub fn quick_shells() -> Vec<String> {
+  DETECTED_SHELLS
+    .get()
+    .cloned()
+    .unwrap_or_else(|| scan_shells(false))
+}
+
+fn scan_shells(probe: bool) -> Vec<String> {
   #[cfg(target_os = "windows")]
   {
     use std::os::windows::process::CommandExt;
     const CREATE_NO_WINDOW: u32 = 0x08000000;
 
+    let succeeds = |program: &str, args: &[&str]| {
+      probe
+        && std::process::Command::new(program)
+          .args(args)
+          .creation_flags(CREATE_NO_WINDOW)
+          .output()
+          .is_ok_and(|o| o.status.success())
+    };
+
     let mut shells = vec!["powershell".to_string()];
 
-    let has_pwsh = std::process::Command::new("where")
-      .arg("pwsh")
-      .creation_flags(CREATE_NO_WINDOW)
-      .output()
-      .map(|o| o.status.success())
-      .unwrap_or(false);
-    if has_pwsh {
+    if succeeds("where", &["pwsh"]) {
       shells.push("pwsh".to_string());
     }
 
     shells.push("cmd".to_string());
 
-    let has_wsl = std::process::Command::new("wsl")
-      .args(["--list", "--quiet"])
-      .creation_flags(CREATE_NO_WINDOW)
-      .output()
-      .map(|o| o.status.success())
-      .unwrap_or(false);
-    if has_wsl {
+    if succeeds("wsl", &["--list", "--quiet"]) {
       shells.push("wsl".to_string());
     }
 
@@ -476,6 +486,7 @@ pub fn detect_shells() -> Vec<String> {
   }
   #[cfg(not(target_os = "windows"))]
   {
+    let _ = probe;
     let mut shells = Vec::new();
     let env_shell = std::env::var("SHELL").unwrap_or_default();
     if !env_shell.trim().is_empty() {

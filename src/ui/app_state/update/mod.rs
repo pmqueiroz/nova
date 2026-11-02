@@ -559,11 +559,35 @@ impl Nova {
         let fit = fit_window(id);
         #[cfg(target_os = "windows")]
         let fit = fit.chain(iced::window::set_mode(id, iced::window::Mode::Windowed));
+        let shells = iced::Task::perform(
+          async {
+            tokio::task::spawn_blocking(config::detect_shells)
+              .await
+              .unwrap_or_default()
+          },
+          Message::ShellsDetected,
+        );
+        let fit = iced::Task::batch([fit, shells]);
         if self.settings.general.check_updates {
           iced::Task::batch([fit, self.check_for_updates()])
         } else {
           fit
         }
+      }
+      Message::ShellsDetected(shells) => {
+        let configured = self
+          .settings
+          .general
+          .shells
+          .as_ref()
+          .is_some_and(|s| !s.is_empty());
+        if !configured && !shells.is_empty() {
+          self.available_shells = shells;
+          self.shell_picker_selected = self
+            .shell_picker_selected
+            .min(self.available_shells.len() - 1);
+        }
+        iced::Task::none()
       }
       Message::CheckForUpdates => self.check_for_updates(),
       Message::UpdateChecked(result) => self.handle_update_checked(result),

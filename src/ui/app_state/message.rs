@@ -24,6 +24,7 @@ pub enum Message {
   MaximizeWindow,
   DragWindow,
   WindowOpened(window::Id),
+  ShellsDetected(Vec<String>),
   WindowFocused,
   WindowUnfocused,
   WindowResized(f32, f32),

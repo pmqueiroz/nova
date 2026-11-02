@@ -1,5 +1,17 @@
 #[cfg(target_os = "windows")]
-use std::io::Write;
+fn log_pty_debug(bytes: &[u8]) {
+  use std::io::Write;
+  static ENABLED: std::sync::LazyLock<bool> =
+    std::sync::LazyLock::new(|| std::env::var_os("NOVA_DEBUG_PTY").is_some());
+  if *ENABLED
+    && let Ok(mut f) = std::fs::OpenOptions::new()
+      .create(true)
+      .append(true)
+      .open(std::env::temp_dir().join("nova_pty_debug.bin"))
+  {
+    let _ = f.write_all(bytes);
+  }
+}
 
 use crate::core::grid::ControlCommand;
 use crate::core::router::route;
@@ -186,14 +198,7 @@ impl Nova {
       let tab = &mut self.tabs[tab_idx];
       let split = tab.split.as_mut().unwrap();
       #[cfg(target_os = "windows")]
-      if std::env::var("NOVA_DEBUG_PTY").is_ok()
-        && let Ok(mut f) = std::fs::OpenOptions::new()
-          .create(true)
-          .append(true)
-          .open(std::env::temp_dir().join("nova_pty_debug.bin"))
-      {
-        let _ = f.write_all(&bytes);
-      }
+      log_pty_debug(&bytes);
       let routed = route(
         &mut split.ansi_parser,
         &mut split.grid,
@@ -264,14 +269,7 @@ impl Nova {
     let active_tab_id = self.tabs.get(self.active_index).map(|t| t.id);
     if let Some(tab) = self.tabs.iter_mut().find(|t| t.id == tab_id) {
       #[cfg(target_os = "windows")]
-      if std::env::var("NOVA_DEBUG_PTY").is_ok()
-        && let Ok(mut f) = std::fs::OpenOptions::new()
-          .create(true)
-          .append(true)
-          .open(std::env::temp_dir().join("nova_pty_debug.bin"))
-      {
-        let _ = f.write_all(&bytes);
-      }
+      log_pty_debug(&bytes);
       let routed = route(
         &mut tab.ansi_parser,
         &mut tab.grid,

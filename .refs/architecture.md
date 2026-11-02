@@ -408,6 +408,11 @@ logical). On Windows the window starts hidden until the fit is applied.
 
 ## Shared state
 
+- Persistence never blocks `update`: `config::save_in_background` and the
+  command-history saves serialize on the UI thread and hand the bytes to
+  `sys::persist::write_in_background`, one writer thread that drains its
+  queue and keeps only the newest bytes per path (typing in a settings field
+  saves per keystroke; only the last state is written).
 - Config: `OnceLock<Config>` (`config::get()`) + mutex-guarded keybindings.
   Saved to `dirs::config_dir()/nova/settings.toml`. **An unparsable file is
   overwritten with defaults on startup**, so removed sections (e.g. v1's

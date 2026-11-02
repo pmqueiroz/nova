@@ -465,12 +465,12 @@ impl Nova {
       }
       Message::SettingsEditorChanged(s) => {
         self.settings.general.editor = s;
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         iced::Task::none()
       }
       Message::SettingsBellChanged(bell) => {
         self.settings.general.bell = bell;
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         iced::Task::none()
       }
       Message::SettingsShellInputChanged(s) => {
@@ -487,7 +487,7 @@ impl Nova {
             .get_or_insert_with(Vec::new)
             .push(s);
           self.settings_shell_input = String::new();
-          let _ = config::save(&self.settings);
+          config::save_in_background(&self.settings);
           self.available_shells = derive_available_shells(&self.settings);
         }
         iced::Task::none()
@@ -498,24 +498,24 @@ impl Nova {
         {
           shells.remove(i);
         }
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         self.available_shells = derive_available_shells(&self.settings);
         iced::Task::none()
       }
       Message::SettingsFontFamilyChanged(s) => {
         crate::ui::theme::font::set_family(&s);
         self.settings.theme.font.family = s;
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         iced::Task::none()
       }
       Message::FontSizeUp => {
         self.settings.theme.font.size = components::step_font(self.settings.theme.font.size, 2.0);
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         self.debounce_font_resize()
       }
       Message::FontSizeDown => {
         self.settings.theme.font.size = components::step_font(self.settings.theme.font.size, -2.0);
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         self.debounce_font_resize()
       }
       Message::FontSizeReset => {
@@ -532,7 +532,7 @@ impl Nova {
         let size = components::step_font(size, 0.0);
         self.settings.theme.font.size = size;
         self.default_font_size = size;
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         self.debounce_font_resize()
       }
       Message::SettingsStartRecordKb(idx) => {
@@ -604,7 +604,7 @@ impl Nova {
       }
       Message::SettingsCheckUpdatesToggled(enabled) => {
         self.settings.general.check_updates = enabled;
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         iced::Task::none()
       }
       Message::MinimizeWindow => {
@@ -666,7 +666,7 @@ impl Nova {
       Message::ToggleTimestamps => {
         self.timestamps = !self.timestamps;
         self.settings.theme.timestamps = self.timestamps;
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         self.resize_all_grids();
         iced::Task::none()
       }
@@ -732,32 +732,32 @@ impl Nova {
           self.diagnostic_banner = None;
         }
         self.settings.ai.diagnostic_banner = enabled;
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         iced::Task::none()
       }
       Message::SettingsAiProviderChanged(provider) => {
         self.settings.ai.provider = provider;
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         iced::Task::none()
       }
       Message::SettingsAiModelChanged(s) => {
         self.settings.ai.model = s;
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         iced::Task::none()
       }
       Message::SettingsAiApiKeyChanged(s) => {
         self.settings.ai.api_key = s;
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         iced::Task::none()
       }
       Message::SettingsWindowControlsChanged(style) => {
         self.settings.general.window_controls = style;
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         iced::Task::none()
       }
       Message::SettingsCursorStyleChanged(style) => {
         self.settings.theme.cursor.style = style;
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         iced::Task::none()
       }
       Message::SettingsCursorBlinkToggled(enabled) => {
@@ -765,22 +765,22 @@ impl Nova {
         if !enabled {
           self.cursor_blink_visible = true;
         }
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         iced::Task::none()
       }
       Message::SettingsInitialCommandChanged(s) => {
         self.settings.general.initial_command = if s.trim().is_empty() { None } else { Some(s) };
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         iced::Task::none()
       }
       Message::SettingsWaitAfterCommandToggled(enabled) => {
         self.settings.general.wait_after_command = enabled;
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         iced::Task::none()
       }
       Message::SettingsAiBaseUrlChanged(s) => {
         self.settings.ai.base_url = if s.trim().is_empty() { None } else { Some(s) };
-        let _ = config::save(&self.settings);
+        config::save_in_background(&self.settings);
         iced::Task::none()
       }
       Message::BellBlinkTick => {

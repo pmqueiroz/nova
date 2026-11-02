@@ -14,7 +14,7 @@ impl Nova {
           self.settings.theme.colors.accent = hex;
         }
       }
-      let _ = config::save(&self.settings);
+      config::save_in_background(&self.settings);
       rebuild_runtime_theme(&self.settings.theme.colors);
     }
   }
@@ -39,7 +39,7 @@ impl Nova {
         8 => self.settings.keybindings.settings = s,
         _ => {}
       }
-      let _ = config::save(&self.settings);
+      config::save_in_background(&self.settings);
       let _ = config::reload_parsed_keybindings(&self.settings);
       self.settings_recording_index = None;
       KB_RECORDING.store(false, Ordering::SeqCst);

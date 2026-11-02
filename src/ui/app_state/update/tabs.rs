@@ -50,7 +50,7 @@ impl Nova {
       return;
     };
     if let Ok(data) = bincode::serialize(&self.active_history()) {
-      let _ = std::fs::write(&path, &data);
+      crate::sys::persist::write_in_background(path, data);
     }
   }
 

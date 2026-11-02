@@ -515,11 +515,12 @@ fn scan_shells(probe: bool) -> Vec<String> {
   }
 }
 
-pub fn save(config: &Config) -> anyhow::Result<()> {
-  let path = config_path().ok_or_else(|| anyhow::anyhow!("cannot determine config path"))?;
-  let content = toml::to_string_pretty(config)?;
-  std::fs::write(path, content)?;
-  Ok(())
+pub fn save_in_background(config: &Config) {
+  if let Some(path) = config_path()
+    && let Ok(content) = toml::to_string_pretty(config)
+  {
+    crate::sys::persist::write_in_background(path, content.into_bytes());
+  }
 }
 
 pub fn reset_to_defaults() -> anyhow::Result<Config> {

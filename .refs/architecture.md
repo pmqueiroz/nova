@@ -227,7 +227,10 @@ blocks.
 - History: `Session.history` is the source of truth, persisted to
   `command_history.bin` (bincode) after every submit, loaded into every pane
   at startup and copied into new tabs/splits. Classic panes still use
-  `Grid.command_history` for the inline ghost suggestion.
+  `Grid.command_history` for the inline ghost suggestion. Entries are unique
+  (`push_command` merges; `set_command_history` merges a loaded file), so
+  `find_best_suggestion` is one allocation-free scan (~10 µs for 2000
+  entries, run on every echo while typing).
 
 ### Tab completion (`core/completion.rs`)
 

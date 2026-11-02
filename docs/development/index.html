@@ -97,6 +97,14 @@ For local iteration:
 cargo run
 ```
 
+On Windows, fetch the bundled ConPTY once so dev builds pass mouse reporting
+through like release builds (it copies `conpty.dll` and `OpenConsole.exe` into
+`target/debug` and `target/release`):
+
+```powershell
+./packaging/conpty/fetch.ps1
+```
+
 ## Code Map
 
 High-level ownership:
@@ -146,6 +154,10 @@ cargo build --release</code></pre></div>
 <div class="code"><div class="code-head"><span>text</span><button class="copy-btn" data-copy=""><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div><pre><code data-lang="text">./target/release/nova</code></pre></div>
 <p>For local iteration:</p>
 <div class="code"><div class="code-head"><span>bash</span><button class="copy-btn" data-copy=""><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div><pre><code data-lang="bash">cargo run</code></pre></div>
+<p>On Windows, fetch the bundled ConPTY once so dev builds pass mouse reporting
+through like release builds (it copies <code>conpty.dll</code> and <code>OpenConsole.exe</code> into
+<code>target/debug</code> and <code>target/release</code>):</p>
+<div class="code"><div class="code-head"><span>powershell</span><button class="copy-btn" data-copy=""><svg aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="5" y="5" width="9" height="9" rx="2"></rect><path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5"></path></svg><span>Copy</span></button></div><pre><code data-lang="powershell">./packaging/conpty/fetch.ps1</code></pre></div>
 <h2 id="code-map"><a class="anchor" href="#code-map">#</a>Code Map</h2>
 <p>High-level ownership:</p>
 <ul>

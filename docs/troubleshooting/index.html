@@ -127,6 +127,13 @@ scroll.
 While a program is fullscreen, the mouse wheel scrolls it: Nova sends arrow
 keys, or wheel events if the program asked for mouse reporting.
 
+On Windows, Nova only learns that a program asked for mouse reporting through
+the `conpty.dll` and `OpenConsole.exe` shipped next to `nova.exe`. The console
+built into Windows drops those requests, so without them the wheel sends arrow
+keys everywhere and apps such as Claude Code warn &quot;Scroll wheel is sending
+arrow keys&quot;. The installer, the portable ZIP and Scoop include both files; a
+`cargo install` build does not.
+
 ## AI Errors
 
 - Missing key: set `[ai].api_key`.
@@ -182,6 +189,12 @@ on <code>PATH</code>, otherwise it prints the whole topic into the block, which 
 scroll.</p>
 <p>While a program is fullscreen, the mouse wheel scrolls it: Nova sends arrow
 keys, or wheel events if the program asked for mouse reporting.</p>
+<p>On Windows, Nova only learns that a program asked for mouse reporting through
+the <code>conpty.dll</code> and <code>OpenConsole.exe</code> shipped next to <code>nova.exe</code>. The console
+built into Windows drops those requests, so without them the wheel sends arrow
+keys everywhere and apps such as Claude Code warn “Scroll wheel is sending
+arrow keys”. The installer, the portable ZIP and Scoop include both files; a
+<code>cargo install</code> build does not.</p>
 <h2 id="ai-errors"><a class="anchor" href="#ai-errors">#</a>AI Errors</h2>
 <ul>
 <li>Missing key: set <code>[ai].api_key</code>.</li>

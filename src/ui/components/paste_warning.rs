@@ -25,9 +25,9 @@ pub fn paste_reason(content: &str) -> &'static str {
 }
 
 pub fn preview_lines(content: &str) -> (Vec<&str>, usize) {
-  let all: Vec<&str> = content.lines().collect();
-  let extra = all.len().saturating_sub(PREVIEW_MAX_LINES);
-  (all.into_iter().take(PREVIEW_MAX_LINES).collect(), extra)
+  let mut lines = content.lines();
+  let shown = lines.by_ref().take(PREVIEW_MAX_LINES).collect();
+  (shown, lines.count())
 }
 
 pub fn paste_warning_overlay<'a>(

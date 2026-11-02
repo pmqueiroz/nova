@@ -25,6 +25,14 @@ For local iteration:
 cargo run
 ```
 
+On Windows, fetch the bundled ConPTY once so dev builds pass mouse reporting
+through like release builds (it copies `conpty.dll` and `OpenConsole.exe` into
+`target/debug` and `target/release`):
+
+```powershell
+./packaging/conpty/fetch.ps1
+```
+
 ## Code Map
 
 High-level ownership:

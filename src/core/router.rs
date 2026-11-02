@@ -373,7 +373,7 @@ mod tests {
     let out = r.feed(&format!("{READY_PREEXEC}$ "));
     assert!(!out.entered_blocks);
     assert_eq!(r.integ.mode, Mode::Classic);
-    assert_eq!(r.screen.cells[0].c.as_str(), "$");
+    assert_eq!(r.screen.cell(0, 0).c.as_str(), "$");
   }
 
   fn run_script(feed: impl Fn(&mut Rig, &str)) -> (Vec<String>, Phase, Mode) {

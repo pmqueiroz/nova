@@ -597,10 +597,7 @@ pub fn term<'a>(
     viewport_y += 1;
   }
 
-  for (y, row_cells) in grid.cells[..live_count * grid.cols]
-    .chunks_exact(grid.cols)
-    .enumerate()
-  {
+  for (y, row_cells) in (0..live_count).map(|y| (y, grid.row(y))) {
     let at_cursor_row = clamped_offset == 0 && y == cursor_y;
     let hl = compute_url_highlight(row_cells, viewport_y, hovered_url, hovered_link_span);
     let sh = search_hl_for(false, y, row_cells.len());

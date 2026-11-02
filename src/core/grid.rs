@@ -77,7 +77,8 @@ pub enum MouseMode {
 }
 
 pub struct Grid {
-  pub cells: Vec<Cell>,
+  cells: Vec<Cell>,
+  origin: usize,
   pub cursor_x: usize,
   pub cursor_y: usize,
   pub current_fg: Option<Color>,
@@ -130,6 +131,7 @@ impl Grid {
     let cells = vec![Cell::default(); cols * rows];
     Self {
       cells,
+      origin: 0,
       cursor_x: 0,
       cursor_y: 0,
       current_fg: None,
@@ -174,8 +176,43 @@ impl Grid {
   }
 
   #[inline]
+  fn phys(&self, row: usize) -> usize {
+    debug_assert!(row < self.rows);
+    let r = row + self.origin;
+    if r >= self.rows { r - self.rows } else { r }
+  }
+
+  #[inline]
+  fn row_range(&self, row: usize) -> std::ops::Range<usize> {
+    let start = self.phys(row) * self.cols;
+    start..start + self.cols
+  }
+
+  #[inline]
+  pub fn cell(&self, row: usize, col: usize) -> &Cell {
+    &self.row(row)[col]
+  }
+
+  #[inline]
   pub fn cell_mut(&mut self, row: usize, col: usize) -> &mut Cell {
-    &mut self.cells[row * self.cols + col]
+    &mut self.row_mut(row)[col]
+  }
+
+  fn linearize(&mut self) {
+    if self.origin != 0 {
+      self.cells.rotate_left(self.origin * self.cols);
+      self.origin = 0;
+    }
+  }
+
+  fn swap_rows(&mut self, a: usize, b: usize) {
+    let (pa, pb) = (self.phys(a), self.phys(b));
+    if pa == pb {
+      return;
+    }
+    let (lo, hi) = (pa.min(pb) * self.cols, pa.max(pb) * self.cols);
+    let (head, tail) = self.cells.split_at_mut(hi);
+    head[lo..lo + self.cols].swap_with_slice(&mut tail[..self.cols]);
   }
 
   pub fn blank_cell(&self) -> Cell {
@@ -185,18 +222,32 @@ impl Grid {
     }
   }
 
-  pub fn erase(&mut self, range: std::ops::Range<usize>) {
+  pub fn erase_cols(&mut self, row: usize, cols: std::ops::Range<usize>) {
     let blank = self.blank_cell();
-    self.cells[range].fill(blank);
+    self.row_mut(row)[cols].fill(blank);
   }
 
+  pub fn erase_rows(&mut self, rows: std::ops::Range<usize>) {
+    let blank = self.blank_cell();
+    for r in rows {
+      self.row_mut(r).fill(blank.clone());
+    }
+  }
+
+  #[inline]
   pub fn row(&self, row: usize) -> &[Cell] {
-    let start = row * self.cols;
-    &self.cells[start..start + self.cols]
+    &self.cells[self.row_range(row)]
+  }
+
+  #[inline]
+  pub fn row_mut(&mut self, row: usize) -> &mut [Cell] {
+    let range = self.row_range(row);
+    &mut self.cells[range]
   }
 
   pub fn enter_alt_screen(&mut self) {
     if self.alt_cells.is_none() {
+      self.linearize();
       self.alt_cells = Some(self.cells.clone());
       self.alt_cursor = Some((self.cursor_x, self.cursor_y));
       self.alt_scrollback = Some(std::mem::take(&mut self.scrollback));
@@ -220,6 +271,7 @@ impl Grid {
     if let Some(cells) = self.alt_cells.take() {
       self.alt_snapshot = Some(self.visible_lines());
       self.cells = cells;
+      self.origin = 0;
     }
     if let Some((x, y)) = self.alt_cursor.take() {
       self.cursor_x = x;
@@ -285,8 +337,9 @@ impl Grid {
     let count = n.min(bottom.saturating_sub(top) + 1);
     let blank = self.blank_cell();
 
+    let full_screen = top == 0 && bottom == self.rows.saturating_sub(1);
     for _ in 0..count {
-      if top == 0 && bottom == self.rows.saturating_sub(1) {
+      if full_screen {
         let mut row_copy = if self.scrollback.len() >= self.scrollback_limit {
           self.scrollback.pop_front().map(|(row, _)| row)
         } else {
@@ -302,13 +355,15 @@ impl Grid {
         }
       }
 
-      let start_idx = top * self.cols;
-      let end_idx = (bottom + 1) * self.cols;
-      self.cells[start_idx..end_idx].rotate_left(self.cols);
+      if full_screen {
+        self.origin = self.phys(1 % self.rows);
+      } else {
+        for r in top..bottom {
+          self.swap_rows(r, r + 1);
+        }
+      }
       self.row_continuation[top..=bottom].rotate_left(1);
-
-      let clear_start = bottom * self.cols;
-      self.cells[clear_start..clear_start + self.cols].fill(blank.clone());
+      self.row_mut(bottom).fill(blank.clone());
       self.row_continuation[bottom] = false;
     }
   }
@@ -319,14 +374,17 @@ impl Grid {
     let count = n.min(bottom.saturating_sub(top) + 1);
     let blank = self.blank_cell();
 
+    let full_screen = top == 0 && bottom == self.rows.saturating_sub(1);
     for _ in 0..count {
-      let start_idx = top * self.cols;
-      let end_idx = (bottom + 1) * self.cols;
-      self.cells[start_idx..end_idx].rotate_right(self.cols);
+      if full_screen {
+        self.origin = self.phys(self.rows - 1);
+      } else {
+        for r in (top..bottom).rev() {
+          self.swap_rows(r, r + 1);
+        }
+      }
       self.row_continuation[top..=bottom].rotate_right(1);
-
-      let clear_start = top * self.cols;
-      self.cells[clear_start..clear_start + self.cols].fill(blank.clone());
+      self.row_mut(top).fill(blank.clone());
       self.row_continuation[top] = false;
     }
   }
@@ -364,6 +422,7 @@ impl Grid {
 
   fn resize_alt(&mut self, new_cols: usize, new_rows: usize) {
     let (old_cols, old_rows) = (self.cols, self.rows);
+    self.linearize();
     let primary = self.alt_cells.take().unwrap_or_default();
     let alt = std::mem::replace(&mut self.cells, primary);
     self.row_continuation = self
@@ -389,6 +448,7 @@ impl Grid {
       }
     }
     self.alt_cells = Some(std::mem::replace(&mut self.cells, cropped));
+    self.origin = 0;
     self.alt_row_continuation = Some(std::mem::replace(
       &mut self.row_continuation,
       vec![false; new_rows],
@@ -418,21 +478,15 @@ impl Grid {
     }
 
     for r in 0..self.rows {
-      let row_start = r * self.cols;
-      let row_end = row_start + self.cols;
-      let is_cont = self.row_continuation[r];
-      if is_cont {
-        if let Some(last) = logical_lines.last_mut() {
-          last.extend_from_slice(&self.cells[row_start..row_end]);
-        } else {
-          logical_lines.push(self.cells[row_start..row_end].to_vec());
-        }
-      } else {
-        logical_lines.push(self.cells[row_start..row_end].to_vec());
+      let row = self.row(r);
+      match logical_lines.last_mut() {
+        Some(last) if self.row_continuation[r] => last.extend_from_slice(row),
+        _ => logical_lines.push(row.to_vec()),
       }
     }
 
     self.cells = vec![Cell::default(); new_cols * new_rows];
+    self.origin = 0;
     self.cols = new_cols;
     self.rows = new_rows;
     self.scroll_top = 0;
@@ -490,28 +544,28 @@ impl Grid {
     let mut input = String::new();
     if start_row == self.cursor_y {
       for col in start_col..self.cursor_x.min(self.cols) {
-        let cell = &self.cells[start_row * self.cols + col];
+        let cell = self.cell(start_row, col);
         if cell.width != 0 && cell.c.as_str() != " " {
           input.push_str(&cell.c);
         }
       }
     } else {
       for col in start_col..self.cols {
-        let cell = &self.cells[start_row * self.cols + col];
+        let cell = self.cell(start_row, col);
         if cell.width != 0 && cell.c.as_str() != " " {
           input.push_str(&cell.c);
         }
       }
       for row in (start_row + 1)..self.cursor_y {
         for col in 0..self.cols {
-          let cell = &self.cells[row * self.cols + col];
+          let cell = self.cell(row, col);
           if cell.width != 0 && cell.c.as_str() != " " {
             input.push_str(&cell.c);
           }
         }
       }
       for col in 0..self.cursor_x.min(self.cols) {
-        let cell = &self.cells[self.cursor_y * self.cols + col];
+        let cell = self.cell(self.cursor_y, col);
         if cell.width != 0 && cell.c.as_str() != " " {
           input.push_str(&cell.c);
         }
@@ -526,8 +580,9 @@ impl Grid {
       let available = self.cols - self.cursor_x;
       let end = (idx + available).min(line.len());
       let count = end - idx;
-      let dst = self.cursor_y * self.cols + self.cursor_x;
-      self.cells[dst..dst + count].clone_from_slice(&line[idx..end]);
+      let x = self.cursor_x;
+      let y = self.cursor_y;
+      self.row_mut(y)[x..x + count].clone_from_slice(&line[idx..end]);
       self.cursor_x += count;
       idx = end;
 

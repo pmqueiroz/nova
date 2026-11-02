@@ -1,6 +1,9 @@
 use std::cmp::Ordering;
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::{LazyLock, Mutex};
+use std::time::SystemTime;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Candidate {
@@ -193,31 +196,65 @@ fn executable_stem(path: &Path, exts: &[String]) -> Option<String> {
 }
 
 #[cfg(windows)]
-fn path_commands() -> Vec<String> {
+fn dir_commands(dir: &Path) -> Vec<String> {
   let exts: Vec<String> = std::env::var("PATHEXT")
     .unwrap_or_else(|_| ".COM;.EXE;.BAT;.CMD".into())
     .split(';')
     .map(|e| e.trim_start_matches('.').to_lowercase())
     .filter(|e| !e.is_empty())
     .collect();
-  path_dirs()
-    .iter()
-    .flat_map(|d| fs::read_dir(d).into_iter().flatten().flatten())
+  fs::read_dir(dir)
+    .into_iter()
+    .flatten()
+    .flatten()
     .filter_map(|e| executable_stem(&e.path(), &exts))
     .collect()
 }
 
 #[cfg(not(windows))]
-fn path_commands() -> Vec<String> {
+fn dir_commands(dir: &Path) -> Vec<String> {
   use std::os::unix::fs::PermissionsExt;
-  path_dirs()
-    .iter()
-    .flat_map(|d| fs::read_dir(d).into_iter().flatten().flatten())
+  fs::read_dir(dir)
+    .into_iter()
+    .flatten()
+    .flatten()
     .filter(|e| {
       fs::metadata(e.path()).is_ok_and(|m| m.is_file() && m.permissions().mode() & 0o111 != 0)
     })
     .filter_map(|e| e.file_name().into_string().ok())
     .collect()
+}
+
+struct CachedDir {
+  modified: Option<SystemTime>,
+  commands: Vec<String>,
+}
+
+static PATH_CACHE: LazyLock<Mutex<HashMap<PathBuf, CachedDir>>> =
+  LazyLock::new(|| Mutex::new(HashMap::new()));
+
+fn path_commands(prefix: &str) -> Vec<String> {
+  let mut cache = PATH_CACHE.lock().unwrap_or_else(|e| e.into_inner());
+  let mut out = Vec::new();
+  for dir in path_dirs() {
+    let modified = fs::metadata(&dir).and_then(|m| m.modified()).ok();
+    let fresh = modified.is_some() && cache.get(&dir).is_some_and(|c| c.modified == modified);
+    if !fresh {
+      let commands = dir_commands(&dir);
+      cache.insert(dir.clone(), CachedDir { modified, commands });
+    }
+    let Some(cached) = cache.get(&dir) else {
+      continue;
+    };
+    out.extend(
+      cached
+        .commands
+        .iter()
+        .filter(|name| starts_with(name, prefix))
+        .cloned(),
+    );
+  }
+  out
 }
 
 fn path_dirs() -> Vec<PathBuf> {
@@ -275,7 +312,7 @@ fn gather(word: &Word, target: &Target, ctx: &Context) -> Vec<Candidate> {
     }
     history_commands(&ctx.history)
       .map(str::to_string)
-      .chain(path_commands())
+      .chain(path_commands(&target.prefix))
       .map(|name| Candidate { name, dir: false })
       .collect()
   } else {

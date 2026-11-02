@@ -409,16 +409,11 @@ impl Grid {
   }
 
   fn reflow_lines(&mut self, new_cols: usize, new_rows: usize) {
-    let mut logical_lines: Vec<Vec<Cell>> = Vec::new();
-    for (cells, is_cont) in self.scrollback.iter() {
-      if *is_cont {
-        if let Some(last) = logical_lines.last_mut() {
-          last.extend_from_slice(cells);
-        } else {
-          logical_lines.push(cells.clone());
-        }
-      } else {
-        logical_lines.push(cells.clone());
+    let mut logical_lines: Vec<Vec<Cell>> = Vec::with_capacity(self.scrollback.len() + self.rows);
+    for (cells, is_cont) in std::mem::take(&mut self.scrollback) {
+      match logical_lines.last_mut() {
+        Some(last) if is_cont => last.extend(cells),
+        _ => logical_lines.push(cells),
       }
     }
 

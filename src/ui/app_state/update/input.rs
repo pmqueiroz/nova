@@ -463,7 +463,7 @@ impl Nova {
     if let Some(tab) = self.tabs.get(self.active_index)
       && let Ok(data) = bincode::serialize(&tab.grid.command_history)
     {
-      let _ = std::fs::write(&path, &data);
+      crate::sys::persist::write_in_background(path, data);
     }
   }
 }

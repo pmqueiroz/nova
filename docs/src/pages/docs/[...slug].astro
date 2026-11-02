@@ -1,6 +1,4 @@
 ---
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { getCollection, render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import Header from '../../components/Header.astro';
@@ -13,6 +11,8 @@ import Toc from '../../components/Toc.astro';
 import Pager from '../../components/Pager.astro';
 import '../../styles/docs.css';
 import { DOCS_SRC, REPO, docHref, findPage, flat } from '../../lib/nav';
+import { version } from '../../lib/release';
+import { breadcrumbs, techArticle } from '../../lib/seo';
 
 export async function getStaticPaths() {
   const entries = await getCollection('docs');
@@ -42,9 +42,12 @@ const title = page?.title ?? entry.data.title;
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3).map((h) => ({ ...h, text: h.text.replace(/^#/, '') }));
 const showToc = toc.length >= 4;
 const file = `${DOCS_SRC}/${entry.id}.md`;
-const version = readFileSync(join(process.cwd(), '..', '.release-please-manifest.json'), 'utf8').match(/"\.":\s*"([^"]+)"/)?.[1];
+const site = Astro.site!;
+const url = new URL(Astro.url.pathname, site);
+const crumbs = [{ name: 'Nova', path: '/' }, { name: 'Docs', path: '/docs/' }, ...(entry.id === 'index' ? [] : [{ name: title, path: docHref(entry.id) }])];
+const jsonLd = [techArticle(url, title, entry.data.description), breadcrumbs(site, crumbs)];
 ---
-<Base title={`${title} · Nova docs`} description={entry.data.description}>
+<Base title={`${title} · Nova docs`} description={entry.data.description} type="article" jsonLd={jsonLd}>
 <script is:inline slot="head" set:html={`window.NOVA_SEARCH=${JSON.stringify(search)};`} />
 <Header variant="docs" />
 <div class="docs-bar"><button data-side-toggle=""><Icon name="sidebar" />Menu</button><span class="sep">/</span><span>{group}</span><span class="sep">/</span><span class="here">{title}</span></div>

@@ -9,6 +9,7 @@ import CopyButton from '../components/CopyButton.astro';
 import OsSeg from '../components/OsSeg.astro';
 import '../styles/landing.css';
 import { LATEST, REPO, SPONSORS } from '../lib/nav';
+import { softwareApp } from '../lib/seo';
 
 const brewCask = 'brew install --cask pmqueiroz/tap/nova';
 const brew = 'brew install pmqueiroz/tap/nova';
@@ -26,8 +27,9 @@ const paletteItems = [
   { icon: 'shell', pre: '', post: ' tab with PowerShell' },
   { icon: 'split', pre: 'Split pane (', post: ' shell)' },
 ] as const;
+const description = 'Nova is a free, open-source, GPU-accelerated terminal for Windows, macOS and Linux. Every command and its output is a block you can select, search and copy.';
 ---
-<Base title="Nova: a terminal where every command is a block" description="Nova is a free, open-source, GPU-accelerated terminal for Windows, macOS and Linux. Every command and its output is a block you can select, search and copy.">
+<Base title="Nova: a terminal where every command is a block" description={description} jsonLd={[softwareApp(Astro.site!, description)]}>
 <Header variant="landing" />
 
 <main id="top">

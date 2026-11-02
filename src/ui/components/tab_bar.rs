@@ -4,7 +4,7 @@ use iced::{Alignment, Background, Border, Color, Element, Length, Padding, mouse
 use crate::ui::app_state::Message;
 use crate::ui::components::ds::seg::track_style;
 use crate::ui::components::ds::transform::Transform;
-use crate::ui::helpers::til_home;
+use crate::ui::helpers::dir_name;
 use crate::ui::icons::{Icon, icon};
 use crate::ui::tab::Tab;
 use crate::ui::theme::motion::lerp;
@@ -87,7 +87,7 @@ pub fn tab_bar<'a>(v: TabView<'a>) -> Element<'a, Message> {
     .fold(Row::new().spacing(space::S4), |r, (i, tab)| {
       let active = i == v.active;
       let hovered = v.hovered == Some(i);
-      let title = til_home(&tab.pwd);
+      let title = dir_name(&tab.pwd);
       let label = text(title.clone())
         .size(tokens::text::T14)
         .color(tab_text_color(active, hovered))

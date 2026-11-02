@@ -384,7 +384,7 @@ impl Nova {
       return None;
     }
     Some(components::tab_ghost(
-      crate::ui::helpers::til_home(&dragged.pwd),
+      crate::ui::helpers::dir_name(&dragged.pwd),
       self.cursor_position,
       self.window_size,
       self.split_drop.is_some(),

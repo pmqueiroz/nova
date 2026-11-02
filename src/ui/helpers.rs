@@ -9,3 +9,26 @@ pub fn til_home(pwd: &str) -> String {
     pwd.to_owned()
   }
 }
+
+pub fn dir_name(pwd: &str) -> String {
+  let path = til_home(pwd);
+  path
+    .trim_end_matches(['/', '\\'])
+    .rsplit(['/', '\\'])
+    .next()
+    .filter(|name| !name.is_empty())
+    .map(str::to_owned)
+    .unwrap_or(path)
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn dir_name_keeps_only_the_last_segment() {
+    assert_eq!(dir_name("/usr/local/bin"), "bin");
+    assert_eq!(dir_name(r"C:\Users\me\projects\nova\"), "nova");
+    assert_eq!(dir_name("/"), "/");
+  }
+}

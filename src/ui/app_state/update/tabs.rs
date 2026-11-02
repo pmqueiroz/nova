@@ -8,7 +8,7 @@ use crate::core::config;
 use crate::core::grid::{CommandEntry, DEFAULT_SCROLLBACK_LIMIT, Grid};
 use crate::core::router::Integration;
 use crate::sys::pty::PtyCommand;
-use crate::ui::tab::{BLOCKS_ENABLED, InputBox, SplitPane, Tab, shell_display_name};
+use crate::ui::tab::{BLOCKS_ENABLED, InputBox, PaneSide, SplitPane, Tab, shell_display_name};
 
 use super::super::helpers::{
   calc_grid, calc_grid_split, calc_grid_split_ratio, command_history_path,
@@ -250,5 +250,55 @@ impl Nova {
         rows: rows as u16,
       });
     }
+  }
+}
+
+impl Nova {
+  pub(in crate::ui::app_state) fn split_drop_host(&self) -> Option<usize> {
+    let dragged = self.dragging_tab_index?;
+    if self.tabs.get(dragged)?.split.is_some() {
+      return None;
+    }
+    let host = self
+      .drag_host_tab
+      .and_then(|id| self.tabs.iter().position(|t| t.id == id))
+      .filter(|&h| h != dragged)
+      .or_else(|| dragged.checked_sub(1))
+      .or_else(|| (dragged + 1 < self.tabs.len()).then_some(dragged + 1))?;
+    self.tabs[host].split.is_none().then_some(host)
+  }
+
+  pub(in crate::ui::app_state) fn shown_tab_index(&self) -> usize {
+    match (self.split_drop, self.split_drop_host()) {
+      (Some(_), Some(host)) => host,
+      _ => self.active_index,
+    }
+  }
+
+  pub(super) fn merge_tab_into_split(&mut self, dragged: usize, host: usize, side: PaneSide) {
+    if dragged == host || dragged >= self.tabs.len() || host >= self.tabs.len() {
+      return;
+    }
+    let moved = self.tabs.remove(dragged);
+    let host = if host > dragged { host - 1 } else { host };
+    let tab = match side {
+      PaneSide::Right => {
+        let tab = &mut self.tabs[host];
+        tab.split = Some(SplitPane::from(moved));
+        tab.active_pane_is_split = true;
+        tab
+      }
+      PaneSide::Left => {
+        let previous = std::mem::replace(&mut self.tabs[host], moved);
+        let tab = &mut self.tabs[host];
+        tab.split = Some(SplitPane::from(previous));
+        tab.active_pane_is_split = false;
+        tab
+      }
+    };
+    tab.split_ratio = 0.5;
+    self.active_index = host;
+    self.hovered_tab = None;
+    self.resize_all_grids();
   }
 }

@@ -119,6 +119,8 @@ impl Default for Nova {
       hovered_tab: None,
       drag_pending_tab: None,
       drag_pending_pos: None,
+      drag_host_tab: None,
+      split_drop: None,
       confirm: None,
       now: Instant::now(),
       sheet_opened_at: Instant::now(),
@@ -267,6 +269,7 @@ impl Nova {
       }
       Message::TabPressed(index) => {
         if index < self.tabs.len() {
+          self.drag_host_tab = self.tabs.get(self.active_index).map(|t| t.id);
           self.active_index = index;
           self.drag_pending_tab = Some(index);
           self.drag_pending_pos = Some(self.cursor_position);

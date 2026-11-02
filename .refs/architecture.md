@@ -270,6 +270,20 @@ logical). On Windows the window starts hidden until the fit is applied.
   Diagnose (last failed block), Explain (last finished command). The block's
   output is the context. `split_answer` takes the first fenced code block's
   first line as the runnable command.
+- **Inline failure hint** (`ai.diagnostic_banner`): `command_failure;<code>`
+  (1–127, API key set) queues a diagnosis. The router has already finished
+  the block, so blocks mode sends `session.last_failure()`'s command + text;
+  classic sends `extract_last_output` with no command. `core::ai::should_diagnose`
+  skips the request locally for empty output or a no-match exit (code 1 from
+  `grep`/`rg`/`diff`/`test`/`which`/… unless piped/chained).
+  `diagnose_question` sends the tail of the output (60 lines / 4000 chars) and
+  tells the model to answer `{"skip": true}` for expected exits, self-explanatory
+  errors, or when it can only restate the exit code; otherwise
+  `{"message", "command"}` naming the concrete cause. Nothing renders while
+  loading: `ai_diagnostic_inflight` holds the code, input clears it, and a
+  late or skipped response leaves `diagnostic_banner` empty.
+  `parse_diagnosis` tolerates code fences, the legacy `command_to_solve` key,
+  and falls back to `split_answer` for non-JSON replies.
 - **Split panes** are independent sessions; the focused input ring marks the
   active pane (no border).
 - **Update check** (`core/update.rs` pure, `sys/update/` network): GET

@@ -370,7 +370,25 @@ impl Nova {
       components::app(col, self.window_maximized, pop)
     };
 
+    let inner = match self.tab_ghost() {
+      Some(ghost) => stack![inner, ghost].into(),
+      None => inner,
+    };
+
     mouse_area(inner).interaction(outer_interaction).into()
+  }
+
+  fn tab_ghost(&self) -> Option<Element<'_, Message>> {
+    let dragged = self.tabs.get(self.dragging_tab_index?)?;
+    if self.cursor_position.y <= components::TITLE_BAR_HEIGHT {
+      return None;
+    }
+    Some(components::tab_ghost(
+      crate::ui::helpers::til_home(&dragged.pwd),
+      self.cursor_position,
+      self.window_size,
+      self.split_drop.is_some(),
+    ))
   }
 
   fn pane_body<'a>(

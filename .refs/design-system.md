@@ -67,6 +67,11 @@ fixed. Exact sizes and colors live in code, not here.
   owns those) but the fields stay in the config for compatibility.
 - In block mode at the prompt, pasted text goes into the input bar with
   lines joined by `; `; otherwise to the PTY (bracketed when enabled).
+- **A focused `text_input` handles Ctrl+V and Ctrl+Shift+V itself** (iced
+  matches `v` + command, shift ignored) and captures the event. The paste
+  keybinding fires only for `event::Status::Ignored`, or the text lands
+  twice. Native paste inserts at the cursor and drops control chars, so
+  newlines vanish rather than joining with `; `.
 
 ## Compact layout (≤ 640 px, `tokens::block::is_compact`)
 

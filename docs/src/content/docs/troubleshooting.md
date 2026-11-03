@@ -53,13 +53,16 @@ on `PATH`, otherwise it prints the whole topic into the block, which you can
 scroll.
 
 While a program is fullscreen, the mouse wheel scrolls it: Nova sends arrow
-keys, or wheel events if the program asked for mouse reporting.
+keys, or wheel events if the program asked for mouse reporting. Programs that
+take over the block without going fullscreen (Claude Code, for example) get
+arrow keys only if they asked for mouse reporting; otherwise the wheel scrolls
+the block's own scrollback, and typing jumps back to the bottom.
 
 On Windows, Nova only learns that a program asked for mouse reporting through
 the `conpty.dll` and `OpenConsole.exe` shipped next to `nova.exe`. The console
 built into Windows drops those requests, so without them the wheel sends arrow
-keys everywhere and apps such as Claude Code warn "Scroll wheel is sending
-arrow keys". The installer, the portable ZIP and Scoop include both files; a
+keys to every fullscreen program and apps such as Claude Code warn "Scroll
+wheel is sending arrow keys". The installer, the portable ZIP and Scoop include both files; a
 `cargo install` build does not.
 
 ## AI Errors

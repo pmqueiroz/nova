@@ -48,7 +48,7 @@ successful spawn, otherwise `rx_out` never closes when the shell exits.
 the exe before kernel32's ConPTY; that dll runs the `OpenConsole.exe` next to
 it. Nova ships both (`packaging/conpty/fetch.ps1`). The inbox conhost swallows
 `?1000h/1002h/1003h/1006h`, so `Grid::mouse_mode` stays `None` and the wheel
-falls back to arrow keys; OpenConsole forwards them. Both emit `?9001h`
+falls back to arrow keys on the alt screen; OpenConsole forwards them. Both emit `?9001h`
 (win32-input-mode), which Nova ignores. Bun apps receive SGR wheel reports;
 Node (libuv) apps drop them.
 
@@ -310,8 +310,14 @@ the cell width the pointer mapping assumes.
 
 In `Phase::Raw`, `Nova::pane_body` swaps the log and input bar for
 `components::term` showing the block's own grid; `PaneRef::input_grid` makes
-kitty keyboard flags come from that grid. Wheel: a mouse report when the
-program enabled mouse reporting, otherwise 3 arrow keys per notch.
+kitty keyboard flags come from that grid. Wheel (`Nova::scroll_raw_pane`): a
+mouse report when the program enabled mouse reporting; otherwise 3 arrow keys
+per notch **only on the alt screen** (xterm alternate scroll). A takeover that
+stays on the main screen (bracketed paste, e.g. Claude Code) reads arrows as
+history, so there the wheel moves `Block::raw_scroll` over the block grid's
+scrollback instead. `PaneRef::raw_scroll` feeds it to `components::term` and
+`selection_grid` (0 while on the alt screen); `Session::enter_raw` and any
+typed input reset it to the bottom.
 
 **Pointer code must go through `Nova::pointer` / `Nova::selection_grid`**
 (`update/mouse.rs`), never `tab.grid` directly. They pick the raw block grid

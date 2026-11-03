@@ -125,13 +125,16 @@ on `PATH`, otherwise it prints the whole topic into the block, which you can
 scroll.
 
 While a program is fullscreen, the mouse wheel scrolls it: Nova sends arrow
-keys, or wheel events if the program asked for mouse reporting.
+keys, or wheel events if the program asked for mouse reporting. Programs that
+take over the block without going fullscreen (Claude Code, for example) get
+arrow keys only if they asked for mouse reporting; otherwise the wheel scrolls
+the block's own scrollback, and typing jumps back to the bottom.
 
 On Windows, Nova only learns that a program asked for mouse reporting through
 the `conpty.dll` and `OpenConsole.exe` shipped next to `nova.exe`. The console
 built into Windows drops those requests, so without them the wheel sends arrow
-keys everywhere and apps such as Claude Code warn &quot;Scroll wheel is sending
-arrow keys&quot;. The installer, the portable ZIP and Scoop include both files; a
+keys to every fullscreen program and apps such as Claude Code warn &quot;Scroll
+wheel is sending arrow keys&quot;. The installer, the portable ZIP and Scoop include both files; a
 `cargo install` build does not.
 
 ## AI Errors
@@ -148,6 +151,10 @@ arrow keys&quot;. The installer, the portable ZIP and Scoop include both files; 
 - **Windows installer:** a per-machine install (under `Program Files`) asks for
   admin rights (UAC) when the update runs. The installer closes every open Nova
   window.
+- **Scoop:** Scoop won't update an app that is running, so *Restart to update*
+  closes every open Nova window, runs `scoop update nova` in the background and
+  reopens Nova. If Nova comes back on the old version, run `scoop update nova`
+  from another terminal with Nova closed to see Scoop's error.
 - **apt / dnf / AUR / Homebrew:** the update runs in a new tab and may ask for
   your `sudo` password there. If it fails, the tab shows the package manager's
   error; re-run `nova update --install` or the shown command yourself.
@@ -188,12 +195,15 @@ Nova’s PowerShell session replaces <code>help</code>: it pages through <code>l
 on <code>PATH</code>, otherwise it prints the whole topic into the block, which you can
 scroll.</p>
 <p>While a program is fullscreen, the mouse wheel scrolls it: Nova sends arrow
-keys, or wheel events if the program asked for mouse reporting.</p>
+keys, or wheel events if the program asked for mouse reporting. Programs that
+take over the block without going fullscreen (Claude Code, for example) get
+arrow keys only if they asked for mouse reporting; otherwise the wheel scrolls
+the block’s own scrollback, and typing jumps back to the bottom.</p>
 <p>On Windows, Nova only learns that a program asked for mouse reporting through
 the <code>conpty.dll</code> and <code>OpenConsole.exe</code> shipped next to <code>nova.exe</code>. The console
 built into Windows drops those requests, so without them the wheel sends arrow
-keys everywhere and apps such as Claude Code warn “Scroll wheel is sending
-arrow keys”. The installer, the portable ZIP and Scoop include both files; a
+keys to every fullscreen program and apps such as Claude Code warn “Scroll
+wheel is sending arrow keys”. The installer, the portable ZIP and Scoop include both files; a
 <code>cargo install</code> build does not.</p>
 <h2 id="ai-errors"><a class="anchor" href="#ai-errors">#</a>AI Errors</h2>
 <ul>
@@ -209,6 +219,10 @@ it somewhere you own, or update with the method you installed with.</li>
 <li><strong>Windows installer:</strong> a per-machine install (under <code>Program Files</code>) asks for
 admin rights (UAC) when the update runs. The installer closes every open Nova
 window.</li>
+<li><strong>Scoop:</strong> Scoop won’t update an app that is running, so <em>Restart to update</em>
+closes every open Nova window, runs <code>scoop update nova</code> in the background and
+reopens Nova. If Nova comes back on the old version, run <code>scoop update nova</code>
+from another terminal with Nova closed to see Scoop’s error.</li>
 <li><strong>apt / dnf / AUR / Homebrew:</strong> the update runs in a new tab and may ask for
 your <code>sudo</code> password there. If it fails, the tab shows the package manager’s
 error; re-run <code>nova update --install</code> or the shown command yourself.</li>

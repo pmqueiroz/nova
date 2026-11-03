@@ -101,7 +101,7 @@ run 'nova update --install' to update
 | Portable ZIP | Downloads it and replaces `nova.exe` in place |
 | DMG (macOS) | Downloads it and replaces `Nova.app` in place |
 | AppImage | Downloads it and replaces the AppImage in place |
-| Scoop | `scoop update nova` |
+| Scoop | `scoop update nova` (Scoop refuses while Nova is open, so run it from another terminal; in the app use *Restart to update*) |
 | Homebrew | `brew upgrade --cask nova` (macOS) / `brew upgrade nova` (Linux) |
 | apt / .deb | Downloads the `.deb`, then `sudo apt install <file>` |
 | dnf / .rpm | Downloads the `.rpm`, then `sudo dnf install <file>` (or `sudo rpm -U`) |
@@ -110,7 +110,7 @@ run 'nova update --install' to update
 
 Every download is checked against the release's `checksums.txt` before anything is replaced. Builds Nova can't classify (e.g. `target/release`) just print the release page. Exits `1` if the check or update fails.
 
-In the app, the same thing is behind the orange **Update** button in the title bar (next to settings) and Settings → About: package-manager updates open in a new tab, and other installs download in the background and then offer **Restart to update**.
+In the app, the same thing is behind the orange **Update** button in the title bar (next to settings) and Settings → About: Scoop offers **Restart to update** (Nova closes, `scoop update nova` runs, Nova reopens), other package-manager updates open in a new tab, and the remaining installs download in the background and then offer **Restart to update**.
 
 ## `nova ask`
 
@@ -203,9 +203,9 @@ run 'nova update --install' to update</code></pre></div>
 
 
 
-<table><thead><tr><th>Installed with</th><th>What runs</th></tr></thead><tbody><tr><td>Windows installer / winget</td><td>Downloads the new setup; it runs silently the next time Nova starts (or on <em>Restart to update</em> in the app)</td></tr><tr><td>Portable ZIP</td><td>Downloads it and replaces <code>nova.exe</code> in place</td></tr><tr><td>DMG (macOS)</td><td>Downloads it and replaces <code>Nova.app</code> in place</td></tr><tr><td>AppImage</td><td>Downloads it and replaces the AppImage in place</td></tr><tr><td>Scoop</td><td><code>scoop update nova</code></td></tr><tr><td>Homebrew</td><td><code>brew upgrade --cask nova</code> (macOS) / <code>brew upgrade nova</code> (Linux)</td></tr><tr><td>apt / .deb</td><td>Downloads the <code>.deb</code>, then <code>sudo apt install &#x3C;file></code></td></tr><tr><td>dnf / .rpm</td><td>Downloads the <code>.rpm</code>, then <code>sudo dnf install &#x3C;file></code> (or <code>sudo rpm -U</code>)</td></tr><tr><td>AUR</td><td><code>paru -S nova-bin</code> or <code>yay -S nova-bin</code></td></tr><tr><td>cargo</td><td><code>cargo install --git https://github.com/pmqueiroz/nova --tag vX.Y.Z --locked</code></td></tr></tbody></table></div>
+<table><thead><tr><th>Installed with</th><th>What runs</th></tr></thead><tbody><tr><td>Windows installer / winget</td><td>Downloads the new setup; it runs silently the next time Nova starts (or on <em>Restart to update</em> in the app)</td></tr><tr><td>Portable ZIP</td><td>Downloads it and replaces <code>nova.exe</code> in place</td></tr><tr><td>DMG (macOS)</td><td>Downloads it and replaces <code>Nova.app</code> in place</td></tr><tr><td>AppImage</td><td>Downloads it and replaces the AppImage in place</td></tr><tr><td>Scoop</td><td><code>scoop update nova</code> (Scoop refuses while Nova is open, so run it from another terminal; in the app use <em>Restart to update</em>)</td></tr><tr><td>Homebrew</td><td><code>brew upgrade --cask nova</code> (macOS) / <code>brew upgrade nova</code> (Linux)</td></tr><tr><td>apt / .deb</td><td>Downloads the <code>.deb</code>, then <code>sudo apt install &#x3C;file></code></td></tr><tr><td>dnf / .rpm</td><td>Downloads the <code>.rpm</code>, then <code>sudo dnf install &#x3C;file></code> (or <code>sudo rpm -U</code>)</td></tr><tr><td>AUR</td><td><code>paru -S nova-bin</code> or <code>yay -S nova-bin</code></td></tr><tr><td>cargo</td><td><code>cargo install --git https://github.com/pmqueiroz/nova --tag vX.Y.Z --locked</code></td></tr></tbody></table></div>
 <p>Every download is checked against the release’s <code>checksums.txt</code> before anything is replaced. Builds Nova can’t classify (e.g. <code>target/release</code>) just print the release page. Exits <code>1</code> if the check or update fails.</p>
-<p>In the app, the same thing is behind the orange <strong>Update</strong> button in the title bar (next to settings) and Settings → About: package-manager updates open in a new tab, and other installs download in the background and then offer <strong>Restart to update</strong>.</p>
+<p>In the app, the same thing is behind the orange <strong>Update</strong> button in the title bar (next to settings) and Settings → About: Scoop offers <strong>Restart to update</strong> (Nova closes, <code>scoop update nova</code> runs, Nova reopens), other package-manager updates open in a new tab, and the remaining installs download in the background and then offer <strong>Restart to update</strong>.</p>
 <h2 id="nova-ask"><a class="anchor" href="#nova-ask">#</a><code>nova ask</code></h2>
 <p><code>nova ask</code> is not a standalone AI client.</p>
 <p>It must be run <em>inside</em> Nova. Nova sets <code>NOVA_TERMINAL=1</code> for its child shells; the CLI checks that environment variable.</p>

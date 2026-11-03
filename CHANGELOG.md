@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.0](https://github.com/pmqueiroz/nova/compare/v1.2.1...v1.3.0) (2026-11-03)
+
+
+### Features
+
+* **input:** focus the input when clicking anywhere on the input bar ([78c7eee](https://github.com/pmqueiroz/nova/commit/78c7eeebdeab5e653857c080fd344c2da736dc66))
+
+
+### Bug Fixes
+
+* **ai:** keep focus on ask sheet when nova ask finishes ([81e31d3](https://github.com/pmqueiroz/nova/commit/81e31d39e293817d8226009030de7221ecd3da3b))
+* **input:** paste once when ctrl+shift+v hits a focused text input ([8acc94f](https://github.com/pmqueiroz/nova/commit/8acc94f544a42f0c0b5c14f348be1b87e80e5611))
+* **scoop:** add start menu shortcut to scoop manifest ([09bf941](https://github.com/pmqueiroz/nova/commit/09bf9413f8716e2ad1721fd6563bae71a182528e))
+
 ## [1.2.1](https://github.com/pmqueiroz/nova/compare/v1.2.0...v1.2.1) (2026-11-03)
 
 

@@ -195,15 +195,16 @@ impl Nova {
         let task = self.handle_pty_output(tab_id, bytes);
         let mut tasks = vec![task, self.follow_output(tab_id)];
         let raw_after = self.raw_panes();
-        if self.block_mode_panes() != before {
+        let refocus = if self.block_mode_panes() != before {
           self.resize_all_grids();
-          tasks.push(self.focus_input());
+          true
         } else if raw_after != raw_before {
           self.resize_all_grids();
-          if raw_after < raw_before {
-            tasks.push(self.focus_input());
-          }
-        } else if self.running_panes() < running_before {
+          raw_after < raw_before
+        } else {
+          self.running_panes() < running_before
+        };
+        if refocus && !self.any_sheet_open() {
           tasks.push(self.focus_input());
         }
         iced::Task::batch(tasks)

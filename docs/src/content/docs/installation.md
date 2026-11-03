@@ -31,6 +31,8 @@ scoop bucket add pmqueiroz https://github.com/pmqueiroz/scoop-bucket
 scoop install nova
 ```
 
+Scoop adds a **Nova** shortcut under **Start Menu › Scoop Apps**. If you pin Nova to the taskbar from that shortcut, the pin keeps working after `scoop update nova`.
+
 ## AUR (Arch Linux)
 
 ```sh

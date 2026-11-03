@@ -25,8 +25,9 @@ impl Pointer {
 impl Nova {
   pub(super) fn selection_grid(&self) -> Option<(&Grid, usize)> {
     let tab = self.tabs.get(self.active_index)?;
-    match tab.active_pane().raw_grid() {
-      Some(grid) => Some((grid, 0)),
+    let pane = tab.active_pane();
+    match pane.raw_grid() {
+      Some(grid) => Some((grid, pane.raw_scroll())),
       None => Some((&tab.grid, tab.scroll_offset)),
     }
   }
@@ -305,7 +306,7 @@ impl Nova {
     cb
   }
 
-  fn scroll_raw_pane(&self, delta: f32) -> bool {
+  fn scroll_raw_pane(&mut self, delta: f32) -> bool {
     let Some(tab) = self.tabs.get(self.active_index) else {
       return false;
     };
@@ -313,6 +314,25 @@ impl Nova {
     let Some(grid) = tab.pane(split).raw_grid() else {
       return false;
     };
+    let reports = grid.mouse_mode != crate::core::grid::MouseMode::None;
+    if !reports && !grid.in_alt_screen() {
+      let rows = (delta.abs() * 3.0).round().max(1.0) as isize;
+      let rows = if delta > 0.0 { rows } else { -rows };
+      let mut moved = 0;
+      if let Some(tab) = self.tabs.get_mut(self.active_index)
+        && let Some(block) = tab.pane_mut(split).session.raw_block_mut()
+      {
+        let before = block.raw_scroll as isize;
+        block.scroll_raw(rows);
+        moved = block.raw_scroll as isize - before;
+      }
+      for point in [&mut self.selection_start, &mut self.selection_end] {
+        if let Some((col, row)) = *point {
+          *point = Some((col, (row as isize + moved).max(0) as usize));
+        }
+      }
+      return true;
+    }
     let tx = if split {
       tab.split.as_ref().and_then(|s| s.pty_tx.as_ref())
     } else {
@@ -321,7 +341,7 @@ impl Nova {
     let Some(tx) = tx else {
       return true;
     };
-    let bytes = if grid.mouse_mode != crate::core::grid::MouseMode::None {
+    let bytes = if reports {
       let pane_x = if split {
         split_widths(self.window_size.width, tab.split_ratio).0 + SPLIT_DIVIDER_WIDTH
       } else {

@@ -1,7 +1,7 @@
 use std::time::Instant;
 
-use iced::widget::{button, container, row, text, text_input};
-use iced::{Alignment, Background, Border, Color, Element, Length, Padding, Shadow};
+use iced::widget::{button, container, mouse_area, row, text, text_input};
+use iced::{Alignment, Background, Border, Color, Element, Length, Padding, Shadow, mouse};
 
 use crate::ui::app_state::Message;
 use crate::ui::components::block::dots;
@@ -182,6 +182,7 @@ pub fn enter_button<'a>(pulsed_at: Option<Instant>, now: Instant) -> Element<'a,
 }
 
 pub fn input_bar<'a>(v: InputBarView<'a>) -> Element<'a, Message> {
+  let pane_id = v.pane_id;
   let ps1 = slide(
     prompt(v.cwd, v.font_size),
     running_label(v.running_since, v.now, v.font_size),
@@ -210,7 +211,11 @@ pub fn input_bar<'a>(v: InputBarView<'a>) -> Element<'a, Message> {
     .center_y(height::H56)
     .width(Length::Fill);
 
-  container(focus_within(bar, input_bar_style))
+  let clickable = mouse_area(bar)
+    .on_press(Message::FocusPane(pane_id))
+    .interaction(mouse::Interaction::Text);
+
+  container(focus_within(clickable, input_bar_style))
     .padding(Padding {
       top: 0.0,
       right: space::S16,

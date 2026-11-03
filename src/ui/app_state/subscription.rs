@@ -181,6 +181,7 @@ fn handle_key_pressed(
   key: Key,
   modifiers: keyboard::Modifiers,
   modified_key: Key,
+  status: event::Status,
 ) -> Option<Message> {
   let kitty_flags = ACTIVE_KITTY_FLAGS.load(Ordering::Relaxed);
   let use_kitty = kitty_flags != 0;
@@ -301,7 +302,7 @@ fn handle_key_pressed(
     return Some(Message::CloseActiveTab);
   }
   if matches_kb(&kb.paste, &key, modifiers) {
-    return Some(Message::PasteRequested);
+    return (status == event::Status::Ignored).then_some(Message::PasteRequested);
   }
   if matches_kb(&kb.copy, &key, modifiers) {
     return Some(Message::CopySelection);
@@ -568,13 +569,13 @@ impl Nova {
       Ordering::Relaxed,
     );
 
-    subs.push(event::listen_with(|event, _s, window_id| match event {
+    subs.push(event::listen_with(|event, status, window_id| match event {
       Event::Keyboard(keyboard::Event::KeyPressed {
         key,
         modifiers,
         modified_key,
         ..
-      }) => handle_key_pressed(key, modifiers, modified_key),
+      }) => handle_key_pressed(key, modifiers, modified_key, status),
       Event::Window(window::Event::Opened { .. }) => Some(Message::WindowOpened(window_id)),
       Event::Window(window::Event::Focused) => Some(Message::WindowFocused),
       Event::Window(window::Event::Unfocused) => Some(Message::WindowUnfocused),

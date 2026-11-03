@@ -45,6 +45,11 @@ impl Nova {
     }
 
     let active_pane_is_split = active_tab.active_pane_is_split;
+    if let Some(tab) = self.tabs.get_mut(self.active_index)
+      && let Some(block) = tab.active_pane_mut().session.raw_block_mut()
+    {
+      block.raw_scroll = 0;
+    }
 
     if active_pane_is_split {
       self.selection_start = None;

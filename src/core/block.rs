@@ -28,6 +28,7 @@ pub struct Block {
   pub born: std::time::Instant,
   pub takeover: bool,
   pub scroll_col: usize,
+  pub raw_scroll: usize,
   frozen_lines: Option<FrozenLines>,
 }
 
@@ -56,6 +57,7 @@ impl Block {
       born: std::time::Instant::now(),
       takeover: false,
       scroll_col: 0,
+      raw_scroll: 0,
       frozen_lines: None,
     }
   }
@@ -81,6 +83,15 @@ impl Block {
       self.scroll_col = col + 1 - visible_cols;
     }
     self.scroll_col = self.scroll_col.min(max);
+  }
+
+  pub fn scroll_raw(&mut self, rows: isize) {
+    let max = if self.output.in_alt_screen() {
+      0
+    } else {
+      self.output.scrollback.len()
+    };
+    self.raw_scroll = self.raw_scroll.saturating_add_signed(rows).min(max);
   }
 
   pub fn program(&self) -> &str {
@@ -351,6 +362,16 @@ impl Session {
   pub fn enter_raw(&mut self) {
     if let Phase::Running(id) = self.phase {
       self.phase = Phase::Raw(id);
+      if let Some(b) = self.block_mut(id) {
+        b.raw_scroll = 0;
+      }
+    }
+  }
+
+  pub fn raw_block_mut(&mut self) -> Option<&mut Block> {
+    match self.phase {
+      Phase::Raw(id) => self.block_mut(id),
+      _ => None,
     }
   }
 
@@ -487,6 +508,26 @@ mod tests {
     s.finish(SIGPIPE_EXIT);
     assert!(!s.block(id).unwrap().is_error());
     assert!(s.last_failure().is_none());
+  }
+
+  #[test]
+  fn raw_scroll_clamps_to_scrollback_and_resets_on_enter() {
+    let mut s = Session::new("~".into(), 10, 2);
+    s.submit("claude").unwrap();
+    s.enter_raw();
+    let b = s.raw_block_mut().unwrap();
+    for _ in 0..5 {
+      b.output.scroll_up(1);
+    }
+    b.scroll_raw(3);
+    assert_eq!(b.raw_scroll, 3);
+    b.scroll_raw(100);
+    assert_eq!(b.raw_scroll, 5);
+    b.scroll_raw(-2);
+    assert_eq!(b.raw_scroll, 3);
+    s.leave_raw();
+    s.enter_raw();
+    assert_eq!(s.raw_block_mut().unwrap().raw_scroll, 0);
   }
 
   #[test]

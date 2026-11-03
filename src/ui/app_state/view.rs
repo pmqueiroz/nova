@@ -412,7 +412,7 @@ impl Nova {
           .then(|| self.term_selection())
           .flatten(),
         crate::ui::theme::tokens::block::font_size(font_size),
-        0,
+        pane.raw_scroll(),
         None,
         None,
         &[],

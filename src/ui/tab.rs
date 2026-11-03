@@ -133,6 +133,17 @@ impl<'a> PaneRef<'a> {
     }
   }
 
+  pub fn raw_scroll(&self) -> usize {
+    match self.session.phase {
+      crate::core::block::Phase::Raw(id) => self
+        .session
+        .block(id)
+        .filter(|b| !b.output.in_alt_screen())
+        .map_or(0, |b| b.raw_scroll.min(b.output.scrollback.len())),
+      _ => 0,
+    }
+  }
+
   pub fn input_grid(&self) -> &'a Grid {
     self.raw_grid().unwrap_or(self.grid)
   }

@@ -45,6 +45,11 @@ Locally, `lefthook.yml` runs `cargo clippy --fix` and `cargo fmt` on staged
   README), **`publish-homebrew`**, **`publish-winget`**, **`publish-scoop`**,
   **`publish-aur`**, **`publish-apt`**, **`publish-rpm`** — each pushes to
   its own external repo.
+- **`publish-winget` closes superseded patch PRs first.** On a patch
+  release (`Z != 0`) it closes the `WINGET_TOKEN` user's open
+  `microsoft/winget-pkgs` PRs for older patch versions of `pmqueiroz.Nova`.
+  PRs for `X.Y.0` versions stay open, and minor/major releases close nothing.
+  The version is parsed from the PR title (komac's `… version X.Y.Z`).
 - **`publish-scoop` writes the whole manifest inline.** Its `shortcuts`
   entry is the only Start Menu entry Scoop installs get. Scoop points the
   shortcut at `apps\nova\current\`, so a taskbar pin made from it survives

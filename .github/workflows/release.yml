@@ -274,6 +274,33 @@ jobs:
     runs-on: windows-latest
     continue-on-error: true
     steps:
+      - name: Close superseded patch PRs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          PATCH="${VERSION##*.}"
+          if [ "$PATCH" = "0" ]; then
+            echo "Minor/major release $VERSION: keeping open PRs"
+            exit 0
+          fi
+          LOGIN=$(gh api user --jq .login)
+          gh pr list -R microsoft/winget-pkgs --state open --author "$LOGIN" \
+            --search "pmqueiroz.Nova in:title" --json number,title \
+            --jq '.[] | "\(.number) \(.title)"' |
+          while read -r NUMBER TITLE; do
+            OLD=$(echo "$TITLE" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | tail -1)
+            [ -z "$OLD" ] && continue
+            [ "$OLD" = "$VERSION" ] && continue
+            [ "${OLD##*.}" = "0" ] && continue
+            OLDEST=$(printf '%s\n%s\n' "$OLD" "$VERSION" | sort -V | head -1)
+            [ "$OLDEST" != "$OLD" ] && continue
+            echo "Closing #$NUMBER ($OLD), superseded by $VERSION"
+            gh pr close "$NUMBER" -R microsoft/winget-pkgs \
+              --comment "Superseded by pmqueiroz.Nova $VERSION."
+          done
+
       - uses: vedantmgoyal2009/winget-releaser@v2
         with:
           identifier: pmqueiroz.Nova

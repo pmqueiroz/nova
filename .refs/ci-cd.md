@@ -45,6 +45,10 @@ Locally, `lefthook.yml` runs `cargo clippy --fix` and `cargo fmt` on staged
   README), **`publish-homebrew`**, **`publish-winget`**, **`publish-scoop`**,
   **`publish-aur`**, **`publish-apt`**, **`publish-rpm`** — each pushes to
   its own external repo.
+- **`publish-scoop` writes the whole manifest inline.** Its `shortcuts`
+  entry is the only Start Menu entry Scoop installs get. Scoop points the
+  shortcut at `apps\nova\current\`, so a taskbar pin made from it survives
+  `scoop update`. A pin made from a running versioned exe does not.
 
 **Asset names are a contract.** `core::install::asset_name` builds the
 filenames the updater downloads (`nova_V_x64-setup.exe`,

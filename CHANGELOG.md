@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.1](https://github.com/pmqueiroz/nova/compare/v1.2.0...v1.2.1) (2026-11-03)
+
+
+### Bug Fixes
+
+* **mouse:** scroll scrollback instead of sending arrows in main-screen takeovers ([79e54c5](https://github.com/pmqueiroz/nova/commit/79e54c52df9279c1c25658484852220aa4ef4bcd))
+* **parser:** ignore private sgr sequences that underlined all text ([c1fddda](https://github.com/pmqueiroz/nova/commit/c1fddda88634b2910f018eca020cf9245bd204da))
+* **split:** resize panes per mode when the split divider is released ([6a5b412](https://github.com/pmqueiroz/nova/commit/6a5b4122567f6cec84b9fa6dabc10c1d68816e90))
+* **windows:** run scoop update after nova exits ([c6f370f](https://github.com/pmqueiroz/nova/commit/c6f370fb1dac402cdff6aab58cdd52e854545f05))
+
 ## [1.2.0](https://github.com/pmqueiroz/nova/compare/v1.1.1...v1.2.0) (2026-11-02)
 
 

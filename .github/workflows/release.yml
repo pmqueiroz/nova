@@ -328,6 +328,7 @@ jobs:
               }
             },
             "bin": "nova.exe",
+            "shortcuts": [["nova.exe", "Nova"]],
             "checkver": { "github": "https://github.com/pmqueiroz/nova" },
             "autoupdate": {
               "architecture": {

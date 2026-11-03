@@ -5,6 +5,9 @@
 Working references for how this project is built. Code is the truth; these
 explain the *why* and the gotchas.
 
+Before writing or updating any ref, read and follow the `ref-write`
+skill (`.agents/skills/ref-write/SKILL.md`).
+
 - [conventions.md](./.refs/conventions.md) — authoring rules: **no comments in
   code** (docs go in `.refs/`), reusable-component discipline. Read first.
 - [architecture.md](./.refs/architecture.md) — module layout (cli/core/sys/ui),

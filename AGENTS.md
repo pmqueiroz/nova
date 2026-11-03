@@ -35,7 +35,8 @@ linked from this list.
 existing one, or modify app lifecycle process, *your final task before
 completing the job is to update the corresponding markdown file in the
 `.refs/` directory*. The documentation must perfectly reflect the code in the
-app.
+app. Write every ref update with the `ref-write` skill
+(`.agents/skills/ref-write/SKILL.md`).
 
 # Agent Skills
 Custom skills and operational workflows are stored in `.agents/skills/`.
